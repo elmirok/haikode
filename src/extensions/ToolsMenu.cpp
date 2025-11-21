@@ -1,7 +1,6 @@
 /*
- * Copyright 2023, The Genio Team
+ * Copyright The Genio Contributors
  * All rights reserved. Distributed under the terms of the MIT license.
- * Author: Nexus6 
  */
 
 #include "ToolsMenu.h"

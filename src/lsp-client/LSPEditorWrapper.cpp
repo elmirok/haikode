@@ -1,6 +1,5 @@
 /*
  * Copyright 2023, Andrea Anzani 
- * Copyright 2024, Nexus6 
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 

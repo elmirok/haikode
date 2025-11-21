@@ -91,9 +91,9 @@ GenioApp::AboutRequested()
 
 	// create the about window
 	const char* authors[] = {
-		"Nexus6",
 		"Andrea Anzani",
 		"Stefano Ceccherini",
+		"Nexus6",
 		NULL
 	};
 
@@ -510,7 +510,7 @@ GenioApp::_PrepareConfig(ConfigManager& cfg)
 
 	// TODO: Move to another, visible, section
 	cfg.AddConfig("Hidden", "outline_sort_symbols", "outline_sort_symbols", false);
-	
+
 	BMessage dummy;
 	cfg.AddConfig("Hidden", GenioNames::kSettingsProjectsToReopen,
 							GenioNames::kSettingsProjectsToReopen, dummy);

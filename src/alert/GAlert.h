@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Nexus6 
+ * Copyright The Genio Contributors
  * Parts taken from QuitAlert.cpp
  * Copyright 2016-2018 Kacper Kasper 
  * All rights reserved. Distributed under the terms of the MIT license.

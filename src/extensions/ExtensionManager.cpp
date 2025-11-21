@@ -1,9 +1,7 @@
 /*
- * Copyright 2024, The Genio Team
+ * Copyright The Genio Contributors
  * All rights reserved. Distributed under the terms of the MIT license.
- * Author: Nexus6 
  */
-
 
 #include "ExtensionManager.h"
 

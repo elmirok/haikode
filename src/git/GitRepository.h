@@ -1,6 +1,7 @@
 /*
- * Copyright 2023 Nexus6 
+ * Copyright The Genio Contributors
  * All rights reserved. Distributed under the terms of the MIT license.
+ *
  * Based on TrackGit (https://github.com/HaikuArchives/TrackGit)
  * Original author: Hrishikesh Hiraskar 
  * Copyright Hrishikesh Hiraskar and other HaikuArchives contributors (see GitHub repo for details)
