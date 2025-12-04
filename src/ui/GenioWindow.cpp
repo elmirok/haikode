@@ -1120,9 +1120,9 @@ GenioWindow::MessageReceived(BMessage* message)
 		case MSG_SET_LANGUAGE:
 			_ForwardToSelectedEditor(message);
 			break;
-		case MSG_HELP_GITHUB:
+		case MSG_HELP_PROJECT:
 		{
-			const char *argv[2] = {"https://github.com/Genio-The-Haiku-IDE/Genio", NULL};
+			const char *argv[2] = {"https://codeberg.org/Genio/Genio", NULL};
 			be_roster->Launch("text/html", 1, argv);
 			break;
 		}
@@ -2912,7 +2912,7 @@ GenioWindow::_InitMenu()
 	appMenu->AddItem(new BMenuItem(B_TRANSLATE("Help" B_UTF8_ELLIPSIS),
 		new BMessage(MSG_HELP_DOCS)));
 	appMenu->AddItem(new BMenuItem(B_TRANSLATE("Genio project" B_UTF8_ELLIPSIS),
-		new BMessage(MSG_HELP_GITHUB)));
+		new BMessage(MSG_HELP_PROJECT)));
 	appMenu->AddSeparatorItem();
 	appMenu->AddItem(new BMenuItem(B_TRANSLATE("Settings" B_UTF8_ELLIPSIS),
 		new BMessage(MSG_WINDOW_SETTINGS), 'P', B_OPTION_KEY));

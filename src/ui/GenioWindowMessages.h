@@ -139,7 +139,7 @@ enum {
 	MSG_FIND_WHOLE_WORD				= 'fiww',
 	MSG_FIND_MATCH_CASE				= 'fimc',
 
-	MSG_HELP_GITHUB					= 'hegh',
+	MSG_HELP_PROJECT				= 'hegh',
 	MSG_HELP_DOCS					= 'hdoc',
 
 	MSG_WHEEL_WITH_COMMAND_KEY		= 'waco',
