@@ -4,8 +4,8 @@
 [![Codacy Security Scan](https://github.com/Genio-The-Haiku-IDE/Genio/actions/workflows/codacy.yml/badge.svg)](https://github.com/Genio-The-Haiku-IDE/Genio/actions/workflows/codacy.yml)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/26f32bc4ecf2440d89c1932000405a4d)](https://app.codacy.com/gh/Genio-The-Haiku-IDE/Genio/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 [![CodeFactor](https://www.codefactor.io/repository/github/genio-the-haiku-ide/genio/badge)](https://www.codefactor.io/repository/github/genio-the-haiku-ide/genio)
-![Screenshot](https://github.com/Genio-The-Haiku-IDE/Genio/blob/main/artwork/screenshot/Genio-screenshot-4.0.png)
-![Screenshot-Dark](https://github.com/Genio-The-Haiku-IDE/Genio/blob/main/artwork/screenshot/Genio-screenshot-4.0-dark.png)
+![Screenshot](artwork/screenshot/Genio-screenshot-4.0.png)
+![Screenshot-Dark](artwork/screenshot/Genio-screenshot-4.0-dark.png)
 
 ## Introduction
 
@@ -57,7 +57,7 @@ Genio aims to be an easy, simple yet powerful IDE for Haiku inspired by VS Code 
 
 For more advanced IDE features, Genio implements the LSP protocol. (<https://microsoft.github.io/language-server-protocol/>)
 
-* For C and C++ projects you can use clangd. See [Configuring-clangd-lsp.md](https://github.com/Genio-The-Haiku-IDE/Genio/blob/main/Configuring-clangd-lsp.md)
+* For C and C++ projects you can use clangd. See [Configuring-clangd-lsp.md](Configuring-clangd-lsp.md)
 * For Python projects you can install and use [Python LSP Server](https://github.com/python-lsp/python-lsp-server)
 * For C# projects you can install and use [OmniSharp](https://github.com/nexus6-haiku/omnisharp-roslyn-haiku)
 
