@@ -1,11 +1,10 @@
-1	English	application/x-vnd.Genio	1731694220
+1	English	application/x-vnd.Genio	2900224338
 Create new branch from \"%selected_branch%\"	SourceControlPanel		Create new branch from \"%selected_branch%\"
 Enable brace matching	SettingsWindow		Enable brace matching
 Clear	ConsoleIOView		Clear
 CR (Classic Mac OS)	GenioWindow		CR (Classic Mac OS)
 Match case	SearchResultTab	Short as possible.	Match case
 Project	ProjectsFolderBrowser		Project
-Wrap lines in console	SettingsWindow		Wrap lines in console
 Show toolbar	GenioWindow		Show toolbar
 Project settings…	ProjectsFolderBrowser		Project settings…
 development	Utilities		development
@@ -325,6 +324,7 @@ Make bindcatalogs	GenioWindow		Make bindcatalogs
 File deleted	GitRepository		File deleted
 Status (short)	GenioWindow	The git command	Status (short)
 Don't save	GenioWindow		Don't save
+Genio uses:\nScintilla lib\nCopyright 1998-2003 by Neil Hodgson \n\nScintilla for Haiku\nCopyright 2011 by Andrea Anzani \nCopyright 2014-2015 by Kacper Kasper \n\n	GenioApp		Genio uses:\nScintilla lib\nCopyright 1998-2003 by Neil Hodgson \n\nScintilla for Haiku\nCopyright 2011 by Andrea Anzani \nCopyright 2014-2015 by Kacper Kasper \n\n
 Editor	SettingsWindow		Editor
 Build command:	ProjectSettingsWindow		Build command:
 Error creating folder	GenioWindow		Error creating folder
@@ -344,6 +344,7 @@ Don't save	Editor		Don't save
 Show statusbar	SettingsWindow		Show statusbar
 Wrap around	SettingsWindow	Continue searching from the beginning when reaching the end of the file	Wrap around
 Show toolbar	SettingsWindow		Show toolbar
+Scheme:	SettingsWindow	Name identically to Terminal's color setting	Scheme:
 Deleting branch: \"%branch%\".\n\nAfter deletion, the item will be lost.\nDo you really want to delete it?	SourceControlPanel		Deleting branch: \"%branch%\".\n\nAfter deletion, the item will be lost.\nDo you really want to delete it?
 Force showing Build log panel when building	SettingsWindow		Force showing Build log panel when building
 Cancel	GoToLineWindow		Cancel
@@ -381,7 +382,6 @@ Close all	GenioWindow		Close all
 Next	GenioWindow	Bookmark menu	Next
 Repository	SourceControlPanel		Repository
 Sort	FunctionsOutlineView		Sort
-Console theme:	SettingsWindow		Console theme:
 An error occurred attempting to rename file 	ProjectsFolderBrowser		An error occurred attempting to rename file 
 Show statusbar	GenioWindow		Show statusbar
 Find in project	GenioWindow		Find in project
@@ -389,7 +389,6 @@ Category	ProblemsPanel		Category
 Release	ProjectsFolderBrowser		Release
 Save changes to file \"%filename%\"?	Editor		Save changes to file \"%filename%\"?
 Null	FunctionsOutlineView		Null
-Genio uses:\nScintilla lib\nCopyright 1998-2003 by Neil Hodgson \n\nScintilla for Haiku\nCopyright 2011 by Andrea Anzani \nCopyright 2014-2015 by Kacper Kasper \n\n	GenioApp		Genio uses:\nScintilla lib\nCopyright 1998-2003 by Neil Hodgson \n\nScintilla for Haiku\nCopyright 2011 by Andrea Anzani \nCopyright 2014-2015 by Kacper Kasper \n\n
 Current branch	ProjectsFolderBrowser		Current branch
 Rename symbol…	GenioWindow		Rename symbol…
 Clean project	ProjectsFolderBrowser		Clean project
