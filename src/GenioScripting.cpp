@@ -10,7 +10,7 @@
 
 #include "GenioApp.h"
 #include "GenioWindow.h"
-#include "Editor.h"
+#include "IEditor.h"
 #include "EditorTabView.h"
 #include "editor/Editor.h"
 
@@ -186,7 +186,7 @@ GenioApp::_HandleScripting(BMessage* data)
 
 	status_t result = B_BAD_SCRIPT_SYNTAX;
 	BMessage reply(B_REPLY);
-	Editor* editor = nullptr;
+	IEditor* editor = nullptr;
 
 	BPropertyInfo propertyInfo(const_cast<property_info*>(sGeneralProperties));
 	int32 match = propertyInfo.FindMatch(data, index, &specifier, what, property);

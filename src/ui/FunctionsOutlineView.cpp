@@ -513,14 +513,14 @@ FunctionsOutlineView::_UpdateDocumentSymbols(const BMessage& msg, const entry_re
 
 	const int32 status = msg.GetInt32("status", Editor::STATUS_UNKNOWN);
 	switch (status) {
-		case Editor::STATUS_UNKNOWN:
+		case IEditor::STATUS_UNKNOWN:
 			fListView->MakeEmpty();
 			return;
-		case Editor::STATUS_NO_CAPABILITY:
+		case IEditor::STATUS_NO_CAPABILITY:
 			fListView->MakeEmpty();
 			fListView->AddItem(new BStringItem(B_TRANSLATE("No outline available")));
 			return;
-		case Editor::STATUS_REQUESTED:
+		case IEditor::STATUS_REQUESTED:
 			fListView->MakeEmpty();
 			fListView->AddItem(new BStringItem(B_TRANSLATE("Creating outline")));
 			return;

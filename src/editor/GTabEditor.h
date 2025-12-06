@@ -7,11 +7,11 @@
 
 #include "GTab.h"
 
-class Editor;
+class IEditor;
 
 class GTabEditor : public GTabCloseButton {
 public:
-	GTabEditor(const char* label, const BHandler* handler, Editor* editor)
+	GTabEditor(const char* label, const BHandler* handler, IEditor* editor)
 		:
 		GTabCloseButton(label, handler),
 		fEditor(editor),
@@ -25,7 +25,7 @@ public:
 	void	MouseMoved(BPoint where, uint32 transit, const BMessage* dragMessage) override;
 	void	DrawLabel(BView* owner, BRect frame, const BRect& updateRect, bool isFront) override;
 
-	Editor*	GetEditor() const { return fEditor; }
+	IEditor*	GetEditor() const { return fEditor; }
 	void	SetColor(const rgb_color& color);
 	void	SetLabel(const char* label) override;
 
@@ -37,6 +37,6 @@ protected:
 	void	DrawCircle(BView* owner, BRect& frame);
 
 private:
-	Editor*	fEditor;
+	IEditor*	fEditor;
 	rgb_color	fColor;
 };

@@ -11,13 +11,13 @@
 class BPopUpMenu;
 class BMenuItem;
 class BTabView;
-class Editor;
+class IEditor;
 class ProblemsPanel : public BColumnListView {
 public:
 		ProblemsPanel(PanelTabManager*, tab_id id);
 		virtual ~ProblemsPanel();
 
-		void UpdateProblems(Editor* editor);
+		void UpdateProblems(IEditor* editor);
 
 		virtual void MessageReceived(BMessage* msg);
 		virtual void AttachedToWindow();

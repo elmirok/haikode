@@ -43,7 +43,7 @@ public:
 	}
 
 	GMessage	fRange;
-	Editor 		*fEditor;
+	IEditor		*fEditor;
 };
 
 #define ProblemLabel B_TRANSLATE("Problems")
@@ -135,7 +135,7 @@ ProblemsPanel::MessageReceived(BMessage* msg)
 						item->SetEnabled(false);
 						fPopUpMenu->AddItem(item);
 					}
-					fPopUpMenu->SetTargetForItems(row->fEditor);
+					fPopUpMenu->SetTargetForItems(row->fEditor->View());
 					fPopUpMenu->Go(ConvertToScreen(where), true);
 					delete fPopUpMenu;
 				}
@@ -150,7 +150,7 @@ ProblemsPanel::MessageReceived(BMessage* msg)
 
 
 void
-ProblemsPanel::UpdateProblems(Editor* editor)
+ProblemsPanel::UpdateProblems(IEditor* editor)
 {
 	Clear();
 

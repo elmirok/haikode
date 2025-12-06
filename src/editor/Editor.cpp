@@ -59,14 +59,9 @@ const int kIdleTimeout = 250000; //1/4sec
 #define UNSET 0
 #define UNUSED 0
 
-editor_id get_unique_id() {
-	static editor_id g_id = 0;
-	return ++g_id;
-}
-
 Editor::Editor(entry_ref* ref, const BMessenger& target)
 	: BScintillaView(ref->name, 0, true, true)
-	, fId(get_unique_id())
+	, fId(GenerateEditorId())
 	, fFileRef(*ref)
 	, fModified(false)
 	, fBracingAvailable(false)
@@ -128,7 +123,7 @@ Editor::Editor(entry_ref* ref, const BMessenger& target)
 	//Wrap visual flag
 	SendMessage(SCI_SETWRAPVISUALFLAGS, SC_WRAPVISUALFLAG_MARGIN);
 
-	fDocumentSymbols.AddInt32("status", STATUS_UNKNOWN);
+	fDocumentSymbols.AddInt32("status", IEditor::STATUS_UNKNOWN);
 
 	// This ensure that a GoToLine call will try to center on screen the line.
 	SendMessage(SCI_SETVISIBLEPOLICY, VISIBLE_STRICT);
@@ -2147,6 +2142,41 @@ Editor::CommentSelectedLines()
 }
 
 
+void
+Editor::UncommentSelection()
+{
+	if (fCommenter.empty())
+		return;
+
+	int32 start = SendMessage(SCI_GETSELECTIONSTART, 0, UNSET);
+	int32 startLineNumber = SendMessage(SCI_LINEFROMPOSITION, start, UNSET);
+	int32 end = SendMessage(SCI_GETSELECTIONEND, 0, UNSET);
+	int32 endLineNumber = SendMessage(SCI_LINEFROMPOSITION, end, UNSET);
+	
+	SendMessage(SCI_BEGINUNDOACTION, 0, UNSET);
+	for (int32 i = startLineNumber; i <= endLineNumber; i++) {
+		int32 linePosition = SendMessage(SCI_POSITIONFROMLINE, i, UNSET);
+		std::string line(GetLine(i).String());
+		
+		// Calculate offset of first non-space
+		std::size_t offset = line.find_first_not_of("\t ");
+		if (offset == std::string::npos)
+			continue;
+		
+		// Check if line starts with comment token
+		if (line.substr(offset, fCommenter.length()) == fCommenter) {
+			// Find how many spaces follow the comment token
+			std::size_t spaces = line.substr(offset + fCommenter.length()).find_first_not_of("\t ");
+			if (spaces == std::string::npos)
+				spaces = 0;
+			// Delete comment token and trailing spaces
+			SendMessage(SCI_DELETERANGE, linePosition + offset, fCommenter.length() + spaces);
+		}
+	}
+	SendMessage(SCI_ENDUNDOACTION, 0, UNSET);
+}
+
+
 int32
 Editor::EndOfLine()
 {
@@ -2242,7 +2272,7 @@ Editor::SetProblems()
 
 
 void
-Editor::SetDocumentSymbols(const BMessage* symbols, Editor::symbols_status status)
+Editor::SetDocumentSymbols(const BMessage* symbols, IEditor::symbols_status status)
 {
 	// make absolutely sure we're locked
 	if (!Window()->IsLocked()) {

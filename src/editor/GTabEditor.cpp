@@ -7,7 +7,7 @@
 
 #include <Message.h>
 
-#include "Editor.h"
+#include "IEditor.h"
 #include "EditorTabView.h"
 
 
