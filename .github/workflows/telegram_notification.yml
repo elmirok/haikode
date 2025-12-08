@@ -7,7 +7,7 @@ on:
 jobs:
   build:
     name: send telegram message
-    runs-on: ubuntu-latest
+    runs-on: ubuntu
     steps:
       - name: send telegram message on push
         uses: https://github.com/appleboy/telegram-action@master
