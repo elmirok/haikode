@@ -14,7 +14,8 @@ typedef uint64	editor_id;
  * Generate a unique editor ID
  * Thread-safe global ID generator for all editor types
  */
-inline editor_id GenerateEditorId() {
-	static editor_id g_editor_id = 0;
-	return ++g_editor_id;
+inline editor_id GenerateEditorId()
+{
+	static editor_id sEditorId = 0;
+	return ++sEditorId;
 }
