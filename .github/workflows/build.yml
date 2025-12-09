@@ -31,11 +31,11 @@ jobs:
         config:
           # The OS versions supported are specific to the version of the action
           # https://github.com/cross-platform-actions/action/blob/master/changelog.md
-          - { os: haiku, version: 'r1beta5', runner: 'codeberg-medium', architecture: 'x86-64', compiler: 'gcc' }
-          - { os: haiku, version: 'r1beta5',  runner: 'codeberg-medium', architecture: 'x86', compiler: 'gcc' }
-          - { os: haiku, version: 'nightly', runner: 'codeberg-medium', architecture: 'x86-64', compiler: 'gcc' }
-          - { os: haiku, version: 'nightly',  runner: 'codeberg-medium', architecture: 'x86', compiler: 'gcc' }
-          - { os: haiku, version: 'r1beta5', runner: 'codeberg-medium', architecture: 'x86-64', compiler: 'clang' }
+          - { os: haiku, version: 'r1beta5', runner: 'ubuntu', architecture: 'x86-64', compiler: 'gcc' }
+          - { os: haiku, version: 'r1beta5',  runner: 'ubuntu', architecture: 'x86', compiler: 'gcc' }
+          - { os: haiku, version: 'nightly', runner: 'ubuntu', architecture: 'x86-64', compiler: 'gcc' }
+          - { os: haiku, version: 'nightly',  runner: 'ubuntu', architecture: 'x86', compiler: 'gcc' }
+          - { os: haiku, version: 'r1beta5', runner: 'ubuntu', architecture: 'x86-64', compiler: 'clang' }
 
     steps:
       - name: Checkout code
