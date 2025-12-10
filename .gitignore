@@ -9,3 +9,4 @@ compile_commands.json
 txt2header
 Changelog.h
 data/genio_terminal_addon
+.genio.yaml
