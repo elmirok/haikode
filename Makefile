@@ -86,6 +86,7 @@ SRCS += src/editor/EditorContextMenu.cpp
 SRCS += src/editor/EditorTabView.cpp
 SRCS += src/editor/GTabEditor.cpp
 SRCS += src/editor/ImageEditor.cpp
+SRCS += src/editor/EmptyEditor.cpp
 SRCS += src/ui/FunctionsOutlineView.cpp
 SRCS += src/ui/GenioWindow.cpp
 SRCS += src/ui/GenioSecondaryWindow.cpp
