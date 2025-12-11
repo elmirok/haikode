@@ -26,6 +26,8 @@ public:
 								EmptyEditor();
 								~EmptyEditor() override;
 
+    void                        MessageReceived(BMessage* message) override;
+
 	// IEditor interface - View
 	BView*						View() override { return this; }
 
@@ -36,7 +38,7 @@ public:
 	ProjectFolder*				GetProjectFolder() const override { return nullptr; }
 
 	// IEditor interface - Focus
-	void						GrabFocus() override {}
+	void						GrabFocus() override;
 
 	// IEditor interface - Clipboard
 	bool						CanCopy() override { return false; }

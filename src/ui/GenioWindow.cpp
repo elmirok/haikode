@@ -1,6 +1,6 @@
-  /*
+/*
  * Copyright The Genio Contributors
- * Copyright 2017..2018 A. Mosca 
+ * Copyright 2017..2018 A. Mosca
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -301,8 +301,8 @@ GenioWindow::MessageReceived(BMessage* message)
 			entry_ref ref;
 			if (message->FindRef("refs", &ref) == B_OK) {
 				IEditor* editor = fTabManager->EditorBy(&ref);
-				if (editor != nullptr) {
-					PostMessage(message, editor->View());
+				if (editor != nullptr && editor->View() != nullptr) {
+					editor->View()->MessageReceived(message);
 				}
 			}
 			break;
@@ -340,6 +340,9 @@ GenioWindow::MessageReceived(BMessage* message)
 //				fRunConsoleProgramGroup->SetVisible(false);
 				fRunConsoleProgramText->MakeFocus(false);
 				ActionManager::SetPressed(MSG_RUN_CONSOLE_PROGRAM_SHOW, false);
+			} else { //test code
+				IEditor* editor = EditorManager::CreateEditor(nullptr, BMessenger(this));
+				fTabManager->AddEditor("EmptyEditor", editor, nullptr);
 			}
 			break;
 		}
@@ -394,7 +397,8 @@ GenioWindow::MessageReceived(BMessage* message)
 				//
 				// However, we have to take care to not forward the custom clipboard messages, else
 				// we would wind up in infinite recursion.
-				PostMessage(message, view);
+				//PostMessage(message, view);
+				view->MessageReceived(message);
 			}
 			break;
 		}
@@ -1052,7 +1056,8 @@ GenioWindow::MessageReceived(BMessage* message)
 
 				BMessage tabSelectedNotice(MSG_NOTIFY_EDITOR_FILE_SELECTED);
 				tabSelectedNotice.AddPointer("project", editor->GetProjectFolder());
-				tabSelectedNotice.AddRef("ref", editor->FileRef());
+				if (editor->FileRef() != nullptr)
+					tabSelectedNotice.AddRef("ref", editor->FileRef());
 				SendNotices(MSG_NOTIFY_EDITOR_FILE_SELECTED, &tabSelectedNotice);
 
 				// TODO: when closing then reopening a tab, the message will be empty
@@ -1063,7 +1068,8 @@ GenioWindow::MessageReceived(BMessage* message)
 				editor->GetDocumentSymbols(&symbols);
 				symbolsChanged.AddUInt64(kEditorId, id);
 				symbolsChanged.AddBool("is_selected", fTabManager->SelectedEditor() == editor);
-				symbolsChanged.AddRef("ref", editor->FileRef());
+				if (editor->FileRef() != nullptr)
+					symbolsChanged.AddRef("ref", editor->FileRef());
 				symbolsChanged.AddMessage("symbols", &symbols);
 				symbolsChanged.AddInt32("caret_line", editor->GetCurrentLineNumber());
 				SendNotices(MSG_NOTIFY_EDITOR_SYMBOLS_UPDATED, &symbolsChanged);
@@ -1373,8 +1379,10 @@ GenioWindow::_ForwardToSelectedEditor(BMessage* message)
 {
 	ASSERT(message != nullptr);
 	IEditor* editor = fTabManager->SelectedEditor();
-	if (editor != nullptr) {
-		PostMessage(message, editor->View());
+	printf("_ForwardToSelectedEditor: editor id %" B_PRIu64 "\n", editor ? editor->Id() : 0);
+	printf("_ForwardToSelectedEditor: name %s\n", editor ? editor->FilePath().String() : "null");
+	if (editor != nullptr && editor->View() != nullptr) {
+		editor->View()->MessageReceived(message);
 	}
 }
 
@@ -1515,7 +1523,8 @@ GenioWindow::QuitRequested()
 
 			for (int32 index = 0; index < fTabManager->CountTabs(); index++) {
 				IEditor* editor = fTabManager->EditorAt(index);
-				files.AddRef("file_to_reopen", editor->FileRef());
+				if (editor->FileRef() != nullptr)
+					files.AddRef("file_to_reopen", editor->FileRef());
 			}
 		}
 		gCFG[GenioNames::kSettingsFilesToReopen] = files;
@@ -1697,7 +1706,8 @@ GenioWindow::_RemoveTab(IEditor* editor)
 	// notify listeners:
 	BMessage noticeCloseMessage(MSG_NOTIFY_EDITOR_FILE_CLOSED);
 	noticeCloseMessage.AddString("file_name", editor->FilePath());
-	noticeCloseMessage.AddRef("file_ref", editor->FileRef());
+	if (editor->FileRef() != nullptr)
+		noticeCloseMessage.AddRef("file_ref", editor->FileRef());
 	SendNotices(MSG_NOTIFY_EDITOR_FILE_CLOSED, &noticeCloseMessage);
 
 	fTabManager->RemoveEditor(editor);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025, Andrea Anzani 
+ * Copyright 2025, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -304,12 +304,6 @@ EditorTabView::ShowTabMenu(GTabEditor* tab, BPoint where)
 		BMessage* msg = fPopUpMenu->ItemAt(i)->Message();
 		if (msg != nullptr) {
 			if (editor != nullptr) {
-				//TODO: remove "ref"
-				if (msg->HasRef("ref"))
-					msg->ReplaceRef("ref", editor->FileRef());
-				else
-					msg->AddRef("ref", editor->FileRef());
-
 				if (msg->HasUInt64(kEditorId)) {
 					msg->ReplaceUInt64(kEditorId, editor->Id());
 				} else {
@@ -319,12 +313,25 @@ EditorTabView::ShowTabMenu(GTabEditor* tab, BPoint where)
 		}
 	}
 
-	bool isFindInBrowserEnable = ActionManager::IsEnabled(MSG_FIND_IN_BROWSER);
-	ActionManager::SetEnabled(MSG_FIND_IN_BROWSER, (editor != nullptr && editor->GetProjectFolder() != nullptr));
+	bool isFindInBrowserEnabled = ActionManager::IsEnabled(MSG_FIND_IN_BROWSER);
+	bool isShowInTrackerEnabled = ActionManager::IsEnabled(MSG_PROJECT_MENU_SHOW_IN_TRACKER);
+	bool isOpenInTerminalEnabled = ActionManager::IsEnabled(MSG_PROJECT_MENU_OPEN_TERMINAL);
+
+	if (editor->FileRef() != nullptr) {
+		ActionManager::GetMessage(MSG_PROJECT_MENU_SHOW_IN_TRACKER, fPopUpMenu)->ReplaceRef("ref", editor->FileRef());
+		ActionManager::GetMessage(MSG_PROJECT_MENU_OPEN_TERMINAL, fPopUpMenu)->ReplaceRef("ref", editor->FileRef());
+		ActionManager::SetEnabled(MSG_FIND_IN_BROWSER, (editor->GetProjectFolder() != nullptr));
+	} else {
+		ActionManager::SetEnabled(MSG_PROJECT_MENU_SHOW_IN_TRACKER, false);
+		ActionManager::SetEnabled(MSG_PROJECT_MENU_OPEN_TERMINAL, false);
+		ActionManager::SetEnabled(MSG_FIND_IN_BROWSER, false);
+	}
 
 	fPopUpMenu->Go(where, true);
 
-	ActionManager::SetEnabled(MSG_FIND_IN_BROWSER, isFindInBrowserEnable);
+	ActionManager::SetEnabled(MSG_PROJECT_MENU_SHOW_IN_TRACKER, isShowInTrackerEnabled);
+	ActionManager::SetEnabled(MSG_PROJECT_MENU_OPEN_TERMINAL, isOpenInTerminalEnabled);
+	ActionManager::SetEnabled(MSG_FIND_IN_BROWSER, isFindInBrowserEnabled);
 }
 
 

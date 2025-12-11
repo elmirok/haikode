@@ -7,6 +7,7 @@
 
 #include "Editor.h"
 #include "ImageEditor.h"
+#include "EmptyEditor.h"
 #include "IEditor.h"
 #include "Languages.h"
 #include "Log.h"
@@ -48,7 +49,7 @@ EditorManager::IsFileSupported(const entry_ref* ref)
 EditorManager::IsFileSupported(const entry_ref* ref, BString& outFileType)
 {
 	outFileType.SetTo("");
-	
+
 	if (ref == nullptr)
 		return false;
 
@@ -91,7 +92,7 @@ EditorManager::IsFileSupported(const entry_ref* ref, BString& outFileType)
 			// Generic text file, leave outFileType empty if not already set
 			return true;
 		}
-		
+
 		if (::strncmp(mime, "image/", 6) == 0) {
 			outFileType = "image";
 			return true;
@@ -106,7 +107,7 @@ EditorManager::CreateEditor(entry_ref* ref, const BMessenger& target,
 	const std::string& fileType)
 {
 	if (ref == nullptr) {
-		return nullptr;
+		return new EmptyEditor();
 	}
 
 	// Check if file is supported and get detected type

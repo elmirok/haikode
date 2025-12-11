@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -177,8 +177,8 @@ ProblemsPanel::UpdateProblems(IEditor* editor)
 			row->SetField(new BStringField(line), kPositionColumn);
 			AddRow(row);
 		}
-		_UpdateTabLabel();
 	}
+	_UpdateTabLabel();
 }
 
 
