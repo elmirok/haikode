@@ -1,6 +1,6 @@
 /*
- * Copyright 2025 Andrea Anzani 
- * Copyright 2017 A. Mosca 
+ * Copyright 2025 Andrea Anzani
+ * Copyright 2017 A. Mosca
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #pragma once
@@ -138,9 +138,9 @@ public:
 			void				SetDocumentSymbols(const BMessage* symbols, IEditor::symbols_status status) override;
 			void				GetDocumentSymbols(BMessage* symbols) const override;
 
-			void				SetCommentLineToken(const std::string& commenter) override { fCommenter = commenter; }
+			void				SetCommentLineToken(const std::string& commenter) { fCommenter = commenter; }
 			void				SetCommentBlockTokens(const std::string& startBlock,
-												const std::string& endBlock) override;
+												const std::string& endBlock) ;
 
 			LSPEditorWrapper*	GetLSPEditorWrapper() override { return fLSPEditorWrapper; }
 			bool				HasLSPServer() const override;
@@ -196,38 +196,38 @@ private:
 			void				GoToDeclaration();
 			void				GoToImplementation();
 			void				Rename();
-			void				SwitchSourceHeader() override;
-			void				UncommentSelection() override;
+			void				SwitchSourceHeader();
+			void				UncommentSelection();
 
 			void 				ContextMenu(BPoint point);
-			void				ToggleFolding() override;
-			void				ShowLineEndings(bool show) override;
-			void				ShowWhiteSpaces(bool show) override;
-			bool				LineEndingsVisible() override;
-			bool				WhiteSpacesVisible() override;
+			void				ToggleFolding();
+			void				ShowLineEndings(bool show);
+			void				ShowWhiteSpaces(bool show);
+			bool				LineEndingsVisible();
+			bool				WhiteSpacesVisible();
 
-			void				ScrollCaret() override;
-			void				SelectAll() override;
+			void				ScrollCaret();
+			void				SelectAll();
 	const 	BRect				GetSymbolSurroundingRect();
 			void				SendPositionChanges();
 			BString const		ModeString();
-			void				OverwriteToggle() override;
+			void				OverwriteToggle();
 			BString const		IsOverwriteString();
 			bool				IsSearchSelected(const BString& search, int flags);
-			void				CommentSelectedLines() override;
+			void				CommentSelectedLines();
 
-			void				DuplicateCurrentLine() override;
-			void				DeleteSelectedLines() override;
-			void				EndOfLineConvert(int32 eolMode) override;
+			void				DuplicateCurrentLine();
+			void				DeleteSelectedLines();
+			void				EndOfLineConvert(int32 eolMode);
 			void				EnsureVisiblePolicy();
-			bool				CanClear() override;
-			void				Clear() override;
-			void				BookmarkClearAll(int marker) override;
-			bool				BookmarkGoToNext() override;
-			bool				BookmarkGoToPrevious() override;
-			void				BookmarkToggle(int position) override;
+			bool				CanClear();
+			void				Clear();
+			void				BookmarkClearAll(int marker);
+			bool				BookmarkGoToNext();
+			bool				BookmarkGoToPrevious();
+			void				BookmarkToggle(int position);
 			BString	const		_EndOfLineString();
-			void				UpdateStatusBar() override;
+			void				UpdateStatusBar();
 			void				_ApplyExtensionSettings();
 			void 				_LoadResources(BMessage *message);
 			void				_MaintainIndentation(char c);

@@ -15,7 +15,7 @@
 
 /**
  * ImageEditor - Image viewer implementation of IEditor
- * 
+ *
  * Displays image files in common formats (PNG, JPEG, GIF, BMP, etc.)
  * Most IEditor methods are no-ops or stubs since image editing is not supported.
  */
@@ -90,9 +90,6 @@ public:
 	void						SetDocumentSymbols(const BMessage* symbols, IEditor::symbols_status status) override {}
 	void						GetDocumentSymbols(BMessage* symbols) const override {}
 
-	// IEditor interface - Comments (not applicable)
-	void						SetCommentLineToken(const std::string& commenter) override {}
-	void						SetCommentBlockTokens(const std::string& startBlock, const std::string& endBlock) override {}
 
 	// IEditor interface - LSP (not supported)
 	LSPEditorWrapper*			GetLSPEditorWrapper() override { return nullptr; }
@@ -119,36 +116,6 @@ public:
 	BMessage					GetModifiedState() override;
 	BMessage					GetDocumentInfo() override;
 
-	// IEditor interface - Additional editing (not supported)
-	void						SelectAll() override {}
-	bool						CanClear() override { return false; }
-	void						Clear() override {}
-	void						OverwriteToggle() override {}
-	void						CommentSelectedLines() override {}
-	void						UncommentSelection() override {}
-	void						DuplicateCurrentLine() override {}
-	void						DeleteSelectedLines() override {}
-	void						EndOfLineConvert(int32 eolMode) override {}
-
-	// IEditor interface - Code navigation (not applicable)
-	void						SwitchSourceHeader() override {}
-
-	// IEditor interface - Bookmarks (not supported)
-	void						BookmarkClearAll(int marker) override {}
-	bool						BookmarkGoToNext() override { return false; }
-	bool						BookmarkGoToPrevious() override { return false; }
-	void						BookmarkToggle(int position) override {}
-
-	// IEditor interface - Display (minimal support)
-	void						ShowLineEndings(bool show) override {}
-	void						ShowWhiteSpaces(bool show) override {}
-	bool						LineEndingsVisible() override { return false; }
-	bool						WhiteSpacesVisible() override { return false; }
-	void						ToggleFolding() override {}
-	void						ScrollCaret() override {}
-
-	// IEditor interface - Status
-	void						UpdateStatusBar() override {}
 
 protected:
 	// BView overrides

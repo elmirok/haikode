@@ -102,11 +102,6 @@ public:
 	virtual void				SetDocumentSymbols(const BMessage* symbols, IEditor::symbols_status status) = 0;
 	virtual void				GetDocumentSymbols(BMessage* symbols) const = 0;
 
-	// Comment configuration
-	virtual void				SetCommentLineToken(const std::string& commenter) = 0;
-	virtual void				SetCommentBlockTokens(const std::string& startBlock,
-												const std::string& endBlock) = 0;
-
 	// LSP integration
 	virtual LSPEditorWrapper*	GetLSPEditorWrapper() = 0;
 	virtual bool				HasLSPServer() const = 0;
@@ -131,35 +126,4 @@ public:
 	virtual void				SetScrollPosition(int32 line) = 0;
 	virtual BMessage			GetModifiedState() = 0;
 	virtual BMessage			GetDocumentInfo() = 0;
-
-	// Additional editing operations
-	virtual void				SelectAll() = 0;
-	virtual bool				CanClear() = 0;
-	virtual void				Clear() = 0;
-	virtual void				OverwriteToggle() = 0;
-	virtual void				CommentSelectedLines() = 0;
-	virtual void				UncommentSelection() = 0;
-	virtual void				DuplicateCurrentLine() = 0;
-	virtual void				DeleteSelectedLines() = 0;
-	virtual void				EndOfLineConvert(int32 eolMode) = 0;
-
-	// Code navigation
-	virtual void				SwitchSourceHeader() = 0;
-
-	// Bookmarks
-	virtual void				BookmarkClearAll(int marker) = 0;
-	virtual bool				BookmarkGoToNext() = 0;
-	virtual bool				BookmarkGoToPrevious() = 0;
-	virtual void				BookmarkToggle(int position) = 0;
-
-	// Display settings
-	virtual void				ShowLineEndings(bool show) = 0;
-	virtual void				ShowWhiteSpaces(bool show) = 0;
-	virtual bool				LineEndingsVisible() = 0;
-	virtual bool				WhiteSpacesVisible() = 0;
-	virtual void				ToggleFolding() = 0;
-	virtual void				ScrollCaret() = 0;
-
-	// Status updates
-	virtual void				UpdateStatusBar() = 0;
 };
