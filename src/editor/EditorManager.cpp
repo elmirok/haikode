@@ -107,7 +107,7 @@ EditorManager::CreateEditor(entry_ref* ref, const BMessenger& target,
 	const std::string& fileType)
 {
 	if (ref == nullptr) {
-		return new EmptyEditor();
+		return new Editor(nullptr, target);
 	}
 
 	// Check if file is supported and get detected type

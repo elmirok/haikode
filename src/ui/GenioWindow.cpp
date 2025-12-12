@@ -579,9 +579,14 @@ GenioWindow::MessageReceived(BMessage* message)
 		case MSG_FILE_SAVE_AS:
 		{
 			IEditor* editor = fTabManager->SelectedEditor();
-			BEntry entry(editor->FileRef());
-			entry.GetParent(&entry);
-			fSavePanel->SetPanelDirectory(&entry);
+			if (editor->FileRef() != nullptr) {
+				BEntry entry(editor->FileRef());
+				entry.GetParent(&entry);
+				fSavePanel->SetPanelDirectory(&entry);
+			} else if (GetActiveProject() != nullptr) {
+				BEntry entry(GetActiveProject()->Path().String());
+				fSavePanel->SetPanelDirectory(&entry);
+			}
 			fSavePanel->Show();
 			break;
 		}
@@ -1901,6 +1906,13 @@ GenioWindow::_FileSave(IEditor* editor)
 	if (editor == nullptr) {
 		LogErrorF("NULL editor pointer (%d)", index);
 		return B_ERROR;
+	}
+
+	// If no valid file ref and editor is modified, trigger save as instead
+	if (editor->FileRef() == nullptr && editor->IsModified()) {
+		BMessage saveAsMsg(MSG_FILE_SAVE_AS);
+		PostMessage(&saveAsMsg);
+		return B_OK;
 	}
 
 	// Readonly file, should not happen

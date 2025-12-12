@@ -60,9 +60,9 @@ const int kIdleTimeout = 250000; //1/4sec
 #define UNUSED 0
 
 Editor::Editor(entry_ref* ref, const BMessenger& target)
-	: BScintillaView(ref->name, 0, true, true)
+	: BScintillaView(ref ? ref->name : "Untitled", 0, true, true)
 	, fId(GenerateEditorId())
-	, fFileRef(*ref)
+	, fFileRef()
 	, fModified(false)
 	, fBracingAvailable(false)
 	, fFoldingAvailable(false)
@@ -72,11 +72,19 @@ Editor::Editor(entry_ref* ref, const BMessenger& target)
 	, fProjectFolder(NULL)
 	, fIdleHandler(nullptr)
 {
+	if (ref) {
+		fFileRef = *ref;
+		fFileName = BString(ref->name);
+	} else {
+		fFileName = BString("Untitled");
+		// Initialize fFileRef with invalid values
+		fFileRef.device = -1;
+		fFileRef.directory = -1;
+	}
 	fStatusView = new editor::StatusView(this);
-	fFileName = BString(ref->name);
 	SetTarget(target);
 
-	fLSPEditorWrapper = new LSPEditorWrapper(BPath(&fFileRef), this);
+	fLSPEditorWrapper = new LSPEditorWrapper(HasValidFileRef() ? BPath(&fFileRef) : BPath(), this);
 
 	LoadEditorConfig();
 
@@ -150,7 +158,7 @@ Editor::~Editor()
 	StopMonitoring();
 
 	// Set caret position
-	if (gCFG["save_caret"]) {
+	if (gCFG["save_caret"] && HasValidFileRef()) {
 		BNode node(&fFileRef);
 		if (node.InitCheck() == B_OK) {
 			int32 pos = GetCurrentPosition();
@@ -639,8 +647,28 @@ Editor::EnsureVisiblePolicy()
 const BString
 Editor::FilePath() const
 {
+	if (!HasValidFileRef())
+		return BString("");
 	BPath path(&fFileRef);
 	return path.Path();
+}
+
+
+entry_ref* const
+Editor::FileRef()
+{
+	if (!HasValidFileRef())
+		return nullptr;
+	return &fFileRef;
+}
+
+
+node_ref* const
+Editor::NodeRef()
+{
+	if (!HasValidFileRef())
+		return nullptr;
+	return &fNodeRef;
 }
 
 
@@ -1066,6 +1094,9 @@ Editor::LoadEditorConfig()
 status_t
 Editor::LoadFromFile()
 {
+	if (!HasValidFileRef())
+		return B_ERROR;
+	
 	status_t status;
 	BFile file;
 	if ((status = file.SetTo(&fFileRef, B_READ_ONLY)) != B_OK)
@@ -1357,6 +1388,9 @@ Editor::Redo()
 status_t
 Editor::Reload()
 {
+	if (!HasValidFileRef())
+		return B_ERROR;
+	
 	status_t status;
 	BFile file;
 	//TODO errors should be notified
@@ -1497,6 +1531,9 @@ Editor::ReplaceOne(const BString& selection, const BString& replacement)
 status_t
 Editor::SaveToFile()
 {
+	if (!HasValidFileRef())
+		return B_ERROR;
+	
 	BFile file;
 	status_t status = file.SetTo(&fFileRef, B_READ_WRITE | B_ERASE_FILE | B_CREATE_FILE);
 	if (status != B_OK)
@@ -1718,7 +1755,7 @@ Editor::SetReadOnly(bool readOnly)
 status_t
 Editor::SetSavedCaretPosition()
 {
-	if (!gCFG["save_caret"])
+	if (!gCFG["save_caret"] || !HasValidFileRef())
 		return B_ERROR; //TODO maybe tweak
 
 	status_t status;
@@ -1767,6 +1804,9 @@ Editor::SetTarget(const BMessenger& target)
 status_t
 Editor::StartMonitoring()
 {
+	if (!HasValidFileRef())
+		return B_ERROR;
+	
 	// start monitoring this file for changes
 	BEntry entry(&fFileRef, true);
 
@@ -1786,6 +1826,9 @@ Editor::StartMonitoring()
 status_t
 Editor::StopMonitoring()
 {
+	if (!HasValidFileRef())
+		return B_OK;
+	
 	status_t status;
 	if ((status = watch_node(&fNodeRef, B_STOP_WATCHING, fTarget)) != B_OK) {
 		LogErrorF("Can't stop watch_node a node_ref! (%s) (%s)", fFileRef.name, strerror(status));
@@ -1892,6 +1935,9 @@ Editor::Rename()
 void
 Editor::SwitchSourceHeader()
 {
+	if (!HasValidFileRef())
+		return;
+	
 	entry_ref foundRef;
 	if (FindSourceOrHeader(&fFileRef, &foundRef) == B_OK) {
 		BMessage refs(B_REFS_RECEIVED);
@@ -2363,4 +2409,11 @@ Editor::EvaluateIdleTime()
 			LogInfo("EvaluateIdleTime: fIdleHandler re-armed.");
 		}
 	}
+}
+
+
+bool
+Editor::HasValidFileRef() const
+{
+	return fFileRef.device >= 0 && fFileRef.directory >= 0;
 }

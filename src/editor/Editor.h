@@ -103,9 +103,9 @@ public:
 
 			// File interface
 		const BString			FilePath() const override;
-			entry_ref *const	FileRef() override { return &fFileRef; }
+			entry_ref *const	FileRef() override;
 			status_t			SetFileRef(entry_ref* ref) override;
-			node_ref *const		NodeRef() override { return &fNodeRef; }
+			node_ref *const		NodeRef() override;
 			status_t			LoadFromFile() override;
 			status_t			SaveToFile() override;
 			status_t			Reload() override;
@@ -248,7 +248,8 @@ private:
 			template<typename T>
 			void				Set(typename T::type value) { T::Set(this, value); }
 
-			void	EvaluateIdleTime();
+			void				EvaluateIdleTime();
+			bool				HasValidFileRef() const;
 
 private:
 			editor_id			fId;
