@@ -26,7 +26,7 @@ public:
 								EmptyEditor();
 								~EmptyEditor() override;
 
-    void                        MessageReceived(BMessage* message) override;
+	status_t					PerformEditorAction(BMessage* msg) override;
 
 	// IEditor interface - View
 	BView*						View() override { return this; }

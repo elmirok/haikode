@@ -1,9 +1,9 @@
 /*
  * Original code from Ideam project
  * Parts borrowed from SciTe and Koder editors
- * Copyright 2017 A. Mosca 
+ * Copyright 2017 A. Mosca
  * Copyright (c) Neil Hodgson
- * Copyright 2014-2019 Kacper Kasper 
+ * Copyright 2014-2019 Kacper Kasper
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -163,99 +163,13 @@ Editor::~Editor()
 	fLSPEditorWrapper = NULL;
 }
 
-
-void
-Editor::MessageReceived(BMessage* message)
+status_t
+Editor::PerformEditorAction(BMessage* message)
 {
+	if (message == nullptr)
+		return B_BAD_VALUE;
+
 	switch (message->what) {
-		case editor::StatusView::UPDATE_STATUS:
-			UpdateStatusBar();
-			break;
-		case kIdle:
-			fLSPEditorWrapper->flushChanges();
-			break;
-		case MSG_REPLACE_ALL:
-		case MSG_REPLACE_NEXT:
-		case MSG_REPLACE_ONE:
-		case MSG_REPLACE_PREVIOUS:
-		{
-			BString text = message->GetString("text", "");
-			BString replace = message->GetString("replace", "");
-
-			_NotifyFindStatus("");
-			GrabFocus();
-			bool matchCase = message->GetBool("match_case", false);
-			bool wholeWord = message->GetBool("whole_word", false);
-
-			int flags = SetSearchFlags(matchCase, wholeWord, false, false, false);
-			bool wrap = message->GetBool("wrap", false);
-			int32 kind = message->GetInt32("kind", REPLACE_NONE);
-
-			switch (kind) {
-				case REPLACE_ALL:
-				{
-					ReplaceAll(text, replace, flags);
-					break;
-				}
-				case REPLACE_NEXT:
-				{
-					ReplaceAndFindNext(text, replace, flags, wrap);
-					break;
-				}
-				case REPLACE_ONE:
-				{
-					ReplaceOne(text, replace);
-					break;
-				}
-				case REPLACE_PREVIOUS:
-				{
-					ReplaceAndFindPrevious(text, replace, flags, wrap);
-					break;
-				}
-				default:
-					break;
-			}
-			break;
-		}
-		case MSG_FIND_MARK_ALL:
-		{
-			BString text = message->GetString("text", "");
-			if (text.IsEmpty())
-				return;
-
-			_NotifyFindStatus("");
-			GrabFocus();
-			bool matchCase = message->GetBool("match_case", false);
-			bool wholeWord = message->GetBool("whole_word", false);
-
-			int flags = SetSearchFlags(matchCase, wholeWord, false, false, false);
-
-			FindMarkAll(text, flags);
-
-			break;
-		}
-		case MSG_FIND_NEXT:
-		case MSG_FIND_PREVIOUS:
-		{
-			BString text = message->GetString("text", "");
-			if (text.IsEmpty()) {
-				return;
-			}
-			_NotifyFindStatus("");
-			GrabFocus();
-			bool matchCase = message->GetBool("match_case", false);
-			bool wholeWord = message->GetBool("whole_word", false);
-
-			int flags = SetSearchFlags(matchCase, wholeWord, false, false, false);
-			bool wrap = message->GetBool("wrap", false);
-
-			if (message->GetBool("backward", false) == false)
-				FindNext(text, flags, wrap);
-			else
-				FindPrevious(text, flags, wrap);
-
-			break;
-		}
 		case MSG_BOOKMARK_CLEAR_ALL:
 			BookmarkClearAll(sci_BOOKMARK);
 			break;
@@ -331,19 +245,6 @@ Editor::MessageReceived(BMessage* message)
 			ApplySettings();
 			//NOTE (TODO?) we are not changing any LSP configuration!
 			break;
-		case kApplyFix:
-			if (fLSPEditorWrapper)
-				fLSPEditorWrapper->ApplyFix(message);
-			break;
-		case kCallTipClick:
-		{
-			int32 position = message->GetInt32("position", 0);
-			if (position == 1)
-				fLSPEditorWrapper->PrevCallTip();
-			else
-				fLSPEditorWrapper->NextCallTip();
-			break;
-		}
 		case MSG_COLLAPSE_SYMBOL_NODE:
 		{
 			BString symbol;
@@ -363,6 +264,118 @@ Editor::MessageReceived(BMessage* message)
 			_LoadResources(message);
 			break;
 		}
+		case MSG_REPLACE_ALL:
+		case MSG_REPLACE_NEXT:
+		case MSG_REPLACE_ONE:
+		case MSG_REPLACE_PREVIOUS:
+		{
+			BString text = message->GetString("text", "");
+			BString replace = message->GetString("replace", "");
+
+			_NotifyFindStatus("");
+			GrabFocus();
+			bool matchCase = message->GetBool("match_case", false);
+			bool wholeWord = message->GetBool("whole_word", false);
+
+			int flags = SetSearchFlags(matchCase, wholeWord, false, false, false);
+			bool wrap = message->GetBool("wrap", false);
+			int32 kind = message->GetInt32("kind", REPLACE_NONE);
+
+			switch (kind) {
+				case REPLACE_ALL:
+				{
+					ReplaceAll(text, replace, flags);
+					break;
+				}
+				case REPLACE_NEXT:
+				{
+					ReplaceAndFindNext(text, replace, flags, wrap);
+					break;
+				}
+				case REPLACE_ONE:
+				{
+					ReplaceOne(text, replace);
+					break;
+				}
+				case REPLACE_PREVIOUS:
+				{
+					ReplaceAndFindPrevious(text, replace, flags, wrap);
+					break;
+				}
+				default:
+					break;
+			}
+			break;
+		}
+		case MSG_FIND_MARK_ALL:
+		{
+			BString text = message->GetString("text", "");
+			if (text.IsEmpty())
+				return B_OK;
+
+			_NotifyFindStatus("");
+			GrabFocus();
+			bool matchCase = message->GetBool("match_case", false);
+			bool wholeWord = message->GetBool("whole_word", false);
+
+			int flags = SetSearchFlags(matchCase, wholeWord, false, false, false);
+
+			FindMarkAll(text, flags);
+
+			break;
+		}
+		case MSG_FIND_NEXT:
+		case MSG_FIND_PREVIOUS:
+		{
+			BString text = message->GetString("text", "");
+			if (text.IsEmpty()) {
+				return B_OK;
+			}
+			_NotifyFindStatus("");
+			GrabFocus();
+			bool matchCase = message->GetBool("match_case", false);
+			bool wholeWord = message->GetBool("whole_word", false);
+
+			int flags = SetSearchFlags(matchCase, wholeWord, false, false, false);
+			bool wrap = message->GetBool("wrap", false);
+
+			if (message->GetBool("backward", false) == false)
+				FindNext(text, flags, wrap);
+			else
+				FindPrevious(text, flags, wrap);
+
+			break;
+		}
+		default:
+			return B_ERROR;
+	}
+	return B_OK;
+}
+
+void
+Editor::MessageReceived(BMessage* message)
+{
+	switch (message->what) {
+		case editor::StatusView::UPDATE_STATUS:
+			UpdateStatusBar();
+			break;
+		case kIdle:
+			fLSPEditorWrapper->flushChanges();
+			break;
+		case kApplyFix:
+			if (fLSPEditorWrapper)
+				fLSPEditorWrapper->ApplyFix(message);
+			break;
+		case kCallTipClick:
+		{
+			int32 position = message->GetInt32("position", 0);
+			if (position == 1)
+				fLSPEditorWrapper->PrevCallTip();
+			else
+				fLSPEditorWrapper->NextCallTip();
+			break;
+		}
+
 		default:
 			BScintillaView::MessageReceived(message);
 			break;
@@ -2152,17 +2165,17 @@ Editor::UncommentSelection()
 	int32 startLineNumber = SendMessage(SCI_LINEFROMPOSITION, start, UNSET);
 	int32 end = SendMessage(SCI_GETSELECTIONEND, 0, UNSET);
 	int32 endLineNumber = SendMessage(SCI_LINEFROMPOSITION, end, UNSET);
-	
+
 	SendMessage(SCI_BEGINUNDOACTION, 0, UNSET);
 	for (int32 i = startLineNumber; i <= endLineNumber; i++) {
 		int32 linePosition = SendMessage(SCI_POSITIONFROMLINE, i, UNSET);
 		std::string line(GetLine(i).String());
-		
+
 		// Calculate offset of first non-space
 		std::size_t offset = line.find_first_not_of("\t ");
 		if (offset == std::string::npos)
 			continue;
-		
+
 		// Check if line starts with comment token
 		if (line.substr(offset, fCommenter.length()) == fCommenter) {
 			// Find how many spaces follow the comment token

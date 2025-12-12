@@ -24,6 +24,8 @@ public:
 								ImageEditor(entry_ref* ref, const BMessenger& target);
 								~ImageEditor() override;
 
+	 status_t					PerformEditorAction(BMessage* msg) override { return B_ERROR; }
+
 	// IEditor interface - View
 	BView*						View() override { return this; }
 

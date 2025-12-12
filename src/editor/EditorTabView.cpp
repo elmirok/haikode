@@ -141,6 +141,15 @@ EditorTabView::SelectTab(const entry_ref* ref, BMessage* selInfo)
 }
 
 
+void
+EditorTabView::SelectTab(IEditor* editor)
+{
+	GTab* tab = _GetTab(editor);
+	if (tab != nullptr) {
+		GTabView::SelectTab(tab);
+	}
+}
+
 IEditor*
 EditorTabView::EditorById(editor_id id)
 {

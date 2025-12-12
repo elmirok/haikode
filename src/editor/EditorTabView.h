@@ -1,5 +1,5 @@
 /*
- * Copyright 2025, Andrea Anzani 
+ * Copyright 2025, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #pragma once
@@ -38,6 +38,8 @@ public:
 	BString	TabLabel(IEditor* editor) const;
 
 	void	SelectTab(const entry_ref* ref, BMessage* selInfo = nullptr);
+
+	void	SelectTab(IEditor* editor);
 
 	void	RemoveEditor(IEditor* editor);
 

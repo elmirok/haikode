@@ -20,16 +20,10 @@ EmptyEditor::~EmptyEditor()
 {
 }
 
-void
-EmptyEditor::MessageReceived(BMessage* message)
+status_t
+EmptyEditor::PerformEditorAction(BMessage* message)
 {
-    switch(message->what) {
-        case MSG_DUPLICATE_LINE:
-            printf("EmptyEditor::MessageReceived - MSG_DUPLICATE_LINE\n");
-            break;
-        default:    
-        BTextView::MessageReceived(message);
-    }
+	return B_ERROR;
 }
 
 

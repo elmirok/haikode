@@ -342,7 +342,8 @@ GenioWindow::MessageReceived(BMessage* message)
 				ActionManager::SetPressed(MSG_RUN_CONSOLE_PROGRAM_SHOW, false);
 			} else { //test code
 				IEditor* editor = EditorManager::CreateEditor(nullptr, BMessenger(this));
-				fTabManager->AddEditor("EmptyEditor", editor, nullptr);
+				fTabManager->AddEditor("Unknown", editor, nullptr);
+				fTabManager->SelectTab(editor);
 			}
 			break;
 		}
@@ -397,7 +398,6 @@ GenioWindow::MessageReceived(BMessage* message)
 				//
 				// However, we have to take care to not forward the custom clipboard messages, else
 				// we would wind up in infinite recursion.
-				//PostMessage(message, view);
 				view->MessageReceived(message);
 			}
 			break;
@@ -491,6 +491,25 @@ GenioWindow::MessageReceived(BMessage* message)
 		case MSG_BOOKMARK_GOTO_NEXT:
 		case MSG_BOOKMARK_GOTO_PREVIOUS:
 		case MSG_BOOKMARK_TOGGLE:
+		case MSG_EOL_CONVERT_TO_UNIX:
+		case MSG_EOL_CONVERT_TO_DOS:
+		case MSG_EOL_CONVERT_TO_MAC:
+		case MSG_FILE_FOLD_TOGGLE:
+		case MSG_COLLAPSE_SYMBOL_NODE:
+		case GTLW_GO:
+		case MSG_DUPLICATE_LINE:
+		case MSG_DELETE_LINES:
+		case MSG_COMMENT_SELECTED_LINES:
+		case MSG_FILE_TRIM_TRAILING_SPACE:
+		case MSG_AUTOCOMPLETION:
+		case MSG_FORMAT:
+		case MSG_GOTODEFINITION:
+		case MSG_GOTODECLARATION:
+		case MSG_GOTOIMPLEMENTATION:
+		case MSG_RENAME:
+		case MSG_SWITCHSOURCE:
+		case MSG_TEXT_OVERWRITE:
+		case MSG_SET_LANGUAGE:
 			_ForwardToSelectedEditor(message);
 			break;
 		case MSG_BUFFER_LOCK:
@@ -523,11 +542,6 @@ GenioWindow::MessageReceived(BMessage* message)
 		case MSG_DEBUG_PROJECT:
 			_DebugProject();
 			break;
-		case MSG_EOL_CONVERT_TO_UNIX:
-		case MSG_EOL_CONVERT_TO_DOS:
-		case MSG_EOL_CONVERT_TO_MAC:
-			_ForwardToSelectedEditor(message);
-			break;
 		case MSG_FILE_CLOSE:
 		{
 			editor_id id = message->GetUInt64(kEditorId, 0);
@@ -540,12 +554,6 @@ GenioWindow::MessageReceived(BMessage* message)
 		}
 		case MSG_FILE_CLOSE_ALL:
 			_FileCloseAll();
-			break;
-		case MSG_FILE_FOLD_TOGGLE:
-			_ForwardToSelectedEditor(message);
-			break;
-		case MSG_COLLAPSE_SYMBOL_NODE:
-			_ForwardToSelectedEditor(message);
 			break;
 		case MSG_FILE_NEXT_SELECTED:
 			fTabManager->SelectNext();
@@ -697,9 +705,6 @@ GenioWindow::MessageReceived(BMessage* message)
 			}
 			break;
 		}
-		case GTLW_GO:
-			_ForwardToSelectedEditor(message);
-			break;
 		case MSG_GOTO_LINE:
 			if (fGoToLineWindow == nullptr) {
 				fGoToLineWindow = new GoToLineWindow(this);
@@ -718,19 +723,6 @@ GenioWindow::MessageReceived(BMessage* message)
 			break;
 		case MSG_WRAP_LINES:
 			gCFG["wrap_lines"] = !gCFG["wrap_lines"];
-			break;
-		case MSG_DUPLICATE_LINE:
-		case MSG_DELETE_LINES:
-		case MSG_COMMENT_SELECTED_LINES:
-		case MSG_FILE_TRIM_TRAILING_SPACE:
-		case MSG_AUTOCOMPLETION:
-		case MSG_FORMAT:
-		case MSG_GOTODEFINITION:
-		case MSG_GOTODECLARATION:
-		case MSG_GOTOIMPLEMENTATION:
-		case MSG_RENAME:
-		case MSG_SWITCHSOURCE:
-			_ForwardToSelectedEditor(message);
 			break;
 		case MSG_LOAD_RESOURCE:
 		{
@@ -1014,9 +1006,6 @@ GenioWindow::MessageReceived(BMessage* message)
 		case MSG_FOCUS_MODE:
 			_ToggleScreenMode(message->what);
 			break;
-		case MSG_TEXT_OVERWRITE:
-			_ForwardToSelectedEditor(message);
-			break;
 		case MSG_WINDOW_SETTINGS:
 		{
 			ConfigWindow* window = new ConfigWindow(gCFG);
@@ -1125,9 +1114,6 @@ GenioWindow::MessageReceived(BMessage* message)
 			break;
 		case MSG_FIND_MATCH_CASE:
 			gCFG["find_match_case"] = fFindCaseSensitiveCheck->Value() == B_CONTROL_ON;
-			break;
-		case MSG_SET_LANGUAGE:
-			_ForwardToSelectedEditor(message);
 			break;
 		case MSG_HELP_PROJECT:
 		{
@@ -1379,10 +1365,8 @@ GenioWindow::_ForwardToSelectedEditor(BMessage* message)
 {
 	ASSERT(message != nullptr);
 	IEditor* editor = fTabManager->SelectedEditor();
-	printf("_ForwardToSelectedEditor: editor id %" B_PRIu64 "\n", editor ? editor->Id() : 0);
-	printf("_ForwardToSelectedEditor: name %s\n", editor ? editor->FilePath().String() : "null");
-	if (editor != nullptr && editor->View() != nullptr) {
-		editor->View()->MessageReceived(message);
+	if (editor != nullptr) {
+		editor->PerformEditorAction(message);
 	}
 }
 

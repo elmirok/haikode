@@ -35,9 +35,12 @@ public:
 		STATUS_HAS_SYMBOLS		= 3, // <list of symbols (if any)>
 	};
 
+
 	virtual						~IEditor() {}
 
 	virtual BView*				View() = 0;
+
+	virtual status_t			PerformEditorAction(BMessage* msg) = 0;
 
 	// Identity and properties
 	virtual editor_id			Id() = 0;

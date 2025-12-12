@@ -71,7 +71,7 @@ ImageEditor::SetFileRef(entry_ref* ref)
 	fFileRef = *ref;
 	fFileName = ref->name;
 	SetName(ref->name);
-	
+
 	return B_OK;
 }
 
@@ -82,7 +82,7 @@ ImageEditor::LoadFromFile()
 	if (status == B_OK) {
 		_ZoomToFit();
 		Invalidate();
-		
+
 		// Get node_ref for monitoring
 		BEntry entry(&fFileRef);
 		if (entry.InitCheck() == B_OK) {
@@ -98,11 +98,11 @@ ImageEditor::Reload()
 	// Save current zoom and position
 	float oldScale = fScale;
 	BPoint oldOffset = fOffset;
-	
+
 	delete fBitmap;
 	fBitmap = nullptr;
 	status_t status = _LoadImage();
-	
+
 	if (status == B_OK) {
 		// Restore zoom and position
 		fScale = oldScale;
@@ -110,7 +110,7 @@ ImageEditor::Reload()
 		fOffset = oldOffset;
 		Invalidate();
 	}
-	
+
 	return status;
 }
 
@@ -136,10 +136,10 @@ ImageEditor::Draw(BRect updateRect)
 		GetFontHeight(&fh);
 		float height = fh.ascent + fh.descent + fh.leading;
 		float width = StringWidth(message);
-		
+
 		BRect bounds = Bounds();
 		BPoint center(bounds.Width() / 2.0f, bounds.Height() / 2.0f);
-		
+
 		SetHighColor(ui_color(B_PANEL_TEXT_COLOR));
 		DrawString(message, BPoint(center.x - width / 2.0f, center.y + height / 2.0f));
 		return;
@@ -148,10 +148,10 @@ ImageEditor::Draw(BRect updateRect)
 	// Draw the bitmap with zoom and pan
 	SetDrawingMode(B_OP_ALPHA);
 	SetBlendingMode(B_PIXEL_ALPHA, B_ALPHA_OVERLAY);
-	
+
 	BRect destRect = fBitmapRect;
 	destRect.OffsetBy(fOffset);
-	
+
 	DrawBitmap(fBitmap, fBitmap->Bounds(), destRect);
 }
 
@@ -185,7 +185,7 @@ ImageEditor::MessageReceived(BMessage* message)
 				BPoint where;
 				uint32 buttons;
 				GetMouse(&where, &buttons);
-				
+
 				if (deltaY > 0)
 					_ZoomOut(where);
 				else
@@ -193,7 +193,7 @@ ImageEditor::MessageReceived(BMessage* message)
 			}
 			break;
 		}
-		default:
+        default:
 			BView::MessageReceived(message);
 			break;
 	}
@@ -229,7 +229,7 @@ ImageEditor::AttachedToWindow()
 {
 	BView::AttachedToWindow();
 	SetEventMask(B_POINTER_EVENTS, B_NO_POINTER_HISTORY);
-	
+
 	// If we have a bitmap but haven't positioned it yet (because view wasn't ready),
 	// position it now
 	if (fBitmap != nullptr && !fBitmapRect.IsValid()) {
@@ -253,14 +253,14 @@ ImageEditor::GetDocumentInfo()
 	info.AddString("name", fFileName);
 	info.AddString("path", FilePath());
 	info.AddString("type", "image");
-	
+
 	if (fBitmap != nullptr) {
 		BRect bounds = fBitmap->Bounds();
 		info.AddInt32("width", (int32)(bounds.Width() + 1));
 		info.AddInt32("height", (int32)(bounds.Height() + 1));
 		info.AddInt32("color_space", (int32)fBitmap->ColorSpace());
 	}
-	
+
 	return info;
 }
 
@@ -272,13 +272,13 @@ ImageEditor::_UpdateBitmapPosition()
 
 	BRect bounds = Bounds();
 	BRect bitmapBounds = fBitmap->Bounds();
-	
+
 	float imageWidth = bitmapBounds.Width() + 1;
 	float imageHeight = bitmapBounds.Height() + 1;
-	
+
 	float scaledWidth = imageWidth * fScale;
 	float scaledHeight = imageHeight * fScale;
-	
+
 	// Center the bitmap (without offset)
 	// Handle case where view doesn't have valid bounds yet
 	float x = 0;
@@ -287,7 +287,7 @@ ImageEditor::_UpdateBitmapPosition()
 		x = (bounds.Width() - scaledWidth) / 2.0f;
 		y = (bounds.Height() - scaledHeight) / 2.0f;
 	}
-	
+
 	fBitmapRect.Set(0, 0, scaledWidth - 1, scaledHeight - 1);
 	fBitmapRect.OffsetTo(x, y);
 }
@@ -297,22 +297,22 @@ ImageEditor::_ZoomIn(BPoint center)
 {
 	if (fBitmap == nullptr)
 		return;
-	
+
 	// Calculate zoom around the cursor position
 	BPoint imagePoint = center - fBitmapRect.LeftTop() - fOffset;
-	
+
 	float oldScale = fScale;
 	fScale *= 1.2f;
 	if (fScale > 10.0f)
 		fScale = 10.0f;
-	
+
 	_UpdateBitmapPosition();
-	
+
 	// Adjust offset to zoom toward cursor
 	float scaleFactor = fScale / oldScale;
 	fOffset.x = center.x - fBitmapRect.left - (imagePoint.x * scaleFactor);
 	fOffset.y = center.y - fBitmapRect.top - (imagePoint.y * scaleFactor);
-	
+
 	Invalidate();
 }
 
@@ -321,22 +321,22 @@ ImageEditor::_ZoomOut(BPoint center)
 {
 	if (fBitmap == nullptr)
 		return;
-	
+
 	// Calculate zoom around the cursor position
 	BPoint imagePoint = center - fBitmapRect.LeftTop() - fOffset;
-	
+
 	float oldScale = fScale;
 	fScale /= 1.2f;
 	if (fScale < 0.1f)
 		fScale = 0.1f;
-	
+
 	_UpdateBitmapPosition();
-	
+
 	// Adjust offset to zoom toward cursor
 	float scaleFactor = fScale / oldScale;
 	fOffset.x = center.x - fBitmapRect.left - (imagePoint.x * scaleFactor);
 	fOffset.y = center.y - fBitmapRect.top - (imagePoint.y * scaleFactor);
-	
+
 	Invalidate();
 }
 
@@ -348,19 +348,19 @@ ImageEditor::_ZoomToFit()
 
 	BRect bounds = Bounds();
 	BRect bitmapBounds = fBitmap->Bounds();
-	
+
 	// Don't try to fit if we don't have valid bounds yet
 	if (!bounds.IsValid() || bounds.Width() < 1 || bounds.Height() < 1) {
 		fScale = 1.0f;
 		fOffset.Set(0, 0);
 		return;
 	}
-	
+
 	float imageWidth = bitmapBounds.Width() + 1;
 	float imageHeight = bitmapBounds.Height() + 1;
 	float viewWidth = bounds.Width();
 	float viewHeight = bounds.Height();
-	
+
 	// Calculate scale to fit
 	fScale = 1.0f;
 	if (imageWidth > viewWidth || imageHeight > viewHeight) {
@@ -369,7 +369,7 @@ ImageEditor::_ZoomToFit()
 		fScale = (widthScale < heightScale) ? widthScale : heightScale;
 		fScale *= 0.95f; // Leave some margin
 	}
-	
+
 	_UpdateBitmapPosition();
 	fOffset.Set(0, 0);
 	Invalidate();
@@ -380,7 +380,7 @@ ImageEditor::_ZoomToActual()
 {
 	if (fBitmap == nullptr)
 		return;
-	
+
 	fScale = 1.0f;
 	_UpdateBitmapPosition();
 	fOffset.Set(0, 0);
@@ -398,7 +398,7 @@ ImageEditor::_LoadImage()
 	// Use BTranslatorRoster to load the image
 	BTranslatorRoster* roster = BTranslatorRoster::Default();
 	BBitmapStream stream;
-	
+
 	status = roster->Translate(&file, nullptr, nullptr, &stream, B_TRANSLATOR_BITMAP);
 	if (status != B_OK)
 		return status;

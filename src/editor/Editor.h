@@ -75,7 +75,8 @@ public:
 
 								Editor(entry_ref* ref, const BMessenger& target);
 								~Editor() override;
-			BView*				View() { return this; }
+			BView*				View() override { return this; }
+			status_t			PerformEditorAction(BMessage* msg) override;
 			editor_id			Id() override { return fId; }
 			BString				Name() const override { return fFileName; }
 			void				SetProjectFolder(ProjectFolder*) override;
