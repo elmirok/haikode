@@ -1,9 +1,9 @@
 /*
  * Original code from Ideam project
  * Parts borrowed from SciTe and Koder editors
- * Copyright 2017 A. Mosca 
+ * Copyright 2017 A. Mosca
  * Copyright (c) Neil Hodgson
- * Copyright 2014-2019 Kacper Kasper 
+ * Copyright 2014-2019 Kacper Kasper
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -134,8 +134,10 @@ Editor::Editor(entry_ref* ref, const BMessenger& target)
 	SendMessage(SCI_SETVISIBLEPOLICY, VISIBLE_STRICT);
 
 	// Fix some keymaps
-	SendMessage(SCI_ASSIGNCMDKEY, '*' + ( SCMOD_CTRL   << 16), SCI_WORDPARTRIGHT);
-	SendMessage(SCI_ASSIGNCMDKEY, '*' + ( (SCMOD_CTRL + SCMOD_SHIFT)   << 16), SCI_WORDPARTRIGHTEXTEND);
+	SendMessage(SCI_ASSIGNCMDKEY, SCK_RIGHT + (SCMOD_META   << 16), SCI_WORDPARTRIGHT);
+	SendMessage(SCI_ASSIGNCMDKEY, SCK_RIGHT + ( (SCMOD_META + SCMOD_SHIFT)   << 16), SCI_WORDPARTRIGHTEXTEND);
+	SendMessage(SCI_ASSIGNCMDKEY, SCK_LEFT + (SCMOD_META   << 16), SCI_WORDPARTLEFT);
+	SendMessage(SCI_ASSIGNCMDKEY, SCK_LEFT + ( (SCMOD_META + SCMOD_SHIFT)   << 16), SCI_WORDPARTLEFTEXTEND);
 }
 
 
