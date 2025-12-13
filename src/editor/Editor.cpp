@@ -135,6 +135,10 @@ Editor::Editor(entry_ref* ref, const BMessenger& target)
 
 	// This ensure that a GoToLine call will try to center on screen the line.
 	SendMessage(SCI_SETVISIBLEPOLICY, VISIBLE_STRICT);
+
+	// Fix some keymaps
+	SendMessage(SCI_ASSIGNCMDKEY, '*' + ( SCMOD_CTRL   << 16), SCI_WORDPARTRIGHT);
+	SendMessage(SCI_ASSIGNCMDKEY, '*' + ( (SCMOD_CTRL + SCMOD_SHIFT)   << 16), SCI_WORDPARTRIGHTEXTEND);
 }
 
 
