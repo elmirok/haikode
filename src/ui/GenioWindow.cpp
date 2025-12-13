@@ -1,6 +1,6 @@
   /*
  * Copyright The Genio Contributors
- * Copyright 2017..2018 A. Mosca 
+ * Copyright 2017..2018 A. Mosca
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -3414,6 +3414,7 @@ GenioWindow::_InitWindow()
 	fOpenProjectPanel = new BFilePanel(B_OPEN_PANEL, new BMessenger(this),
 												&ref, B_DIRECTORY_NODE, false,
 												openProjectFolderMessage);
+	fOpenProjectPanel->SetButtonLabel(B_DEFAULT_BUTTON, B_TRANSLATE("Open project"));
 }
 
 
