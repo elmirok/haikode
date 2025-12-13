@@ -342,8 +342,9 @@ GenioWindow::MessageReceived(BMessage* message)
 				ActionManager::SetPressed(MSG_RUN_CONSOLE_PROGRAM_SHOW, false);
 			} else { //test code
 				IEditor* editor = EditorManager::CreateEditor(nullptr, BMessenger(this));
-				fTabManager->AddEditor("Unknown", editor, nullptr);
+				fTabManager->AddEditor(editor->FilePath(), editor, nullptr);
 				fTabManager->SelectTab(editor);
+				editor->ApplySettings();
 			}
 			break;
 		}

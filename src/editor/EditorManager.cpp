@@ -107,7 +107,10 @@ EditorManager::CreateEditor(entry_ref* ref, const BMessenger& target,
 	const std::string& fileType)
 {
 	if (ref == nullptr) {
-		return new Editor(nullptr, target);
+		IEditor* vir = new Editor(nullptr, target);
+		vir->SetFileType("text");
+		//vir->SetReadOnly();
+		return vir;
 	}
 
 	// Check if file is supported and get detected type

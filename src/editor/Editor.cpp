@@ -648,7 +648,7 @@ const BString
 Editor::FilePath() const
 {
 	if (!HasValidFileRef())
-		return BString("");
+		return BString("Untitled");
 	BPath path(&fFileRef);
 	return path.Path();
 }
@@ -1096,7 +1096,7 @@ Editor::LoadFromFile()
 {
 	if (!HasValidFileRef())
 		return B_ERROR;
-	
+
 	status_t status;
 	BFile file;
 	if ((status = file.SetTo(&fFileRef, B_READ_ONLY)) != B_OK)
@@ -1390,7 +1390,7 @@ Editor::Reload()
 {
 	if (!HasValidFileRef())
 		return B_ERROR;
-	
+
 	status_t status;
 	BFile file;
 	//TODO errors should be notified
@@ -1533,7 +1533,7 @@ Editor::SaveToFile()
 {
 	if (!HasValidFileRef())
 		return B_ERROR;
-	
+
 	BFile file;
 	status_t status = file.SetTo(&fFileRef, B_READ_WRITE | B_ERASE_FILE | B_CREATE_FILE);
 	if (status != B_OK)
@@ -1806,7 +1806,7 @@ Editor::StartMonitoring()
 {
 	if (!HasValidFileRef())
 		return B_ERROR;
-	
+
 	// start monitoring this file for changes
 	BEntry entry(&fFileRef, true);
 
@@ -1828,7 +1828,7 @@ Editor::StopMonitoring()
 {
 	if (!HasValidFileRef())
 		return B_OK;
-	
+
 	status_t status;
 	if ((status = watch_node(&fNodeRef, B_STOP_WATCHING, fTarget)) != B_OK) {
 		LogErrorF("Can't stop watch_node a node_ref! (%s) (%s)", fFileRef.name, strerror(status));
@@ -1937,7 +1937,7 @@ Editor::SwitchSourceHeader()
 {
 	if (!HasValidFileRef())
 		return;
-	
+
 	entry_ref foundRef;
 	if (FindSourceOrHeader(&fFileRef, &foundRef) == B_OK) {
 		BMessage refs(B_REFS_RECEIVED);
