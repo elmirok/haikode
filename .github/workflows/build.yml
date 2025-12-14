@@ -31,18 +31,18 @@ jobs:
         config:
           # The OS versions supported are specific to the version of the action
           # https://github.com/cross-platform-actions/action/blob/master/changelog.md
-          - { os: haiku, version: 'r1beta5', runner: 'ubuntu-latest', architecture: 'x86-64', compiler: 'gcc' }
-          - { os: haiku, version: 'r1beta5',  runner: 'ubuntu-latest', architecture: 'x86', compiler: 'gcc' }
-          - { os: haiku, version: 'nightly', runner: 'ubuntu-latest', architecture: 'x86-64', compiler: 'gcc' }
-          - { os: haiku, version: 'nightly',  runner: 'ubuntu-latest', architecture: 'x86', compiler: 'gcc' }
-          - { os: haiku, version: 'r1beta5', runner: 'ubuntu-latest', architecture: 'x86-64', compiler: 'clang' }
+          - { os: haiku, version: 'r1beta5', runner: 'ubuntu', architecture: 'x86-64', compiler: 'gcc' }
+          - { os: haiku, version: 'r1beta5',  runner: 'ubuntu', architecture: 'x86', compiler: 'gcc' }
+          - { os: haiku, version: 'nightly', runner: 'ubuntu', architecture: 'x86-64', compiler: 'gcc' }
+          - { os: haiku, version: 'nightly',  runner: 'ubuntu', architecture: 'x86', compiler: 'gcc' }
+          - { os: haiku, version: 'r1beta5', runner: 'ubuntu', architecture: 'x86-64', compiler: 'clang' }
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Build
-        uses: korli/action@v0.25.0-haiku3
+        uses: https://github.com/korli/action@v0.25.0-haiku3
         with:
             operating_system: ${{ matrix.config.os }}
             version: ${{ matrix.config.version }}

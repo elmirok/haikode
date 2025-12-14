@@ -7,10 +7,10 @@ on:
 jobs:
   build:
     name: send telegram message
-    runs-on: ubuntu-latest
+    runs-on: ubuntu
     steps:
       - name: send telegram message on push
-        uses: appleboy/telegram-action@master
+        uses: https://github.com/appleboy/telegram-action@master
         with:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
@@ -20,4 +20,4 @@ jobs:
             
             Repository: ${{ github.repository }}
             
-            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
+            See changes: https://codeberg.org/${{ github.repository }}/commit/${{github.sha}}

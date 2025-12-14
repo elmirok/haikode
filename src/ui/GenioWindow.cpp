@@ -2901,12 +2901,12 @@ GenioWindow::_InitActions()
 
 
 	ActionManager::RegisterAction(MSG_JUMP_GO_FORWARD, B_TRANSLATE("Go forward"),
-									B_TRANSLATE("Go forward"), "kIconForward_2", B_RIGHT_ARROW,
-									B_SHIFT_KEY|B_COMMAND_KEY);
+									B_TRANSLATE("Go forward"), "kIconForward_2", B_PAGE_UP,
+									B_OPTION_KEY);
 
 	ActionManager::RegisterAction(MSG_JUMP_GO_BACK, B_TRANSLATE("Go back"),
-									B_TRANSLATE("Go back"), "kIconBack_1", B_LEFT_ARROW,
-									B_SHIFT_KEY|B_COMMAND_KEY);
+									B_TRANSLATE("Go back"), "kIconBack_1", B_PAGE_DOWN,
+									B_OPTION_KEY);
 
 }
 
@@ -3425,6 +3425,7 @@ GenioWindow::_InitWindow()
 	fOpenProjectPanel = new BFilePanel(B_OPEN_PANEL, new BMessenger(this),
 												&ref, B_DIRECTORY_NODE, false,
 												openProjectFolderMessage);
+	fOpenProjectPanel->SetButtonLabel(B_DEFAULT_BUTTON, B_TRANSLATE("Open project"));
 }
 
 
