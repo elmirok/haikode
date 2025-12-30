@@ -61,7 +61,7 @@ StatusView::StatusView(Editor* editor)	:
 	memset(fCellWidth, 0, sizeof(fCellWidth));
 
 	SetFont(be_fixed_font);
-	SetFontSize(12.);
+	SetFontSize(fNavigationButtonWidth - 4);
 }
 
 
