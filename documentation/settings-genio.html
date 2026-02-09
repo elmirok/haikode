@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
 <head>
 <!--
- * Copyright 2024
+ * Copyright 2024-2026
  * Distributed under the terms of the MIT License.
  *
  * Authors:
@@ -62,6 +62,12 @@
 
 <tr><td class="onelinetop"><span class="menu">Show full path in window title</span></td>
 <td>Shows the full path or just the name of the current file.</td></tr>
+
+<tr><td class="onelinetop"><span class="menu">Show project name in window title</span></td>
+<td>Shows the name of the project of the current file.</td></tr>
+
+<tr><td class="onelinetop"><span class="menu">Show branch name in window title</span></td>
+<td>Shows the git branch of the current file.</td></tr>
 
 <tr><td class="onelinetop"><span class="menu">Log destination</span></td>
 <td>Sets where Genio's log output gets written: <span class="menu">stdout</span>, <span class="menu">stderr</span>, <span class="menu">syslog</span> or <span class="menu">BeDC</span> (see <a href="https://pulkomandy.tk/gerrit/plugins/gitiles/devconsole">here</a>).</td></tr>
@@ -185,8 +191,7 @@
 
 <p style="text-align:center"><img src="./images/genio-settings-console.png" style="border:none;padding:15px" alt="Genio settings: Console" /></p>
 
-<p>You can choose the style of the Console tab of the bottom pane. You can <span class="menu">follow system style</span> to get the same as Haiku's standard Terminal, or <span class="menu">follow editor style</span> to use the same as your editor settings.</p>
-<p>Alternatively, you can pick a fixed theme from the set of styles that are also available in the <a href="#editor_visuals">Editor / Visuals</a> settings described above.</p>
+<p>You can choose the style of the <a href="panes.html#info-console-io">Console I/O</a> panel in the Info pane. In the menu you'll find all the schemes available for Haiku's standard Terminal.</p>
 
 
 <h2>
@@ -195,12 +200,8 @@
 
 <p style="text-align:center"><img src="./images/genio-settings-build.png" style="border:none;padding:15px" alt="Genio settings: Build" /></p>
 
-<table summary="layout">
-<tr><td class="onelinetop"><span class="menu">Wrap lines in console</span></td>
-<td>Wraps lines in the <a href="panes.html#console">Console I/O</a> tab of the output pane.</td></tr>
-
 <tr><td class="onelinetop"><span class="menu">Console banner</span></td>
-<td>Prints the executed command at the start and end of the build process in the <a href="panes.html#console">Console I/O</a> tab of the output pane.</td></tr>
+<td>Prints the executed command at the start and end of the build process in the <a href="panes.html#info-console-io">Console I/O</a> panel of the Info pane.</td></tr>
 
 <tr><td class="onelinetop"><span class="menu">Auto-Build on resource save</span></td>
 <td>Builds the project automatically if changes to any of its files are saved.</td></tr>
@@ -208,8 +209,10 @@
 <tr><td class="onelinetop"><span class="menu">Auto-Save changed files when building</span></td>
 <td>Saves all changed files automatically when a build was started.</td></tr>
 
-<tr><td class="onelinetop"><span class="menu">Force showing Build log panel when building</span></td>
-<td>If you've hidden the bottom pane, it will automatically pop up with the <a href="panes.html#console">Console I/O</a> tab when you start building the project.</td></tr>
+<tr><td class="onelinetop"><span class="menu">Force showing <a href="panes.html#info-build-log">Build log</a> panel when building</span></td>
+<td>If you've hidden the Info pane, it will automatically pop up with the <a href="panes.html##info-console-io">Console I/O</a> panel when you start building the project.</td></tr>
+
+<tr><td class="onelinetop"><span class="menu">Scheme</span></td><td>You can choose the style of the Build log panel in the info pane. In the menu you'll find all the schemes available for Haiku's standard Terminal.</td></tr>
 </table>
 
 

@@ -1983,7 +1983,22 @@ GenioWindow::_FileSaveAs(IEditor* editor, BMessage* message)
 	if ((status = entry.GetRef(&newRef)) != B_OK)
 		return status;
 
+	//we could have changed filetype/project
+
+	editor->SetProjectFolder(nullptr);
+	editor->SetFileType("");
+
 	editor->SetFileRef(&newRef);
+
+	_FileSave(editor);
+
+	//TODO: maybe the best strategy is to close the editor
+	//		and reload it at the same position.
+
+	editor->LoadFromFile();
+
+	_PostFileLoad(editor);
+
 	fTabManager->SetTabLabel(editor, editor->Name().String());
 
 	/* Modified files 'Saved as' get saved to an unmodified state.
@@ -1992,9 +2007,6 @@ GenioWindow::_FileSaveAs(IEditor* editor, BMessage* message)
 	 * In case do not forget to update label
 	 */
 	//_UpdateLabel(selection, editor->IsModified());
-
-	_FileSave(editor);
-
 	return B_OK;
 }
 

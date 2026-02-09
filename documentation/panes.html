@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
 <head>
 <!--
- * Copyright 2024
+ * Copyright 2024-2026
  * Distributed under the terms of the MIT License.
  *
  * Authors:
@@ -35,6 +35,7 @@
 	<a href="#info-problems">┣━ Problems</a><br />
 	<a href="#info-build-log">┣━ Build log</a><br />
 	<a href="#info-console-io">┣━ Console I/O</a><br />
+	<a href="#info-terminal">┣━ Terminal</a><br />
 	<a href="#info-search-results">┗━ Search results</a><br />
 	<a href="#outline-pane">The Outline pane</a>
 </td></tr>
@@ -44,12 +45,13 @@
 
 <p>Genio's main window contains three panes besides the toolbar and the editor view: The Projects pane on the left, the Outline pane on the right, and the Info pane at the bottom. They can be toggled on and off with the first three icons in the toolbar, or from the menu <span class="menu">Window|Appearance</span>.</p>
 
+<p>This document describes the default settings. You can, however, move any tab (="panel) from any pane to another. Or even de/activate them from <span class="menu">Window|Panels</span>.</p>
 
 <h2>
 <a href="#"><img src="./images/up.png" style="border:none;float:right" alt="index" /></a>
 <a id="projects-pane" name="projects-pane">The Projects pane</a></h2>
 
-<p>The Projects pane holds two tabs: the first to manage the files and folders of open projects, the second to manage source control related issues.</p>
+<p>The Projects pane holds two panels: the first to manage the files and folders of open projects, the second to manage source control related issues.</p>
 
 
 <h3>
@@ -78,7 +80,7 @@ Commands like <span class="menu">Project|Build project</span> or a search in the
 
 <p><img src="./images/panes-source_control.png" class="floatleft" alt="Source control" /></p>
 
-<p>In this tab you find most often needed actions to interact with your git repository. It also shows the structure of your repository; your local and remote branches, forks and tags.</p>
+<p>In this panel you find most often needed actions to interact with your git repository. It also shows the structure of your repository; your local and remote branches, forks and tags.</p>
 
 <p>You switch to a different branch with a double-click, or by choosing from the <span class="menu">Current branch</span> menu.</p>
 
@@ -94,7 +96,7 @@ Commands like <span class="menu">Project|Build project</span> or a search in the
 <a href="#"><img src="./images/up.png" style="border:none;float:right" alt="index" /></a>
 <a id="info-pane" name="info-pane">The Info pane</a></h2>
 
-<p>The Info pane consists of four tabs: <span class="menu">Problems</span>, the <span class="menu">Build log</span>, the <span class="menu">Console I/O</span> and <span class="menu">Search results</span>.</p>
+<p>The Info pane consists of four panels: <span class="menu">Problems</span>, the <span class="menu">Build log</span>, the <span class="menu">Console I/O</span> and <span class="menu">Search results</span>.</p>
 
 
 <h3>
@@ -113,7 +115,7 @@ A right-click on a row offers to fix the issue, if possible.</p>
 
 <p style="text-align:center"><img src="./images/panes-info_build_log.png" style="border:none" alt="Build log" /></p>
 
-<p>When you're building your project, the "Build log" tab pops up, showing the build process.<br />
+<p>When you're building your project, the "Build log" panel pops up, showing the build process.<br />
 Warnings and errors are printed in red, showing in which file, on what line and column the error was encountered. Click on it, and you're transported right to it.</p>
 
 <p>The buttons on the right <span class="button">Clear</span> the log or <span class="button">Stop</span> the running process.<br />
@@ -126,9 +128,18 @@ The checkboxes above them de/activate <span class="menu">stdout</span> and <span
 
 <p style="text-align:center"><img src="./images/panes-info_console_io.png" style="border:none" alt="Console I/O" /></p>
 
-<p>If you execute a command from the <span class="menu">Git</span> menu, like <span class="cli">git status</span>, or choose to <span class="menu">Run console program</span> or <span class="menu">Run target</span> from the <a href="toolbar.html">Toolbar</a>, its output will appear in the "Console I/O" tab.</p>
+<p>If you execute a command from the <span class="menu">Git</span> menu, like <span class="cli">git status</span>, or choose to <span class="menu">Run console program</span> or <span class="menu">Run target</span> from the <a href="toolbar.html">Toolbar</a>, its output will appear in the "Console I/O" panel.</p>
 
 <p>The buttons and checkboxes do the same as described above for the "Build log".</p>
+
+
+<h3>
+<a href="#"><img src="./images/up.png" style="border:none;float:right" alt="index" /></a>
+<a id="info-terminal" name="info_terminal">Terminal</a></h3>
+
+<p style="text-align:center"><img src="./images/panes-info_terminal.png" style="border:none" alt="Terminal" /></p>
+
+<p>If the <span class="menu">Run target</span> from the <a href="toolbar.html">Toolbar</a> that prints its output to the "Console I/O" isn't enough for your needs, this panel provides a complete Terminal. Settings like colors, fonts etc. are taken directly from Haiku's Terminal.</p>
 
 
 <h3>
@@ -137,7 +148,7 @@ The checkboxes above them de/activate <span class="menu">stdout</span> and <span
 
 <p style="text-align:center"><img src="./images/panes-info_search_results.png" style="border:none" alt="Search results" /></p>
 
-<p>If you click the icon <span class="menu">Find in project</span> in the <a href="toolbar.html">Find bar</a>, this tab will show all the hits from all files of the currently active project. Double-click to jump to the search result.</p>
+<p>If you click the icon <span class="menu">Find in project</span> in the <a href="toolbar.html">Find bar</a>, this panel will show all the hits from all files of the currently active project. Double-click to jump to the search result.</p>
 
 <p>To the right is a search panel that is similar to the 'Find bar'. It is in fact synced with the 'Find bar' whenever you do a <span class="menu">Find in project</span> there. The additional <span class="menu">Project</span> menu let's you select another but the currently active project as a search target.</p>
 
