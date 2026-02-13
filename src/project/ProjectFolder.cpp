@@ -125,7 +125,9 @@ ProjectFolder::~ProjectFolder()
 		delete w;
 	}
 	delete fGitRepository;
+	fGitRepository = nullptr;
 	delete fSettings;
+	fSettings = nullptr;
 }
 
 
