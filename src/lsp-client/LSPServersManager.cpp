@@ -6,14 +6,16 @@
 
 #include "LSPServersManager.h"
 
+#include <PathFinder.h>
+
+#include <string>
+#include <vector>
+
 #include "ConfigManager.h"
 #include "GenioApp.h"
 #include "Log.h"
 #include "LSPLogLevels.h"
 #include "LSPProjectWrapper.h"
-
-#include <string>
-#include <vector>
 
 
 class ClangdServerConfig : public LSPServerConfigInterface {
@@ -52,7 +54,7 @@ public:
 		return path;
 	}
 
-	const bool	IsFileTypeSupported(const BString& fileType) const {
+	const bool IsFileTypeSupported(const BString& fileType) const {
 		if (fileType.Compare("cpp") != 0 &&
 			fileType.Compare("c") != 0 &&
 			fileType.Compare("makefile") != 0)
@@ -71,11 +73,22 @@ public:
 		};
 	}
 	BPath FilePath() const override {
-		// TODO: Use find_path
+		BStringList paths;
+		status_t status = BPathFinder::FindPaths(B_FIND_PATH_BIN_DIRECTORY, paths);
+		if (status == B_OK) {
+			for (int32 c = 0; c < paths.CountStrings(); c++) {
+				BString binaryName = "pylsp";
+				BPath filePath = paths.StringAt(c).String();
+				filePath.Append(binaryName);
+				if (BEntry(filePath.Path()).Exists())
+					return filePath;
+			}
+		}
+		// TODO: This fallback will never work anyway
 		BPath path = "/boot/system/non-packaged/bin/pylsp";
 		return path;
 	}
-	const bool	IsFileTypeSupported(const BString& fileType) const {
+	const bool IsFileTypeSupported(const BString& fileType) const {
 		return (fileType.Compare("python") == 0);
 	}
 };
