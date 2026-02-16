@@ -1384,13 +1384,18 @@ ProjectOutlineListView::ShowPopupMenu(BPoint where)
 
 	projectMenu->SetTargetForItems(Window());
 
+#if 0
+	// TODO: This, coupled with "true" as fourth parameter of Go() at line 1396
+	// causes some crashes, since ActionManager tries to set pointers of menuitems
+	// which are being destroyed
 	projectMenu->SetAsyncAutoDestruct(true);
-
+#endif
 	// Open menu slightly off wrt the click, so it doesn't open right under the mouse
 	BPoint menuPoint = ConvertToScreen(where);
 	menuPoint.x += 1;
 	menuPoint.y += 1;
-	projectMenu->Go(menuPoint, true, false, true);
+
+	projectMenu->Go(menuPoint, true, false, false);
 }
 
 
