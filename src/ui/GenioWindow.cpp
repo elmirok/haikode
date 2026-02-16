@@ -841,6 +841,7 @@ GenioWindow::MessageReceived(BMessage* message)
 			break;
 		}
 		case MSG_PROJECT_MENU_OPEN_FILE:
+		case MSG_PROJECT_MENU_OPEN_FILE_DEFAULT:
 		{
 			_FileOpen(message);
 			break;
@@ -1768,7 +1769,7 @@ GenioWindow::_FileOpen(BMessage* msg)
 		if (editor != nullptr) {
 			_SelectEditorToPosition(editor, be_line, lsp_char);
 		} else {
-			if (_FileOpenWithPosition(&ref , openWithPreferred, be_line, lsp_char) != B_OK)
+			if (_FileOpenWithPosition(&ref, openWithPreferred, be_line, lsp_char) != B_OK)
 				continue;
 		}
 
@@ -1853,10 +1854,8 @@ GenioWindow::_FileOpenWithPosition(entry_ref* ref, bool openWithPreferred, int32
 	if (!BEntry(ref).Exists())
 		return B_ERROR;
 
-	if (!EditorManager::IsFileSupported(ref)) {
-		if (openWithPreferred)
-			_FileOpenWithPreferredApp(ref); // TODO: make this optional?
-		return B_ERROR;
+	if (openWithPreferred || !EditorManager::IsFileSupported(ref)) {
+		return _FileOpenWithPreferredApp(ref);
 	}
 
 	//this will force getting the caret position from file attributes when loaded.

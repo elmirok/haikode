@@ -1234,7 +1234,6 @@ ProjectOutlineListView::SelectionChanged()
 			entry.GetRef(&fileRef);
 			BMessage* invocationMessage = new BMessage(MSG_PROJECT_MENU_OPEN_FILE);
 			invocationMessage->AddRef("refs", &fileRef);
-			invocationMessage->AddBool("openWithPreferred", true);
 			SetInvocationMessage(invocationMessage);
 
 			// If this is a file, get the parent directory
@@ -1354,7 +1353,12 @@ ProjectOutlineListView::ShowPopupMenu(BPoint where)
 		BMenuItem* openFileProjectMenuItem = new BMenuItem(B_TRANSLATE("Open file"),
 			new BMessage(MSG_PROJECT_MENU_OPEN_FILE));
 		openFileProjectMenuItem->Message()->AddRef("refs", itemRef);
-		openFileProjectMenuItem->Message()->AddBool("openWithPreferred", true);
+
+		BMenuItem* openFileDefaultProjectMenuItem = new BMenuItem(
+			B_TRANSLATE("Open file with default application"),
+			new BMessage(MSG_PROJECT_MENU_OPEN_FILE_DEFAULT));
+		openFileDefaultProjectMenuItem->Message()->AddRef("refs", itemRef);
+		openFileDefaultProjectMenuItem->Message()->AddBool("openWithPreferred", true);
 
 		BMenuItem* renameFileProjectMenuItem = new BMenuItem(
 			isFile ? B_TRANSLATE("Rename file") : B_TRANSLATE("Rename folder"),
@@ -1363,6 +1367,7 @@ ProjectOutlineListView::ShowPopupMenu(BPoint where)
 		renameFileProjectMenuItem->Message()->AddRef("ref", itemRef);
 
 		projectMenu->AddItem(openFileProjectMenuItem);
+		projectMenu->AddItem(openFileDefaultProjectMenuItem);
 		projectMenu->AddItem(deleteFileProjectMenuItem);
 		projectMenu->AddItem(renameFileProjectMenuItem);
 		deleteFileProjectMenuItem->SetEnabled(true);
