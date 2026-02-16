@@ -12,7 +12,6 @@
 #include "GenioWindow.h"
 #include "Editor.h"
 #include "EditorTabView.h"
-#include "editor/Editor.h"
 
 
 // Genio Scripting
