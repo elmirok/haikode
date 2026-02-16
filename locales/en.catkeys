@@ -1,4 +1,4 @@
-1	English	application/x-vnd.Genio	2900224338
+1	English	application/x-vnd.Genio	3773582198
 Create new branch from \"%selected_branch%\"	SourceControlPanel		Create new branch from \"%selected_branch%\"
 Enable brace matching	SettingsWindow		Enable brace matching
 Clear	ConsoleIOView		Clear
@@ -89,6 +89,7 @@ Whole word	SearchResultTab	Short as possible.	Whole word
 Trim trailing whitespace	GenioWindow		Trim trailing whitespace
 New folder	GenioWindow		New folder
 Rename branch	SourceControlPanel		Rename branch
+Open file with default application	ProjectsFolderBrowser		Open file with default application
 Operator	FunctionsOutlineView		Operator
 OK	GTextAlert		OK
 Open remote Git project	RemoteProjectWindow		Open remote Git project
@@ -160,6 +161,7 @@ Type parameter	FunctionsOutlineView		Type parameter
 Exclude folders:	SettingsWindow		Exclude folders:
 Do you really want to initialize a repository without creating an initial commit?	SourceControlPanel		Do you really want to initialize a repository without creating an initial commit?
 No outline available	FunctionsOutlineView		No outline available
+Unable to load image	ImageEditor		Unable to load image
 Save as…	GenioWindow		Save as…
 Show config	GenioWindow	The git command	Show config
 Reload .editorconfig	GenioWindow		Reload .editorconfig
@@ -195,8 +197,8 @@ Show bottom pane	GenioWindow		Show bottom pane
 About…	GenioWindow		About…
 Create initial commit	SourceControlPanel		Create initial commit
 Close	GenioWindow		Close
-Tags	SourceControlPanel		Tags
 Project:	ProjectMenuField		Project:
+Tags	SourceControlPanel		Tags
 Drop folder here	ProjectsFolderBrowser		Drop folder here
 Copy name	SourceControlPanel		Copy name
 An error occurred while switching branch:	GenioWindow		An error occurred while switching branch:
@@ -390,6 +392,7 @@ Release	ProjectsFolderBrowser		Release
 Save changes to file \"%filename%\"?	Editor		Save changes to file \"%filename%\"?
 Null	FunctionsOutlineView		Null
 Current branch	ProjectsFolderBrowser		Current branch
+Open project	GenioWindow		Open project
 Rename symbol…	GenioWindow		Rename symbol…
 Clean project	ProjectsFolderBrowser		Clean project
 Object	FunctionsOutlineView		Object
