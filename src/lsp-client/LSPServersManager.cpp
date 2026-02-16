@@ -35,7 +35,7 @@ public:
 		};
 
 		fArgv = {
-			"/boot/system/bin/clangd",
+			strdup(FilePath().Path()),
 			strdup(logLevel.c_str()),
 			"--offset-encoding=utf-8",
 			"--pretty",
@@ -44,6 +44,12 @@ public:
 		};
 
 		fOffset = 1;
+	}
+
+	BPath FilePath() const override {
+		// TODO: Use find_path
+		BPath path = "/boot/system/bin/clangd";
+		return path;
 	}
 
 	const bool	IsFileTypeSupported(const BString& fileType) const {
@@ -60,9 +66,14 @@ class PylspServerConfig : public LSPServerConfigInterface {
 public:
 	PylspServerConfig() {
 		fArgv = {
-			"/boot/system/non-packaged/bin/pylsp",
+			strdup(FilePath().Path()),
 			"-v"
 		};
+	}
+	BPath FilePath() const override {
+		// TODO: Use find_path
+		BPath path = "/boot/system/non-packaged/bin/pylsp";
+		return path;
 	}
 	const bool	IsFileTypeSupported(const BString& fileType) const {
 		return (fileType.Compare("python") == 0);
@@ -77,7 +88,7 @@ public:
 		BString spid;
 		spid << (int32)pid;
 		fArgv = {
-			"/boot/system/non-packaged/bin/dotnet/dotnet",
+			strdup(FilePath().Path()),
 			"/boot/system/non-packaged/bin/OmniSharp/OmniSharp.dll",
 			"-lsp",
 			"-v",
@@ -86,6 +97,11 @@ public:
 		};
 
 		fOffset = 0;
+	}
+	BPath FilePath() const override {
+		// TODO: Use find_path
+		BPath path = "/boot/system/non-packaged/bin/dotnet/dotnet";
+		return path;
 	}
 	const bool	IsFileTypeSupported(const BString& fileType) const {
 		return (fileType.Compare("csharp") == 0);

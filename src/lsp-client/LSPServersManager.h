@@ -20,6 +20,7 @@ class BString;
 class LSPServerConfigInterface {
 public:
 	virtual ~LSPServerConfigInterface() = default;
+	virtual BPath FilePath() const = 0;
 	virtual const bool   IsFileTypeSupported (const BString& fileType) const = 0;
 	const char* const* Argv() const { return fArgv.data(); }
 				int32  Argc() const { return fArgv.size(); }
