@@ -9,8 +9,10 @@ v5.0
 	- Implement more scripting properties.
 	- Sort the project list alphabetically.
 	- Save outline sorting in settings.
+	- Added image viewing capabilities to the editor.
 	- Added syntax highlighting for Nim.
 	- Added XHTML as supported file type (Humdinger).
+	- Added option to open files with the default application.
 	- Mark the active project instead of disabling the menuitem in the project menu.
 	- Greatly improved the code which handles project activation, making it less crash prone.
 	- Made code more robust by checking for NULL in some more places, and use C++ casts (mostly found with Codacy).
