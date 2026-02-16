@@ -24,7 +24,7 @@ class BMenuField;
 class BTabView;
 class BTextControl;
 class ConsoleIOTab;
-class Editor;
+class IEditor;
 class GoToLineWindow;
 class ProblemsPanel;
 class ProjectFolder;
@@ -66,17 +66,17 @@ public:
 private:
 			void				_PrepareWorkspace();
 
-			Editor*				_AddEditorTab(entry_ref* ref, BMessage* addInfo);
-			status_t			_RemoveTab(Editor* editor);
+			IEditor*			_AddEditorTab(entry_ref* ref, BMessage* addInfo);
+			status_t			_RemoveTab(IEditor* editor);
 
 			status_t			_BuildProject();
 			status_t			_CleanProject();
 			status_t			_DebugProject();
 			status_t			_DoBuildOrCleanProject(const BString& cmd);
 
-			bool				_FileRequestClose(Editor* editor);
+			bool				_FileRequestClose(IEditor* editor);
 			void				_FileCloseAll();
-			bool				_FileRequestSaveList(std::vector<Editor*>& unsavedEditor);
+			bool				_FileRequestSaveList(std::vector<IEditor*>& unsavedEditor);
 			bool				_FileRequestSaveAllModified();
 
 			status_t			_FileOpen(BMessage* msg);
@@ -84,15 +84,15 @@ private:
 			status_t			_FileOpenWithPosition(entry_ref* ref, bool openWithPreferred,  int32 be_line, int32 lsp_char);
 			status_t            _FileOpenWithPreferredApp(const entry_ref* ref);
 
-			status_t			_FileSave(Editor* editor);
+			status_t			_FileSave(IEditor* editor);
 			void				_FileSaveAll(ProjectFolder* onlyThisProject = NULL);
-			status_t			_FileSaveAs(Editor* , BMessage* message);
+			status_t			_FileSaveAs(IEditor* , BMessage* message);
 			int32				_FilesNeedSaveCount() const;
 
-			void				_PreFileLoad(Editor* editor);
-			void				_PostFileLoad(Editor* editor);
-			void				_PreFileSave(Editor* editor);
-			void				_PostFileSave(Editor* editor);
+			void				_PreFileLoad(IEditor* editor);
+			void				_PostFileLoad(IEditor* editor);
+			void				_PreFileSave(IEditor* editor);
+			void				_PostFileSave(IEditor* editor);
 
 			void				_FindGroupShow(bool show);
 			void				_FindMarkAll(BMessage* message);
@@ -100,15 +100,15 @@ private:
 			void				_FindInFiles();
 			void				_AddSearchFlags(BMessage* msg);
 
-			status_t			_SelectEditorToPosition(Editor* editor, int32 be_line, int32 lsp_char);
+			status_t			_SelectEditorToPosition(IEditor* editor, int32 be_line, int32 lsp_char);
 			void				_ApplyEditsToSelectedEditor(BMessage* msg);
 			void 				_HandleEditorZoom(int32 changeValue);
 
 			void				_GetFocusAndSelection(BTextControl* control) const;
 			status_t			_Git(const BString& git_command);
 			void				_HandleExternalMoveModification(entry_ref* oldRef, entry_ref* newRef);
-			void				_HandleExternalRemoveModification(Editor* editor);
-			void				_HandleExternalStatModification(Editor* editor);
+			void				_HandleExternalRemoveModification(IEditor* editor);
+			void				_HandleExternalStatModification(IEditor* editor);
 			void				_HandleNodeMonitorMsg(BMessage* msg);
 			void				_CheckEntryRemoved(BMessage* msg);
 			void				_InitCentralSplit();
@@ -146,7 +146,7 @@ private:
 															const entry_ref& ref, bool activate);
 
 			void				_ProjectFolderActivate(ProjectFolder* project);
-			void				_TryAssociateEditorWithProject(Editor* editor, ProjectFolder* project);
+			void				_TryAssociateEditorWithProject(IEditor* editor, ProjectFolder* project);
 
 			status_t			_ShowItemInTracker(const entry_ref*);
 			status_t			_ShowInTracker(const entry_ref& ref, const node_ref* nref = NULL);
@@ -162,23 +162,23 @@ private:
 
 			void				_UpdateFindMenuItems(const BString& text);
 			void				_UpdateRecentCommands(const BString& text);
-			status_t			_UpdateLabel(Editor* editor, bool isModified);
+			status_t			_UpdateLabel(IEditor* editor, bool isModified);
 			void				_UpdateProjectMenuItemsState(bool enable);
 			void				_UpdateReplaceMenuItems(const BString& text);
-			void				_UpdateSavepointChange(Editor*, const BString& caller = "");
-			void				_UpdateTabChange(Editor*, const BString& caller = "");
+			void				_UpdateSavepointChange(IEditor*, const BString& caller = "");
+			void				_UpdateTabChange(IEditor*, const BString& caller = "");
 			void				_InitActions();
 			void				_ShowView(BView*, bool show, int32 msgWhat = -1);
 			void				_ShowPanelTabView(const char* name, bool show, int32 msgWhat = -1);
 			status_t			_AlertInvalidBuildConfig(BString text);
-			void				_CloseMultipleTabs(std::vector<Editor*>& editors);
+			void				_CloseMultipleTabs(std::vector<IEditor*>& editors);
 			void				_HandleConfigurationChanged(BMessage* msg);
 			void				_HandleProjectConfigurationChanged(BMessage* message);
 			void				_ChangeIconSize(bool small);
 			BMenu*				_CreateLanguagesMenu();
 			void				_ToggleScreenMode(int32 action);
 			void				_ForwardToSelectedEditor(BMessage* msg);
-			void				_UpdateWindowTitle(Editor* editor, const char* currentBranch);
+			void				_UpdateWindowTitle(IEditor* editor, const char* currentBranch);
 
 private:
 			BMenuBar*			fMenuBar;

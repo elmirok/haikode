@@ -1,6 +1,6 @@
 /*
- * Copyright 2025 Andrea Anzani 
- * Copyright 2017 A. Mosca 
+ * Copyright 2025 Andrea Anzani
+ * Copyright 2017 A. Mosca
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #pragma once
@@ -15,6 +15,7 @@
 #include <utility>
 
 #include "EditorId.h"
+#include "IEditor.h"
 #include "LSPCapabilities.h"
 #include "ScintillaView.h"
 
@@ -69,111 +70,107 @@ struct EditorConfig {
 
 
 
-class Editor : public BScintillaView {
+class Editor : public BScintillaView, public IEditor {
 public:
-	enum symbols_status {
-		STATUS_UNKNOWN			= 0, // "<empty string>"
-		STATUS_NO_CAPABILITY	= 1, // "No outline available"
-		STATUS_REQUESTED		= 2, // "Creating outline"
-		STATUS_HAS_SYMBOLS		= 3, // <list of symbols (if any)>
-	};
 
 								Editor(entry_ref* ref, const BMessenger& target);
-								~Editor();
-			editor_id			Id() { return fId; }
-			BString				Name() const { return fFileName; }
-			void				SetProjectFolder(ProjectFolder*);
-			ProjectFolder*		GetProjectFolder() const { return fProjectFolder; }
+								~Editor() override;
+			BView*				View() override { return this; }
+			status_t			PerformEditorAction(BMessage* msg) override;
+			editor_id			Id() override { return fId; }
+			BString				Name() const override { return fFileName; }
+			void				SetProjectFolder(ProjectFolder*) override;
+			ProjectFolder*		GetProjectFolder() const override { return fProjectFolder; }
 			filter_result		BeforeKeyDown(BMessage*);
 			filter_result		BeforeMouseMoved(BMessage* message);
 			filter_result		BeforeModifiersChanged(BMessage* message);
-			void				GrabFocus();
+			void				GrabFocus() override;
 
 
 			// Cut, Copy and Paste interface
-			bool				CanCopy();
-			void				Copy();
-			bool				CanCut();
-			void				Cut();
-			bool				CanPaste();
-			void				Paste();
+			bool				CanCopy() override;
+			void				Copy() override;
+			bool				CanCut() override;
+			void				Cut() override;
+			bool				CanPaste() override;
+			void				Paste() override;
 
 			// Undo and Redo interface
-			bool				CanRedo();
-			void				Redo();
-			bool				CanUndo();
-			void				Undo();
+			bool				CanRedo() override;
+			void				Redo() override;
+			bool				CanUndo() override;
+			void				Undo() override;
 
 			// File interface
-		const BString			FilePath() const;
-			entry_ref *const	FileRef() { return &fFileRef; }
-			status_t			SetFileRef(entry_ref* ref);
-			node_ref *const		NodeRef() { return &fNodeRef; }
-			status_t			LoadFromFile();
-			status_t			SaveToFile();
-			status_t			Reload();
-			status_t			StartMonitoring();
-			status_t			StopMonitoring();
-			std::string			FileType() const { return fFileType; }
-			void				SetFileType(const std::string& fileType) { fFileType = fileType; }
-			status_t			SetSavedCaretPosition();
+		const BString			FilePath() const override;
+			entry_ref *const	FileRef() override;
+			status_t			SetFileRef(entry_ref* ref) override;
+			node_ref *const		NodeRef() override;
+			status_t			LoadFromFile() override;
+			status_t			SaveToFile() override;
+			status_t			Reload() override;
+			status_t			StartMonitoring() override;
+			status_t			StopMonitoring() override;
+			std::string			FileType() const override { return fFileType; }
+			void				SetFileType(const std::string& fileType) override { fFileType = fileType; }
+			status_t			SetSavedCaretPosition() override;
 
 			//
-			void				LoadEditorConfig();
-			void				ApplySettings();
-			void				ApplyEdit(const std::string& info);
-			void				TrimTrailingWhitespace();
+			void				LoadEditorConfig() override;
+			void				ApplySettings() override;
+			void				ApplyEdit(const std::string& info) override;
+			void				TrimTrailingWhitespace() override;
 
-			void				GoToLine(int32 line);
-			void				GoToLSPPosition(int32 line, int character);
+			void				GoToLine(int32 line) override;
+			void				GoToLSPPosition(int32 line, int character) override;
 
-			bool				IsFoldingAvailable() const { return fFoldingAvailable; }
-			bool				IsModified() const { return fModified; }
-			bool				IsTextSelected();
-			bool				IsOverwrite();
-			bool				IsReadOnly();
-			void				SetReadOnly(bool readOnly = true);
-			int32				EndOfLine();
+			bool				IsFoldingAvailable() const override { return fFoldingAvailable; }
+			bool				IsModified() const override { return fModified; }
+			bool				IsTextSelected() override;
+			bool				IsOverwrite() override;
+			bool				IsReadOnly() override;
+			void				SetReadOnly(bool readOnly = true) override;
+			int32				EndOfLine() override;
 
 
 
-			void				SetProblems();
+			void				SetProblems() override;
 
-			void				SetDocumentSymbols(const BMessage* symbols, Editor::symbols_status status);
-			void				GetDocumentSymbols(BMessage* symbols) const;
+			void				SetDocumentSymbols(const BMessage* symbols, IEditor::symbols_status status) override;
+			void				GetDocumentSymbols(BMessage* symbols) const override;
 
 			void				SetCommentLineToken(const std::string& commenter) { fCommenter = commenter; }
 			void				SetCommentBlockTokens(const std::string& startBlock,
-												const std::string& endBlock);
+												const std::string& endBlock) ;
 
-			LSPEditorWrapper*	GetLSPEditorWrapper() { return fLSPEditorWrapper; }
-			bool				HasLSPServer() const;
-			bool				HasLSPCapability(const LSPCapability cap) const;
+			LSPEditorWrapper*	GetLSPEditorWrapper() override { return fLSPEditorWrapper; }
+			bool				HasLSPServer() const override;
+			bool				HasLSPCapability(const LSPCapability cap) const override;
 
 			// Scripting methods
-			const 	BString		Selection();
-			void				SetSelection(int32 start, int32 end);
-			const 	BString		GetSymbol();
-			void				Insert(BString text, int32 start = -1);
-			void				Append(BString text);
-			const 	BString		GetLine(int32 lineNumber);
-			void				InsertLine(BString text, int32 lineNumber);
-			int32				CountLines();
-			int32				GetCurrentColumnNumber();
-			int32				GetCurrentLineNumber();
-			int32				GetCurrentPosition();
-			BMessage			GetCaretPositionInfo();
-			BMessage			GetSelectionRange();
-			BMessage			GetVisibleLines();
-			BMessage			GetScrollPosition();
-			void				SetScrollPosition(int32 line);
-			BMessage			GetModifiedState();
-			BMessage			GetDocumentInfo();
+			const 	BString		Selection() override;
+			void				SetSelection(int32 start, int32 end) override;
+			const 	BString		GetSymbol() override;
+			void				Insert(BString text, int32 start = -1) override;
+			void				Append(BString text) override;
+			const 	BString		GetLine(int32 lineNumber) override;
+			void				InsertLine(BString text, int32 lineNumber) override;
+			int32				CountLines() override;
+			int32				GetCurrentColumnNumber() override;
+			int32				GetCurrentLineNumber() override;
+			int32				GetCurrentPosition() override;
+			BMessage			GetCaretPositionInfo() override;
+			BMessage			GetSelectionRange() override;
+			BMessage			GetVisibleLines() override;
+			BMessage			GetScrollPosition() override;
+			void				SetScrollPosition(int32 line) override;
+			BMessage			GetModifiedState() override;
+			BMessage			GetDocumentInfo() override;
 
 protected:
-			virtual	void 		MessageReceived(BMessage* message);
+			virtual	void 		MessageReceived(BMessage* message) override;
 			void				SetTarget(const BMessenger& target);
-			void				NotificationReceived(SCNotification* n);
+			void				NotificationReceived(SCNotification* n) override;
 
 private:
 
@@ -251,7 +248,8 @@ private:
 			template<typename T>
 			void				Set(typename T::type value) { T::Set(this, value); }
 
-			void	EvaluateIdleTime();
+			void				EvaluateIdleTime();
+			bool				HasValidFileRef() const;
 
 private:
 			editor_id			fId;

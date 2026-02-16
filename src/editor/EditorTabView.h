@@ -1,5 +1,5 @@
 /*
- * Copyright 2025, Andrea Anzani 
+ * Copyright 2025, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #pragma once
@@ -12,7 +12,7 @@
 #include "EditorId.h"
 #include "GTabView.h"
 
-class Editor;
+class IEditor;
 class GTabEditor;
 
 #define deprecated_
@@ -29,17 +29,19 @@ public:
 			 EditorTabView(BMessenger target);
 			~EditorTabView();
 
-	void	AddEditor(const char* label, Editor* editor, BMessage* info = nullptr);
+	void	AddEditor(const char* label, IEditor* editor, BMessage* info = nullptr);
 
-	Editor* SelectedEditor() const;
+	IEditor* SelectedEditor() const;
 
-	void	SetTabColor(Editor*, const rgb_color& color);
-	void	SetTabLabel(Editor*, const char* label);
-	BString	TabLabel(Editor* editor) const;
+	void	SetTabColor(IEditor*, const rgb_color& color);
+	void	SetTabLabel(IEditor*, const char* label);
+	BString	TabLabel(IEditor* editor) const;
 
 	void	SelectTab(const entry_ref* ref, BMessage* selInfo = nullptr);
 
-	void	RemoveEditor(Editor* editor);
+	void	SelectTab(IEditor* editor);
+
+	void	RemoveEditor(IEditor* editor);
 
 	void	SelectNext();
 	void	SelectPrev();
@@ -51,14 +53,14 @@ public:
 	deprecated_ int32	CountTabs() const;
 
 	deprecated_ void	SelectTab(int32 index, BMessage* selInfo = nullptr);
-	deprecated_ Editor* EditorAt(int32 index);
+	deprecated_ IEditor* EditorAt(int32 index);
 
-				Editor* EditorBy(const node_ref* nodeRef);
-				Editor*	EditorBy(const entry_ref* ref);
-				Editor*	EditorById(editor_id id);
+				IEditor* EditorBy(const node_ref* nodeRef);
+				IEditor*	EditorBy(const entry_ref* ref);
+				IEditor*	EditorById(editor_id id);
 
-	void	ForEachEditor(const std::function<bool(Editor*)>& op);
-	void 	ReverseForEachEditor(const std::function<bool(Editor*)>& op);
+	void	ForEachEditor(const std::function<bool(IEditor*)>& op);
+	void 	ReverseForEachEditor(const std::function<bool(IEditor*)>& op);
 
 	void	AttachedToWindow() override;
 	void	MessageReceived(BMessage*) override;
@@ -77,9 +79,9 @@ private:
 			GTab*	CreateTabView(const char* label) override;
 			BMenuItem* CreateMenuItem(GTab* tab) override;
 
-			Editor*		_GetEditor_(const entry_ref* ref) const;
+			IEditor*		_GetEditor_(const entry_ref* ref) const;
 			deprecated_ GTabEditor*	_GetTab_(const entry_ref* ref) const;
-			GTabEditor* _GetTab(Editor* editor) const;
+			GTabEditor* _GetTab(IEditor* editor) const;
 			GTabEditor* _GetTab(editor_id id) const;
 
 			BMessenger	fTarget;

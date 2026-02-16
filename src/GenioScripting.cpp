@@ -8,11 +8,11 @@
 
 #include <PropertyInfo.h>
 
+#include "EditorTabView.h"
 #include "GenioApp.h"
 #include "GenioWindow.h"
-#include "Editor.h"
-#include "EditorTabView.h"
-
+#include "IEditor.h"
+#include "Log.h"
 
 // Genio Scripting
 namespace Properties {
@@ -185,7 +185,7 @@ GenioApp::_HandleScripting(BMessage* data)
 
 	status_t result = B_BAD_SCRIPT_SYNTAX;
 	BMessage reply(B_REPLY);
-	Editor* editor = nullptr;
+	IEditor* editor = nullptr;
 
 	BPropertyInfo propertyInfo(const_cast<property_info*>(sGeneralProperties));
 	int32 match = propertyInfo.FindMatch(data, index, &specifier, what, property);
@@ -310,8 +310,14 @@ GenioApp::_HandleScripting(BMessage* data)
 				}
 				case Properties::EditorProperties::Ref:
 				{
-					if (data->what == B_GET_PROPERTY && editor != nullptr)
-						result = reply.AddRef("result", editor->FileRef());
+					if (data->what == B_GET_PROPERTY && editor != nullptr) {
+						if (editor->FileRef() != nullptr)
+							result = reply.AddRef("result", editor->FileRef());
+						else {
+							result = B_OK;
+							LogDebugF("%s\n", "editor ref is NULL");
+						}
+					}
 					break;
 				}
 				case Properties::EditorProperties::CaretPosition:

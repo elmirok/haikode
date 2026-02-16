@@ -34,13 +34,13 @@
 #include "GenioApp.h"
 #include "GenioWindowMessages.h"
 #include "GoToLineWindow.h"
-#include "ResourceImport.h"
-#include "alert/GTextAlert.h"
+#include "GTextAlert.h"
 #include "Languages.h"
 #include "Log.h"
 #include "LSPEditorWrapper.h"
 #include "NoticeMessages.h"
 #include "ProjectFolder.h"
+#include "ResourceImport.h"
 #include "ScintillaUtils.h"
 #include "Styler.h"
 #include "Utils.h"
@@ -59,15 +59,10 @@ const int kIdleTimeout = 250000; //1/4sec
 #define UNSET 0
 #define UNUSED 0
 
-editor_id get_unique_id() {
-	static editor_id g_id = 0;
-	return ++g_id;
-}
-
 Editor::Editor(entry_ref* ref, const BMessenger& target)
-	: BScintillaView(ref->name, 0, true, true)
-	, fId(get_unique_id())
-	, fFileRef(*ref)
+	: BScintillaView(ref ? ref->name : "Untitled", 0, true, true)
+	, fId(GenerateEditorId())
+	, fFileRef()
 	, fModified(false)
 	, fBracingAvailable(false)
 	, fFoldingAvailable(false)
@@ -77,11 +72,19 @@ Editor::Editor(entry_ref* ref, const BMessenger& target)
 	, fProjectFolder(NULL)
 	, fIdleHandler(nullptr)
 {
+	if (ref) {
+		fFileRef = *ref;
+		fFileName = BString(ref->name);
+	} else {
+		fFileName = BString("Untitled");
+		// Initialize fFileRef with invalid values
+		fFileRef.device = -1;
+		fFileRef.directory = -1;
+	}
 	fStatusView = new editor::StatusView(this);
-	fFileName = BString(ref->name);
 	SetTarget(target);
 
-	fLSPEditorWrapper = new LSPEditorWrapper(BPath(&fFileRef), this);
+	fLSPEditorWrapper = new LSPEditorWrapper(HasValidFileRef() ? BPath(&fFileRef) : BPath(), this);
 
 	LoadEditorConfig();
 
@@ -128,7 +131,7 @@ Editor::Editor(entry_ref* ref, const BMessenger& target)
 	//Wrap visual flag
 	SendMessage(SCI_SETWRAPVISUALFLAGS, SC_WRAPVISUALFLAG_MARGIN);
 
-	fDocumentSymbols.AddInt32("status", STATUS_UNKNOWN);
+	fDocumentSymbols.AddInt32("status", IEditor::STATUS_UNKNOWN);
 
 	// This ensure that a GoToLine call will try to center on screen the line.
 	SendMessage(SCI_SETVISIBLEPOLICY, VISIBLE_STRICT);
@@ -161,7 +164,7 @@ Editor::~Editor()
 	StopMonitoring();
 
 	// Set caret position
-	if (gCFG["save_caret"]) {
+	if (gCFG["save_caret"] && HasValidFileRef()) {
 		BNode node(&fFileRef);
 		if (node.InitCheck() == B_OK) {
 			int32 pos = GetCurrentPosition();
@@ -174,99 +177,13 @@ Editor::~Editor()
 	fLSPEditorWrapper = NULL;
 }
 
-
-void
-Editor::MessageReceived(BMessage* message)
+status_t
+Editor::PerformEditorAction(BMessage* message)
 {
+	if (message == nullptr)
+		return B_BAD_VALUE;
+
 	switch (message->what) {
-		case editor::StatusView::UPDATE_STATUS:
-			UpdateStatusBar();
-			break;
-		case kIdle:
-			fLSPEditorWrapper->flushChanges();
-			break;
-		case MSG_REPLACE_ALL:
-		case MSG_REPLACE_NEXT:
-		case MSG_REPLACE_ONE:
-		case MSG_REPLACE_PREVIOUS:
-		{
-			BString text = message->GetString("text", "");
-			BString replace = message->GetString("replace", "");
-
-			_NotifyFindStatus("");
-			GrabFocus();
-			bool matchCase = message->GetBool("match_case", false);
-			bool wholeWord = message->GetBool("whole_word", false);
-
-			int flags = SetSearchFlags(matchCase, wholeWord, false, false, false);
-			bool wrap = message->GetBool("wrap", false);
-			int32 kind = message->GetInt32("kind", REPLACE_NONE);
-
-			switch (kind) {
-				case REPLACE_ALL:
-				{
-					ReplaceAll(text, replace, flags);
-					break;
-				}
-				case REPLACE_NEXT:
-				{
-					ReplaceAndFindNext(text, replace, flags, wrap);
-					break;
-				}
-				case REPLACE_ONE:
-				{
-					ReplaceOne(text, replace);
-					break;
-				}
-				case REPLACE_PREVIOUS:
-				{
-					ReplaceAndFindPrevious(text, replace, flags, wrap);
-					break;
-				}
-				default:
-					break;
-			}
-			break;
-		}
-		case MSG_FIND_MARK_ALL:
-		{
-			BString text = message->GetString("text", "");
-			if (text.IsEmpty())
-				return;
-
-			_NotifyFindStatus("");
-			GrabFocus();
-			bool matchCase = message->GetBool("match_case", false);
-			bool wholeWord = message->GetBool("whole_word", false);
-
-			int flags = SetSearchFlags(matchCase, wholeWord, false, false, false);
-
-			FindMarkAll(text, flags);
-
-			break;
-		}
-		case MSG_FIND_NEXT:
-		case MSG_FIND_PREVIOUS:
-		{
-			BString text = message->GetString("text", "");
-			if (text.IsEmpty()) {
-				return;
-			}
-			_NotifyFindStatus("");
-			GrabFocus();
-			bool matchCase = message->GetBool("match_case", false);
-			bool wholeWord = message->GetBool("whole_word", false);
-
-			int flags = SetSearchFlags(matchCase, wholeWord, false, false, false);
-			bool wrap = message->GetBool("wrap", false);
-
-			if (message->GetBool("backward", false) == false)
-				FindNext(text, flags, wrap);
-			else
-				FindPrevious(text, flags, wrap);
-
-			break;
-		}
 		case MSG_BOOKMARK_CLEAR_ALL:
 			BookmarkClearAll(sci_BOOKMARK);
 			break;
@@ -342,19 +259,6 @@ Editor::MessageReceived(BMessage* message)
 			ApplySettings();
 			//NOTE (TODO?) we are not changing any LSP configuration!
 			break;
-		case kApplyFix:
-			if (fLSPEditorWrapper)
-				fLSPEditorWrapper->ApplyFix(message);
-			break;
-		case kCallTipClick:
-		{
-			int32 position = message->GetInt32("position", 0);
-			if (position == 1)
-				fLSPEditorWrapper->PrevCallTip();
-			else
-				fLSPEditorWrapper->NextCallTip();
-			break;
-		}
 		case MSG_COLLAPSE_SYMBOL_NODE:
 		{
 			BString symbol;
@@ -374,6 +278,118 @@ Editor::MessageReceived(BMessage* message)
 			_LoadResources(message);
 			break;
 		}
+		case MSG_REPLACE_ALL:
+		case MSG_REPLACE_NEXT:
+		case MSG_REPLACE_ONE:
+		case MSG_REPLACE_PREVIOUS:
+		{
+			BString text = message->GetString("text", "");
+			BString replace = message->GetString("replace", "");
+
+			_NotifyFindStatus("");
+			GrabFocus();
+			bool matchCase = message->GetBool("match_case", false);
+			bool wholeWord = message->GetBool("whole_word", false);
+
+			int flags = SetSearchFlags(matchCase, wholeWord, false, false, false);
+			bool wrap = message->GetBool("wrap", false);
+			int32 kind = message->GetInt32("kind", REPLACE_NONE);
+
+			switch (kind) {
+				case REPLACE_ALL:
+				{
+					ReplaceAll(text, replace, flags);
+					break;
+				}
+				case REPLACE_NEXT:
+				{
+					ReplaceAndFindNext(text, replace, flags, wrap);
+					break;
+				}
+				case REPLACE_ONE:
+				{
+					ReplaceOne(text, replace);
+					break;
+				}
+				case REPLACE_PREVIOUS:
+				{
+					ReplaceAndFindPrevious(text, replace, flags, wrap);
+					break;
+				}
+				default:
+					break;
+			}
+			break;
+		}
+		case MSG_FIND_MARK_ALL:
+		{
+			BString text = message->GetString("text", "");
+			if (text.IsEmpty())
+				return B_OK;
+
+			_NotifyFindStatus("");
+			GrabFocus();
+			bool matchCase = message->GetBool("match_case", false);
+			bool wholeWord = message->GetBool("whole_word", false);
+
+			int flags = SetSearchFlags(matchCase, wholeWord, false, false, false);
+
+			FindMarkAll(text, flags);
+
+			break;
+		}
+		case MSG_FIND_NEXT:
+		case MSG_FIND_PREVIOUS:
+		{
+			BString text = message->GetString("text", "");
+			if (text.IsEmpty()) {
+				return B_OK;
+			}
+			_NotifyFindStatus("");
+			GrabFocus();
+			bool matchCase = message->GetBool("match_case", false);
+			bool wholeWord = message->GetBool("whole_word", false);
+
+			int flags = SetSearchFlags(matchCase, wholeWord, false, false, false);
+			bool wrap = message->GetBool("wrap", false);
+
+			if (message->GetBool("backward", false) == false)
+				FindNext(text, flags, wrap);
+			else
+				FindPrevious(text, flags, wrap);
+
+			break;
+		}
+		default:
+			return B_ERROR;
+	}
+	return B_OK;
+}
+
+void
+Editor::MessageReceived(BMessage* message)
+{
+	switch (message->what) {
+		case editor::StatusView::UPDATE_STATUS:
+			UpdateStatusBar();
+			break;
+		case kIdle:
+			fLSPEditorWrapper->flushChanges();
+			break;
+		case kApplyFix:
+			if (fLSPEditorWrapper)
+				fLSPEditorWrapper->ApplyFix(message);
+			break;
+		case kCallTipClick:
+		{
+			int32 position = message->GetInt32("position", 0);
+			if (position == 1)
+				fLSPEditorWrapper->PrevCallTip();
+			else
+				fLSPEditorWrapper->NextCallTip();
+			break;
+		}
+
 		default:
 			BScintillaView::MessageReceived(message);
 			break;
@@ -637,8 +653,28 @@ Editor::EnsureVisiblePolicy()
 const BString
 Editor::FilePath() const
 {
+	if (!HasValidFileRef())
+		return BString("Untitled");
 	BPath path(&fFileRef);
 	return path.Path();
+}
+
+
+entry_ref* const
+Editor::FileRef()
+{
+	if (!HasValidFileRef())
+		return nullptr;
+	return &fFileRef;
+}
+
+
+node_ref* const
+Editor::NodeRef()
+{
+	if (!HasValidFileRef())
+		return nullptr;
+	return &fNodeRef;
 }
 
 
@@ -1064,6 +1100,9 @@ Editor::LoadEditorConfig()
 status_t
 Editor::LoadFromFile()
 {
+	if (!HasValidFileRef())
+		return B_ERROR;
+
 	status_t status;
 	BFile file;
 	if ((status = file.SetTo(&fFileRef, B_READ_ONLY)) != B_OK)
@@ -1355,6 +1394,9 @@ Editor::Redo()
 status_t
 Editor::Reload()
 {
+	if (!HasValidFileRef())
+		return B_ERROR;
+
 	status_t status;
 	BFile file;
 	//TODO errors should be notified
@@ -1495,6 +1537,9 @@ Editor::ReplaceOne(const BString& selection, const BString& replacement)
 status_t
 Editor::SaveToFile()
 {
+	if (!HasValidFileRef())
+		return B_ERROR;
+
 	BFile file;
 	status_t status = file.SetTo(&fFileRef, B_READ_WRITE | B_ERASE_FILE | B_CREATE_FILE);
 	if (status != B_OK)
@@ -1716,7 +1761,7 @@ Editor::SetReadOnly(bool readOnly)
 status_t
 Editor::SetSavedCaretPosition()
 {
-	if (!gCFG["save_caret"])
+	if (!gCFG["save_caret"] || !HasValidFileRef())
 		return B_ERROR; //TODO maybe tweak
 
 	status_t status;
@@ -1765,6 +1810,9 @@ Editor::SetTarget(const BMessenger& target)
 status_t
 Editor::StartMonitoring()
 {
+	if (!HasValidFileRef())
+		return B_ERROR;
+
 	// start monitoring this file for changes
 	BEntry entry(&fFileRef, true);
 
@@ -1784,6 +1832,9 @@ Editor::StartMonitoring()
 status_t
 Editor::StopMonitoring()
 {
+	if (!HasValidFileRef())
+		return B_OK;
+
 	status_t status;
 	if ((status = watch_node(&fNodeRef, B_STOP_WATCHING, fTarget)) != B_OK) {
 		LogErrorF("Can't stop watch_node a node_ref! (%s) (%s)", fFileRef.name, strerror(status));
@@ -1890,6 +1941,9 @@ Editor::Rename()
 void
 Editor::SwitchSourceHeader()
 {
+	if (!HasValidFileRef())
+		return;
+
 	entry_ref foundRef;
 	if (FindSourceOrHeader(&fFileRef, &foundRef) == B_OK) {
 		BMessage refs(B_REFS_RECEIVED);
@@ -2153,6 +2207,41 @@ Editor::CommentSelectedLines()
 }
 
 
+void
+Editor::UncommentSelection()
+{
+	if (fCommenter.empty())
+		return;
+
+	int32 start = SendMessage(SCI_GETSELECTIONSTART, 0, UNSET);
+	int32 startLineNumber = SendMessage(SCI_LINEFROMPOSITION, start, UNSET);
+	int32 end = SendMessage(SCI_GETSELECTIONEND, 0, UNSET);
+	int32 endLineNumber = SendMessage(SCI_LINEFROMPOSITION, end, UNSET);
+
+	SendMessage(SCI_BEGINUNDOACTION, 0, UNSET);
+	for (int32 i = startLineNumber; i <= endLineNumber; i++) {
+		int32 linePosition = SendMessage(SCI_POSITIONFROMLINE, i, UNSET);
+		std::string line(GetLine(i).String());
+
+		// Calculate offset of first non-space
+		std::size_t offset = line.find_first_not_of("\t ");
+		if (offset == std::string::npos)
+			continue;
+
+		// Check if line starts with comment token
+		if (line.substr(offset, fCommenter.length()) == fCommenter) {
+			// Find how many spaces follow the comment token
+			std::size_t spaces = line.substr(offset + fCommenter.length()).find_first_not_of("\t ");
+			if (spaces == std::string::npos)
+				spaces = 0;
+			// Delete comment token and trailing spaces
+			SendMessage(SCI_DELETERANGE, linePosition + offset, fCommenter.length() + spaces);
+		}
+	}
+	SendMessage(SCI_ENDUNDOACTION, 0, UNSET);
+}
+
+
 int32
 Editor::EndOfLine()
 {
@@ -2248,7 +2337,7 @@ Editor::SetProblems()
 
 
 void
-Editor::SetDocumentSymbols(const BMessage* symbols, Editor::symbols_status status)
+Editor::SetDocumentSymbols(const BMessage* symbols, IEditor::symbols_status status)
 {
 	// make absolutely sure we're locked
 	if (!Window()->IsLocked()) {
@@ -2326,4 +2415,11 @@ Editor::EvaluateIdleTime()
 			LogInfo("EvaluateIdleTime: fIdleHandler re-armed.");
 		}
 	}
+}
+
+
+bool
+Editor::HasValidFileRef() const
+{
+	return fFileRef.device >= 0 && fFileRef.directory >= 0;
 }

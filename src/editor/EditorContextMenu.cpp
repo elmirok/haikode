@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -121,13 +121,23 @@ EditorContextMenu::Show(Editor* editor, BPoint point)
 		ActionManager::SetEnabled(B_PASTE, editor->CanPaste());
 	}
 
-	ActionManager::GetMessage(MSG_PROJECT_MENU_SHOW_IN_TRACKER, sMenu)->ReplaceRef("ref", editor->FileRef());
-	ActionManager::GetMessage(MSG_PROJECT_MENU_OPEN_TERMINAL, sMenu)->ReplaceRef("ref", editor->FileRef());
+	bool isFindInBrowserEnabled = ActionManager::IsEnabled(MSG_FIND_IN_BROWSER);
+	bool isShowInTrackerEnabled = ActionManager::IsEnabled(MSG_PROJECT_MENU_SHOW_IN_TRACKER);
+	bool isOpenInTerminalEnabled = ActionManager::IsEnabled(MSG_PROJECT_MENU_OPEN_TERMINAL);
 
-	bool isFindInBrowserEnable = ActionManager::IsEnabled(MSG_FIND_IN_BROWSER);
-	ActionManager::SetEnabled(MSG_FIND_IN_BROWSER, (editor->GetProjectFolder() != nullptr));
+	if (editor->FileRef() != nullptr) {
+		ActionManager::GetMessage(MSG_PROJECT_MENU_SHOW_IN_TRACKER, sMenu)->ReplaceRef("ref", editor->FileRef());
+		ActionManager::GetMessage(MSG_PROJECT_MENU_OPEN_TERMINAL, sMenu)->ReplaceRef("ref", editor->FileRef());
+		ActionManager::SetEnabled(MSG_FIND_IN_BROWSER, (editor->GetProjectFolder() != nullptr));
+	} else {
+		ActionManager::SetEnabled(MSG_PROJECT_MENU_SHOW_IN_TRACKER, false);
+		ActionManager::SetEnabled(MSG_PROJECT_MENU_OPEN_TERMINAL, false);
+		ActionManager::SetEnabled(MSG_FIND_IN_BROWSER, false);
+	}
 
 	menu->Go(point, true, false, true);
 
-	ActionManager::SetEnabled(MSG_FIND_IN_BROWSER, isFindInBrowserEnable);
+	ActionManager::SetEnabled(MSG_PROJECT_MENU_SHOW_IN_TRACKER, isShowInTrackerEnabled);
+	ActionManager::SetEnabled(MSG_PROJECT_MENU_OPEN_TERMINAL, isOpenInTerminalEnabled);
+	ActionManager::SetEnabled(MSG_FIND_IN_BROWSER, isFindInBrowserEnabled);
 }

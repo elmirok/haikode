@@ -916,9 +916,9 @@ LSPEditorWrapper::_DoInitialize(nlohmann::json& params)
 	didOpen();
 	BMessage symbols;
 	if (HasLSPServerCapability(kLCapDocumentSymbols))
-		fEditor->SetDocumentSymbols(&symbols, Editor::STATUS_REQUESTED);
+		fEditor->SetDocumentSymbols(&symbols, IEditor::STATUS_REQUESTED);
 	else
-		fEditor->SetDocumentSymbols(&symbols, Editor::STATUS_NO_CAPABILITY);
+		fEditor->SetDocumentSymbols(&symbols, IEditor::STATUS_NO_CAPABILITY);
 }
 
 
@@ -969,7 +969,7 @@ LSPEditorWrapper::_DoDocumentSymbol(nlohmann::json& params)
 		}
 	}
 	if (fEditor != nullptr)
-		fEditor->SetDocumentSymbols(&msg, Editor::STATUS_HAS_SYMBOLS);
+		fEditor->SetDocumentSymbols(&msg, IEditor::STATUS_HAS_SYMBOLS);
 }
 
 void
