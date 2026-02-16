@@ -337,14 +337,16 @@ GenioWindow::MessageReceived(BMessage* message)
 				fFindTextControl->MakeFocus(true);
 			} else if (CurrentFocus() == fRunConsoleProgramText->TextView()) {
 				_ShowView(fRunGroup, false);
-//				fRunConsoleProgramGroup->SetVisible(false);
 				fRunConsoleProgramText->MakeFocus(false);
 				ActionManager::SetPressed(MSG_RUN_CONSOLE_PROGRAM_SHOW, false);
-			} else { //test code
+			} else {
+#if 0
+				// test code: open an "empty" editor
 				IEditor* editor = EditorManager::CreateEditor(nullptr, BMessenger(this));
 				fTabManager->AddEditor(editor->FilePath(), editor, nullptr);
 				fTabManager->SelectTab(editor);
 				editor->ApplySettings();
+#endif
 			}
 			break;
 		}
