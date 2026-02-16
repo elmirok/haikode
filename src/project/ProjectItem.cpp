@@ -30,11 +30,7 @@
 
 class ProjectItem;
 class TemporaryTextControl: public BTextControl {
-	typedef	BTextControl _inherited;
-
 public:
-	ProjectItem *fProjectItem;
-
 	TemporaryTextControl(BRect frame, const char* name, const char* label, const char* text,
 							BMessage* message, ProjectItem *item,
 							uint32 resizingMode = B_FOLLOW_LEFT|B_FOLLOW_TOP,
@@ -54,7 +50,7 @@ public:
 	virtual void MouseDown(BPoint point)
 	{
 		if (Bounds().Contains(point))
-			_inherited::MouseDown(point);
+			BTextControl::MouseDown(point);
 		else {
 			fProjectItem->AbortRename();
 		}
@@ -75,6 +71,9 @@ public:
 			}
 		}
 	}
+
+private:
+	ProjectItem *fProjectItem;
 };
 
 

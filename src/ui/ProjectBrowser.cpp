@@ -869,6 +869,8 @@ ProjectBrowser::ProjectFolderPopulate(ProjectFolder* project)
 void
 ProjectBrowser::ProjectFolderDepopulate(ProjectFolder* project)
 {
+	ASSERT(Looper()->IsLocked());
+
 	const BString projectPath = project->Path();
 	status_t status = BPrivate::BPathMonitor::StopWatching(projectPath, BMessenger(this));
 	if (status != B_OK) {
