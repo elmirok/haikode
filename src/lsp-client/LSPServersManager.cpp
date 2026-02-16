@@ -54,7 +54,7 @@ public:
 		return path;
 	}
 
-	const bool IsFileTypeSupported(const BString& fileType) const {
+	const bool IsFileTypeSupported(const BString& fileType) const override {
 		if (fileType.Compare("cpp") != 0 &&
 			fileType.Compare("c") != 0 &&
 			fileType.Compare("makefile") != 0)
@@ -88,7 +88,7 @@ public:
 		BPath path = "/boot/system/non-packaged/bin/pylsp";
 		return path;
 	}
-	const bool IsFileTypeSupported(const BString& fileType) const {
+	const bool IsFileTypeSupported(const BString& fileType) const override {
 		return (fileType.Compare("python") == 0);
 	}
 };
@@ -116,7 +116,7 @@ public:
 		BPath path = "/boot/system/non-packaged/bin/dotnet/dotnet";
 		return path;
 	}
-	const bool	IsFileTypeSupported(const BString& fileType) const {
+	const bool	IsFileTypeSupported(const BString& fileType) const override {
 		return (fileType.Compare("csharp") == 0);
 	}
 };
@@ -133,7 +133,7 @@ public:
 			// "##SOLUTION##"
 		// };
 	// }
-	// const bool	IsFileTypeSupported(const BString& fileType) const {
+	// const bool	IsFileTypeSupported(const BString& fileType) const override {
 		// return (fileType.Compare("cs") != 0 &&
 				// fileType.Compare("csproj") != 0 &&
 				// fileType.Compare("sln") != 0 &&

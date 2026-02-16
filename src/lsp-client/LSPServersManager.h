@@ -5,10 +5,8 @@
 #ifndef LSPServersManager_H
 #define LSPServersManager_H
 
-
-#include <SupportDefs.h>
-#include <string>
 #include <vector>
+
 #include <Entry.h>
 
 class LSPProjectWrapper;
@@ -21,12 +19,12 @@ class LSPServerConfigInterface {
 public:
 	virtual ~LSPServerConfigInterface() = default;
 	virtual BPath FilePath() const = 0;
-	virtual const bool   IsFileTypeSupported (const BString& fileType) const = 0;
+	virtual const bool IsFileTypeSupported (const BString& fileType) const = 0;
 	const char* const* Argv() const { return fArgv.data(); }
 				int32  Argc() const { return fArgv.size(); }
 
 protected:
-	std::vector<const char*>	fArgv;
+	std::vector<const char*> fArgv;
 	int32 fOffset;
 };
 
@@ -37,7 +35,7 @@ public:
 		static status_t				DisposeLSPServersConfig();
 private:
 		static bool _AddValidConfig(LSPServerConfigInterface*);
-		static std::vector<LSPServerConfigInterface*>	fConfigs;
+		static std::vector<LSPServerConfigInterface*> fConfigs;
 };
 
 
