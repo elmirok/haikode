@@ -4,7 +4,7 @@
  */
 
 #include "EmptyEditor.h"
-#include "GenioWindowMessages.h"
+
 #include <Rect.h>
 
 EmptyEditor::EmptyEditor()
@@ -19,6 +19,7 @@ EmptyEditor::EmptyEditor()
 EmptyEditor::~EmptyEditor()
 {
 }
+
 
 status_t
 EmptyEditor::PerformEditorAction(BMessage* message)
