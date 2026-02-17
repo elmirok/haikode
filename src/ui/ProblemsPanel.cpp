@@ -138,6 +138,7 @@ ProblemsPanel::MessageReceived(BMessage* msg)
 					fPopUpMenu->SetTargetForItems(row->fEditor->View());
 					fPopUpMenu->Go(ConvertToScreen(where), true);
 					delete fPopUpMenu;
+					fPopUpMenu = nullptr;
 				}
 			}
 			break;
