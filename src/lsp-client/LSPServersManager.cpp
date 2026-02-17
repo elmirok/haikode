@@ -17,8 +17,6 @@
 #include "LSPLogLevels.h"
 #include "LSPProjectWrapper.h"
 
-#include <iostream>
-
 class ClangdServerConfig : public LSPServerConfigInterface {
 public:
 	ClangdServerConfig()
@@ -81,7 +79,6 @@ public:
 				BString binaryName = "pylsp";
 				BPath filePath = paths.StringAt(c).String();
 				filePath.Append(binaryName);
-				std::cout << filePath.Path() << std::endl;
 				if (BEntry(filePath.Path()).Exists())
 					return filePath;
 			}
