@@ -1396,6 +1396,12 @@ ProjectOutlineListView::ShowPopupMenu(BPoint where)
 	menuPoint.y += 1;
 
 	projectMenu->Go(menuPoint, true, false, false);
+
+	// Remove actions before deleting menu
+	ActionManager::RemoveItem(MSG_PROJECT_MENU_SHOW_IN_TRACKER, projectMenu);
+	ActionManager::RemoveItem(MSG_PROJECT_MENU_OPEN_TERMINAL, projectMenu);
+
+	delete projectMenu;
 }
 
 

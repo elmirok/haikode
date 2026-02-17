@@ -98,6 +98,19 @@ ActionManager::AddItem(int32 msgWhat, ToolBar* bar, BMessage* extraFields)
 }
 
 
+/* static */
+void
+ActionManager::RemoveItem(int32 msgWhat, BMenu* menu)
+{
+	Action* action = sInstance.fActionMap[msgWhat];
+	BMenuItem* item = menu->FindItem(msgWhat);
+	std::vector<BMenuItem*> &v = action->menuItemList;
+	std::erase(v, item);
+
+	menu->RemoveItem(item);
+}
+
+
 status_t
 ActionManager::SetEnabled(int32 msgWhat, bool enabled)
 {

@@ -26,6 +26,8 @@ public:
 	static status_t		AddItem(int32 msgWhat, BMenu*, BMessage* extraFields = nullptr);
 	static status_t		AddItem(int32 msgWhat, ToolBar*, BMessage* extraFields = nullptr);
 
+	static void			RemoveItem(int32 msgWhat, BMenu*);
+
 	static status_t		SetEnabled(int32 msgWhat, bool enabled);
 	static status_t		SetPressed(int32 msgWhat, bool pressed);
 
