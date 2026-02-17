@@ -87,9 +87,6 @@ ConsoleIOTab::RunCommand(BMessage* message, bool clean, bool notifyMessage)
 BString
 ConsoleIOTab::_BannerCommand(BString claim, BString status, bool ending)
 {
-/*	if (!gCFG["console_banner"])
-		return "";*/
-
 	BString banner("PRET=$?; echo '");
 	banner  << "--------------------------------"
 			<< "   "
