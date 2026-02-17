@@ -82,6 +82,7 @@ EditorContextMenu::Show(Editor* editor, BPoint point)
 
 	BAutolock l(editor->Looper());
 
+	// TODO: improve sMenu vs sFixMenu separation
 	if (!sMenu)
 		_CreateMenu();
 
