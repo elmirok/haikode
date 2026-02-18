@@ -9,9 +9,11 @@
 #include <Point.h>
 #include <SupportDefs.h>
 
-class Editor;
-class BPopUpMenu;
 class BMenuItem;
+class BPopUpMenu;
+class Editor;
+class LSPDiagnostic;
+class LSPEditorWrapper;
 
 class EditorContextMenu {
 public:
@@ -22,6 +24,11 @@ private:
 
 	static BPopUpMenu*	sMenu;
 	static BPopUpMenu*	sFixMenu;
+
+	static void _PopulateFixMenu(BPopUpMenu* fixMenu, LSPEditorWrapper* lsp, 
+								Editor* editor, LSPDiagnostic& dia, int32 index);
+	static BPopUpMenu* _GetCodeActionsMenu(Editor* editor, BPoint screenPoint,
+								LSPEditorWrapper*& outLsp);
 	static void _CreateMenu();
 
 };
