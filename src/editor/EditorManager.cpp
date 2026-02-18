@@ -38,12 +38,14 @@ IsImageFile(const char* filename)
 	       name.EndsWith(".webp") || name.EndsWith(".ico");
 }
 
+
 /* static */ bool
 EditorManager::IsFileSupported(const entry_ref* ref)
 {
 	BString fileType;
 	return IsFileSupported(ref, fileType);
 }
+
 
 /* static */ bool
 EditorManager::IsFileSupported(const entry_ref* ref, BString& outFileType)
@@ -101,6 +103,7 @@ EditorManager::IsFileSupported(const entry_ref* ref, BString& outFileType)
 
 	return false;
 }
+
 
 /* static */ IEditor*
 EditorManager::CreateEditor(entry_ref* ref, const BMessenger& target,
