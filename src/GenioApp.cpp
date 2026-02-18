@@ -318,7 +318,8 @@ GenioApp::_PrepareConfig(ConfigManager& cfg)
 		B_TRANSLATE("Show project name in window title"), false);
 	cfg.AddConfig(general.String(), "branch_title",
 		B_TRANSLATE("Show branch name in window title"), false);
-
+	cfg.AddConfig(general.String(), "text_only",
+		B_TRANSLATE("Open non-text files externally"), false);
 	GMessage loggers = {
 		{"mode", "options"},
 		{"option_1", {

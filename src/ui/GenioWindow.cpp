@@ -1854,7 +1854,9 @@ GenioWindow::_FileOpenWithPosition(entry_ref* ref, bool openWithPreferred, int32
 	if (!BEntry(ref).Exists())
 		return B_ERROR;
 
-	if (openWithPreferred || !EditorManager::IsFileSupported(ref)) {
+	BString fileType;
+	if (openWithPreferred || !EditorManager::IsFileSupported(ref, fileType)
+		|| (fileType == "image" && gCFG["text_only"])) {
 		return _FileOpenWithPreferredApp(ref);
 	}
 
