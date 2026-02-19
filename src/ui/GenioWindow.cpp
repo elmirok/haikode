@@ -2073,7 +2073,11 @@ GenioWindow::_PostFileSave(IEditor* editor)
 	LogTrace("GenioWindow::_PostFileSave(%s)", editor->FilePath().String());
 
 	// Restart monitoring
-	editor->StartMonitoring();
+	status_t status = editor->StartMonitoring();
+	if (status != B_OK) {
+		LogError("GenioWindow::_PostFileSave(%s): StartMonitoring failed: %s",
+			editor->FilePath().String(), ::strerror(status));
+	}
 
 	// TODO: introduce a way to collapse these messages when we are called
 	// multiple times in a row, and only send the build message the on the last
@@ -2333,7 +2337,11 @@ GenioWindow::_HandleExternalStatModification(IEditor* editor)
 		editor->Reload();
 		LogInfoF("File info: %s modified externally", editor->Name().String());
 	}
-	editor->StartMonitoring();
+	status_t status = editor->StartMonitoring();
+	if (status != B_OK) {
+		LogError("GenioWindow::_HandleExternalStatModification(%s): StartMonitoring failed: %s",
+			editor->FilePath().String(), ::strerror(status));
+	}
 }
 
 
@@ -2377,7 +2385,11 @@ GenioWindow::_CheckEntryRemoved(BMessage *msg)
 							entry.GetRef(&xref);
 							editor->StopMonitoring();
 							editor->SetFileRef(&xref);
-							editor->StartMonitoring();
+							status_t status = editor->StartMonitoring();
+							if (status != B_OK) {
+								LogError("GenioWindow::_CheckEntryRemoved(): StartMonitoring failed: %s",
+									::strerror(status));
+							}
 							_HandleExternalStatModification(editor);
 						}
 						// else a B_STAT_CHANGED is notifyng the change.

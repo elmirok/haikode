@@ -1151,7 +1151,11 @@ Editor::LoadFromFile()
 		SetReadOnly();
 
 	// Monitor node
-	StartMonitoring();
+	status = StartMonitoring();
+	if (status != B_OK) {
+		LogError("Editor::LoadFromFile: StartMonitoring failed: %s", ::strerror(status));
+		// TODO: Return status ?
+	}
 
 	fFileType = "";
 	if (!Languages::GetLanguageForExtension(GetFileExtension(fFileName.String()), fFileType)) {
