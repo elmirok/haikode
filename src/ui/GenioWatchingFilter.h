@@ -32,7 +32,7 @@ public:
 		}
 
 		status = BPrivate::BPathMonitor::BWatchingInterface::WatchNode(node, flags, handler, looper);
-		if (status != B_OK /*&& flags != B_STOP_WATCHING*/) {
+		if (status != B_OK && flags != B_STOP_WATCHING) {
 			BEntry entry;
 			dir.GetEntry(&entry);
 			BPath path;
