@@ -4620,7 +4620,8 @@ GenioWindow::_HandleProjectConfigurationChanged(BMessage* message)
 	const ProjectFolder* project
 		= reinterpret_cast<const ProjectFolder*>(message->GetPointer("project_folder", nullptr));
 	if (project == nullptr) {
-		LogError("GenioWindow: Update project configuration message without a project folder pointer!");
+		LogInfo("GenioWindow: Update project configuration message"
+			" without a project folder pointer (not an error if logged once on start).");
 		return;
 	}
 	BString key(message->GetString("key", ""));
