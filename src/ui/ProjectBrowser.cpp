@@ -1468,7 +1468,8 @@ ProjectOutlineListView::_AddProjectFolderMenuItems(BMenu* projectMenu, ProjectFo
 
 	if (window != nullptr) {
 		ProjectFolder* activeProject = window->GetActiveProject();
-		setActiveProjectMenuItem->SetEnabled(!project->Active() && !activeProject->IsBuilding());
+		setActiveProjectMenuItem->SetEnabled(!project->Active() &&
+			activeProject != nullptr && !activeProject->IsBuilding());
 		if (window->AreTasksRunning())
 			closeProjectMenuItem->SetEnabled(false);
 	}
