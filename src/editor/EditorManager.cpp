@@ -6,9 +6,8 @@
 #include "EditorManager.h"
 
 #include "Editor.h"
-#include "ImageEditor.h"
-#include "EmptyEditor.h"
 #include "IEditor.h"
+#include "ImageEditor.h"
 #include "Languages.h"
 #include "Log.h"
 #include "Utils.h"
@@ -31,6 +30,7 @@ IsImageFile(const char* filename)
 	name.ToLower();
 
 	// Check common image extensions
+	// TODO: check the mimetype instead
 	return name.EndsWith(".png") || name.EndsWith(".jpg") ||
 	       name.EndsWith(".jpeg") || name.EndsWith(".gif") ||
 	       name.EndsWith(".bmp") || name.EndsWith(".tga") ||
@@ -39,7 +39,8 @@ IsImageFile(const char* filename)
 }
 
 
-/* static */ bool
+/* static */
+bool
 EditorManager::IsFileSupported(const entry_ref* ref)
 {
 	BString fileType;
@@ -47,7 +48,8 @@ EditorManager::IsFileSupported(const entry_ref* ref)
 }
 
 
-/* static */ bool
+/* static */
+bool
 EditorManager::IsFileSupported(const entry_ref* ref, BString& outFileType)
 {
 	outFileType.SetTo("");
@@ -105,7 +107,8 @@ EditorManager::IsFileSupported(const entry_ref* ref, BString& outFileType)
 }
 
 
-/* static */ IEditor*
+/* static */
+IEditor*
 EditorManager::CreateEditor(entry_ref* ref, const BMessenger& target,
 	const std::string& fileType)
 {

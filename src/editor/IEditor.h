@@ -5,7 +5,6 @@
 #pragma once
 
 #include <String.h>
-#include <SupportDefs.h>
 #include <Message.h>
 
 #include <string>

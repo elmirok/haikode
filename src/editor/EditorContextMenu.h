@@ -2,12 +2,9 @@
  * Copyright 2023, Andrea Anzani 
  * All rights reserved. Distributed under the terms of the MIT license.
  */
-#ifndef EditorContextMenu_H
-#define EditorContextMenu_H
-
+#pragma once
 
 #include <Point.h>
-#include <SupportDefs.h>
 
 class BMenuItem;
 class BPopUpMenu;
@@ -31,6 +28,3 @@ private:
 								LSPEditorWrapper*& outLsp);
 	static BPopUpMenu* _GetStandardMenu(Editor* editor, BPoint screenPoint);
 };
-
-
-#endif // EditorContextMenu_H

@@ -6,7 +6,6 @@
 
 #include <Messenger.h>
 #include <String.h>
-#include <SupportDefs.h>
 
 #include <string>
 
