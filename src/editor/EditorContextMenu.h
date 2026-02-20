@@ -29,8 +29,7 @@ private:
 								Editor* editor, LSPDiagnostic& dia, int32 index);
 	static BPopUpMenu* _GetCodeActionsMenu(Editor* editor, BPoint screenPoint,
 								LSPEditorWrapper*& outLsp);
-	static void _CreateMenu();
-
+	static BPopUpMenu* _GetStandardMenu(Editor* editor, BPoint screenPoint);
 };
 
 

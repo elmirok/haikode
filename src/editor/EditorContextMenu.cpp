@@ -32,49 +32,7 @@ EditorContextMenu::EditorContextMenu()
 }
 
 
-void
-EditorContextMenu::_CreateMenu()
-{
-	sMenu = new BPopUpMenu("EditorContextMenu", false, false);
-
-	ActionManager::AddItem(B_UNDO, sMenu);
-	ActionManager::AddItem(B_REDO, sMenu);
-
-	sMenu->AddSeparatorItem();
-
-	ActionManager::AddItem(B_CUT, sMenu);
-	ActionManager::AddItem(B_COPY, sMenu);
-	ActionManager::AddItem(B_PASTE, sMenu);
-	ActionManager::AddItem(MSG_TEXT_DELETE, sMenu);
-
-	sMenu->AddSeparatorItem();
-
-	ActionManager::AddItem(B_SELECT_ALL, sMenu);
-
-	sMenu->AddSeparatorItem();
-
-	ActionManager::AddItem(MSG_GOTODEFINITION, sMenu);
-	ActionManager::AddItem(MSG_GOTODECLARATION, sMenu);
-	ActionManager::AddItem(MSG_GOTOIMPLEMENTATION, sMenu);
-
-	sMenu->AddSeparatorItem();
-
-	ActionManager::AddItem(MSG_RENAME, sMenu);
-
-	sMenu->AddSeparatorItem();
-
-	ActionManager::AddItem(MSG_FIND_IN_BROWSER, sMenu);
-
-	entry_ref ref;
-	BMessage* refMessage = new BMessage();
-	refMessage->AddRef("ref", &ref);
-	ActionManager::AddItem(MSG_PROJECT_MENU_SHOW_IN_TRACKER, sMenu, refMessage);
-
-	refMessage = new BMessage(*refMessage);
-	ActionManager::AddItem(MSG_PROJECT_MENU_OPEN_TERMINAL, sMenu, refMessage);
-}
-
-
+/* static */
 void
 EditorContextMenu::Show(Editor* editor, BPoint point)
 {
@@ -90,28 +48,9 @@ EditorContextMenu::Show(Editor* editor, BPoint point)
 	BPopUpMenu* menu = _GetCodeActionsMenu(editor, point, outLsp);
 	if (menu == nullptr) {
 		// If no action menu, just show the regular menu
-		if (!sMenu)
-			_CreateMenu();
-		menu = sMenu;
-
-		ActionManager::SetEnabled(B_CUT,   editor->CanCut());
-		ActionManager::SetEnabled(B_COPY,  editor->CanCopy());
-		ActionManager::SetEnabled(B_PASTE, editor->CanPaste());
-
-		if (editor->FileRef() != nullptr) {
-			ActionManager::GetMessage(MSG_PROJECT_MENU_SHOW_IN_TRACKER, sMenu)->ReplaceRef("ref", editor->FileRef());
-			ActionManager::GetMessage(MSG_PROJECT_MENU_OPEN_TERMINAL, sMenu)->ReplaceRef("ref", editor->FileRef());
-			ActionManager::SetEnabled(MSG_FIND_IN_BROWSER, (editor->GetProjectFolder() != nullptr));
-		} else {
-			ActionManager::SetEnabled(MSG_PROJECT_MENU_SHOW_IN_TRACKER, false);
-			ActionManager::SetEnabled(MSG_PROJECT_MENU_OPEN_TERMINAL, false);
-			ActionManager::SetEnabled(MSG_FIND_IN_BROWSER, false);
-		}
-		// NOTE: the target should always be editor (for all messages) but we need fist to move them
-		// from the window.
-		menu->SetTargetForItems(editor->Window());
+		menu = _GetStandardMenu(editor, point);
 	}
-
+	ASSERT(menu != nullptr);
 	menu->Go(point, true, false, false);
 
 	ActionManager::SetEnabled(MSG_PROJECT_MENU_SHOW_IN_TRACKER, isShowInTrackerEnabled);
@@ -161,4 +100,69 @@ EditorContextMenu::_GetCodeActionsMenu(Editor* editor, BPoint screenPoint, LSPEd
 	}
 
 	return nullptr;
+}
+
+
+/* static */
+BPopUpMenu*
+EditorContextMenu::_GetStandardMenu(Editor* editor, BPoint screenPoint)
+{
+	if (sMenu == nullptr) {
+		sMenu = new BPopUpMenu("EditorContextMenu", false, false);
+
+		ActionManager::AddItem(B_UNDO, sMenu);
+		ActionManager::AddItem(B_REDO, sMenu);
+
+		sMenu->AddSeparatorItem();
+
+		ActionManager::AddItem(B_CUT, sMenu);
+		ActionManager::AddItem(B_COPY, sMenu);
+		ActionManager::AddItem(B_PASTE, sMenu);
+		ActionManager::AddItem(MSG_TEXT_DELETE, sMenu);
+
+		sMenu->AddSeparatorItem();
+
+		ActionManager::AddItem(B_SELECT_ALL, sMenu);
+
+		sMenu->AddSeparatorItem();
+
+		ActionManager::AddItem(MSG_GOTODEFINITION, sMenu);
+		ActionManager::AddItem(MSG_GOTODECLARATION, sMenu);
+		ActionManager::AddItem(MSG_GOTOIMPLEMENTATION, sMenu);
+
+		sMenu->AddSeparatorItem();
+
+		ActionManager::AddItem(MSG_RENAME, sMenu);
+
+		sMenu->AddSeparatorItem();
+
+		ActionManager::AddItem(MSG_FIND_IN_BROWSER, sMenu);
+
+		entry_ref ref;
+		BMessage* refMessage = new BMessage();
+		refMessage->AddRef("ref", &ref);
+		ActionManager::AddItem(MSG_PROJECT_MENU_SHOW_IN_TRACKER, sMenu, refMessage);
+
+		refMessage = new BMessage(*refMessage);
+		ActionManager::AddItem(MSG_PROJECT_MENU_OPEN_TERMINAL, sMenu, refMessage);
+	}
+
+	ActionManager::SetEnabled(B_CUT,   editor->CanCut());
+	ActionManager::SetEnabled(B_COPY,  editor->CanCopy());
+	ActionManager::SetEnabled(B_PASTE, editor->CanPaste());
+
+	if (editor->FileRef() != nullptr) {
+		ActionManager::GetMessage(MSG_PROJECT_MENU_SHOW_IN_TRACKER, sMenu)->ReplaceRef("ref", editor->FileRef());
+		ActionManager::GetMessage(MSG_PROJECT_MENU_OPEN_TERMINAL, sMenu)->ReplaceRef("ref", editor->FileRef());
+		ActionManager::SetEnabled(MSG_FIND_IN_BROWSER, (editor->GetProjectFolder() != nullptr));
+	} else {
+		ActionManager::SetEnabled(MSG_PROJECT_MENU_SHOW_IN_TRACKER, false);
+		ActionManager::SetEnabled(MSG_PROJECT_MENU_OPEN_TERMINAL, false);
+		ActionManager::SetEnabled(MSG_FIND_IN_BROWSER, false);
+	}
+	// NOTE: the target should always be editor (for all messages) but we need fist to move them
+	// from the window.
+	sMenu->SetTargetForItems(editor->Window());
+
+	return sMenu;
 }
