@@ -1154,7 +1154,7 @@ Editor::LoadFromFile()
 	status = StartMonitoring();
 	if (status != B_OK) {
 		LogError("Editor::LoadFromFile: StartMonitoring failed: %s", ::strerror(status));
-		// TODO: Return status ?
+		return status;
 	}
 
 	fFileType = "";
