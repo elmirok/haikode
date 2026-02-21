@@ -1536,8 +1536,6 @@ GenioWindow::QuitRequested()
 			projects.AddString("project_to_reopen", project->Path());
 			if (project->Active())
 				projects.SetString("active_project", project->Path());
-			// Avoiding leaks
-			//TODO:---> _ProjectOutlineDepopulate(project);
 			delete project;
 		}
 		gCFG[GenioNames::kSettingsProjectsToReopen] = projects;
@@ -2304,7 +2302,6 @@ GenioWindow::_HandleExternalRemoveModification(IEditor* editor)
 	 	// the user decide
 	 	if (editor->IsModified() == false)
 			_FileSave(editor);
-		return;
 	} else if (choice == 1) {
 		_RemoveTab(editor);
 
@@ -2523,7 +2520,6 @@ GenioWindow::_InitCommandRunToolbar()
 	const char* projectsDirectory = gCFG["projects_directory"];
 	tooltip << projectsDirectory;
 	fRunConsoleProgramText->SetToolTip(tooltip);
-
 }
 
 
@@ -2824,7 +2820,7 @@ GenioWindow::_InitActions()
 	ActionManager::RegisterAction(MSG_SHOW_HIDE_RIGHT_PANE,
 									B_TRANSLATE("Show right pane"),
 									B_TRANSLATE("Show/Hide right pane"),
-									"kIconWinOutline");
+									"kIconWinOutline");
 
 	ActionManager::RegisterAction(MSG_SHOW_HIDE_BOTTOM_PANE,
 									B_TRANSLATE("Show bottom pane"),
@@ -2934,7 +2930,6 @@ GenioWindow::_InitActions()
 	ActionManager::RegisterAction(MSG_JUMP_GO_BACK, B_TRANSLATE("Go back"),
 									B_TRANSLATE("Go back"), "kIconBack_1", B_PAGE_DOWN,
 									B_OPTION_KEY);
-
 }
 
 
@@ -2970,8 +2965,6 @@ GenioWindow::_InitMenu()
 	fMenuBar->AddItem(iconMenu);
 
 	BMenu* fileMenu = new BMenu(B_TRANSLATE("File"));
-
-	//ActionManager::AddItem(MSG_FILE_NEW, fileMenu);
 
 	fileMenu->AddItem(fFileNewMenuItem = new TemplatesMenu(this, B_TRANSLATE("New"),
 			new BMessage(MSG_FILE_NEW), new BMessage(MSG_SHOW_TEMPLATE_USER_FOLDER),
@@ -3353,7 +3346,6 @@ GenioWindow::_InitToolbar()
 	ActionManager::AddItem(MSG_JUMP_GO_BACK, fToolBar);
 	ActionManager::AddItem(MSG_JUMP_GO_FORWARD, fToolBar);
 
-
 	fToolBar->AddGlue();
 
 	ActionManager::AddItem(MSG_BUFFER_LOCK, fToolBar);
@@ -3386,11 +3378,11 @@ GenioWindow::_InitTabViews()
 	//Bottom
 	fProblemsPanel = new ProblemsPanel(fPanelTabManager, kTabProblems);
 
-	BString theme = (BString)gCFG["build_theme"];
+	BString theme = BString(gCFG["build_theme"]);
 	fBuildLogView = new ConsoleIOTabView(B_TRANSLATE("Build log"), BMessenger(this), theme);
 
-	theme = (BString)gCFG["console_theme"];
-	fMTermView 	  = new ConsoleIOTabView(B_TRANSLATE("Console I/O"), BMessenger(this), theme);
+	theme = BString(gCFG["console_theme"]);
+	fMTermView = new ConsoleIOTabView(B_TRANSLATE("Console I/O"), BMessenger(this), theme);
 
 	fSearchResultTab = new SearchResultTab(fPanelTabManager, kTabSearchResult);
 
@@ -3910,10 +3902,10 @@ GenioWindow::_ProjectFolderOpenerRunner(ProjectFolder* project, bool activate)
 {
 	ProjectFolder* result = GetProjectBrowser()->ProjectBrowser::ProjectFolderPopulate(project);
 
-	LockLooper();
-	_ProjectFolderOpenCompleted(result, *result->EntryRef(), activate);
-	UnlockLooper();
-
+	if (LockLooper()) {
+		_ProjectFolderOpenCompleted(result, *result->EntryRef(), activate);
+		UnlockLooper();
+	}
 	return result;
 }
 
