@@ -744,7 +744,7 @@ GenioWindow::MessageReceived(BMessage* message)
 		case MSG_FIND_IN_BROWSER:
 		{
 			editor_id id = message->GetUInt64(kEditorId, 0);
-			IEditor*	editor = fTabManager->EditorById(id);
+			IEditor* editor = fTabManager->EditorById(id);
 			if (editor == nullptr)
 				editor = fTabManager->SelectedEditor();
 
@@ -1091,7 +1091,7 @@ GenioWindow::MessageReceived(BMessage* message)
 		case EditorTabView::kETVCloseTab:
 		{
 			editor_id id = message->GetUInt64(kEditorId, 0);
-			IEditor*	editor = fTabManager->EditorById(id);
+			IEditor* editor = fTabManager->EditorById(id);
 			if (editor == nullptr)
 				return;
 			std::vector<IEditor*> editors = { editor };
@@ -1384,7 +1384,7 @@ void
 GenioWindow::_CloseMultipleTabs(std::vector<IEditor*>& editors)
 {
 	std::vector<IEditor*> unsavedEditor;
-	for(IEditor* editor:editors) {
+	for (IEditor* editor:editors) {
 		if (editor->IsModified())
 			unsavedEditor.push_back(editor);
 	}
@@ -4600,7 +4600,7 @@ GenioWindow::_HandleConfigurationChanged(BMessage* message)
 		fMTermView->SetTheme((BString)gCFG["console_theme"]);
 	}
 
-	IEditor* selected = (Editor*)fTabManager->SelectedEditor();
+	IEditor* selected = fTabManager->SelectedEditor();
 	BString currentBranch;
 	if (selected != nullptr) {
 		try {
