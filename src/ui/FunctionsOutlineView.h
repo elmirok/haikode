@@ -8,8 +8,8 @@
 
 
 class BListItem;
-class BStringView;
 class BOutlineListView;
+class BStringView;
 class ToolBar;
 class FunctionsOutlineView : public BView {
 public:
