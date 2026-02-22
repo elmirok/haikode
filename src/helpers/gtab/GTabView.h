@@ -20,8 +20,8 @@ class GTab;
 
 typedef uint32 tab_affinity;
 
-// TODO: width is ignored for now.
-// Implement B_WIDTH_FROM_WIDEST and B_WIDTH_FROM_LABEL
+// TODO:
+// Implement B_WIDTH_FROM_WIDEST
 class GTabView : public BGroupView {
 	public:
 					GTabView(const char* name,

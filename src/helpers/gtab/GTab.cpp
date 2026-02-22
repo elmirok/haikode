@@ -112,8 +112,11 @@ GTab::MaxSize()
 	float labelWidth = 150.0f;
 	button_width width = Container()->GetGTabView()->TabWidth();
 	// TODO: Improve
-	if (width == B_WIDTH_FROM_LABEL)
+	if (width == B_WIDTH_FROM_LABEL) {
 		labelWidth = StringWidth(Label());
+		float spacing = be_control_look->DefaultLabelSpacing();
+		labelWidth += spacing * 4;
+	}
 
 	return BSize(labelWidth, TabViewTools::DefaultTabHeight());
 }

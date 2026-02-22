@@ -31,19 +31,15 @@ public:
 	BString	PreviousOwner() const { return fPreviousOwner; }
 	void	SetPreviousOwner(const char* owner) { fPreviousOwner.SetTo(owner); }
 
-	BSize	MinSize() override
+	BSize MinSize() override
 	{
+		// Not an error: we do this to avoid resizing
 		return MaxSize();
 	}
 
-	BSize	MaxSize() override
+	BSize MaxSize() override
 	{
-		BSize min;
-		float w = StringWidth(Label().String());
-		float spacing = be_control_look->DefaultLabelSpacing();
-		min.width = w + spacing * 4;
-		min.height = TabViewTools::DefaultTabHeight();
-		return min;
+		return GTab::MaxSize();
 	}
 
 	void SetLabel(const char* label) override
@@ -71,7 +67,7 @@ public:
 	PanelTabView(PanelTabManager* manager, const char* name,
 			tab_affinity affinity, orientation orientation)
 		:
-		GTabView(name, affinity, orientation, B_WIDTH_AS_USUAL, true),
+		GTabView(name, affinity, orientation, B_WIDTH_FROM_LABEL, true),
 		fManager(manager)
 	{
 	}
