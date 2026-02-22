@@ -56,6 +56,7 @@ public:
 GTabView::GTabView(const char* name,
 				   tab_affinity affinity,
 				   orientation content_orientation,
+				   button_width width,
 				   bool closeButton,
 				   bool menuButton)
 	:

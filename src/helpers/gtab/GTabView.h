@@ -20,11 +20,14 @@ class GTab;
 
 typedef uint32 tab_affinity;
 
+// TODO: width is ignored for now.
+// Implement B_WIDTH_FROM_WIDEST and B_WIDTH_FROM_LABEL
 class GTabView : public BGroupView {
 	public:
 					GTabView(const char* name,
 							 tab_affinity affinity,
 							 orientation orientation = B_HORIZONTAL,
+							 button_width width = B_WIDTH_AS_USUAL,
 							 bool closeButton = false,
 							 bool menuButton = false);
 

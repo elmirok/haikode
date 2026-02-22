@@ -8,7 +8,6 @@
 #include <GroupView.h>
 #include <Invoker.h>
 
-#include "Draggable.h"
 #include "GTabView.h"
 
 class GTab;
