@@ -15,7 +15,10 @@ BSize
 GTabEditor::MinSize()
 {
 	BSize size(GTabCloseButton::MinSize());
-	size.width = size.width * 2;
+	if (Container()->GetGTabView()->TabWidth() != B_WIDTH_FROM_LABEL) {
+		if (size.width < 150)
+			size.width = 150;
+	}
 	return size;
 }
 
@@ -25,7 +28,11 @@ GTabEditor::MaxSize()
 {
 	BSize size(GTabCloseButton::MaxSize());
 	float extra = be_control_look->DefaultLabelSpacing();
-	size.width = size.width * 2 + extra;
+	if (Container()->GetGTabView()->TabWidth() != B_WIDTH_FROM_LABEL) {
+		if (size.width < 300)
+			size.width = 300;
+	}
+	size.width += extra * 2;
 	return size;
 }
 

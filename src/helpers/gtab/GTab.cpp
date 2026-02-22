@@ -328,7 +328,7 @@ BSize
 GTabCloseButton::MaxSize()
 {
 	BSize s(GTab::MaxSize());
-	//s.width += kCloseButtonWidth;
+	s.width += kCloseButtonWidth;
 	return s;
 }
 
