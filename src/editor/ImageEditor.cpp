@@ -37,11 +37,13 @@ ImageEditor::ImageEditor(entry_ref* ref, const BMessenger& target)
 	SetHighUIColor(B_PANEL_TEXT_COLOR);
 }
 
+
 ImageEditor::~ImageEditor()
 {
 	StopMonitoring();
 	delete fBitmap;
 }
+
 
 void
 ImageEditor::SetProjectFolder(ProjectFolder* project)
@@ -49,11 +51,13 @@ ImageEditor::SetProjectFolder(ProjectFolder* project)
 	fProjectFolder = project;
 }
 
+
 void
 ImageEditor::GrabFocus()
 {
 	MakeFocus(true);
 }
+
 
 const BString
 ImageEditor::FilePath() const
@@ -61,6 +65,7 @@ ImageEditor::FilePath() const
 	BPath path(&fFileRef);
 	return BString(path.Path());
 }
+
 
 status_t
 ImageEditor::SetFileRef(entry_ref* ref)
@@ -74,6 +79,7 @@ ImageEditor::SetFileRef(entry_ref* ref)
 
 	return B_OK;
 }
+
 
 status_t
 ImageEditor::LoadFromFile()
@@ -92,6 +98,7 @@ ImageEditor::LoadFromFile()
 	return status;
 }
 
+
 status_t
 ImageEditor::Reload()
 {
@@ -101,8 +108,8 @@ ImageEditor::Reload()
 
 	delete fBitmap;
 	fBitmap = nullptr;
-	status_t status = _LoadImage();
 
+	status_t status = _LoadImage();
 	if (status == B_OK) {
 		// Restore zoom and position
 		fScale = oldScale;
@@ -114,17 +121,20 @@ ImageEditor::Reload()
 	return status;
 }
 
+
 status_t
 ImageEditor::StartMonitoring()
 {
 	return watch_node(&fNodeRef, B_WATCH_STAT, fTarget);
 }
 
+
 status_t
 ImageEditor::StopMonitoring()
 {
 	return watch_node(&fNodeRef, B_STOP_WATCHING, fTarget);
 }
+
 
 void
 ImageEditor::Draw(BRect updateRect)
@@ -155,6 +165,7 @@ ImageEditor::Draw(BRect updateRect)
 	DrawBitmap(fBitmap, fBitmap->Bounds(), destRect);
 }
 
+
 void
 ImageEditor::FrameResized(float width, float height)
 {
@@ -162,6 +173,7 @@ ImageEditor::FrameResized(float width, float height)
 	_UpdateBitmapPosition();
 	Invalidate();
 }
+
 
 void
 ImageEditor::MessageReceived(BMessage* message)
@@ -199,6 +211,7 @@ ImageEditor::MessageReceived(BMessage* message)
 	}
 }
 
+
 void
 ImageEditor::MouseDown(BPoint where)
 {
@@ -208,11 +221,13 @@ ImageEditor::MouseDown(BPoint where)
 	fOffsetStart = fOffset;
 }
 
+
 void
 ImageEditor::MouseUp(BPoint where)
 {
 	fDragging = false;
 }
+
 
 void
 ImageEditor::MouseMoved(BPoint where, uint32 code, const BMessage* dragMessage)
@@ -223,6 +238,7 @@ ImageEditor::MouseMoved(BPoint where, uint32 code, const BMessage* dragMessage)
 		Invalidate();
 	}
 }
+
 
 void
 ImageEditor::AttachedToWindow()
@@ -238,6 +254,7 @@ ImageEditor::AttachedToWindow()
 	}
 }
 
+
 BMessage
 ImageEditor::GetModifiedState()
 {
@@ -245,6 +262,7 @@ ImageEditor::GetModifiedState()
 	state.AddBool("modified", false);
 	return state;
 }
+
 
 BMessage
 ImageEditor::GetDocumentInfo()
@@ -263,6 +281,7 @@ ImageEditor::GetDocumentInfo()
 
 	return info;
 }
+
 
 void
 ImageEditor::_UpdateBitmapPosition()
@@ -292,6 +311,7 @@ ImageEditor::_UpdateBitmapPosition()
 	fBitmapRect.OffsetTo(x, y);
 }
 
+
 void
 ImageEditor::_ZoomIn(BPoint center)
 {
@@ -316,6 +336,7 @@ ImageEditor::_ZoomIn(BPoint center)
 	Invalidate();
 }
 
+
 void
 ImageEditor::_ZoomOut(BPoint center)
 {
@@ -339,6 +360,7 @@ ImageEditor::_ZoomOut(BPoint center)
 
 	Invalidate();
 }
+
 
 void
 ImageEditor::_ZoomToFit()
@@ -375,6 +397,7 @@ ImageEditor::_ZoomToFit()
 	Invalidate();
 }
 
+
 void
 ImageEditor::_ZoomToActual()
 {
@@ -386,6 +409,7 @@ ImageEditor::_ZoomToActual()
 	fOffset.Set(0, 0);
 	Invalidate();
 }
+
 
 status_t
 ImageEditor::_LoadImage()
