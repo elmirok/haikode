@@ -72,7 +72,7 @@ Editor::Editor(entry_ref* ref, const BMessenger& target)
 	, fProjectFolder(NULL)
 	, fIdleHandler(nullptr)
 {
-	if (ref) {
+	if (ref != nullptr) {
 		fFileRef = *ref;
 		fFileName = BString(ref->name);
 	} else {
@@ -105,8 +105,8 @@ Editor::Editor(entry_ref* ref, const BMessenger& target)
 	SendMessage(SCI_SETMARGINMASKN, sci_FOLD_MARGIN, SC_MASK_FOLDERS);
 	SendMessage(SCI_SETMARGINSENSITIVEN, sci_FOLD_MARGIN, 1);
 
-	SendMessage(SCI_SETPROPERTY, (sptr_t) "fold", (sptr_t) "1");
-	SendMessage(SCI_SETPROPERTY, (sptr_t) "fold.comment", (sptr_t) "1");
+	SendMessage(SCI_SETPROPERTY, (sptr_t)"fold", (sptr_t)"1");
+	SendMessage(SCI_SETPROPERTY, (sptr_t)"fold.comment", (sptr_t)"1");
 
 	SendMessage(SCI_SETMARGINTYPEN, sci_FOLD_MARGIN, SC_MARGIN_SYMBOL);
 	SendMessage(SCI_SETMARGINMASKN, sci_FOLD_MARGIN, SC_MASK_FOLDERS);
@@ -147,7 +147,7 @@ Editor::Editor(entry_ref* ref, const BMessenger& target)
 bool
 Editor::HasLSPServer() const
 {
-	return (fLSPEditorWrapper && fLSPEditorWrapper->HasLSPServer());
+	return fLSPEditorWrapper != nullptr && fLSPEditorWrapper->HasLSPServer();
 }
 
 
@@ -213,7 +213,7 @@ Editor::PerformEditorAction(BMessage* message)
 		case GTLW_GO:
 		{
 			int32 line;
-			if(message->FindInt32("line", &line) == B_OK) {
+			if (message->FindInt32("line", &line) == B_OK) {
 				GoToLine(line);
 			}
 			break;
@@ -257,7 +257,7 @@ Editor::PerformEditorAction(BMessage* message)
 		case MSG_SET_LANGUAGE:
 			SetFileType(std::string(message->GetString("lang", "")));
 			ApplySettings();
-			//NOTE (TODO?) we are not changing any LSP configuration!
+			// NOTE (TODO?) we are not changing any LSP configuration!
 			break;
 		case MSG_COLLAPSE_SYMBOL_NODE:
 		{
@@ -377,7 +377,7 @@ Editor::MessageReceived(BMessage* message)
 			fLSPEditorWrapper->flushChanges();
 			break;
 		case kApplyFix:
-			if (fLSPEditorWrapper)
+			if (fLSPEditorWrapper != nullptr)
 				fLSPEditorWrapper->ApplyFix(message);
 			break;
 		case kCallTipClick:
@@ -432,7 +432,7 @@ Editor::ApplySettings()
 
 	_HighlightBraces();
 
-	if(gCFG["wrap_lines"]) {
+	if (gCFG["wrap_lines"]) {
 		SendMessage(SCI_SETWRAPMODE, SC_WRAP_WORD, 0);
 	} else {
 		SendMessage(SCI_SETWRAPMODE, SC_WRAP_NONE, 0);
@@ -1186,7 +1186,8 @@ Editor::NotificationReceived(SCNotification* notification)
 
 	switch (pNmhdr->code) {
 		// Auto-indent
-		case SCN_CHARADDED: {
+		case SCN_CHARADDED:
+		{
 			char ch = static_cast<char>(notification->ch);
 			if (ch == '\n' || ch == '\r')
 				_MaintainIndentation(ch);
@@ -1209,7 +1210,8 @@ Editor::NotificationReceived(SCNotification* notification)
 		case SCN_AUTOCCANCELLED:
 			fLSPEditorWrapper->CharAdded(0);
 			break;
-		case SCN_AUTOCSELECTION: {
+		case SCN_AUTOCSELECTION:
+		{
 			fLSPEditorWrapper->SelectedCompletion(notification->text);
 			break;
 		}
@@ -1383,7 +1385,7 @@ Editor::OverwriteToggle()
 void
 Editor::Paste()
 {
-	if (SendMessage(SCI_CANPASTE, UNSET, UNSET))
+	if (CanPaste())
 		SendMessage(SCI_PASTE, UNSET, UNSET);
 }
 
@@ -1424,10 +1426,10 @@ Editor::Reload()
 	off_t len = file.Read(buffer, size);
 	buffer[size] = '\0';
 	SendMessage(SCI_CLEARALL, UNSET, UNSET);
-	SendMessage(SCI_SETTEXT, 0, (sptr_t) buffer);
+	SendMessage(SCI_SETTEXT, 0, (sptr_t)buffer);
 	delete[] buffer;
 
-	if (readOnly == true)
+	if (readOnly)
 		SendMessage(SCI_SETREADONLY, 1, UNSET);
 
 	if (len != size)
@@ -1491,8 +1493,6 @@ Editor::ReplaceAndFindPrevious(const BString& selection,
 int32
 Editor::ReplaceAll(const BString& selection, const BString& replacement, int flags)
 {
-	int32 count = 0;
-
 	SendMessage(SCI_TARGETWHOLEDOCUMENT, UNSET, UNSET);
 	SendMessage(SCI_SETSEARCHFLAGS, flags, UNSET);
 
@@ -1501,11 +1501,12 @@ Editor::ReplaceAll(const BString& selection, const BString& replacement, int fla
 
 	SendMessage(SCI_BEGINUNDOACTION, 0, 0);
 
+	int32 count = 0;
 	do {
 		position = SendMessage(SCI_SEARCHINTARGET, selection.Length(),
-												(sptr_t) selection.String());
+												(sptr_t)selection.String());
 		if (position != -1) {
-			SendMessage(SCI_REPLACETARGET, -1, (sptr_t) replacement.String());
+			SendMessage(SCI_REPLACETARGET, -1, (sptr_t)replacement.String());
 			count++;
 
 			SendMessage(SCI_SETTARGETRANGE, position + replacement.Length(), endPosition);
@@ -1698,7 +1699,7 @@ Editor::UpdateStatusBar()
 	int line = SendMessage(SCI_LINEFROMPOSITION, pos, 0);
 	int column = SendMessage(SCI_GETCOLUMN, pos, 0);
 	BMessage update(editor::StatusView::UPDATE_STATUS);
-	if (fLSPEditorWrapper)
+	if (fLSPEditorWrapper != nullptr)
 		update.AddString("status", fLSPEditorWrapper->GetFileStatus());
 	update.AddInt32("line", line + 1);
 	update.AddInt32("column", column + 1);
@@ -1793,11 +1794,11 @@ Editor::SetSearchFlags(bool matchCase, bool wholeWord, bool wordStart,
 			bool regExp, bool posix)
 {
 	int flags = 0;
-	if (matchCase == true)
+	if (matchCase)
 		flags |= SCFIND_MATCHCASE;
-	if (wholeWord == true)
+	if (wholeWord)
 		flags |= SCFIND_WHOLEWORD;
-	if (wordStart == true)
+	if (wordStart)
 		flags |= SCFIND_WORDSTART;
 
 	return flags;
@@ -1923,6 +1924,7 @@ Editor::GoToImplementation()
 {
 	fLSPEditorWrapper->GoTo(LSPEditorWrapper::GOTO_IMPLEMENTATION);
 }
+
 
 void
 Editor::Rename()
@@ -2285,7 +2287,7 @@ Editor::_EndOfLineAssign(char *buffer, int32 size)
 void
 Editor::_HighlightBraces()
 {
-	if (fBracingAvailable == true) {
+	if (fBracingAvailable) {
 		SendMessage(SCI_STYLESETFORE, STYLE_BRACELIGHT, 0xFF0000);
 		SendMessage(SCI_STYLESETBOLD, STYLE_BRACELIGHT, 1);
 		SendMessage(SCI_STYLESETFORE, STYLE_BRACEBAD, 0x0000FF);
