@@ -67,7 +67,7 @@ HyperLink::Open()
 			BEntry(&ref).IsDirectory() != true) {
 					
 			msg.AddRef("refs", &ref);
-			msg.AddBool("openWithPreferred", true);
+			msg.AddBool("openWithPreferred", false);
 
 			be_app->PostMessage(&msg);
 			return B_OK;
