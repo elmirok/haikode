@@ -1,5 +1,6 @@
 /*
- * Copyright 2017..2018 A. Mosca 
+ * Copyright 2017..2018 A. Mosca
+ * Copyright 2020-2026 The Genio team
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #pragma once
@@ -24,20 +25,20 @@ class BMenuField;
 class BTabView;
 class BTextControl;
 class ConsoleIOTab;
-class IEditor;
+class ConsoleIOTabView;
+class EditorTabView;
 class GoToLineWindow;
+class IEditor;
+class MTermView;
+class PanelTabManager;
 class ProblemsPanel;
-class ProjectFolder;
 class ProjectBrowser;
+class ProjectFolder;
 class SearchResultTab;
 class SourceControlPanel;
 class TemplatesMenu;
-class ToolBar;
-class MTermView;
-class PanelTabManager;
-class EditorTabView;
 class TerminalTab;
-class ConsoleIOTabView;
+class ToolBar;
 
 class GenioWindow : public BWindow {
 public:
@@ -218,7 +219,6 @@ private:
 
 			BGroupLayout*		fRootLayout;
 			BGroupLayout*		fEditorTabsGroup;
-
 
 			ProjectBrowser*		fProjectsFolderBrowser;
 			BScrollView*		fProjectsFolderScroll;
