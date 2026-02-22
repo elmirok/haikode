@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-4 Kian Duffy 
+ * Copyright (c) 2003-4 Kian Duffy <myob@users.sourceforge.net>
  * Parts Copyright (C) 1998,99 Kazuho Okui and Takashi Murai. 
  *
  * Distributed under the terms of the MIT License.
@@ -1038,7 +1038,7 @@ CASE_IGNORE,
 CASE_IGNORE,
 /*	SP		!		"		#	*/
 CASE_CSI_SP,
-CASE_ESC_IGNORE,
+CASE_CSI_EXCL,
 CASE_ESC_IGNORE,
 CASE_ESC_IGNORE,
 /*	$		%		&		'	*/
@@ -1137,7 +1137,7 @@ CASE_SGR,
 CASE_CPR,
 CASE_GROUND_STATE,
 /*	p		q		r		s	*/
-CASE_GROUND_STATE,
+CASE_DECSTR,
 CASE_DECSCUSR_ETC,
 CASE_DECSTBM,
 CASE_GROUND_STATE,

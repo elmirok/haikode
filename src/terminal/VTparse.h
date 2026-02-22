@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-4 Kian Duffy 
+ * Copyright (c) 2003-4 Kian Duffy <myob@users.sourceforge.net>
  * Parts Copyright (C) 1998,99 Kazuho Okui and Takashi Murai.
  *
  * Distributed under the terms of the MIT License.
@@ -104,4 +104,6 @@
 #define CASE_REP 101
 #define CASE_DEC_DOL 102
 #define CASE_DECRQM 103
+#define CASE_CSI_EXCL 104
+#define CASE_DECSTR 105
 

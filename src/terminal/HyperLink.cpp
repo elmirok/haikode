@@ -18,7 +18,9 @@
 HyperLink::HyperLink()
 	:
 	fAddress(),
-	fType(TYPE_URL)
+	fType(TYPE_URL),
+	fOSCRef(0),
+	fOSCID(NULL)
 {
 }
 
@@ -27,7 +29,9 @@ HyperLink::HyperLink(const BString& address, Type type)
 	:
 	fText(address),
 	fAddress(address),
-	fType(type)
+	fType(type),
+	fOSCRef(0),
+	fOSCID(NULL)
 {
 }
 
@@ -36,9 +40,23 @@ HyperLink::HyperLink(const BString& text, const BString& address, Type type)
 	:
 	fText(text),
 	fAddress(address),
-	fType(type)
+	fType(type),
+	fOSCRef(0),
+	fOSCID(NULL)
 {
 }
+
+
+HyperLink::HyperLink(const BString& address, uint32 ref, const BString& id)
+	:
+	fText(NULL),
+	fAddress(address),
+	fType(TYPE_OSC_URL),
+	fOSCRef(ref),
+	fOSCID(id)
+{
+}
+
 
 status_t
 HyperLink::Open()
@@ -65,7 +83,7 @@ HyperLink::Open()
 		entry_ref ref;
 		if (get_ref_for_path(fAddress.String(), &ref) == B_OK &&
 			BEntry(&ref).IsDirectory() != true) {
-					
+
 			msg.AddRef("refs", &ref);
 			msg.AddBool("openWithPreferred", false);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2023, Haiku, Inc. All rights reserved.
+ * Copyright 2001-2025, Haiku, Inc. All rights reserved.
  * Copyright 2003-2004 Kian Duffy, myob@users.sourceforge.net
  * Parts Copyright 1998-1999 Kazuho Okui and Takashi Murai.
  * All rights reserved. Distributed under the terms of the MIT license.
@@ -452,7 +452,7 @@ TermView::BackgroundColor()
 }
 
 
-inline int32
+int32
 TermView::_LineAt(float y) const
 {
 	int32 location = int32(y + fScrollOffset);
@@ -920,6 +920,29 @@ TermView::Paste(BClipboard *clipboard)
 
 
 void
+TermView::SyncClipboard()
+{
+	if (be_clipboard != fMouseClipboard && be_clipboard->Lock()) {
+		if (fMouseClipboard->Lock()) {
+			BMessage* clipMsgA = be_clipboard->Data();
+			const char* text;
+			ssize_t numBytes;
+			if (clipMsgA->FindData("text/plain", B_MIME_TYPE,
+					(const void**)&text, &numBytes) == B_OK ) {
+				fMouseClipboard->Clear();
+				BMessage* clipMsgB = fMouseClipboard->Data();
+				clipMsgB->AddData("text/plain", B_MIME_TYPE,
+					text, numBytes);
+				fMouseClipboard->Commit();
+			}
+			fMouseClipboard->Unlock();
+		}
+		be_clipboard->Unlock();
+	}
+}
+
+
+void
 TermView::SelectAll()
 {
 	BAutolock _(fTextBuffer);
@@ -1038,6 +1061,9 @@ void
 TermView::_DrawLinePart(float x1, float y1, Attributes attr,
 	char *buf, int32 width, Highlight* highlight, bool cursor, BView *inView)
 {
+	if (attr.IsHidden())
+		return;
+
 	if (highlight != NULL)
 		attr.state = highlight->Highlighter()->AdjustTextAttributes(attr.state);
 
@@ -1691,23 +1717,7 @@ TermView::MessageReceived(BMessage *message)
 			// This message originates from the system clipboard. Overwrite
 			// the contents of the mouse clipboard with the ones from the
 			// system clipboard, in case it contains text data.
-			if (fMouseClipboard != be_clipboard && be_clipboard->Lock()) {
-				if (fMouseClipboard->Lock()) {
-					BMessage* clipMsgA = be_clipboard->Data();
-					const char* text;
-					ssize_t numBytes;
-					if (clipMsgA->FindData("text/plain", B_MIME_TYPE,
-							(const void**)&text, &numBytes) == B_OK ) {
-						fMouseClipboard->Clear();
-						BMessage* clipMsgB = fMouseClipboard->Data();
-						clipMsgB->AddData("text/plain", B_MIME_TYPE,
-							text, numBytes);
-						fMouseClipboard->Commit();
-					}
-					fMouseClipboard->Unlock();
-				}
-				be_clipboard->Unlock();
-			}
+			SyncClipboard();
 			break;
 
 		case B_SELECT_ALL:

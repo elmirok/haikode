@@ -1,6 +1,6 @@
 /*
  * Copyright 2001-2023, Haiku, Inc. All rights reserved.
- * Copyright (c) 2003-4 Kian Duffy 
+ * Copyright (c) 2003-4 Kian Duffy <myob@users.sourceforge.net>
  * Parts Copyright (C) 1998,99 Kazuho Okui and Takashi Murai.
  *
  * Distributed under the terms of the MIT license.
@@ -118,6 +118,7 @@ public:
 			// edit functions
 			void				Copy(BClipboard* clipboard);
 			void				Paste(BClipboard* clipboard);
+			void				SyncClipboard();
 			void				SelectAll();
 			void				Clear();
 
@@ -187,7 +188,7 @@ private:
 
 private:
 			// point and text offset conversion
-	inline	int32				_LineAt(float y) const;
+			int32				_LineAt(float y) const;
 	inline	float				_LineOffset(int32 index) const;
 			TermPos				_ConvertToTerminal(const BPoint& point) const;
 	inline	BPoint				_ConvertFromTerminal(const TermPos& pos) const;
