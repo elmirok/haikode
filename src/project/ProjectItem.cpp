@@ -126,8 +126,8 @@ ProjectItem::DrawItem(BView* owner, BRect bounds, bool complete)
 		BPoint textPoint(iconRect.right + be_control_look->DefaultLabelSpacing(),
 						bounds.top + BaselineOffset());
 
-		// TODO: some fonts don't have the italic face
-		// what to do in that case ?
+		// TODO: some fonts (i.e. Noto Sans Display) don't have the italic face
+		// How to check ? What to do in that case ?
 		if (fOpenedInEditor)
 			SetTextFontFace(B_ITALIC_FACE);
 		else
