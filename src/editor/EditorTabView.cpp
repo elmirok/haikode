@@ -26,9 +26,12 @@
 #define	kSelectByKey 'seta'
 
 
-EditorTabView::EditorTabView(BMessenger target)
+EditorTabView::EditorTabView(BMessenger target, button_width tabWidth)
 	:
-	GTabView("_editor_tabview_", 'EDTV', B_HORIZONTAL, B_WIDTH_AS_USUAL, true, true),
+	GTabView("_editor_tabview_", 'EDTV',
+		B_HORIZONTAL,
+		tabWidth,
+		true, true),
 	fTarget(target),
 	fPopUpMenu(nullptr)
 {

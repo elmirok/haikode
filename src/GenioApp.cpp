@@ -513,6 +513,10 @@ GenioApp::_PrepareConfig(ConfigManager& cfg)
 	// TODO: Move to another, visible, section
 	cfg.AddConfig("Hidden", "outline_sort_symbols", "outline_sort_symbols", false);
 
+	// TODO: Move to appearance?
+	cfg.AddConfig("Hidden", "editor_tab_width_from_label",
+		B_TRANSLATE("Tab width from label"), false);
+
 	BMessage dummy;
 	cfg.AddConfig("Hidden", GenioNames::kSettingsProjectsToReopen,
 							GenioNames::kSettingsProjectsToReopen, dummy);

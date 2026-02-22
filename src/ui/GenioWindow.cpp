@@ -2603,8 +2603,8 @@ GenioWindow::_InitCentralSplit()
 	_InitCommandRunToolbar();
 
 	// Editor tab & view
-
-	fTabManager = new EditorTabView(BMessenger(this));
+	button_width tabWidth = bool(gCFG["editor_tab_width_from_label"]) ? B_WIDTH_FROM_LABEL : B_WIDTH_AS_USUAL;
+	fTabManager = new EditorTabView(BMessenger(this), tabWidth);
 
 	fEditorTabsGroup = BLayoutBuilder::Group<>(B_VERTICAL, 0.0f)
 		.Add(fRunGroup)
