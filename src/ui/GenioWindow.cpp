@@ -414,7 +414,7 @@ GenioWindow::MessageReceived(BMessage* message)
 		case B_REDO:
 		{
 			IEditor* editor = fTabManager->SelectedEditor();
-			if (editor) {
+			if (editor != nullptr) {
 				if (editor->CanRedo())
 					editor->Redo();
 				_UpdateSavepointChange(editor, "Redo");
@@ -432,7 +432,7 @@ GenioWindow::MessageReceived(BMessage* message)
 		case B_UNDO:
 		{
 			IEditor* editor = fTabManager->SelectedEditor();
-			if (editor) {
+			if (editor != nullptr) {
 				if (editor->CanUndo())
 					editor->Undo();
 				_UpdateSavepointChange(editor, "Undo");
@@ -483,7 +483,7 @@ GenioWindow::MessageReceived(BMessage* message)
 			if (message->FindUInt64(kEditorId, &id) == B_OK &&
 			    message->FindBool("modified", &modified) == B_OK) {
 				IEditor* editor = fTabManager->EditorById(id);
-				if (editor) {
+				if (editor != nullptr) {
 					_UpdateLabel(editor, modified);
 					_UpdateSavepointChange(editor, "UpdateSavePoint");
 				}
@@ -518,7 +518,7 @@ GenioWindow::MessageReceived(BMessage* message)
 		case MSG_BUFFER_LOCK:
 		{
 			IEditor* editor = fTabManager->SelectedEditor();
-			if (editor) {
+			if (editor != nullptr) {
 				editor->SetReadOnly(!editor->IsReadOnly());
 				_UpdateTabChange(editor, "Buffer Lock");
 			}
@@ -549,10 +549,10 @@ GenioWindow::MessageReceived(BMessage* message)
 		{
 			editor_id id = message->GetUInt64(kEditorId, 0);
 			IEditor* editor = fTabManager->EditorById(id);
-			if (!editor)
+			if (editor != nullptr) {
 				editor = fTabManager->SelectedEditor();
-
-			_FileRequestClose(editor);
+				_FileRequestClose(editor);
+			}
 			break;
 		}
 		case MSG_FILE_CLOSE_ALL:
@@ -576,13 +576,12 @@ GenioWindow::MessageReceived(BMessage* message)
 			fTabManager->SelectPrev();
 			break;
 		case MSG_FILE_SAVE:
-
 			_FileSave(fTabManager->SelectedEditor());
 			break;
 		case MSG_FILE_SAVE_AS:
 		{
 			IEditor* editor = fTabManager->SelectedEditor();
-			if (editor->FileRef() != nullptr) {
+			if (editor != nullptr && editor->FileRef() != nullptr) {
 				BEntry entry(editor->FileRef());
 				entry.GetParent(&entry);
 				fSavePanel->SetPanelDirectory(&entry);
@@ -1262,8 +1261,6 @@ GenioWindow::_PrepareWorkspace()
 	BMessage started(MSG_NOTIFY_WORKSPACE_PREPARATION_STARTED);
 	SendNotices(MSG_NOTIFY_WORKSPACE_PREPARATION_STARTED, &started);
 
-	// TODO: Drop GSettings and put these into the "global" settings
-
 	// TODO: improve how projects are loaded and notices are sent over
 	if (gCFG["reopen_projects"]) {
 		const BMessage projects = gCFG[GenioNames::kSettingsProjectsToReopen];
@@ -1358,11 +1355,11 @@ GenioWindow::_ToggleScreenMode(int32 action)
 		ActionManager::SetEnabled(MSG_SHOW_HIDE_RIGHT_PANE, true);
 		ActionManager::SetEnabled(MSG_SHOW_HIDE_BOTTOM_PANE, true);
 
-		_ShowView(fToolBar,         fScreenModeSettings["show_toolbar"], MSG_TOGGLE_TOOLBAR);
+		_ShowView(fToolBar, fScreenModeSettings["show_toolbar"], MSG_TOGGLE_TOOLBAR);
 
-		_ShowPanelTabView(kTabViewLeft,   fScreenModeSettings["show_projects"], MSG_SHOW_HIDE_LEFT_PANE);
-		_ShowPanelTabView(kTabViewRight,  fScreenModeSettings["show_outline"], MSG_SHOW_HIDE_RIGHT_PANE);
-		_ShowPanelTabView(kTabViewBottom, fScreenModeSettings["show_output"],	MSG_SHOW_HIDE_BOTTOM_PANE);
+		_ShowPanelTabView(kTabViewLeft, fScreenModeSettings["show_projects"], MSG_SHOW_HIDE_LEFT_PANE);
+		_ShowPanelTabView(kTabViewRight, fScreenModeSettings["show_outline"], MSG_SHOW_HIDE_RIGHT_PANE);
+		_ShowPanelTabView(kTabViewBottom, fScreenModeSettings["show_output"], MSG_SHOW_HIDE_BOTTOM_PANE);
 
 		fScreenMode = kDefault;
 	}
@@ -1499,8 +1496,8 @@ GenioWindow::QuitRequested()
 		_ToggleScreenMode(-1);
 
 	gCFG["show_projects"] = fPanelTabManager->IsPanelTabViewVisible(kTabViewLeft);
-	gCFG["show_output"]   = fPanelTabManager->IsPanelTabViewVisible(kTabViewBottom);
-	gCFG["show_toolbar"]  = !fToolBar->IsHidden();
+	gCFG["show_output"] = fPanelTabManager->IsPanelTabViewVisible(kTabViewBottom);
+	gCFG["show_toolbar"] = !fToolBar->IsHidden();
 
 	BMessage tabview_config;
 	fPanelTabManager->SaveConfiguration(tabview_config);
@@ -1759,8 +1756,8 @@ GenioWindow::_FileOpen(BMessage* msg)
 			continue;
 		}
 
-		const int32 be_line   = msg->GetInt32("start:line", msg->GetInt32("be:line", -1));
-		const int32 lsp_char  = msg->GetInt32("start:character", -1);
+		const int32 be_line = msg->GetInt32("start:line", msg->GetInt32("be:line", -1));
+		const int32 lsp_char = msg->GetInt32("start:character", -1);
 		const bool openWithPreferred = msg->GetBool("openWithPreferred", false);
 
 		IEditor* editor = fTabManager->EditorBy(&ref);
@@ -1847,7 +1844,8 @@ GenioWindow::_HandleEditorZoom(int32 value)
 
 
 status_t
-GenioWindow::_FileOpenWithPosition(entry_ref* ref, bool openWithPreferred, int32 be_line, int32 lsp_char)
+GenioWindow::_FileOpenWithPosition(entry_ref* ref, bool openWithPreferred,
+	int32 be_line, int32 lsp_char)
 {
 	if (!BEntry(ref).Exists())
 		return B_ERROR;
@@ -1905,6 +1903,7 @@ GenioWindow::_FileOpenWithPreferredApp(const entry_ref* ref)
 status_t
 GenioWindow::_FileSave(IEditor* editor)
 {
+	// TODO: _FileSave return value is ignored everywhere: Fix this!
 	if (editor == nullptr) {
 		LogErrorF("NULL editor pointer (%d)", index);
 		return B_ERROR;
@@ -1933,7 +1932,7 @@ GenioWindow::_FileSave(IEditor* editor)
 
 	_PostFileSave(editor);
 
-	return B_OK;
+	return saveStatus;
 }
 
 
