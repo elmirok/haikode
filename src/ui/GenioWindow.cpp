@@ -222,7 +222,7 @@ GenioWindow::Show()
 		ActionManager::SetPressed(MSG_LINE_ENDINGS_TOGGLE, gCFG["show_line_endings"]);
 		ActionManager::SetPressed(MSG_WRAP_LINES, gCFG["wrap_lines"]);
 
-		bool same = ((bool)gCFG["show_white_space"] && (bool)gCFG["show_line_endings"]);
+		bool same = gCFG["show_white_space"] && gCFG["show_line_endings"];
 		ActionManager::SetPressed(MSG_TOGGLE_SPACES_ENDINGS, same);
 
 		ActionManager::SetEnabled(MSG_JUMP_GO_BACK, false);
