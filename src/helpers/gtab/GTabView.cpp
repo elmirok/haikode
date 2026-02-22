@@ -66,8 +66,9 @@ GTabView::GTabView(const char* name,
 	fScrollRightTabButton(nullptr),
 	fTabMenuTabButton(nullptr),
 	fCardView(nullptr),
-	fCloseButton(closeButton),
+	fWidth(width),
 	fContentOrientation(content_orientation),
+	fCloseButton(closeButton),
 	fMenuButton(menuButton)
 {
 	_Init(affinity);
@@ -80,6 +81,13 @@ GTabView::AddTab(const char* label, BView* view, int32 index)
 	GTab* tab = CreateTabView(label);
 	AddTab(tab, view, index);
 	return tab;
+}
+
+
+button_width
+GTabView::TabWidth() const
+{
+	return fWidth;
 }
 
 

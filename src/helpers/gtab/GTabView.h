@@ -33,6 +33,8 @@ class GTabView : public BGroupView {
 
 			GTab*	AddTab(const char* label, BView* view, int32 index = -1);
 
+	button_width	TabWidth() const;
+
 			void	UpdateScrollButtons(bool left, bool right);
 
 			void	AttachedToWindow() override;
@@ -71,7 +73,8 @@ class GTabView : public BGroupView {
 		GTabScrollRightButton*	fScrollRightTabButton;
 		GTabMenuTabButton*		fTabMenuTabButton;
 		BCardView*				fCardView;
-		bool					fCloseButton;
+		button_width			fWidth;
 		orientation				fContentOrientation;
+		bool					fCloseButton;
 		bool					fMenuButton;
 };

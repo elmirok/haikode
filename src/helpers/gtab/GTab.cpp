@@ -98,7 +98,10 @@ BSize
 GTab::MinSize()
 {
 	BSize size(MaxSize());
-	size.width = 100.0f;
+	button_width width = Container()->GetGTabView()->TabWidth();
+	// TODO: Improve
+	if (width != B_WIDTH_FROM_LABEL)
+		size.width = 100.0f;
 	return size;
 }
 
@@ -107,6 +110,11 @@ BSize
 GTab::MaxSize()
 {
 	float labelWidth = 150.0f;
+	button_width width = Container()->GetGTabView()->TabWidth();
+	// TODO: Improve
+	if (width == B_WIDTH_FROM_LABEL)
+		labelWidth = StringWidth(Label());
+
 	return BSize(labelWidth, TabViewTools::DefaultTabHeight());
 }
 
