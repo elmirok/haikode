@@ -1385,24 +1385,14 @@ ProjectOutlineListView::ShowPopupMenu(BPoint where)
 
 	projectMenu->SetTargetForItems(Window());
 
-#if 0
-	// TODO: Don't use this, because we need to remove MenuItem's actions from menu
-	// before destroyint it, otherwise ActionManager tries to set pointers of menuitems
-	// which are being destroyed
 	projectMenu->SetAsyncAutoDestruct(true);
-#endif
+
 	// Open menu slightly off wrt the click, so it doesn't open right under the mouse
 	BPoint menuPoint = ConvertToScreen(where);
 	menuPoint.x += 1;
 	menuPoint.y += 1;
 
-	projectMenu->Go(menuPoint, true, false, false);
-
-	// Remove actions before deleting menu
-	ActionManager::RemoveItem(MSG_PROJECT_MENU_SHOW_IN_TRACKER, projectMenu);
-	ActionManager::RemoveItem(MSG_PROJECT_MENU_OPEN_TERMINAL, projectMenu);
-
-	delete projectMenu;
+	projectMenu->Go(menuPoint, true, false, true);
 }
 
 
