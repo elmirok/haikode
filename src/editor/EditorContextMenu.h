@@ -10,7 +10,7 @@ class BMenuItem;
 class BPopUpMenu;
 class Editor;
 class LSPDiagnostic;
-class LSPEditorWrapper;
+struct LSPEditorWrapper;
 
 class EditorContextMenu {
 public:

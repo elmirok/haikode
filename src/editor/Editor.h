@@ -200,7 +200,7 @@ private:
 			void				SwitchSourceHeader();
 			void				UncommentSelection();
 
-			void 				ContextMenu(BPoint point);
+			void 				ContextMenu(BPoint point) override;
 			void				ToggleFolding();
 			void				ShowLineEndings(bool show);
 			void				ShowWhiteSpaces(bool show);
