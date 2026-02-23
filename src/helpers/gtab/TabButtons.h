@@ -87,7 +87,7 @@ public:
 		rgb_color base = ui_color(B_PANEL_BACKGROUND_COLOR);
 		if (IsEnabled()) {
 			uint32 flags = be_control_look->Flags(this);
-			rgb_color button = tint_color(base, 1.07);
+			rgb_color button = tint_color(base, 1.07f);
 			be_control_look->DrawButtonBackground(this, bounds, updateRect,
 				button, flags, 0);
 		}

@@ -435,7 +435,7 @@ GTabCloseButton::DrawCloseButton(BView* owner, BRect buttonRect, const BRect& up
 	rgb_color base = ui_color(B_PANEL_BACKGROUND_COLOR);
 	float tint = B_LIGHTEN_1_TINT;
 	if (base.Brightness() >= kBrightnessBreakValue) {
-		tint = B_DARKEN_1_TINT *1.2;
+		tint = B_DARKEN_1_TINT *1.2f;
 	}
 
 	if (fOverCloseRect) {
@@ -456,7 +456,7 @@ GTabCloseButton::DrawCloseButton(BView* owner, BRect buttonRect, const BRect& up
 
 	// Draw the ×
 	if (fClicked)
-		IncreaseContrastBy(tint, .2, base.Brightness());
+		IncreaseContrastBy(tint, .2f, base.Brightness());
 
 	base = tint_color(base, tint);
 	owner->SetHighColor(base);

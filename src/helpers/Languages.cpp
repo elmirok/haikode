@@ -211,11 +211,11 @@ Languages::_ApplyLanguage(Editor* editor, const char* lang, const BPath &path)
 
 			const int substyleId = id.first.as<int>();
 			// TODO: allocate only once
-			const int start = editor->SendMessage(SCI_ALLOCATESUBSTYLES,
-				substyleId, id.second.size());
+			const uptr_t start = editor->SendMessage(SCI_ALLOCATESUBSTYLES,
+				uptr_t(substyleId), sptr_t(id.second.size()));
 			substyleStartMap.emplace(substyleId, start);
 			int i = 0;
-			for(const auto& idents : id.second) {
+			for (const auto& idents : id.second) {
 				editor->SendMessage(SCI_SETIDENTIFIERS, start + i++,
 					reinterpret_cast<sptr_t>(idents.as<std::string>().c_str()));
 			}

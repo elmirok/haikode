@@ -441,8 +441,8 @@ ConfigWindow::MakeControlFor(GMessage& config)
 			BView* view = new BStringView(config["key"], config["label"]);
 			BSeparatorView* separator = new BSeparatorView(view);
 			BSize size = view->MinSize();
-			size.width += size.width / 3.0;
-			size.height *= 2.0;
+			size.width += size.width / 3.0f;
+			size.height *= 2.0f;
 			separator->SetExplicitMinSize(size);
 			return separator;
 		}

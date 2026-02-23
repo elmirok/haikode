@@ -11,7 +11,7 @@
 #include "GTab.h"
 #include "GTabView.h"
 
-#define FILLER_WEIGHT 0.2
+#define FILLER_WEIGHT 0.2f
 
 TabsContainer::TabsContainer(GTabView* tabView,
 							 tab_affinity affinity,

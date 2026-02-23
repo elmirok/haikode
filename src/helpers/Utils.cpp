@@ -59,7 +59,7 @@ FakeMouseMovement(BView* view)
 	uint32 buttons = 0;
 	view->GetMouse(&location, &buttons);
 	view->ConvertToScreen(&location);
-	set_mouse_position(location.x, location.y);
+	set_mouse_position(int32(location.x), int32(location.y));
 }
 
 
@@ -501,7 +501,7 @@ ReadFileContent(const char* filename, off_t maxSize)
 	off_t size;
 	file.GetSize(&size);
 
-	char* buffer = read.LockBuffer(size + 1);
+	char* buffer = read.LockBuffer(int32(size + 1));
 	off_t len = file.Read(buffer, size);
 	buffer[len] = '\0';
 	read.UnlockBuffer();

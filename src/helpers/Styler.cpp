@@ -287,7 +287,7 @@ Styler::_ApplyDefaultStyle(BScintillaView* editor, YAML::Node& global,  const BF
 	editor->SendMessage(SCI_STYLECLEARALL, 0, 0);
 	editor->SendMessage(SCI_STYLESETFONT, 36, (sptr_t) fontName);
 	editor->SendMessage(SCI_STYLESETSIZE, 36, (sptr_t) (font->Size() / 1.3));
-	editor->SendMessage(SCI_SETWHITESPACESIZE, font->Size() / 6, 0);
+	editor->SendMessage(SCI_SETWHITESPACESIZE, uptr_t(font->Size() / 6), 0);
 
 	// whitespace
 	editor->SendMessage(SCI_INDICSETSTYLE, 0, INDIC_ROUNDBOX);
