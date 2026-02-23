@@ -13,6 +13,7 @@
 
 ActionManager ActionManager::sInstance;
 
+class ActionMenuItem;
 class Action {
 public:
 	BString	label;
@@ -23,8 +24,27 @@ public:
 	bool	enabled;
 	bool	pressed;
 
-	std::vector<BMenuItem*>	menuItemList;
-	std::vector<ToolBar*>	toolBarList;
+	std::vector<ActionMenuItem*> menuItemList;
+	std::vector<ToolBar*> toolBarList;
+};
+
+
+class ActionMenuItem : public BMenuItem {
+public:
+	ActionMenuItem(Action* action, BMessage* message)
+	:
+	BMenuItem(action->label, message, action->shortcut, action->modifiers),
+	fAction(action)
+	{
+	}
+
+	virtual ~ActionMenuItem()
+	{
+		std::vector<ActionMenuItem*> &v = fAction->menuItemList;
+		std::erase(v, this);
+	}
+private:
+	Action* fAction;
 };
 
 
@@ -70,7 +90,7 @@ ActionManager::AddItem(int32 msgWhat, BMenu* menu, BMessage* extraFields)
 		extraFields = new BMessage(msgWhat);
 	}
 	extraFields->what = msgWhat;
-	BMenuItem* item = new BMenuItem(action->label, extraFields, action->shortcut, action->modifiers);
+	ActionMenuItem* item = new ActionMenuItem(action, extraFields);
 	menu->AddItem(item);
 	item->SetEnabled(action->enabled);
 	item->SetMarked(action->pressed);
@@ -104,7 +124,7 @@ ActionManager::RemoveItem(int32 msgWhat, BMenu* menu)
 {
 	Action* action = sInstance.fActionMap[msgWhat];
 	BMenuItem* item = menu->FindItem(msgWhat);
-	std::vector<BMenuItem*> &v = action->menuItemList;
+	std::vector<ActionMenuItem*> &v = action->menuItemList;
 	std::erase(v, item);
 
 	menu->RemoveItem(item);
