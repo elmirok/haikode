@@ -13,6 +13,7 @@ v5.0
 	- Added syntax highlighting for Nim.
 	- Added XHTML as supported file type (Humdinger).
 	- Added option to open files with the default application.
+	- Search pylsp in various paths instead of hardcoding.
 	- Mark the active project instead of disabling the menuitem in the project menu.
 	- Greatly improved the code which handles project activation, making it less crash prone.
 	- Made code more robust by checking for NULL in some more places, and use C++ casts (mostly found with Codacy).
@@ -21,6 +22,7 @@ v5.0
 	- Fixed outline sorting on start in certain cases.
 	- Fixed RepositoryView status when closing the last non-git project.
 	- Fixed possible crash when closing a project.
+	- Fixed rare crash while closing tabs.
 	- Fixed rebuilding Source Control tab multiple times for a single event.
 	- Fixed accidental item invocation when left clicking plus right clicking on a project listitem.
 	- Fixed window title when not showing full path.
