@@ -2,6 +2,7 @@
 // freely taken (and fixed) from https://github.com/bitmeal/argv_split
 //
 
+#include <array>
 #include <vector>
 #include <string>
 #include <sstream>
@@ -46,7 +47,7 @@ private:
 
 	size_t findMatching(const std::string& str, size_t match_idx) {
 		if (match_idx == std::string::npos) return std::string::npos;
-
+		
 		char match = str.at( match_idx );
 
 		size_t idx = match_idx;
@@ -81,14 +82,14 @@ private:
 		std::string quoted_str, pre_quoted_str, post_quoted_str;
 
 		// w_front used as limit for string splitting on whitespace
-		int w_front = cmdlinestr.size(); // if no quotes are found this is used as the substring SIZE for splitting by space
+		size_t w_front = cmdlinestr.size(); // if no quotes are found this is used as the substring SIZE for splitting by space
 		size_t w_back = cmdlinestr.size() - 1; // if no quotes are found this is used as OFFSET for the next (and final) recursion
 
 		size_t q_front = findFirstQuote(cmdlinestr);
 		size_t q_back = findMatching(cmdlinestr, q_front);
 		// found an unescaped qoute, are same when npos an so no quote found. are different when two quotes or only a first one are found
 		if ( q_front != q_back )
-		{
+		{			
 			// get quoted string
 			// and get attached string after quoted string. open quotes will be treated as quotes til the end!
 
@@ -113,31 +114,28 @@ private:
 
 
 			// get string attached in front of quoted string
-
+			
 			// find last whitespace before quote
 			w_front = cmdlinestr.find_last_of(space, q_front);
-			// none found?
-			if ( w_front == (int)std::string::npos )
-				w_front = - 1;
 
 			pre_quoted_str = cmdlinestr.substr( w_front + 1, q_front - w_front - 1 );
 
 		}
 
 		// split by whitespace in [0, w_front[
-		if(w_front != -1 && w_front != (int)std::string::npos)
+		if(w_front != std::string::npos)
 			splitStrToVectorBy(cmdlinestr.substr(0, w_front), SPACE_HEX_CODE, arguments);
-
+		
 		//add qouted string and surrounding
 		if (!quoted_str.empty())
 			arguments.push_back(pre_quoted_str + quoted_str + post_quoted_str);
-
+		
 		//recurse
 		_parse(cmdlinestr.substr(w_back + 1, std::string::npos));
 	}
 
 public:
-	argv_split() : prependProgname(false), quotes{ SGLQUOTE_HEX_CODE, DBLQUOTE_HEX_CODE, 0}, space{ SPACE_HEX_CODE, 0 }  {}
+	argv_split() : prependProgname(false), quotes{ SGLQUOTE_HEX_CODE, DBLQUOTE_HEX_CODE, '\0'}, space{ SPACE_HEX_CODE, '\0' } {}
 
 	argv_split(std::string progname) : argv_split()
 	{
