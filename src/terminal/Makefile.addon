@@ -126,7 +126,8 @@ SYSTEM_INCLUDE_PATHS = "/boot/system/develop/headers/private/textencoding" \
 	"/boot/system/develop/headers/private/shared" \
 	"/boot/system/develop/headers/private/kernel" \
 	"/boot/system/develop/headers/private/libroot" \
-	"/boot/system/develop/headers/private/system"
+	"/boot/system/develop/headers/private/system" \
+	"/boot/system/develop/headers/private"
 
 #	Additional paths paths to look for local headers. These use the form
 #	#include "header". Directories that contain the files in SRCS are
