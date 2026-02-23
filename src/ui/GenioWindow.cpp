@@ -1674,7 +1674,7 @@ GenioWindow::_DebugProject()
 	parser.parse(GetActiveProject()->GetExecuteArgs().String());
 
 	return be_roster->Launch("application/x-vnd.Haiku-debugger",
-		parser.getArguments().size() , parser.argv());
+		int(parser.getArguments().size()), parser.argv());
 }
 
 
@@ -4212,7 +4212,7 @@ GenioWindow::_RunTarget()
 		entry_ref ref;
 		entry.SetTo(GetActiveProject()->GetTarget());
 		entry.GetRef(&ref);
-		be_roster->Launch(&ref, parser.getArguments().size() , parser.argv());
+		be_roster->Launch(&ref, int(parser.getArguments().size()), parser.argv());
 	}
 }
 
