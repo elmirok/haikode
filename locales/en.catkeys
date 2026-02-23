@@ -1,4 +1,4 @@
-1	English	application/x-vnd.Genio	3773582198
+1	English	application/x-vnd.Genio	3199076617
 Create new branch from \"%selected_branch%\"	SourceControlPanel		Create new branch from \"%selected_branch%\"
 Enable brace matching	SettingsWindow		Enable brace matching
 Clear	ConsoleIOView		Clear
@@ -61,6 +61,7 @@ Log size:	SettingsWindow		Log size:
 Autocomplete	GenioWindow		Autocomplete
 Structure	FunctionsOutlineView		Structure
 Conflicts	SourceControlPanel		Conflicts
+Tab width from label	SettingsWindow		Tab width from label
 These are only applied if no .editorconfig is used:	SettingsWindow	The translation shouldn't be much longer than the English original	These are only applied if no .editorconfig is used:
 Read-only	GenioWindow		Read-only
 Delete file	ProjectsFolderBrowser		Delete file
@@ -110,6 +111,7 @@ Enum	FunctionsOutlineView		Enum
 Run	ProjectSettingsWindow		Run
 Log destination:	SettingsWindow		Log destination:
 Go to previous tab	GenioWindow		Go to previous tab
+Open non-text files externally	SettingsWindow		Open non-text files externally
 Reload projects	SettingsWindow		Reload projects
 Package	FunctionsOutlineView		Package
 Overwrite	GenioWindow		Overwrite
@@ -189,8 +191,8 @@ gold master	Utilities		gold master
 Show whitespace	SettingsWindow		Show whitespace
 Do you want to stop cloning the repository?	RemoteProjectWindow		Do you want to stop cloning the repository?
 Clear all	GenioWindow	Bookmark menu	Clear all
-File \"%file%\" was apparently removed.\nDo you want to keep the file or discard it?\nIf kept and modified, save it or it will be lost.	GenioWindow		File \"%file%\" was apparently removed.\nDo you want to keep the file or discard it?\nIf kept and modified, save it or it will be lost.
 Debug	ProjectsFolderBrowser		Debug
+File \"%file%\" was apparently removed.\nDo you want to keep the file or discard it?\nIf kept and modified, save it or it will be lost.	GenioWindow		File \"%file%\" was apparently removed.\nDo you want to keep the file or discard it?\nIf kept and modified, save it or it will be lost.
 Delete dialog	GenioWindow		Delete dialog
 Convert tabs to spaces	SettingsWindow		Convert tabs to spaces
 Show bottom pane	GenioWindow		Show bottom pane
@@ -401,7 +403,6 @@ Run in terminal	ProjectSettingsWindow		Run in terminal
 Interface	FunctionsOutlineView		Interface
 Build project	ProjectsFolderBrowser		Build project
 File deleted from index	GitRepository		File deleted from index
-Console banner	SettingsWindow	A separating line inserted at the start and end of a command output in the console. Short as possible.	Console banner
 Deleting item: \"%name%\".\n\nAfter deletion, the item will be lost.\nDo you really want to delete it?	GenioWindow		Deleting item: \"%name%\".\n\nAfter deletion, the item will be lost.\nDo you really want to delete it?
 Find next	GenioWindow		Find next
 No LSP file status information	EditorStatusView		No LSP file status information
