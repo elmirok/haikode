@@ -8,14 +8,15 @@
 
 #include <PathFinder.h>
 
-#include <string>
-#include <vector>
-
 #include "ConfigManager.h"
 #include "GenioApp.h"
+#include "GException.h"
 #include "Log.h"
 #include "LSPLogLevels.h"
 #include "LSPProjectWrapper.h"
+
+#include <string>
+#include <vector>
 
 class ClangdServerConfig : public LSPServerConfigInterface {
 public:
@@ -35,8 +36,9 @@ public:
 				break;
 		};
 
+		// TODO: Use find_path
 		fArgv = {
-			strdup(FilePath().Path()),
+			"/boot/system/bin/clangd",
 			strdup(logLevel.c_str()),
 			"--offset-encoding=utf-8",
 			"--pretty",
@@ -45,12 +47,6 @@ public:
 		};
 
 		fOffset = 1;
-	}
-
-	BPath FilePath() const override {
-		// TODO: Use find_path
-		BPath path = "/boot/system/bin/clangd";
-		return path;
 	}
 
 	const bool IsFileTypeSupported(const BString& fileType) const override {
@@ -65,29 +61,32 @@ public:
 
 class PylspServerConfig : public LSPServerConfigInterface {
 public:
-	PylspServerConfig() {
+	PylspServerConfig()
+	{
+		BStringList paths;
+		BPath path;
+		status_t status = BPathFinder::FindPaths(B_FIND_PATH_BIN_DIRECTORY, paths);
+		if (status != B_OK)
+			throw GException(status, ::strerror(status));
+
+		for (int32 c = 0; c < paths.CountStrings(); c++) {
+			BString binaryName = "pylsp";
+			BPath filePath = paths.StringAt(c).String();
+			filePath.Append(binaryName);
+			if (BEntry(filePath.Path()).Exists()) {
+				path = filePath;
+				break;
+			}
+		}
+
 		fArgv = {
-			strdup(FilePath().Path()),
+			strdup(path.Path()),
 			"-v"
 		};
 	}
-	BPath FilePath() const override {
-		BStringList paths;
-		status_t status = BPathFinder::FindPaths(B_FIND_PATH_BIN_DIRECTORY, paths);
-		if (status == B_OK) {
-			for (int32 c = 0; c < paths.CountStrings(); c++) {
-				BString binaryName = "pylsp";
-				BPath filePath = paths.StringAt(c).String();
-				filePath.Append(binaryName);
-				if (BEntry(filePath.Path()).Exists())
-					return filePath;
-			}
-		}
-		// TODO: This fallback will never work anyway
-		BPath path = "/boot/system/non-packaged/bin/pylsp";
-		return path;
-	}
-	const bool IsFileTypeSupported(const BString& fileType) const override {
+
+	const bool IsFileTypeSupported(const BString& fileType) const override
+	{
 		return (fileType.Compare("python") == 0);
 	}
 };
@@ -95,12 +94,15 @@ public:
 
 class OmniSharpServerConfig : public LSPServerConfigInterface {
 public:
-	OmniSharpServerConfig() {
+	OmniSharpServerConfig()
+	{
 		thread_id pid = find_thread(NULL);
 		BString spid;
 		spid << (int32)pid;
+
+		// TODO: Use find_path
 		fArgv = {
-			strdup(FilePath().Path()),
+			"/boot/system/non-packaged/bin/dotnet/dotnet",
 			"/boot/system/non-packaged/bin/OmniSharp/OmniSharp.dll",
 			"-lsp",
 			"-v",
@@ -110,12 +112,9 @@ public:
 
 		fOffset = 0;
 	}
-	BPath FilePath() const override {
-		// TODO: Use find_path
-		BPath path = "/boot/system/non-packaged/bin/dotnet/dotnet";
-		return path;
-	}
-	const bool	IsFileTypeSupported(const BString& fileType) const override {
+	
+	const bool	IsFileTypeSupported(const BString& fileType) const override
+	{
 		return (fileType.Compare("csharp") == 0);
 	}
 };
