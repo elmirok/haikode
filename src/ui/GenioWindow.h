@@ -221,10 +221,8 @@ private:
 			BGroupLayout*		fEditorTabsGroup;
 
 			ProjectBrowser*		fProjectsFolderBrowser;
-			BScrollView*		fProjectsFolderScroll;
 
 			SourceControlPanel*	fSourceControlPanel;
-			BScrollView*		fSourceControlPanelScroll;
 
 			ProjectFolder		*fActiveProject;
 

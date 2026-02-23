@@ -28,6 +28,20 @@ public:
 
 	status_t					PerformEditorAction(BMessage* msg) override;
 
+#if __clang__
+	void						Copy(BClipboard* clipboard) override
+									{ return BTextView::Copy(clipboard); }
+
+	void						Cut(BClipboard* clipboard) override
+									{ return BTextView::Cut(clipboard); }
+									
+	void						Paste(BClipboard* clipboard) override
+									{ return BTextView::Paste(clipboard); }
+									
+	void						Undo(BClipboard* clipboard) override
+									{ return BTextView::Undo(clipboard); }
+#endif
+
 	// IEditor interface - View
 	BView*						View() override { return this; }
 

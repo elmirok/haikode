@@ -28,6 +28,5 @@ private:
 		void	_UpdateTabLabel();
 		PanelTabManager* fPanelTabManager;
 		BPopUpMenu* fPopUpMenu;
-		BMenuItem*  fQuickFixItem;
 		tab_id		fTabId;
 };

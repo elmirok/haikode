@@ -53,7 +53,6 @@ ProblemsPanel::ProblemsPanel(PanelTabManager* panelTabManager, tab_id id)
 	BColumnListView(ProblemLabel, B_NAVIGABLE, B_FANCY_BORDER, true),
 	fPanelTabManager(panelTabManager),
 	fPopUpMenu(nullptr),
-	fQuickFixItem(nullptr),
 	fTabId(id)
 {
 	AddColumn(new BStringColumn( B_TRANSLATE("Category"),
