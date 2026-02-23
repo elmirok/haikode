@@ -71,7 +71,7 @@ TerminalManager::CreateNewTerminal(BRect frame, BMessenger listener, BString com
 		if (!command.IsEmpty()) {
 			argv_split parser;
 			parser.parse(command.String());
-			int32 argc = parser.getArguments().size();
+			int32 argc = int32(parser.getArguments().size());
 			for (int32 i = 0; i < argc; i++) {
 				message.AddString("argv", parser.argv()[i]);
 			}
