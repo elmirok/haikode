@@ -103,7 +103,8 @@ ProjectItem::DrawItem(BView* owner, BRect bounds, bool complete)
 {
 	DrawItemPrepare(owner, bounds, complete);
 
-	const float iconSize = be_control_look->ComposeIconSize(B_MINI_ICON).IntegerHeight() - 1;
+	// TODO: Cleanup usage of floats vs ints in DrawIcon to avoid conversions/truncations
+	const float iconSize = (float)be_control_look->ComposeIconSize(B_MINI_ICON).IntegerHeight() - 1;
 	BRect iconRect = DrawIcon(owner, bounds, iconSize);
 
 	// There's a TextControl for renaming
