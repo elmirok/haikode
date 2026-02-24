@@ -1075,7 +1075,9 @@ GenioWindow::MessageReceived(BMessage* message)
 		case MSG_FILE_CLOSE_OTHER:
 		{
 			std::vector<IEditor*> editors;
-			editor_id id = message->GetUInt64(kEditorId, 0);
+			editor_id id;
+			if (message->FindUInt64(kEditorId, &id) != B_OK)
+				id = fTabManager->SelectedEditor()->Id();
 			fTabManager->ForEachEditor([&](IEditor* editor) {
 				if (editor->Id() != id) {
 					editors.push_back(editor);
