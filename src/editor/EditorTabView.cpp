@@ -311,7 +311,7 @@ EditorTabView::OnTabSelected(GTab* tab)
 void
 EditorTabView::ShowTabMenu(GTabEditor* tab, BPoint where)
 {
-	IEditor*	editor = tab->GetEditor();
+	IEditor* editor = tab->GetEditor();
 	for (int32 i = 0; i < fPopUpMenu->CountItems(); i++) {
 		BMessage* msg = fPopUpMenu->ItemAt(i)->Message();
 		if (msg != nullptr) {
