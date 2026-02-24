@@ -151,6 +151,7 @@ EditorContextMenu::_GetStandardMenu(Editor* editor, BPoint screenPoint)
 	ActionManager::SetEnabled(B_COPY,  editor->CanCopy());
 	ActionManager::SetEnabled(B_PASTE, editor->CanPaste());
 
+	// TODO: duplicated code between here and EditorTabView::ShowTabMenu()
 	if (editor->FileRef() != nullptr) {
 		ActionManager::GetMessage(MSG_PROJECT_MENU_SHOW_IN_TRACKER, sMenu)->ReplaceRef("ref", editor->FileRef());
 		ActionManager::GetMessage(MSG_PROJECT_MENU_OPEN_TERMINAL, sMenu)->ReplaceRef("ref", editor->FileRef());

@@ -325,13 +325,25 @@ EditorTabView::ShowTabMenu(GTabEditor* tab, BPoint where)
 		}
 	}
 
+	// TODO: duplicated code between here and EditorContextMenu::_GetStandardMenu()
+	
 	bool isFindInBrowserEnabled = ActionManager::IsEnabled(MSG_FIND_IN_BROWSER);
 	bool isShowInTrackerEnabled = ActionManager::IsEnabled(MSG_PROJECT_MENU_SHOW_IN_TRACKER);
 	bool isOpenInTerminalEnabled = ActionManager::IsEnabled(MSG_PROJECT_MENU_OPEN_TERMINAL);
 
 	if (editor->FileRef() != nullptr) {
-		ActionManager::GetMessage(MSG_PROJECT_MENU_SHOW_IN_TRACKER, fPopUpMenu)->ReplaceRef("ref", editor->FileRef());
-		ActionManager::GetMessage(MSG_PROJECT_MENU_OPEN_TERMINAL, fPopUpMenu)->ReplaceRef("ref", editor->FileRef());
+		BMessage* message = ActionManager::GetMessage(MSG_PROJECT_MENU_SHOW_IN_TRACKER, fPopUpMenu);
+		if (message->HasRef("ref"))
+			message->ReplaceRef("ref", editor->FileRef());
+		else
+			message->AddRef("ref", editor->FileRef());
+
+		message = ActionManager::GetMessage(MSG_PROJECT_MENU_OPEN_TERMINAL, fPopUpMenu);
+		if (message->HasRef("ref"))
+			message->ReplaceRef("ref", editor->FileRef());
+		else
+			message->AddRef("ref", editor->FileRef()); 
+
 		ActionManager::SetEnabled(MSG_FIND_IN_BROWSER, (editor->GetProjectFolder() != nullptr));
 	} else {
 		ActionManager::SetEnabled(MSG_PROJECT_MENU_SHOW_IN_TRACKER, false);

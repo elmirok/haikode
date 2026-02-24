@@ -7,5 +7,5 @@ project_release_target: app/Genio_debug
 project_debug_build_command: make DEBUGGER=TRUE
 project_debug_clean_command: make DEBUGGER=TRUE clean
 project_debug_execute_args: ""
-project_debug_target: app/Genio_debug
+project_debug_target: app/Genio
 project_run_in_terminal: true
