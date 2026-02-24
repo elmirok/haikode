@@ -548,10 +548,10 @@ GenioWindow::MessageReceived(BMessage* message)
 		{
 			editor_id id = message->GetUInt64(kEditorId, 0);
 			IEditor* editor = fTabManager->EditorById(id);
-			if (editor != nullptr) {
+			if (editor == nullptr)
 				editor = fTabManager->SelectedEditor();
+			if (editor != nullptr)
 				_FileRequestClose(editor);
-			}
 			break;
 		}
 		case MSG_FILE_CLOSE_ALL:
