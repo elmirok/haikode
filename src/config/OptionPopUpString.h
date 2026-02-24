@@ -22,7 +22,7 @@ public:
 
 		void AddOption(const char* label, const char* value)
 		{
-			BOptionPopUp::AddOption(label, fValueList.size());
+			BOptionPopUp::AddOption(label, int32(fValueList.size()));
 			fValueList.push_back(label);
 		}
 
