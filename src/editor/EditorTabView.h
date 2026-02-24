@@ -85,6 +85,5 @@ private:
 			GTabEditor* _GetTab(editor_id id) const;
 
 			BMessenger	fTarget;
-			BPopUpMenu* fPopUpMenu;
 			BMessage 	fLastSelectedInfo;
 };

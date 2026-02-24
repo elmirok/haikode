@@ -32,27 +32,13 @@ EditorTabView::EditorTabView(BMessenger target, button_width tabWidth)
 		B_HORIZONTAL,
 		tabWidth,
 		true, true),
-	fTarget(target),
-	fPopUpMenu(nullptr)
+	fTarget(target)
 {
-	fPopUpMenu = new BPopUpMenu("tabmenu", false, false, B_ITEMS_IN_COLUMN);
-	ActionManager::AddItem(MSG_FILE_CLOSE, 	fPopUpMenu);
-	ActionManager::AddItem(MSG_FILE_CLOSE_ALL, fPopUpMenu);
-	ActionManager::AddItem(MSG_FILE_CLOSE_OTHER, fPopUpMenu);
-
-	fPopUpMenu->AddSeparatorItem();
-
-	ActionManager::AddItem(MSG_FIND_IN_BROWSER, fPopUpMenu);
-	ActionManager::AddItem(MSG_PROJECT_MENU_SHOW_IN_TRACKER, fPopUpMenu);
-	ActionManager::AddItem(MSG_PROJECT_MENU_OPEN_TERMINAL, fPopUpMenu);
-
-	fPopUpMenu->SetTargetForItems(target);
 }
 
 
 EditorTabView::~EditorTabView()
 {
-	delete fPopUpMenu;
 }
 
 
@@ -152,6 +138,7 @@ EditorTabView::SelectTab(IEditor* editor)
 		GTabView::SelectTab(tab);
 	}
 }
+
 
 IEditor*
 EditorTabView::EditorById(editor_id id)
@@ -311,39 +298,31 @@ EditorTabView::OnTabSelected(GTab* tab)
 void
 EditorTabView::ShowTabMenu(GTabEditor* tab, BPoint where)
 {
+	BPopUpMenu* popUpMenu = new BPopUpMenu("tabmenu", false, false, B_ITEMS_IN_COLUMN);
 	IEditor* editor = tab->GetEditor();
-	for (int32 i = 0; i < fPopUpMenu->CountItems(); i++) {
-		BMessage* msg = fPopUpMenu->ItemAt(i)->Message();
-		if (msg != nullptr) {
-			if (editor != nullptr) {
-				if (msg->HasUInt64(kEditorId)) {
-					msg->ReplaceUInt64(kEditorId, editor->Id());
-				} else {
-					msg->AddUInt64(kEditorId, editor->Id());
-				}
-			}
-		}
-	}
+	BMessage message;
+	message.AddUInt64(kEditorId, editor->Id());
 
-	// TODO: duplicated code between here and EditorContextMenu::_GetStandardMenu()
+	ActionManager::AddItem(MSG_FILE_CLOSE, 	popUpMenu, new BMessage(message));
+	ActionManager::AddItem(MSG_FILE_CLOSE_ALL, popUpMenu, new BMessage(message));
+	ActionManager::AddItem(MSG_FILE_CLOSE_OTHER, popUpMenu, new BMessage(message));
+
+	popUpMenu->AddSeparatorItem();
+
+	ActionManager::AddItem(MSG_FIND_IN_BROWSER, popUpMenu, new BMessage(message));
+
+	BMessage refMessage;
+	refMessage.AddRef("ref", editor->FileRef());
+	ActionManager::AddItem(MSG_PROJECT_MENU_SHOW_IN_TRACKER, popUpMenu, new BMessage(refMessage));
+	ActionManager::AddItem(MSG_PROJECT_MENU_OPEN_TERMINAL, popUpMenu, new BMessage(refMessage));
+
+	popUpMenu->SetTargetForItems(fTarget);
 	
 	bool isFindInBrowserEnabled = ActionManager::IsEnabled(MSG_FIND_IN_BROWSER);
 	bool isShowInTrackerEnabled = ActionManager::IsEnabled(MSG_PROJECT_MENU_SHOW_IN_TRACKER);
 	bool isOpenInTerminalEnabled = ActionManager::IsEnabled(MSG_PROJECT_MENU_OPEN_TERMINAL);
 
 	if (editor->FileRef() != nullptr) {
-		BMessage* message = ActionManager::GetMessage(MSG_PROJECT_MENU_SHOW_IN_TRACKER, fPopUpMenu);
-		if (message->HasRef("ref"))
-			message->ReplaceRef("ref", editor->FileRef());
-		else
-			message->AddRef("ref", editor->FileRef());
-
-		message = ActionManager::GetMessage(MSG_PROJECT_MENU_OPEN_TERMINAL, fPopUpMenu);
-		if (message->HasRef("ref"))
-			message->ReplaceRef("ref", editor->FileRef());
-		else
-			message->AddRef("ref", editor->FileRef()); 
-
 		ActionManager::SetEnabled(MSG_FIND_IN_BROWSER, (editor->GetProjectFolder() != nullptr));
 	} else {
 		ActionManager::SetEnabled(MSG_PROJECT_MENU_SHOW_IN_TRACKER, false);
@@ -351,7 +330,8 @@ EditorTabView::ShowTabMenu(GTabEditor* tab, BPoint where)
 		ActionManager::SetEnabled(MSG_FIND_IN_BROWSER, false);
 	}
 
-	fPopUpMenu->Go(where, true);
+	popUpMenu->Go(where, true);
+	delete popUpMenu;
 
 	ActionManager::SetEnabled(MSG_PROJECT_MENU_SHOW_IN_TRACKER, isShowInTrackerEnabled);
 	ActionManager::SetEnabled(MSG_PROJECT_MENU_OPEN_TERMINAL, isOpenInTerminalEnabled);
