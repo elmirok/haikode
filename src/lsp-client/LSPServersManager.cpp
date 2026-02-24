@@ -189,5 +189,8 @@ LSPServersManager::CreateLSPProject(const BPath& path, const BMessenger& msgr, c
 			return new LSPProjectWrapper(path, msgr, *interface);
 		}
 	}
+
+	LogError("No available LSP server can handle %s file types!", fileType.String());
+
 	return nullptr;
 }
