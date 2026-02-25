@@ -35,20 +35,24 @@ endif
 arch := $(shell getarch)
 platform := $(shell uname -p)
 
-SRCS := $(wildcard src/*.cpp)
-SRCS += $(wildcard src/alert/*.cpp)
-SRCS += $(wildcard src/config/*.cpp)
-SRCS += $(wildcard src/config/psp/*.cpp)
-SRCS += $(wildcard src/editor/*.cpp)
-SRCS += $(wildcard src/extensions/*.cpp)
-SRCS += $(wildcard src/git/*.cpp)
-SRCS += $(wildcard src/helpers/*.cpp)
-SRCS += $(wildcard src/helpers/console_io/*.cpp)
-SRCS += $(wildcard src/helpers/gtab/*.cpp)
-SRCS += $(wildcard src/lsp-client/*.cpp)
-SRCS += $(wildcard src/project/*.cpp)
-SRCS += $(wildcard src/ui/*.cpp)
-SRCS += $(wildcard src/templates/*.cpp)
+# Directories containing source files
+SRC_DIRS := \
+	src \
+	src/alert \
+	src/config \
+	src/config/psp \
+	src/editor \
+	src/extensions \
+	src/git \
+	src/helpers \
+	src/helpers/console_io \
+	src/helpers/gtab \
+	src/lsp-client \
+	src/project \
+	src/ui \
+	src/templates
+
+SRCS := $(foreach dir, $(SRC_DIRS), $(wildcard $(dir)/*.cpp))
 
 RDEFS := Genio.rdef Spinner.rdef
 
