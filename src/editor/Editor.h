@@ -132,8 +132,6 @@ public:
 			void				SetReadOnly(bool readOnly = true) override;
 			int32				EndOfLine() override;
 
-
-
 			void				SetProblems() override;
 
 			void				SetDocumentSymbols(const BMessage* symbols, IEditor::symbols_status status) override;
@@ -274,6 +272,8 @@ private:
 
 			BMessage			fDocumentSymbols;
 			std::set<std::pair<std::string, int32> > fCollapsedSymbols;
+
+	static	bool				sAutoIndent;
 
 			// editorconfig
 			bool				fHasEditorConfig;

@@ -59,6 +59,9 @@ const int kIdleTimeout = 250000; //1/4sec
 #define UNSET 0
 #define UNUSED 0
 
+
+bool Editor::sAutoIndent = true;
+
 Editor::Editor(entry_ref* ref, const BMessenger& target)
 	: BScintillaView(ref ? ref->name : "Untitled", 0, true, true)
 	, fId(GenerateEditorId())
@@ -1033,6 +1036,8 @@ Editor::LoadEditorConfig()
 	fEditorConfig.TrimTrailingWhitespace = (bool)gCFG["trim_trailing_whitespace"];
 	fHasEditorConfig = false;
 
+	sAutoIndent = gCFG["auto_indent"];
+
 	if ((bool)gCFG["ignore_editorconfig"])
 		return;
 
@@ -1189,7 +1194,7 @@ Editor::NotificationReceived(SCNotification* notification)
 		case SCN_CHARADDED:
 		{
 			char ch = static_cast<char>(notification->ch);
-			if (ch == '\n' || ch == '\r')
+			if (sAutoIndent && (ch == '\n' || ch == '\r'))
 				_MaintainIndentation(ch);
 			if (notification->characterSource == SC_CHARACTERSOURCE_DIRECT_INPUT)
 				fLSPEditorWrapper->CharAdded(notification->ch);
