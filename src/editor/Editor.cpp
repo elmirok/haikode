@@ -1189,7 +1189,7 @@ Editor::NotificationReceived(SCNotification* notification)
 		case SCN_CHARADDED:
 		{
 			char ch = static_cast<char>(notification->ch);
-			if (ch == '\n' || ch == '\r')
+			if ((bool)gCFG["auto_indent"] && (ch == '\n' || ch == '\r'))
 				_MaintainIndentation(ch);
 			if (notification->characterSource == SC_CHARACTERSOURCE_DIRECT_INPUT)
 				fLSPEditorWrapper->CharAdded(notification->ch);

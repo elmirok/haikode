@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 A. Mosca 
+ * Copyright 2017 A. Mosca
  * Copyright 2023-2025, The Genio Team
  * All rights reserved. Distributed under the terms of the MIT license.
  */
@@ -409,6 +409,7 @@ GenioApp::_PrepareConfig(ConfigManager& cfg)
 	cfg.AddConfig(editor.String(), "syntax_highlight", B_TRANSLATE("Enable syntax highlighting"), true);
 	cfg.AddConfig(editor.String(), "brace_match", B_TRANSLATE("Enable brace matching"), true);
 	cfg.AddConfig(editor.String(), "save_caret", B_TRANSLATE("Save caret position"), true);
+	cfg.AddConfig(editor.String(), "auto_indent", B_TRANSLATE("Enable auto-indent"), true);
 	cfg.AddConfig(editor.String(), "ignore_editorconfig", B_TRANSLATE("Ignore .editorconfig"), false);
 
 	cfg.AddConfigSeparator(editor.String(), "banner_ignore_editorconfig",
