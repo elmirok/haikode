@@ -35,23 +35,10 @@ endif
 arch := $(shell getarch)
 platform := $(shell uname -p)
 
-# Directories containing source files
-SRC_DIRS := \
-	src \
-	src/alert \
-	src/config \
-	src/config/psp \
-	src/editor \
-	src/extensions \
-	src/git \
-	src/helpers \
-	src/helpers/console_io \
-	src/helpers/gtab \
-	src/lsp-client \
-	src/project \
-	src/ui \
-	src/templates
+# All directories under src
+SRC_DIRS := $(shell find src -type d)
 
+# All cpp files in SRC_DIRS
 SRCS := $(foreach dir, $(SRC_DIRS), $(wildcard $(dir)/*.cpp))
 
 RDEFS := Genio.rdef Spinner.rdef
