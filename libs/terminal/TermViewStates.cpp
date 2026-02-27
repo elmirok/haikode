@@ -1038,7 +1038,10 @@ TermView::HyperLinkState::_UpdateHighlight()
 	BPoint where;
 	uint32 buttons;
 	fView->GetMouse(&where, &buttons, false);
-	_UpdateHighlight(where, fView->fModifiers);
+	// TODO: Fix for #322. Should be upstreamed
+	// although it doesn't happen in the Terminal application
+	if (fView->Bounds().Contains(where))
+		_UpdateHighlight(where, fView->fModifiers);
 }
 
 
