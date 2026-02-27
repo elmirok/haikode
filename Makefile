@@ -98,12 +98,13 @@ $(OBJ_DIR)/%.rsrc : %.RDEF
 
 deps:
 	$(MAKE) -C libs/scintilla/haiku
-	$(MAKE) -C src/terminal -f Makefile.addon DEBUGGER=$(DEBUGGER)
+	$(MAKE) -C libs/terminal -f Makefile.addon DEBUGGER=$(DEBUGGER)
 
 .PHONY: clean deps
 
 cleanall: clean
 	$(MAKE) clean -C libs/scintilla/haiku
+	$(MAKE) clean -C libs/terminal -f Makefile.addon
 	rm -f txt2header
 	rm -f Changelog.h
 
