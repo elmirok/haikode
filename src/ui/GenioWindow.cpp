@@ -79,6 +79,10 @@
 
 GenioWindow* gMainWindow = nullptr;
 
+#if B_HAIKU_VERSION <= B_HAIKU_VERSION_1_BETA_5
+#define B_NO_COMMAND_KEY 0
+#endif
+
 constexpr auto kRecentFilesNumber = 14 + 1;
 
 
@@ -193,6 +197,7 @@ GenioWindow::GenioWindow(BRect frame)
 			B_CONTROL_KEY));
 	AddCommonFilter(new KeyDownMessageFilter(MSG_FILE_NEXT_SELECTED, B_RIGHT_ARROW,
 			B_CONTROL_KEY));
+
 	AddCommonFilter(new KeyDownMessageFilter(MSG_ESCAPE_KEY, B_ESCAPE, 0, B_DISPATCH_MESSAGE));
 	AddCommonFilter(new KeyDownMessageFilter(MSG_TOOLBAR_INVOKED, B_ENTER, 0, B_DISPATCH_MESSAGE));
 	AddCommonFilter(new EditorMessageFilter(B_KEY_DOWN, &Editor::BeforeKeyDown));
@@ -2885,11 +2890,11 @@ GenioWindow::_InitActions()
 	// CTRL+N (but should be changed in Web+, too)
 	ActionManager::RegisterAction(MSG_FILE_PREVIOUS_SELECTED, B_TRANSLATE("Go to previous tab"),
 									B_TRANSLATE("Go to previous tab"), "",
-									B_LEFT_ARROW, B_CONTROL_KEY);
+									B_LEFT_ARROW,  B_NO_COMMAND_KEY | B_CONTROL_KEY);
 
 	ActionManager::RegisterAction(MSG_FILE_NEXT_SELECTED, B_TRANSLATE("Go to next tab"),
 									B_TRANSLATE("Go to next tab"), "",
-									B_RIGHT_ARROW, B_CONTROL_KEY);
+									B_RIGHT_ARROW, B_NO_COMMAND_KEY | B_CONTROL_KEY);
 
 	// Find Panel
 	ActionManager::RegisterAction(MSG_FIND_NEXT,
