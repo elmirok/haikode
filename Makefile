@@ -9,13 +9,19 @@ APP_MIME_SIG := "application/x-vnd.Genio"
 
 debug ?= 0
 
-DEBUGGER ?= 0
 ifneq ($(debug), 0)
 	DEBUGGER := TRUE
 endif
 
 # check if DEBUGGER is 1 or TRUE
-ifeq ($(filter $(DEBUGGER), 1 TRUE), $(DEBUGGER))
+ifeq ($(DEBUGGER),1)
+	COMPILER_FLAGS += -gdwarf-3
+	# for ASSERT()
+	COMPILER_FLAGS += -DDEBUG=1
+	# for scintilla
+	COMPILER_FLAGS += -DGDEBUG
+	NAME = Genio_debug
+else ifeq ($(DEBUGGER),TRUE)
 	COMPILER_FLAGS += -gdwarf-3
 	# for ASSERT()
 	COMPILER_FLAGS += -DDEBUG=1
