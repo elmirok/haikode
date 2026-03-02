@@ -7,4 +7,3 @@ exclude_paths:
   - "data/templates/**"
   - "documentation/**"
   - "libs/**"
-  - "src/terminal/**"
