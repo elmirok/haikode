@@ -1721,9 +1721,7 @@ GenioWindow::_FileCloseAll()
 		return;
 
 	fTabManager->ReverseForEachEditor([&](IEditor* editor) {
-		if (!editor->IsModified())
-			_RemoveTab(editor);
-
+		_RemoveTab(editor);
 		return true;
 	});
 }
