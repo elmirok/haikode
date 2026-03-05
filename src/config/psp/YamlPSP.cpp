@@ -53,7 +53,7 @@ status_t YamlPSP::Open(const BPath& _dest, kPSPMode mode)
 	dest.SetTo(BString(_dest.Path()).Append(".yaml").String());
 
 	uint32 fileMode = mode == PermanentStorageProvider::kPSPReadMode ? B_READ_ONLY : (B_WRITE_ONLY | B_CREATE_FILE);
-	
+
 	// Always try to load existing content first, even in write mode
 	// to preserve existing data when updating configurations
 	BEntry entry(dest.Path());
@@ -131,13 +131,13 @@ status_t YamlPSP::Close()
 
 			// Ensure we're at the beginning of the file for complete rewrite
 			fFile.Seek(0, SEEK_SET);
-			
+
 			ssize_t written = fFile.Write(bout.String(), bout.Length());
 			if (written < 0) {
 				LogError("Failed to write YAML data: %s", strerror(written));
 				return (status_t)written;
 			}
-			
+
 			// Truncate file to the exact size we wrote (in case file was larger before)
 			fFile.SetSize(written);
 
@@ -294,7 +294,7 @@ status_t YamlPSP::_LoadSingleValue(const YAML::Node& node, const char* key, GMes
 			case B_RECT_TYPE:
 			{
 				std::string rectStr = node.as<std::string>();
-				BRect rect(0,0,0,0);
+				BRect rect(0.0f ,0.0f ,0.0f ,0.0f);
 				if (_ParseRectFromString(rectStr, rect)) {
 					storage[key] = rect;
 					return B_OK;
@@ -321,7 +321,7 @@ status_t YamlPSP::_LoadSingleValue(const YAML::Node& node, const char* key, GMes
 			case B_REF_TYPE:
 			{
 				std::string pathStr = node.as<std::string>();
-				
+
 				// Check if it's a ref:// prefixed string
 				if (pathStr.substr(0, 6) == "ref://") {
 					// Remove the ref:// prefix
@@ -387,8 +387,13 @@ bool YamlPSP::_ParseRectFromString(const std::string& rectStr, BRect& rect)
 		rect.top = std::stof(parts[1]);
 		rect.right = std::stof(parts[2]);
 		rect.bottom = std::stof(parts[3]);
+		if (rect.Width() > 3000.0f || rect.Height() > 3000.0f) {
+			LogError("Error, invalid rect values! Width %f, Height %f", rect.Width(), rect.Height());
+			return false;
+		}
 		return true;
 	} catch (...) {
+		LogError("Error in parsing BRect configuration: %s", rectStr.c_str());
 		return false;
 	}
 }
