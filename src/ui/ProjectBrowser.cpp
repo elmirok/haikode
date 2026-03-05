@@ -925,7 +925,6 @@ ProjectBrowser::_ProjectFolderScan(const entry_ref* ref, ProjectItem* parentItem
 	// Recursively scan subdirectories
 	BEntry entry(ref);
 	if (entry.IsDirectory()) {
-		LogError("scanning: %s", entry.Name());
 		BDirectory dir(&entry);
 		entry_ref nextRef;
 		while (dir.GetNextRef(&nextRef) != B_ENTRY_NOT_FOUND) {
