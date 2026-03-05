@@ -184,7 +184,12 @@ status_t YamlPSP::LoadKey(ConfigManager& manager, const char* key,
 	storage.RemoveName(key);
 
 	status_t status =  _LoadSingleValue(fromFile, key, storage, expectedType);
-	LogInfo("Done with loading key %s (%s)", key, strerror(status));
+	if (status != B_OK) {
+		storage[key] = parameterConfig["default_value"];
+		LogError("Error loading key %s (%s), using default value.", key, strerror(status));
+	} else {
+		LogInfo("Done with loading key %s", key);
+	}
 	return status;
 }
 
