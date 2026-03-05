@@ -242,7 +242,6 @@ ProjectBrowser::_RemoveItemForPath(BString spath)
 void
 ProjectBrowser::_HandleEntryMoved(BMessage* message)
 {
-	message->PrintToStream();
 	BString spath;
 	// An item moved outside of the project folder
 	if (message->GetBool("removed", false)) {
