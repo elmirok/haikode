@@ -37,7 +37,6 @@
 #include "TemplatesMenu.h"
 #include "Utils.h"
 
-
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "ProjectsFolderBrowser"
 
@@ -151,45 +150,61 @@ ProjectBrowser::~ProjectBrowser()
 
 
 ProjectItem*
-ProjectBrowser::_CreateNewProjectItem(ProjectItem* parentItem, BPath path)
+ProjectBrowser::_CreateNewProjectItem(ProjectItem* parentItem, const BString path)
 {
+	ASSERT(parentItem != nullptr);
 	ProjectFolder *projectFolder = parentItem->GetSourceItem()->GetProjectFolder();
-	SourceItem *sourceItem = new SourceItem(path.Path());
+	SourceItem *sourceItem = new SourceItem(path.String());
 	sourceItem->SetProjectFolder(projectFolder);
 	return new ProjectItem(sourceItem);
 }
 
 
 ProjectItem*
-ProjectBrowser::_CreatePath(BPath pathToCreate)
+ProjectBrowser::_CreateItemForPath(BString pathToCreate)
 {
-	LogTrace("Create path for %s", pathToCreate.Path());
-	ProjectItem *item = GetProjectItemByPath(pathToCreate.Path());
-
-	if (!item) {
-		LogTrace("Can't find path %s", pathToCreate.Path());
-		BPath parent;
-		if (pathToCreate.GetParent(&parent) == B_OK) {
-			ProjectItem* parentItem = _CreatePath(parent);
-			LogTrace("Creating path %s", pathToCreate.Path());
-			ProjectItem* newItem = _CreateNewProjectItem(parentItem, pathToCreate);
-
-			if (fOutlineListView->AddUnder(newItem,parentItem)) {
-				LogDebugF("AddUnder(%s,%s) (Parent %s)", newItem->Text(), parentItem->Text(), parent.Path());
-				fOutlineListView->SortItemsUnder(parentItem, true,
-					ProjectOutlineListView::CompareProjectItems);
-				fOutlineListView->Collapse(newItem);
-			}
-			return newItem;
-		}
+	LogTrace("Should create item for path %s", pathToCreate.String());
+	ProjectItem *item = GetProjectItemByPath(pathToCreate);
+	if (item != nullptr) {
+		// item for this path already exists
+		LogTrace("Found item for path [%s]", pathToCreate.String());
+		return item;
 	}
-	LogTrace("Found path [%s]", pathToCreate.Path());
-	return item;
+
+	LogTrace("Item for path %s not found. Create it.", pathToCreate.String());
+	BPath parent;
+	if (BPath(pathToCreate).GetParent(&parent) != B_OK) {
+		LogError("Can't find parent for path %s", pathToCreate.String());
+		return nullptr;
+	}
+
+	// Get parent item
+	ProjectItem* parentItem = GetProjectItemByPath(parent.Path());
+
+	// Non existing parent item
+	ASSERT(parentItem != nullptr);
+
+	LogTrace("Creating path %s", pathToCreate.String());
+	ProjectFolder* project = parentItem->GetSourceItem()->GetProjectFolder();
+	if (project == nullptr)
+		return nullptr;
+
+	BEntry entry(pathToCreate);
+	entry_ref ref;
+	entry.GetRef(&ref);
+	LogTrace("Created item for path [%s]", pathToCreate.String());
+	ProjectItem* newItem = _ProjectFolderScan(&ref, parentItem, project, false);
+
+	fOutlineListView->SortItemsUnder(parentItem,
+			false, ProjectOutlineListView::CompareProjectItems);
+	Invalidate();
+
+	return newItem;
 }
 
 
 void
-ProjectBrowser::_RemovePath(BString spath)
+ProjectBrowser::_RemoveItemForPath(BString spath)
 {
 	LogDebug("path %s", spath.String());
 	ProjectItem *item = GetProjectItemByPath(spath);
@@ -227,6 +242,7 @@ ProjectBrowser::_RemovePath(BString spath)
 void
 ProjectBrowser::_HandleEntryMoved(BMessage* message)
 {
+	message->PrintToStream();
 	BString spath;
 	// An item moved outside of the project folder
 	if (message->GetBool("removed", false)) {
@@ -276,29 +292,7 @@ ProjectBrowser::_HandleEntryMoved(BMessage* message)
 		if (message->GetBool("added")) {
 			if (message->FindString("path", &newPath) == B_OK) {
 				if (message->FindString("name", &newName) == B_OK) {
-					const BPath destination(newPath);
-					BEntry newPathEntry(newPath);
-					if (newPathEntry.IsDirectory()) {
-						// a new folder moved inside the project.
-						//ensure we have a parent
-						BPath parent;
-						destination.GetParent(&parent);
-						ProjectItem *parentItem = _CreatePath(parent);
-						// recursive parsing!
-						entry_ref entryRef;
-						newPathEntry.GetRef(&entryRef);
-						ProjectFolder* projectFolder = parentItem->GetSourceItem()->GetProjectFolder();
-						// Flush any existing batch before adding new items
-						_FlushItemBatch(projectFolder, true);
-						_ProjectFolderScan(&entryRef, parentItem, projectFolder);
-						// Flush the new items
-						_FlushItemBatch(projectFolder, true);
-						fOutlineListView->SortItemsUnder(parentItem, false,
-								ProjectOutlineListView::CompareProjectItems);
-					} else {
-						//Plain file
-						_CreatePath(destination);
-					}
+					_CreateItemForPath(newPath);
 				}
 			}
 		} else if (message->FindString("from name", &oldName) == B_OK) {
@@ -334,29 +328,9 @@ ProjectBrowser::_HandleEntryMoved(BMessage* message)
 								return;
 							}
 						} else {
-							ProjectItem *item = GetProjectItemByPath(oldPath);
-							if (!item) {
-								LogError("Can't find an item to move oldPath [%s]", oldPath.String());
-								return;
-							}
-							ProjectItem *destinationItem = GetProjectItemByPath(bp_newParent.Path());
-							if (!destinationItem) {
-								LogError("Can't find an item to move newParent [%s]", bp_newParent.Path());
-								return;
-							}
-							bool status = fOutlineListView->RemoveItem(item);
-							if (status) {
-								fOutlineListView->SortItemsUnder(
-									fOutlineListView->Superitem(item), true,
-										ProjectOutlineListView::CompareProjectItems);
-
-								ProjectItem *newItem = _CreateNewProjectItem(item, bp_newPath);
-								status = fOutlineListView->AddUnder(newItem, destinationItem);
-								if (status) {
-									fOutlineListView->SortItemsUnder(destinationItem, true,
-										ProjectOutlineListView::CompareProjectItems);
-								}
-							}
+							// TODO: Review
+							_RemoveItemForPath(oldPath);
+							_CreateItemForPath(newPath);
 						}
 					}
 				}
@@ -381,8 +355,8 @@ ProjectBrowser::_UpdateNode(BMessage* message)
 		{
 			BString spath;
 			if (message->FindString("path", &spath) == B_OK) {
-				BPath path(spath.String());
-				_CreatePath(path);
+				LogTrace("B_ENTRY_CREATED: %s", spath.String());
+				_CreateItemForPath(spath);
 			}
 			break;
 		}
@@ -390,11 +364,13 @@ ProjectBrowser::_UpdateNode(BMessage* message)
 		{
 			BString spath;
 			if (message->FindString("path", &spath) == B_OK) {
-				_RemovePath(spath);
+				LogTrace("B_ENTRY_REMOVED: %s", spath.String());
+				_RemoveItemForPath(spath);
 			}
 			break;
 		}
 		case B_ENTRY_MOVED:
+			LogTrace("B_ENTRY_MOVED:");
 			_HandleEntryMoved(message);
 			break;
 		default:
@@ -919,7 +895,8 @@ ProjectBrowser::ExpandProjectCollapseOther(const BString& project)
 
 
 ProjectItem*
-ProjectBrowser::_ProjectFolderScan(const entry_ref* ref, ProjectItem* parentItem, ProjectFolder *projectFolder)
+ProjectBrowser::_ProjectFolderScan(const entry_ref* ref, ProjectItem* parentItem,
+	ProjectFolder *projectFolder, bool async)
 {
 	// Create the item WITHOUT adding it to the tree yet
 	ProjectItem *newItem;
@@ -933,18 +910,27 @@ ProjectBrowser::_ProjectFolderScan(const entry_ref* ref, ProjectItem* parentItem
 		newItem = new ProjectTitleItem(projectFolder);
 	}
 
-	// Record the command to add this item with its parent
-	// This replicates the exact sequence: AddUnder(newItem, parentItem) or AddItem(newItem)
-	_AddItemCommandToBatch(newItem, parentItem, projectFolder);
+	if (async) {
+		// Record the command to add this item with its parent
+		// This replicates the exact sequence: AddUnder(newItem, parentItem) or AddItem(newItem)
+		_AddItemCommandToBatch(newItem, parentItem, projectFolder);
+	} else if (LockLooper()) {
+		// Add the item directly
+		fOutlineListView->AddUnder(newItem, parentItem);
+		if (parentItem != nullptr)
+			fOutlineListView->Collapse(newItem);
+		UnlockLooper();
+	}
 
 	// Recursively scan subdirectories
 	BEntry entry(ref);
 	if (entry.IsDirectory()) {
+		LogError("scanning: %s", entry.Name());
 		BDirectory dir(&entry);
 		entry_ref nextRef;
 		while (dir.GetNextRef(&nextRef) != B_ENTRY_NOT_FOUND) {
 			// Pass this item as the parent for children
-			_ProjectFolderScan(&nextRef, newItem, projectFolder);
+			_ProjectFolderScan(&nextRef, newItem, projectFolder, async);
 		}
 	}
 

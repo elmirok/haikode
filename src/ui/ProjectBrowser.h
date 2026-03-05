@@ -75,18 +75,19 @@ private:
 
 	ProjectItem*	GetProjectItemByPath(const BString& path) const;
 
-	ProjectItem*	_ProjectFolderScan(const entry_ref* ref, ProjectItem* parentItem, ProjectFolder *projectFolder = NULL);
+	ProjectItem*	_ProjectFolderScan(const entry_ref* ref, ProjectItem* parentItem,
+						ProjectFolder *projectFolder, bool async = true);
 
 	void			_ShowProjectItemPopupMenu(BPoint where);
 
-	ProjectItem*	_CreatePath(BPath pathToCreate);
-	void			_RemovePath(BString pathToRemove);
+	ProjectItem*	_CreateItemForPath(BString pathToCreate);
+	void			_RemoveItemForPath(BString pathToRemove);
 	void			_HandleEntryMoved(BMessage* message);
 	void			_UpdateNode(BMessage *message);
 
 	status_t		_RenameCurrentSelectedFile(const BString& newName);
 
-	ProjectItem*	_CreateNewProjectItem(ProjectItem* parentItem, BPath path);
+	ProjectItem*	_CreateNewProjectItem(ProjectItem* parentItem, const BString path);
 
 	// Command pattern for batched item insertion
 	struct AddItemCommand {
