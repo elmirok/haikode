@@ -181,7 +181,8 @@ private:
 			int					ReplaceOne(const BString& selection,
 									const BString& replacement);
 			int					SetSearchFlags(bool matchCase, bool wholeWord,
-									bool wordStart,	bool regExp, bool posix);
+									bool wordStart,	bool regExp, bool posix,
+									const BString& text = BString());
 			int32				FindMarkAll(const BString& text, int flags);
 			int					FindNext(const BString& search, int flags, bool wrap);
 			int					FindPrevious(const BString& search, int flags, bool wrap);

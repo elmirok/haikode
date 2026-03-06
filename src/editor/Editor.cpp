@@ -294,7 +294,7 @@ Editor::PerformEditorAction(BMessage* message)
 			bool matchCase = message->GetBool("match_case", false);
 			bool wholeWord = message->GetBool("whole_word", false);
 
-			int flags = SetSearchFlags(matchCase, wholeWord, false, false, false);
+			int flags = SetSearchFlags(matchCase, wholeWord, false, false, false, text);
 			bool wrap = message->GetBool("wrap", false);
 			int32 kind = message->GetInt32("kind", REPLACE_NONE);
 
@@ -335,7 +335,7 @@ Editor::PerformEditorAction(BMessage* message)
 			bool matchCase = message->GetBool("match_case", false);
 			bool wholeWord = message->GetBool("whole_word", false);
 
-			int flags = SetSearchFlags(matchCase, wholeWord, false, false, false);
+			int flags = SetSearchFlags(matchCase, wholeWord, false, false, false, text);
 
 			FindMarkAll(text, flags);
 
@@ -353,7 +353,7 @@ Editor::PerformEditorAction(BMessage* message)
 			bool matchCase = message->GetBool("match_case", false);
 			bool wholeWord = message->GetBool("whole_word", false);
 
-			int flags = SetSearchFlags(matchCase, wholeWord, false, false, false);
+			int flags = SetSearchFlags(matchCase, wholeWord, false, false, false, text);
 			bool wrap = message->GetBool("wrap", false);
 
 			if (message->GetBool("backward", false) == false)
@@ -1796,13 +1796,24 @@ Editor::SetSavedCaretPosition()
 
 int
 Editor::SetSearchFlags(bool matchCase, bool wholeWord, bool wordStart,
-			bool regExp, bool posix)
+			bool regExp, bool posix, const BString& text)
 {
 	int flags = 0;
 	if (matchCase)
 		flags |= SCFIND_MATCHCASE;
-	if (wholeWord)
-		flags |= SCFIND_WHOLEWORD;
+	if (wholeWord) {
+		// "show_projects" begins and ends with '"', which is not a word character.
+		// Requiring a word boundary on a non-word character would cause Scintilla
+		// to reject every match.
+
+		auto isWordChar = [](char c) {
+			// A possible improvement could be to use SCI_GETWORDCHARS (cached)
+			// as a lexer can define its own word chars...
+			return std::isalnum((unsigned char)c) || c == '_';
+		};
+		if (text.IsEmpty() || (isWordChar(text[0]) && isWordChar(text[text.Length() - 1])))
+			flags |= SCFIND_WHOLEWORD;
+	}
 	if (wordStart)
 		flags |= SCFIND_WORDSTART;
 
