@@ -1,6 +1,6 @@
 /*
  * Copyright 2017 A. Mosca
- * Copyright 2023-2025, The Genio Team
+ * Copyright 2023-2026, The Genio Team
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -24,8 +24,8 @@
 #include "LSPServersManager.h"
 #include "PanelTabManager.h"
 #include "Styler.h"
-#include "Utils.h"
 #include "TerminalManager.h"
+#include "Utils.h"
 
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "GenioApp"
@@ -95,13 +95,13 @@ GenioApp::AboutRequested()
 		"Andrea Anzani",
 		"Stefano Ceccherini",
 		"Nexus6",
-		NULL
+		nullptr
 	};
 
 	const char* contributors[] = {
 		"Humdinger",
 		"Máximo Castañeda",
-		NULL
+		nullptr
 	};
 
 	window->AddCopyright(2022, "The Genio Team");
@@ -115,7 +115,7 @@ GenioApp::AboutRequested()
 	for (int32 i = 0; i < stringCount; i++) {
 		charArray[i] = const_cast<char*>(list.StringAt(i).String());
 	}
-	charArray[stringCount] = NULL;
+	charArray[stringCount] = nullptr;
 
 	window->AddVersionHistory(const_cast<const char**>(charArray));
 	delete[] charArray;
@@ -175,7 +175,8 @@ GenioApp::MessageReceived(BMessage* message)
 		case B_OBSERVER_NOTICE_CHANGE:
 		{
 			int32 code;
-			message->FindInt32(B_OBSERVE_WHAT_CHANGE, &code);
+			if (message->FindInt32(B_OBSERVE_WHAT_CHANGE, &code) != B_OK)
+				break;
 			if (code == gCFG.UpdateMessageWhat()) {
 				BString key = message->GetString("key");
 				if (key == "log_destination")
@@ -194,7 +195,7 @@ GenioApp::MessageReceived(BMessage* message)
 			break;
 		}
 		case B_SILENT_RELAUNCH:
-			if (fGenioWindow)
+			if (fGenioWindow != nullptr)
 				fGenioWindow->Activate(true);
 			break;
 		case B_EXECUTE_PROPERTY:
@@ -235,7 +236,7 @@ GenioApp::QuitRequested()
 void
 GenioApp::RefsReceived(BMessage* message)
 {
-	if (fGenioWindow != NULL)
+	if (fGenioWindow != nullptr)
 		fGenioWindow->PostMessage(message);
 }
 
@@ -396,7 +397,9 @@ GenioApp::_PrepareConfig(ConfigManager& cfg)
 	GMessage fontCfg = { {"mode","options"},
 			  {"option_1", { {"value", ""}, {"label", B_TRANSLATE("Default font") } } }
 	};
+
 	c = 2;
+
 	int32 numFamilies = count_font_families();
 	for (int32 i = 0; i < numFamilies; i++) {
 		font_family family;
@@ -407,6 +410,7 @@ GenioApp::_PrepareConfig(ConfigManager& cfg)
 			c++;
 		}
 	}
+
 	BString editor(B_TRANSLATE("Editor"));
 	cfg.AddConfig(editor.String(), "edit_fontfamily", B_TRANSLATE("Font:"), "", &fontCfg);
 	cfg.AddConfig(editor.String(), "edit_fontsize", B_TRANSLATE("Font size:"), -1, &sizes);
@@ -460,9 +464,9 @@ GenioApp::_PrepareConfig(ConfigManager& cfg)
 	BMessage themes;
 	TerminalManager::GetThemes(&themes);
 	GMessage console_styles = { {"mode", "options"} };
-	int32 i=0;
+	int32 i = 0;
 	BString theme;
-	while(themes.FindString("theme", i++, &theme) == B_OK) {
+	while (themes.FindString("theme", i++, &theme) == B_OK) {
 		BString opt("option_");
 		opt << i;
 		console_styles[opt.String()] = { {"value", theme.String()}, {"label", theme.String() } };
@@ -530,6 +534,7 @@ GenioApp::_PrepareConfig(ConfigManager& cfg)
 }
 
 
+// main
 int
 main(int argc, char* argv[])
 {
