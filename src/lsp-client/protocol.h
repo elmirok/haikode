@@ -156,7 +156,7 @@ enum class FailureHandlingKind {
     TextOnlyTransactional
 };
 NLOHMANN_JSON_SERIALIZE_ENUM(OffsetEncoding, {
-    {OffsetEncoding::UnsupportedEncoding, "unspported"},
+    {OffsetEncoding::UnsupportedEncoding, "unsupported"},
     {OffsetEncoding::UTF8, "utf-8"},
     {OffsetEncoding::UTF16, "utf-16"},
     {OffsetEncoding::UTF32, "utf-32"},
@@ -180,83 +180,83 @@ NLOHMANN_JSON_SERIALIZE_ENUM(FailureHandlingKind, {
 
 namespace CodeActionKind {
 
-	/**
-	 * Empty kind.
-	 */
-	const std::string Empty("");
+    /**
+     * Empty kind.
+     */
+    const std::string Empty("");
 
-	/**
-	 * Base kind for quickfix actions: 'quickfix'.
-	 */
-	const std::string QuickFix("quickfix");
+    /**
+     * Base kind for quickfix actions: 'quickfix'.
+     */
+    const std::string QuickFix("quickfix");
 
-	/**
-	 * Base kind for refactoring actions: 'refactor'.
-	 */
-	const std::string Refactor("refactor");
+    /**
+     * Base kind for refactoring actions: 'refactor'.
+     */
+    const std::string Refactor("refactor");
 
-	/**
-	 * Base kind for refactoring extraction actions: 'refactor.extract'.
-	 *
-	 * Example extract actions:
-	 *
-	 * - Extract method
-	 * - Extract function
-	 * - Extract variable
-	 * - Extract interface from class
-	 * - ...
-	 */
-	const std::string RefactorExtract("refactor.extract");
+    /**
+     * Base kind for refactoring extraction actions: 'refactor.extract'.
+     *
+     * Example extract actions:
+     *
+     * - Extract method
+     * - Extract function
+     * - Extract variable
+     * - Extract interface from class
+     * - ...
+     */
+    const std::string RefactorExtract("refactor.extract");
 
-	/**
-	 * Base kind for refactoring inline actions: 'refactor.inline'.
-	 *
-	 * Example inline actions:
-	 *
-	 * - Inline function
-	 * - Inline variable
-	 * - Inline constant
-	 * - ...
-	 */
-	const std::string RefactorInline("refactor.inline");
+    /**
+     * Base kind for refactoring inline actions: 'refactor.inline'.
+     *
+     * Example inline actions:
+     *
+     * - Inline function
+     * - Inline variable
+     * - Inline constant
+     * - ...
+     */
+    const std::string RefactorInline("refactor.inline");
 
-	/**
-	 * Base kind for refactoring rewrite actions: 'refactor.rewrite'.
-	 *
-	 * Example rewrite actions:
-	 *
-	 * - Convert JavaScript function to class
-	 * - Add or remove parameter
-	 * - Encapsulate field
-	 * - Make method static
-	 * - Move method to base class
-	 * - ...
-	 */
-	const std::string RefactorRewrite("refactor.rewrite");
+    /**
+     * Base kind for refactoring rewrite actions: 'refactor.rewrite'.
+     *
+     * Example rewrite actions:
+     *
+     * - Convert JavaScript function to class
+     * - Add or remove parameter
+     * - Encapsulate field
+     * - Make method static
+     * - Move method to base class
+     * - ...
+     */
+    const std::string RefactorRewrite("refactor.rewrite");
 
-	/**
-	 * Base kind for source actions: `source`.
-	 *
-	 * Source code actions apply to the entire file.
-	 */
-	const std::string Source("source");
+    /**
+     * Base kind for source actions: `source`.
+     *
+     * Source code actions apply to the entire file.
+     */
+    const std::string Source("source");
 
-	/**
-	 * Base kind for an organize imports source action:
-	 * `source.organizeImports`.
-	 */
-	const std::string SourceOrganizeImports("source.organizeImports");
+    /**
+     * Base kind for an organize imports source action:
+     * `source.organizeImports`.
+     */
+    const std::string SourceOrganizeImports("source.organizeImports");
 
-	/**
-	 * Base kind for a 'fix all' source action: `source.fixAll`.
-	 *
-	 * 'Fix all' actions automatically fix errors that have a clear fix that
-	 * do not require user input. They should not suppress errors or perform
-	 * unsafe fixes such as generating new types or classes.
-	 *
-	 * @since 3.17.0
-	 */
-	const std::string SourceFixAll("source.fixAll");
+    /**
+     * Base kind for a 'fix all' source action: `source.fixAll`.
+     *
+     * 'Fix all' actions automatically fix errors that have a clear fix that
+     * do not require user input. They should not suppress errors or perform
+     * unsafe fixes such as generating new types or classes.
+     *
+     * @since 3.17.0
+     */
+    const std::string SourceFixAll("source.fixAll");
 }
 
 //
@@ -301,16 +301,16 @@ struct ClientCapabilities {
     /// Client supports CodeAction return value for textDocument/codeAction.
     /// textDocument.codeAction.codeActionLiteralSupport.
     // CodeActionLiteralSupport CodeActionStructure;
-	std::vector<std::string> CodeActionKinds;
-	std::vector<std::string> CodeActionResolveSupport;
+    std::vector<std::string> CodeActionKinds;
+    std::vector<std::string> CodeActionResolveSupport;
 
-    /// Supported encodings for LSP character offsets. (clangd extension).
-    std::vector<OffsetEncoding> offsetEncoding = {OffsetEncoding::UTF8};
+    /// Supported position encodings in preference order (LSP 3.17).
+    std::vector<OffsetEncoding> positionEncodings = {OffsetEncoding::UTF8};
     /// The content format that should be used for Hover requests.
     std::vector<MarkupKind> HoverContentFormat = {MarkupKind::PlainText};
 
-	bool WorkDoneProgress = true;
-	bool ImplicitWorkDoneProgressCreate = true;
+    bool WorkDoneProgress = true;
+    bool ImplicitWorkDoneProgressCreate = true;
 
     bool ApplyEdit = false;
     bool DocumentChanges = false;
@@ -322,8 +322,8 @@ struct ClientCapabilities {
             CompletionItemKinds.push_back((CompletionItemKind) i);
         }
 
-		CodeActionKinds.push_back(CodeActionKind::QuickFix);
-		CodeActionResolveSupport.push_back("edit");
+        CodeActionKinds.push_back(CodeActionKind::QuickFix);
+        CodeActionResolveSupport.push_back("edit");
     }
 };
 JSON_SERIALIZE(ClientCapabilities,MAP_JSON(
@@ -341,11 +341,11 @@ JSON_SERIALIZE(ClientCapabilities,MAP_JSON(
                         MAP_TO("editsNearCursor", CompletionFixes)
                 ),
                 MAP_KV("codeAction",
-						MAP_KV("resolveSupport", MAP_TO("properties", CodeActionResolveSupport)),
-						MAP_KV("codeActionLiteralSupport",
-						MAP_KV("codeActionKind",
-							MAP_TO("valueSet", CodeActionKinds)))
-				),
+                        MAP_KV("resolveSupport", MAP_TO("properties", CodeActionResolveSupport)),
+                        MAP_KV("codeActionLiteralSupport",
+                        MAP_KV("codeActionKind",
+                            MAP_TO("valueSet", CodeActionKinds)))
+                ),
                 MAP_KV("documentSymbol", MAP_TO("hierarchicalDocumentSymbolSupport", HierarchicalDocumentSymbol)),
                 MAP_KV("hover",  //HoverClientCapabilities
                         MAP_TO("contentFormat", HoverContentFormat)),
@@ -357,10 +357,11 @@ JSON_SERIALIZE(ClientCapabilities,MAP_JSON(
                     MAP_TO("applyEdit", ApplyEdit),
                     MAP_KV("workspaceEdit", // WorkspaceEditClientCapabilities
                             MAP_TO("documentChanges", DocumentChanges))),
-			MAP_KV("window",
-					MAP_TO("workDoneProgress", WorkDoneProgress),
-					MAP_TO("implicitWorkDoneProgressCreate", ImplicitWorkDoneProgressCreate)),
-            MAP_TO("offsetEncoding", offsetEncoding)), {});
+            MAP_KV("window",
+                    MAP_TO("workDoneProgress", WorkDoneProgress),
+                    MAP_TO("implicitWorkDoneProgressCreate", ImplicitWorkDoneProgressCreate)),
+            MAP_KV("general",
+                    MAP_TO("positionEncodings", positionEncodings))), {});
 
 struct ServerCapabilities {
     json capabilities;
@@ -651,23 +652,23 @@ JSON_SERIALIZE(DiagnosticRelatedInformation, MAP_JSON(MAP_KEY(location), MAP_KEY
 
 //struct Diagnostic
 JSON_SERIALIZE(Diagnostic,
-	MAP_JSON(
-		MAP_KEY(range),
-		MAP_KEY(source),
-		MAP_KEY(message),
-		MAP_KEY(relatedInformation),
-		MAP_KEY(category),
-		MAP_KEY(codeActions)
-	),
-	{
-		FROM_KEY(range);
-		/*FROM_KEY(code);*/
-		FROM_KEY(source);
-		FROM_KEY(message);
-		FROM_KEY(relatedInformation);
-		FROM_KEY(category);
-		FROM_KEY(codeActions);
-	});
+    MAP_JSON(
+        MAP_KEY(range),
+        MAP_KEY(source),
+        MAP_KEY(message),
+        MAP_KEY(relatedInformation),
+        MAP_KEY(category),
+        MAP_KEY(codeActions)
+    ),
+    {
+        FROM_KEY(range);
+        /*FROM_KEY(code);*/
+        FROM_KEY(source);
+        FROM_KEY(message);
+        FROM_KEY(relatedInformation);
+        FROM_KEY(category);
+        FROM_KEY(codeActions);
+    });
 
 struct PublishDiagnosticsParams {
     /**
@@ -675,8 +676,8 @@ struct PublishDiagnosticsParams {
      */
     std::string uri;
     /**
-	 * An array of diagnostic information items.
-	 */
+     * An array of diagnostic information items.
+     */
     std::vector<Diagnostic> diagnostics;
 };
 JSON_SERIALIZE(PublishDiagnosticsParams, {}, {FROM_KEY(uri);FROM_KEY(diagnostics);});
@@ -714,9 +715,9 @@ JSON_SERIALIZE(LspCommand, MAP_JSON(MAP_KEY(command), MAP_KEY(workspaceEdit), MA
 
 //struct CodeAction
 JSON_SERIALIZE(CodeAction, MAP_JSON(MAP_KEY(title), MAP_KEY(kind), MAP_KEY(diagnostics), MAP_KEY(edit), MAP_KEY(command)
-			   , {"data", (basic_json<>&)value.data }),
+               , {"data", (basic_json<>&)value.data }),
         {FROM_KEY(title);FROM_KEY(kind);FROM_KEY(diagnostics);FROM_KEY(edit);FROM_KEY(command);
-				 if (j.contains("data")) value.data = j.at("data");});
+                 if (j.contains("data")) value.data = j.at("data");});
 
 
 //TODO Write Serialize for DocumentSymbol (one way only);
@@ -820,15 +821,15 @@ JSON_SERIALIZE(CompletionList, {}, {
 
 JSON_SERIALIZE(ParameterInformation, {}, {
 
-	if (j.contains("label")) {
-		try {
-			j.at("label").get_to(value.labelString);
-		} catch(...) {
-			try {
-				j.at("label").get_to(value.labelOffsets);
-			} catch(...) {}
-		}
-	}
+    if (j.contains("label")) {
+        try {
+            j.at("label").get_to(value.labelString);
+        } catch(...) {
+            try {
+                j.at("label").get_to(value.labelOffsets);
+            } catch(...) {}
+        }
+    }
 
     FROM_KEY(documentation);
 });
