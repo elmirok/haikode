@@ -14,6 +14,7 @@
 #include <OutlineListView.h>
 #include <Resources.h>
 #include <StringItem.h>
+#include <SymLink.h>
 #include <TextControl.h>
 #include <TranslationUtils.h>
 #include <Window.h>
@@ -87,6 +88,7 @@ ProjectItem::ProjectItem(SourceItem *sourceItem)
 	fOpenedInEditor(false),
 	fRenaming(false)
 {
+	fIsSymLink = BSymLink(sourceItem->EntryRef()).IsSymLink();
 }
 
 
@@ -140,6 +142,9 @@ ProjectItem::DrawItem(BView* owner, BRect bounds, bool complete)
 			SetExtraText("");
 
 		DrawText(owner, Text(), ExtraText(), textPoint);
+
+		if (fIsSymLink)
+			owner->StrokeLine(textPoint + BPoint(0,2), textPoint + BPoint(owner->StringWidth(Text()),2), B_MIXED_COLORS);
 
 		owner->Sync();
 	}

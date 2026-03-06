@@ -24,7 +24,8 @@ const BBitmap*
 IconCache::GetIcon(const entry_ref *ref)
 {
 	// TODO: Rework GetIcon() to include icon size as a parameter
-	BNode node(ref);
+	const BEntry entry(ref, true);
+	BNode node(&entry);
 	const BNodeInfo nodeInfo(&node);
 	char mimeType[B_MIME_TYPE_LENGTH];
 	const char* mimeTypePtr = mimeType;

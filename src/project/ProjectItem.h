@@ -38,6 +38,7 @@ private:
 	bool			fNeedsSave;
 	bool			fOpenedInEditor;
 	bool			fRenaming;
+	bool			fIsSymLink;
 
 	static BTextControl	*sTextControl;
 
