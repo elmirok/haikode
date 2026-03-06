@@ -1,10 +1,9 @@
 /*
- * Copyright 2018-2024, the Genio team
+ * Copyright 2018-2026, the Genio team
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
-#ifndef NO_STORE_PSP_H
-#define NO_STORE_PSP_H
+#pragma once
 
 #include "PermanentStorageProvider.h"
 
@@ -17,5 +16,3 @@ public:
 	status_t LoadKey(ConfigManager& manager, const char* key, GMessage& storage, GMessage& parConfig) override;
 	status_t SaveKey(ConfigManager& manager, const char* key, GMessage& storage) override;
 };
-
-#endif // NO_STORE_PSP_H

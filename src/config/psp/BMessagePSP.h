@@ -1,14 +1,14 @@
 /*
- * Copyright 2018-2024, the Genio team
+ * Copyright 2018-2026, the Genio team
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
-#ifndef BMESSAGE_PSP_H
-#define BMESSAGE_PSP_H
+#pragma once
 
-#include "PermanentStorageProvider.h"
 #include <File.h>
+
 #include "GMessage.h"
+#include "PermanentStorageProvider.h"
 
 class BMessagePSP : public PermanentStorageProvider {
 public:
@@ -25,5 +25,3 @@ private:
 
 	bool _SameTypeAndFixedSize(BMessage* msgL, const char* keyL, BMessage* msgR, const char* keyR) const;
 };
-
-#endif // BMESSAGE_PSP_H

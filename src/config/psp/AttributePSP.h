@@ -1,13 +1,13 @@
 /*
- * Copyright 2018-2024, the Genio team
+ * Copyright 2018-2026, the Genio team
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
-#ifndef ATTRIBUTE_PSP_H
-#define ATTRIBUTE_PSP_H
+#pragma once
+
+#include <Node.h>
 
 #include "PermanentStorageProvider.h"
-#include <Node.h>
 
 class AttributePSP : public PermanentStorageProvider {
 public:
@@ -21,5 +21,3 @@ public:
 private:
 	BNode fNodeAttr;
 };
-
-#endif // ATTRIBUTE_PSP_H

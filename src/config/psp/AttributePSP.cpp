@@ -1,30 +1,37 @@
 /*
- * Copyright 2018-2024, the Genio team
+ * Copyright 2018-2026, the Genio team
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
 #include "AttributePSP.h"
+
+#include <Application.h>
+#include <String.h>
+
 #include "ConfigManager.h"
 #include "GMessage.h"
-#include "Log.h"
-#include <String.h>
-#include <Application.h>
 
 AttributePSP::AttributePSP()
 {
 }
 
-status_t AttributePSP::Open(const BPath& attributeFilePath, kPSPMode mode)
+
+status_t
+AttributePSP::Open(const BPath& attributeFilePath, kPSPMode mode)
 {
 	return fNodeAttr.SetTo(attributeFilePath.Path());
 }
 
-status_t AttributePSP::Close()
+
+status_t
+AttributePSP::Close()
 {
 	return B_OK;
 }
 
-status_t AttributePSP::LoadKey(ConfigManager& manager, const char* key,
+
+status_t
+AttributePSP::LoadKey(ConfigManager& manager, const char* key,
 	GMessage& storage, GMessage& parameterConfig)
 {
 	const void* data = nullptr;
@@ -56,7 +63,9 @@ status_t AttributePSP::LoadKey(ConfigManager& manager, const char* key,
 	return B_NAME_NOT_FOUND;
 }
 
-status_t AttributePSP::SaveKey(ConfigManager& manager, const char* key, GMessage& storage)
+
+status_t
+AttributePSP::SaveKey(ConfigManager& manager, const char* key, GMessage& storage)
 {
 	// save as attribute:
 	const void* data = nullptr;

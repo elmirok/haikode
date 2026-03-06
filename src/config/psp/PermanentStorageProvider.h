@@ -1,10 +1,9 @@
 /*
- * Copyright 2018-2024, the Genio team
+ * Copyright 2018-2026, the Genio team
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
-#ifndef PERMANENT_STORAGE_PROVIDER_H
-#define PERMANENT_STORAGE_PROVIDER_H
+#pragma once
 
 #include <SupportDefs.h>
 
@@ -24,5 +23,3 @@ public:
 	virtual status_t	LoadKey(ConfigManager& manager, const char* key, GMessage& storage, GMessage& parConfig) = 0;
 	virtual status_t	SaveKey(ConfigManager& manager, const char* key, GMessage& storage) = 0;
 };
-
-#endif // PERMANENT_STORAGE_PROVIDER_H

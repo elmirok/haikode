@@ -1,14 +1,14 @@
 /*
- * Copyright 2018-2024, the Genio team
+ * Copyright 2018-2026, the Genio team
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
-#ifndef YAML_PSP_H
-#define YAML_PSP_H
+#pragma once
 
-#include "PermanentStorageProvider.h"
 #include <File.h>
 #include <yaml-cpp/yaml.h>
+
+#include "PermanentStorageProvider.h"
 
 class BRect;
 class BMessagePSP;
@@ -34,5 +34,3 @@ private:
 	status_t _LoadMessageValue(const char* key, const YAML::Node& node, GMessage& message);
 	status_t _SaveKey(YAML::Node& yaml, const char* key, GMessage& storage, int32 keyIndex);
 };
-
-#endif // YAML_PSP_H

@@ -1,19 +1,22 @@
 /*
- * Copyright 2018-2024, the Genio team
+ * Copyright 2018-2026, the Genio team
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
 #include "YamlPSP.h"
+
+#include <Entry.h>
+#include <Path.h>
+#include <Rect.h>
+#include <String.h>
+
+#include <sstream>
+#include <vector>
+
+#include "BMessagePSP.h"
 #include "ConfigManager.h"
 #include "GMessage.h"
 #include "Log.h"
-#include <Path.h>
-#include <Entry.h>
-#include <String.h>
-#include <Rect.h>
-#include <sstream>
-#include <vector>
-#include "BMessagePSP.h"
 
 #define _yaml_case(TYPE, pod, Name) \
 			case TYPE: \
@@ -42,11 +45,14 @@
 			case TYPE: \
 			{ 	storage[key] = node.as<pod>(); return B_OK; }
 
+
 YamlPSP::YamlPSP():fBMsgPSP(nullptr)
 {
 }
 
-status_t YamlPSP::Open(const BPath& _dest, kPSPMode mode)
+
+status_t
+YamlPSP::Open(const BPath& _dest, kPSPMode mode)
 {
 	//workaround.
 	BPath dest;
@@ -115,7 +121,9 @@ status_t YamlPSP::Open(const BPath& _dest, kPSPMode mode)
 	return status;
 }
 
-status_t YamlPSP::Close()
+
+status_t
+YamlPSP::Close()
 {
     if (fBMsgPSP) {
         fBMsgPSP->Close();
@@ -158,7 +166,9 @@ status_t YamlPSP::Close()
 	return status;
 }
 
-status_t YamlPSP::LoadKey(ConfigManager& manager, const char* key,
+
+status_t
+YamlPSP::LoadKey(ConfigManager& manager, const char* key,
 						GMessage& storage, GMessage& parameterConfig)
 {
     if (fBMsgPSP) {
@@ -193,7 +203,9 @@ status_t YamlPSP::LoadKey(ConfigManager& manager, const char* key,
 	return status;
 }
 
-status_t YamlPSP::SaveKey(ConfigManager& manager, const char* key, GMessage& storage)
+
+status_t
+YamlPSP::SaveKey(ConfigManager& manager, const char* key, GMessage& storage)
 {
 	// Check if this key has multiple values
 	int32 count = 0;
@@ -218,7 +230,9 @@ status_t YamlPSP::SaveKey(ConfigManager& manager, const char* key, GMessage& sto
 	}
 }
 
-status_t YamlPSP::_LoadSingleValue(const YAML::Node& node, const char* key, GMessage& storage, type_code expectedType)
+
+status_t
+YamlPSP::_LoadSingleValue(const YAML::Node& node, const char* key, GMessage& storage, type_code expectedType)
 {
 	try {
 		// Handle null values first for all types
@@ -273,7 +287,6 @@ status_t YamlPSP::_LoadSingleValue(const YAML::Node& node, const char* key, GMes
 		}
 
 		switch (expectedType) {
-
 			case B_STRING_TYPE:
 			{
 				std::string value = node.as<std::string>();
@@ -362,7 +375,9 @@ status_t YamlPSP::_LoadSingleValue(const YAML::Node& node, const char* key, GMes
 	}
 }
 
-bool YamlPSP::_ParseRectFromString(const std::string& rectStr, BRect& rect)
+
+bool
+YamlPSP::_ParseRectFromString(const std::string& rectStr, BRect& rect)
 {
 	// Expected format: "[left, top, right, bottom]"
 	if (rectStr.length() < 7 || rectStr[0] != '[' || rectStr[rectStr.length()-1] != ']') {
@@ -403,7 +418,9 @@ bool YamlPSP::_ParseRectFromString(const std::string& rectStr, BRect& rect)
 	}
 }
 
-status_t YamlPSP::_LoadMessage(const YAML::Node& node, GMessage& message)
+
+status_t
+YamlPSP::_LoadMessage(const YAML::Node& node, GMessage& message)
 {
 	if (!node.IsMap()) {
 		return B_ERROR;
@@ -425,7 +442,9 @@ status_t YamlPSP::_LoadMessage(const YAML::Node& node, GMessage& message)
 	return B_OK;
 }
 
-status_t YamlPSP::_LoadMessageValue(const char* key, const YAML::Node& node, GMessage& message)
+
+status_t
+YamlPSP::_LoadMessageValue(const char* key, const YAML::Node& node, GMessage& message)
 {
 	try {
 		if (node.IsSequence()) {
@@ -513,7 +532,9 @@ status_t YamlPSP::_LoadMessageValue(const char* key, const YAML::Node& node, GMe
 	return B_ERROR;
 }
 
-status_t YamlPSP::_SaveKey(YAML::Node& yaml, const char* key, GMessage& storage, int32 keyIndex)
+
+status_t
+YamlPSP::_SaveKey(YAML::Node& yaml, const char* key, GMessage& storage, int32 keyIndex)
 {
 	switch(storage.Type(key)){
 		_yaml_case(B_BOOL_TYPE, bool, Bool)
@@ -612,7 +633,6 @@ status_t YamlPSP::_SaveKey(YAML::Node& yaml, const char* key, GMessage& storage,
 		default:
 			debugger("Conversion to YAML not supported!");
 			break;
-
 	};
 	return B_OK;
 }
