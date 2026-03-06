@@ -218,7 +218,11 @@ GenioApp::MessageReceived(BMessage* message)
 bool
 GenioApp::QuitRequested()
 {
-	gCFG["ui_bounds"] = fGenioWindow->ConvertToScreen(fGenioWindow->Bounds());
+	BRect rect = fGenioWindow->ConvertToScreen(fGenioWindow->Bounds());
+	if (rect.IsValid()) {
+		// only save if it's valid
+		gCFG["ui_bounds"] = rect;
+	}
 
 	if (Logger::IsDebugEnabled()) {
 		gCFG.PrintValues();
