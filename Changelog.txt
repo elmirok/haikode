@@ -6,7 +6,7 @@ v5.0
 	- Changed the settings format to yaml so it's human readable/writable.
 	- Improved project loading and made it asynchronous.
 	- Made getting git infomation asynchronous.
-	- Implement more scripting properties.
+	- Implemented more scripting properties.
 	- Sort the project list alphabetically.
 	- Save outline sorting in settings.
 	- Added image viewing capabilities to the editor.
@@ -15,8 +15,9 @@ v5.0
 	- Added option to open files with the default application.
 	- Search pylsp in various paths instead of hardcoding.
 	- Mark the active project instead of disabling the menuitem in the project menu.
-	- Greatly improved the code which handles project activation, making it less crash prone.
-	- Made code more robust by checking for NULL in some more places, and use C++ casts (mostly found with Codacy).
+	- Greatly improved the code which handles project activation, making it more robust.
+	- Made code more robust by adding NULL pointer checks where it was missing (mostly found with Codacy).
+	- Fixed a couple of dangerous casts and use C++ casts where possible (mostly found with Codacy).
 	- Fixed possible layout settings corruption.
 	- Fixed wrong project colors in tabs in certain cases.
 	- Fixed outline sorting on start in certain cases.
@@ -27,6 +28,8 @@ v5.0
 	- Fixed accidental item invocation when left clicking plus right clicking on a project listitem.
 	- Fixed window title when not showing full path.
 	- Fixed opening symlinks in ProjectBrowser.
+	- Fixed searching whole words with non-alphanumeric delimiters.
+	- Fixed path monitoring when a folder is moved.
 	- Updated nlohmann's json library to version 3.12.0.
 ---
 v4.0
