@@ -101,6 +101,16 @@ EditorTabView::SetTabColor(IEditor* editor, const rgb_color& color)
 
 
 void
+EditorTabView::UnsetTabColor(IEditor* editor)
+{
+	GTabEditor* tab = _GetTab(editor);
+	if (tab != nullptr) {
+		tab->UnsetColor();
+	}
+}
+
+
+void
 EditorTabView::SetTabLabel(IEditor* editor, const char* label)
 {
 	GTabEditor* tab = _GetTab(editor);
@@ -317,7 +327,7 @@ EditorTabView::ShowTabMenu(GTabEditor* tab, BPoint where)
 	ActionManager::AddItem(MSG_PROJECT_MENU_OPEN_TERMINAL, popUpMenu, new BMessage(refMessage));
 
 	popUpMenu->SetTargetForItems(fTarget);
-	
+
 	bool isFindInBrowserEnabled = ActionManager::IsEnabled(MSG_FIND_IN_BROWSER);
 	bool isShowInTrackerEnabled = ActionManager::IsEnabled(MSG_PROJECT_MENU_SHOW_IN_TRACKER);
 	bool isOpenInTerminalEnabled = ActionManager::IsEnabled(MSG_PROJECT_MENU_OPEN_TERMINAL);

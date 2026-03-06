@@ -30,6 +30,8 @@ public:
 	void	SetLabel(const char* label) override;
 
 	rgb_color	Color() const { return fColor; }
+	
+	void	UnsetColor() { SetColor(ui_color(B_PANEL_BACKGROUND_COLOR));}
 
 protected:
 	void	CloseButtonClicked() override;
