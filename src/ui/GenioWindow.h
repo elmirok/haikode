@@ -163,7 +163,7 @@ private:
 
 			void				_UpdateFindMenuItems(const BString& text);
 			void				_UpdateRecentCommands(const BString& text);
-			status_t			_UpdateLabel(IEditor* editor, bool isModified);
+			status_t			_UpdateLabelModifiedStatus(IEditor* editor, bool isModified);
 			void				_UpdateProjectMenuItemsState(bool enable);
 			void				_UpdateReplaceMenuItems(const BString& text);
 			void				_UpdateSavepointChange(IEditor*, const BString& caller = "");
