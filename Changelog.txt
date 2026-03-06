@@ -1,36 +1,34 @@
 v5.0
-	- Added ability to show branch name in window title.
-	- Added ability to close all tabs to further customize workspace.
-	- Replaced homegrown termview (used for build log and console I/O) with the Haiku Terminal.
-	- Added Terminal tab.
-	- Changed the settings format to yaml so it's human readable/writable.
+	- Added the ability to show the branch name in the window title.
+	- Added the ability to close any tab to further customize the workspace.
+	- Replaced the homegrown TermView (used for build logs and console I/O) with the Haiku Terminal.
+	- Added a Terminal tab.
+	- Changed the settings format to YAML so it's human-readable and writable.
 	- Improved project loading and made it asynchronous.
-	- Made getting git infomation asynchronous.
+	- Made retrieving Git information asynchronous.
 	- Implemented more scripting properties.
-	- Sort the project list alphabetically.
+	- Sorted the project list alphabetically.
 	- Save outline sorting in settings.
 	- Added image viewing capabilities to the editor.
 	- Added syntax highlighting for Nim.
-	- Added XHTML as supported file type (Humdinger).
-	- Added option to open files with the default application.
-	- Search pylsp in various paths instead of hardcoding.
-	- Mark the active project instead of disabling the menuitem in the project menu.
-	- Greatly improved the code which handles project activation, making it more robust.
-	- Made code more robust by adding NULL pointer checks where it was missing (mostly found with Codacy).
+	- Added XHTML as a supported file type (Humdinger).
+	- Added an option to open files with the default application.
+	- Search for pylsp in various paths instead of hardcoding it.
+	- Mark the active project instead of disabling the menu item in the project menu.
+	- Greatly improved the code that handles project activation, making it less crash-prone.
+	- Made the code more robust by checking for NULL in more places and using C++ casts (mostly identified with Codacy).
 	- Fixed a couple of dangerous casts and use C++ casts where possible (mostly found with Codacy).
 	- Fixed possible layout settings corruption.
-	- Fixed wrong project colors in tabs in certain cases.
-	- Fixed outline sorting on start in certain cases.
-	- Fixed RepositoryView status when closing the last non-git project.
-	- Fixed possible crash when closing a project.
-	- Fixed rare crash while closing tabs.
-	- Fixed rebuilding Source Control tab multiple times for a single event.
-	- Fixed accidental item invocation when left clicking plus right clicking on a project listitem.
-	- Fixed window title when not showing full path.
-	- Fixed opening symlinks in ProjectBrowser.
-	- Fixed searching whole words with non-alphanumeric delimiters.
-	- Fixed path monitoring when a folder is moved.
-	- Updated nlohmann's json library to version 3.12.0.
+	- Fixed incorrect project colors in tabs in certain cases.
+	- Fixed outline sorting on startup in certain cases.
+	- Fixed RepositoryView status when closing the last non-Git project.
+	- Fixed a possible crash when closing a project.
+	- Fixed a rare crash while closing tabs.
+	- Fixed rebuilding the Source Control tab multiple times for a single event.
+	- Fixed accidental item invocation when left-clicking and right-clicking on a project list item.
+	- Fixed the window title when not showing the full path.
+	- Fixed opening symlinks to files in ProjectBrowser.
+	- Updated nlohmann's JSON library to version 3.12.0.
 ---
 v4.0
 	- Folders can now be dropped in the project browser to open them as a project.
