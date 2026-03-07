@@ -115,6 +115,21 @@ AcceptsCopyPaste(BView* view)
 }
 
 
+static BString
+CurrentBranchFromEditor(IEditor* editor)
+{
+	BString currentBranch;
+	if (editor != nullptr) {
+		try {
+			ProjectFolder* project = editor->GetProjectFolder();
+			currentBranch = project ? project->GetRepository()->GetCurrentBranch() : "";
+		} catch (...) {
+		}
+	}
+	return currentBranch;
+}
+
+
 GenioWindow::GenioWindow(BRect frame)
 	:
 	BWindow(frame, "Genio", B_TITLED_WINDOW, B_ASYNCHRONOUS_CONTROLS |
@@ -4526,12 +4541,7 @@ GenioWindow::_UpdateTabChange(IEditor* editor, const BString& caller)
 
 	fBookmarksMenu->SetEnabled(true);
 
-	BString currentBranch;
-	try {
-		ProjectFolder* project = editor->GetProjectFolder();
-		currentBranch = project ? project->GetRepository()->GetCurrentBranch() : "";
-	} catch (...) {
-	}
+	BString currentBranch = CurrentBranchFromEditor(editor);
 	_UpdateWindowTitle(editor, currentBranch.String());
 
 	// editor is modified by _FilesNeedSave so it should be the last
@@ -4596,14 +4606,7 @@ GenioWindow::_HandleConfigurationChanged(BMessage* message)
 	}
 
 	IEditor* selected = fTabManager->SelectedEditor();
-	BString currentBranch;
-	if (selected != nullptr) {
-		try {
-			ProjectFolder* project = selected->GetProjectFolder();
-			currentBranch = project ? project->GetRepository()->GetCurrentBranch() : "";
-		} catch (...) {
-		}
-	}
+	BString currentBranch = CurrentBranchFromEditor(selected);
 	_UpdateWindowTitle(selected, currentBranch.String());
 }
 
