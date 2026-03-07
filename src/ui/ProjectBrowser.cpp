@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -237,6 +237,7 @@ ProjectBrowser::_RemoveItemForPath(BString spath)
 			true, ProjectOutlineListView::CompareProjectItems);
 	}
 }
+
 
 
 void

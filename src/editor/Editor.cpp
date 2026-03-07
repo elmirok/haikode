@@ -45,14 +45,13 @@
 #include "Styler.h"
 #include "Utils.h"
 
-
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "Editor"
 
 namespace Sci = Scintilla;
 using namespace Sci::Properties;
 
-const int kIdleTimeout = 250000; //1/4sec
+const int kIdleTimeout = 400000; //0.4secs
 
 // Differentiate unset parameters from 0 ones
 // in scintilla messages
@@ -377,6 +376,7 @@ Editor::MessageReceived(BMessage* message)
 			UpdateStatusBar();
 			break;
 		case kIdle:
+			LogTrace("kIdle: Event fired, flushing LSP events.\n");
 			fLSPEditorWrapper->flushChanges();
 			break;
 		case kApplyFix:
@@ -2423,18 +2423,18 @@ void
 Editor::EvaluateIdleTime()
 {
 	if (fIdleHandler == nullptr || fIdleHandler->SetInterval(kIdleTimeout) != B_OK) {
-		LogInfo("EvaluateIdleTime: Re-arming IdleHandler...");
+		LogTrace("EvaluateIdleTime: Re-arming IdleHandler...");
 		delete fIdleHandler;
 
 		// create a message to update the project
 		BMessage message(kIdle);
 		fIdleHandler = new (std::nothrow) BMessageRunner(BMessenger(this), &message, kIdleTimeout, 1);
 		if (fIdleHandler == nullptr || fIdleHandler->InitCheck() != B_OK) {
-			LogInfo("EvaluateIdleTime: Could not create fIdleHandler. Deleting it");
+			LogTrace("EvaluateIdleTime: Could not create fIdleHandler. Deleting it");
 			delete fIdleHandler;
 			fIdleHandler = nullptr;
 		} else {
-			LogInfo("EvaluateIdleTime: fIdleHandler re-armed.");
+			LogTrace("EvaluateIdleTime: fIdleHandler re-armed.");
 		}
 	}
 }
