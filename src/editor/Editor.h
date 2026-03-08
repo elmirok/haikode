@@ -86,6 +86,8 @@ public:
 			filter_result		BeforeModifiersChanged(BMessage* message);
 			void				GrabFocus() override;
 
+			//experimental code
+			void				AttachedToWindow();
 
 			// Cut, Copy and Paste interface
 			bool				CanCopy() override;

@@ -983,6 +983,65 @@ Editor::GrabFocus()
 	SendMessage(SCI_GRABFOCUS, UNSET, UNSET);
 }
 
+#include <InterfaceDefs.h>
+
+class OverScrollBar : public BView
+{
+	public:
+		OverScrollBar(BRect rect) : BView(rect,"over_VSB_",
+										 B_FOLLOW_ALL,B_WILL_DRAW | B_FRAME_EVENTS | B_TRANSPARENT_BACKGROUND), doubleArrows(false)
+										 {
+											//status_t		get_scroll_bar_info(scroll_bar_info* info);
+											scroll_bar_info info;
+											if (get_scroll_bar_info(&info) == B_OK) {
+														doubleArrows = info.double_arrows;
+											}
+
+										 }
+
+	void				MouseDown(BPoint where) override { if (Parent()) Parent()->MouseDown(where); }
+	void				MouseUp(BPoint where) override { if (Parent()) Parent()->MouseUp(where); }
+	void				MouseMoved(BPoint where, uint32 code,
+									const BMessage* dragMessage) override { if (Parent())
+										Parent()->MouseMoved(where, code, dragMessage); }
+	void				KeyDown(const char* bytes, int32 numBytes) override { if (Parent()) Parent()->KeyDown(bytes, numBytes); }
+	void				KeyUp(const char* bytes, int32 numBytes) override { if (Parent()) Parent()->KeyUp(bytes, numBytes); }
+
+
+	void				FrameResized(float w, float h) override {
+
+
+								BRect bounds = Bounds();
+								bounds.InsetBy(1.0, 1.0);
+
+								// assume square buttons
+								//float buttonSize = bounds.Width() + 1.0;
+
+
+								startPoint = w * (doubleArrows ? 2 : 1);
+								//Invalidate();
+
+						}
+	void				Draw(BRect rect) override {
+							BRect r = Bounds();
+							StrokeLine(BPoint(r.left, startPoint), BPoint(r.right, startPoint));
+						}
+
+private:
+			bool	doubleArrows;
+			float startPoint;
+};
+
+void
+Editor::AttachedToWindow()
+{
+	BScintillaView::AttachedToWindow();
+	BScrollBar*	scrollbar = ScrollBar(B_VERTICAL);
+	if (scrollbar) {
+		scrollbar->AddChild(new OverScrollBar(scrollbar->Bounds()));
+	}
+}
+
 
 bool
 Editor::IsOverwrite()
@@ -2352,6 +2411,10 @@ Editor::SetProblems()
 	if (!Window()->IsLocked()) {
 		debugger("The looper must be locked !");
 	}
+
+
+
+	// Update problems panel
 	BMessage problems (EDITOR_UPDATE_DIAGNOSTICS);
 	problems.AddUInt64(kEditorId, Id());
 	Window()->PostMessage(&problems);
