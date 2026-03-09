@@ -67,14 +67,14 @@ class OverScrollBar : public BView {
 						}
 
 	void				Draw(BRect /*rect*/) override {
-							BRect r = Bounds();
-							float startPoint = r.Width() * (_DoubleArrows(r) ? 2 : 1);
-							float endPoint   = r.Height() - startPoint;
-							StrokeLine(BPoint(r.left, startPoint), BPoint(r.right, startPoint));
-							StrokeLine(BPoint(r.left, endPoint),   BPoint(r.right, endPoint));
 
 							if (fMarkers.empty())
 								return;
+
+							BRect r = Bounds();
+							float startPoint = r.Width() * (_DoubleArrows(r) ? 2 : 1);
+							float endPoint   = r.Height() - startPoint;
+
 
 							float trackHeight = endPoint - startPoint;
 
