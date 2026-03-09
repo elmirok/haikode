@@ -44,6 +44,7 @@
 #include "ScintillaUtils.h"
 #include "Styler.h"
 #include "Utils.h"
+#include "OverScrollBar.h"
 
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "Editor"
@@ -982,55 +983,6 @@ Editor::GrabFocus()
 {
 	SendMessage(SCI_GRABFOCUS, UNSET, UNSET);
 }
-
-#include <InterfaceDefs.h>
-
-class OverScrollBar : public BView
-{
-	public:
-		OverScrollBar(BRect rect) : BView(rect,"over_VSB_",
-										 B_FOLLOW_ALL,B_WILL_DRAW | B_FRAME_EVENTS | B_TRANSPARENT_BACKGROUND), doubleArrows(false)
-										 {
-											//status_t		get_scroll_bar_info(scroll_bar_info* info);
-											scroll_bar_info info;
-											if (get_scroll_bar_info(&info) == B_OK) {
-														doubleArrows = info.double_arrows;
-											}
-
-										 }
-
-	void				MouseDown(BPoint where) override { if (Parent()) Parent()->MouseDown(where); }
-	void				MouseUp(BPoint where) override { if (Parent()) Parent()->MouseUp(where); }
-	void				MouseMoved(BPoint where, uint32 code,
-									const BMessage* dragMessage) override { if (Parent())
-										Parent()->MouseMoved(where, code, dragMessage); }
-	void				KeyDown(const char* bytes, int32 numBytes) override { if (Parent()) Parent()->KeyDown(bytes, numBytes); }
-	void				KeyUp(const char* bytes, int32 numBytes) override { if (Parent()) Parent()->KeyUp(bytes, numBytes); }
-
-
-	void				FrameResized(float w, float h) override {
-
-
-								BRect bounds = Bounds();
-								bounds.InsetBy(1.0, 1.0);
-
-								// assume square buttons
-								//float buttonSize = bounds.Width() + 1.0;
-
-
-								startPoint = w * (doubleArrows ? 2 : 1);
-								//Invalidate();
-
-						}
-	void				Draw(BRect rect) override {
-							BRect r = Bounds();
-							StrokeLine(BPoint(r.left, startPoint), BPoint(r.right, startPoint));
-						}
-
-private:
-			bool	doubleArrows;
-			float startPoint;
-};
 
 void
 Editor::AttachedToWindow()
