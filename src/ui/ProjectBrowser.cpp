@@ -320,8 +320,10 @@ ProjectBrowser::_HandleEntryMoved(BMessage* message)
 								item->GetSourceItem()->UpdateEntryRef(newRef);
 								fOutlineListView->SortItemsUnder(fOutlineListView->Superitem(item),
 									true, ProjectOutlineListView::CompareProjectItems);
-								if (item->IsSelected())
+								if (item->IsSelected()) {
 									fOutlineListView->ScrollToSelection();
+									fOutlineListView->SelectionChanged();
+								}
 							} else {
 								LogError("Can't find ref for newPath[%s]", newPath.String());
 								return;
