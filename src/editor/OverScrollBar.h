@@ -14,7 +14,7 @@
 
 class OverScrollBar : public BView {
 	public:
-		// LSP severity: 1=Error, 2=Warning, 3=Information, 4=Hint
+		// LSP severity: 1=Error, 2=Warning, 3=Information, 4=Hint (0=Unsupported by LSP server)
 		struct ProblemMarker {
 			float       ratio;    // normalised position in [0.0, 1.0]
 			int         severity; // as per LSP DiagnosticSeverity
@@ -27,8 +27,10 @@ class OverScrollBar : public BView {
 					B_FOLLOW_ALL, B_WILL_DRAW | B_TRANSPARENT_BACKGROUND)
 			, fTarget(target)
 		{
-			if (get_scroll_bar_info(&info) != B_OK)
-				debugger("Ouch!");
+			if (get_scroll_bar_info(&info) != B_OK) {
+				LogError("get_scroll_bar_info failed!");
+				info.min_knob_size = -1;
+			}
 		}
 
 	void				SetProblemsData(std::vector<ProblemMarker> markers)
@@ -68,7 +70,7 @@ class OverScrollBar : public BView {
 
 	void				Draw(BRect /*rect*/) override {
 
-							if (fMarkers.empty())
+							if (info.min_knob_size < 0 || fMarkers.empty())
 								return;
 
 							BRect r = Bounds();
