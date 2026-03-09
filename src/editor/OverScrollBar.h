@@ -28,22 +28,35 @@ class OverScrollBar : public BView {
 	void				Draw(BRect rect) override {
 							BRect r = Bounds();
 							float startPoint = r.Width() * (_DoubleArrows(r) ? 2: 1);
+							float endPoint = r.Height() - startPoint;
 							StrokeLine(BPoint(r.left, startPoint), BPoint(r.right, startPoint));
+							StrokeLine(BPoint(r.left, endPoint), BPoint(r.right, endPoint));
+							float width = endPoint - startPoint;
+
+							float R = 50;
+							float l = 100;
+							float coef = R/l;
+
+							float redline = coef*width;
+
+							//StrokeLine(BPoint(r.left, redline), BPoint(r.right, redline));
+							FillRect(BRect(r.left, redline, r.right, redline + 1));
+
 						}
 
-				private:
-				bool
-				_DoubleArrows(const BRect& bounds) const
-				{
+	private:
 
-					if (!info.double_arrows)
-						return false;
+	bool				_DoubleArrows(const BRect& bounds) const
+						{
+							if (!info.double_arrows)
+								return false;
 
-					// From BScrollBar source:
-					// if there is not enough room, switch to single arrows even though
-					// double arrows is specified
-					return bounds.Height() > (bounds.Width() + 1) * 4 + info.min_knob_size * 2;
-				}
+							// From BScrollBar source:
+							// if there is not enough room, switch to single arrows even though
+							// double arrows is specified
+							return bounds.Height() > (bounds.Width() + 1) * 4 + info.min_knob_size * 2;
+						}
+
 
 private:
 			scroll_bar_info info;

@@ -2364,7 +2364,19 @@ Editor::SetProblems()
 		debugger("The looper must be locked !");
 	}
 
-
+	/*
+	*/
+	LSPEditorWrapper* lsp = GetLSPEditorWrapper();
+	if (lsp) {
+		std::vector<BPoint>	points;
+		std::vector<LSPDiagnostic> diagnostics;
+		lsp->GetDiagnostics(diagnostics);
+		for (auto& dia: diagnostics) {
+			points.push_back(BPoint(dia.diagnostic.range.start.line + 1, dia.diagnostic.range.end.line + 1));
+		}
+	}
+	/*
+	*/
 
 	// Update problems panel
 	BMessage problems (EDITOR_UPDATE_DIAGNOSTICS);
