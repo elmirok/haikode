@@ -990,7 +990,8 @@ Editor::AttachedToWindow()
 	BScintillaView::AttachedToWindow();
 	BScrollBar*	scrollbar = ScrollBar(B_VERTICAL);
 	if (scrollbar) {
-		scrollbar->AddChild(new OverScrollBar(scrollbar->Bounds()));
+		fOverScrollBar = new OverScrollBar(scrollbar->Bounds());
+		scrollbar->AddChild(fOverScrollBar);
 	}
 }
 
@@ -2364,19 +2365,26 @@ Editor::SetProblems()
 		debugger("The looper must be locked !");
 	}
 
-	/*
-	*/
 	LSPEditorWrapper* lsp = GetLSPEditorWrapper();
 	if (lsp) {
-		std::vector<BPoint>	points;
 		std::vector<LSPDiagnostic> diagnostics;
 		lsp->GetDiagnostics(diagnostics);
-		for (auto& dia: diagnostics) {
-			points.push_back(BPoint(dia.diagnostic.range.start.line + 1, dia.diagnostic.range.end.line + 1));
+
+		if (fOverScrollBar) {
+			int32 totalLines = SendMessage(SCI_GETLINECOUNT);
+			std::vector<OverScrollBar::ProblemMarker> markers;
+			markers.reserve(diagnostics.size());
+			for (auto& dia : diagnostics) {
+				float line = (float)(dia.diagnostic.range.start.line + 1);
+				float ratio = (totalLines > 1) ? (line / totalLines) : 0.0f;
+				markers.push_back({ratio, dia.diagnostic.severity});
+			}
+			fOverScrollBar->SetProblemsData(std::move(markers));
 		}
+	} else if (fOverScrollBar) {
+		// No LSP – clear any stale markers
+		fOverScrollBar->SetProblemsData({});
 	}
-	/*
-	*/
 
 	// Update problems panel
 	BMessage problems (EDITOR_UPDATE_DIAGNOSTICS);

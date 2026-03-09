@@ -20,6 +20,7 @@
 #include "ScintillaView.h"
 
 class LSPEditorWrapper;
+class OverScrollBar;
 class ProjectFolder;
 
 namespace editor {
@@ -286,4 +287,4 @@ private:
 
 			Sci_Position		fLastWordStartPosition = -1;
 			Sci_Position		fLastWordEndPosition = -1;
-};
+			OverScrollBar*			fOverScrollBar = nullptr;};
