@@ -139,8 +139,10 @@ void
 LSPEditorWrapper::SetLSPServer(LSPProjectWrapper* cW) {
 
 	assert(cW);
-	assert(!fLSPProjectWrapper);
 	assert(fEditor);
+
+	if (fLSPProjectWrapper != nullptr)
+		UnsetLSPServer();
 
 	SetFileType(fEditor->FileType().c_str());
 
