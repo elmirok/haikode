@@ -393,6 +393,13 @@ Editor::MessageReceived(BMessage* message)
 				fLSPEditorWrapper->NextCallTip();
 			break;
 		}
+		case EDITOR_MARKER_GOTO:
+		{
+			int32 line = message->GetInt32("line", 0);
+			if (line > 0)
+				GoToLine(line);
+			break;
+		}
 
 		default:
 			BScintillaView::MessageReceived(message);
@@ -990,7 +997,7 @@ Editor::AttachedToWindow()
 	BScintillaView::AttachedToWindow();
 	BScrollBar*	scrollbar = ScrollBar(B_VERTICAL);
 	if (scrollbar) {
-		fOverScrollBar = new OverScrollBar(scrollbar->Bounds());
+		fOverScrollBar = new OverScrollBar(scrollbar->Bounds(), BMessenger(this));
 		scrollbar->AddChild(fOverScrollBar);
 	}
 }
@@ -2375,9 +2382,9 @@ Editor::SetProblems()
 			std::vector<OverScrollBar::ProblemMarker> markers;
 			markers.reserve(diagnostics.size());
 			for (auto& dia : diagnostics) {
-				float line = (float)(dia.diagnostic.range.start.line + 1);
-				float ratio = (totalLines > 1) ? (line / totalLines) : 0.0f;
-				markers.push_back({ratio, dia.diagnostic.severity});
+				int32 line = dia.diagnostic.range.start.line + 1;
+				float ratio = (totalLines > 1) ? ((float)line / totalLines) : 0.0f;
+				markers.push_back({ratio, dia.diagnostic.severity, line, dia.diagnostic.message});
 			}
 			fOverScrollBar->SetProblemsData(std::move(markers));
 		}

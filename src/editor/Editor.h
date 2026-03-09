@@ -31,7 +31,8 @@ enum {
 	EDITOR_POSITION_CHANGED			= 'Epch',
 	EDITOR_UPDATE_SAVEPOINT			= 'EUSP',
 	EDITOR_UPDATE_DIAGNOSTICS		= 'diag',
-	EDITOR_UPDATE_SYMBOLS			= 'symb'
+	EDITOR_UPDATE_SYMBOLS			= 'symb',
+	EDITOR_MARKER_GOTO				= 'Emgo'
 };
 
 enum IndentStyle {
