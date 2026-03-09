@@ -34,6 +34,8 @@ public:
 	IEditor* SelectedEditor() const;
 
 	void	SetTabColor(IEditor*, const rgb_color& color);
+	void	UnsetTabColor(IEditor*);
+
 	void	SetTabLabel(IEditor*, const char* label);
 	BString	TabLabel(IEditor* editor) const;
 

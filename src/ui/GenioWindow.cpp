@@ -503,7 +503,7 @@ GenioWindow::MessageReceived(BMessage* message)
 			    message->FindBool("modified", &modified) == B_OK) {
 				IEditor* editor = fTabManager->EditorById(id);
 				if (editor != nullptr) {
-					_UpdateLabel(editor, modified);
+					_UpdateLabelModifiedStatus(editor, modified);
 					_UpdateSavepointChange(editor, "UpdateSavePoint");
 				}
 			}
@@ -2261,27 +2261,35 @@ GenioWindow::_HandleExternalMoveModification(entry_ref* oldRef, entry_ref* newRe
 	else if (choice == 1) {
 		_FileRequestClose(editor);
 	} else if (choice == 2) {
+
 		editor->SetFileRef(newRef);
-		fTabManager->SetTabLabel(editor, editor->Name().String());
-		_UpdateLabel(editor, editor->IsModified());
 
 		// if the file is moved outside of the project folder it should be
 		// detached from it as well
 		auto project = editor->GetProjectFolder();
 		if (project) {
-			if (editor->FilePath().StartsWith(project->Path()) == false)
+			if (editor->FilePath().StartsWith(project->Path()) == false) {
 				editor->SetProjectFolder(NULL);
-		} else {
-			BString baseDir("");
-			for (int32 index = 0; index < GetProjectBrowser()->CountProjects(); index++) {
-				ProjectFolder * project = GetProjectBrowser()->ProjectAt(index);
-				BString projectPath = project->Path();
-				projectPath = projectPath.Append("/");
-				if (editor->FilePath().StartsWith(projectPath)) {
-					editor->SetProjectFolder(project);
-				}
+				fTabManager->UnsetTabColor(editor);
+				LogInfo("Removing file [%s] from project", editor->Name().String());
 			}
 		}
+
+		// a file could have been moved to another project..
+		BString baseDir("");
+		for (int32 index = 0; index < GetProjectBrowser()->CountProjects(); index++) {
+			ProjectFolder * project = GetProjectBrowser()->ProjectAt(index);
+			BString projectPath = project->Path();
+			projectPath = projectPath.Append("/");
+			if (editor->FilePath().StartsWith(projectPath)) {
+				editor->SetProjectFolder(project);
+				fTabManager->SetTabColor(editor, project->Color());
+			}
+		}
+
+		//UI updates
+		fTabManager->SetTabLabel(editor, editor->Name().String());
+		_UpdateLabelModifiedStatus(editor, editor->IsModified());
 
 		BString notification;
 		notification << "File info: " << oldPath.Path()
@@ -4275,7 +4283,7 @@ GenioWindow::_UpdateRecentCommands(const BString& text)
 
 
 status_t
-GenioWindow::_UpdateLabel(IEditor* editor, bool isModified)
+GenioWindow::_UpdateLabelModifiedStatus(IEditor* editor, bool isModified)
 {
 	// TODO: Would be nice to move this to GTabEditor
 	if (editor != nullptr) {
