@@ -13,11 +13,6 @@
 #include <ScrollView.h>
 #include <StringView.h>
 
-#include <string>
-#include <vector>
-
-#include "Utils.h"
-
 
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "GTextAlert"

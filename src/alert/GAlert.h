@@ -15,9 +15,6 @@
 #include <StringView.h>
 #include <Window.h>
 
-#include <vector>
-
-#include "GMessage.h"
 
 class BButton;
 class BStringView;
