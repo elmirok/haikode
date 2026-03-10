@@ -98,15 +98,17 @@ ImageEditor::LoadFromFile()
 	return status;
 }
 
+
 status_t
 ImageEditor::UnloadFile()
 {
 	delete fBitmap;
 	fBitmap = nullptr;
 	fScale = 0;
-	fOffset = BPoint(0,0);
+	fOffset = B_ORIGIN;
 	return B_OK;
 }
+
 
 status_t
 ImageEditor::Reload()
