@@ -44,7 +44,7 @@
 #include "ScintillaUtils.h"
 #include "Styler.h"
 #include "Utils.h"
-
+#include "OverScrollBar.h"
 
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "Editor"
@@ -52,7 +52,7 @@
 namespace Sci = Scintilla;
 using namespace Sci::Properties;
 
-const int kIdleTimeout = 250000; //1/4sec
+const int kIdleTimeout = 400000; //0.4secs
 
 // Differentiate unset parameters from 0 ones
 // in scintilla messages
@@ -377,6 +377,7 @@ Editor::MessageReceived(BMessage* message)
 			UpdateStatusBar();
 			break;
 		case kIdle:
+			LogTrace("kIdle: Event fired, flushing LSP events.\n");
 			fLSPEditorWrapper->flushChanges();
 			break;
 		case kApplyFix:
@@ -390,6 +391,13 @@ Editor::MessageReceived(BMessage* message)
 				fLSPEditorWrapper->PrevCallTip();
 			else
 				fLSPEditorWrapper->NextCallTip();
+			break;
+		}
+		case EDITOR_MARKER_GOTO:
+		{
+			int32 line = message->GetInt32("line", 0);
+			if (line > 0)
+				GoToLine(line);
 			break;
 		}
 
@@ -981,6 +989,17 @@ void
 Editor::GrabFocus()
 {
 	SendMessage(SCI_GRABFOCUS, UNSET, UNSET);
+}
+
+void
+Editor::AttachedToWindow()
+{
+	BScintillaView::AttachedToWindow();
+	BScrollBar*	scrollbar = ScrollBar(B_VERTICAL);
+	if (scrollbar) {
+		fOverScrollBar = new OverScrollBar(scrollbar->Bounds(), BMessenger(this));
+		scrollbar->AddChild(fOverScrollBar);
+	}
 }
 
 
@@ -2352,6 +2371,29 @@ Editor::SetProblems()
 	if (!Window()->IsLocked()) {
 		debugger("The looper must be locked !");
 	}
+
+	LSPEditorWrapper* lsp = GetLSPEditorWrapper();
+	if (lsp) {
+		std::vector<LSPDiagnostic> diagnostics;
+		lsp->GetDiagnostics(diagnostics);
+
+		if (fOverScrollBar) {
+			int32 totalLines = SendMessage(SCI_GETLINECOUNT);
+			std::vector<OverScrollBar::ProblemMarker> markers;
+			markers.reserve(diagnostics.size());
+			for (auto& dia : diagnostics) {
+				int32 line = dia.diagnostic.range.start.line + 1;
+				float ratio = (totalLines > 1) ? ((float)line / totalLines) : 0.0f;
+				markers.push_back({ratio, dia.diagnostic.severity, line, dia.diagnostic.message});
+			}
+			fOverScrollBar->SetProblemsData(std::move(markers));
+		}
+	} else if (fOverScrollBar) {
+		// No LSP – clear any stale markers
+		fOverScrollBar->SetProblemsData({});
+	}
+
+	// Update problems panel
 	BMessage problems (EDITOR_UPDATE_DIAGNOSTICS);
 	problems.AddUInt64(kEditorId, Id());
 	Window()->PostMessage(&problems);
@@ -2423,18 +2465,18 @@ void
 Editor::EvaluateIdleTime()
 {
 	if (fIdleHandler == nullptr || fIdleHandler->SetInterval(kIdleTimeout) != B_OK) {
-		LogInfo("EvaluateIdleTime: Re-arming IdleHandler...");
+		LogTrace("EvaluateIdleTime: Re-arming IdleHandler...");
 		delete fIdleHandler;
 
 		// create a message to update the project
 		BMessage message(kIdle);
 		fIdleHandler = new (std::nothrow) BMessageRunner(BMessenger(this), &message, kIdleTimeout, 1);
 		if (fIdleHandler == nullptr || fIdleHandler->InitCheck() != B_OK) {
-			LogInfo("EvaluateIdleTime: Could not create fIdleHandler. Deleting it");
+			LogTrace("EvaluateIdleTime: Could not create fIdleHandler. Deleting it");
 			delete fIdleHandler;
 			fIdleHandler = nullptr;
 		} else {
-			LogInfo("EvaluateIdleTime: fIdleHandler re-armed.");
+			LogTrace("EvaluateIdleTime: fIdleHandler re-armed.");
 		}
 	}
 }
