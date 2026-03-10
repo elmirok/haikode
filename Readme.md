@@ -1,7 +1,7 @@
 # Genio
 
-![Screenshot](artwork/screenshot/Genio-screenshot-4.0.png)
-![Screenshot-Dark](artwork/screenshot/Genio-screenshot-4.0-dark.png)
+![Screenshot](artwork/screenshot/Genio-screenshot-5.0.png)
+![Screenshot-Dark](artwork/screenshot/Genio-screenshot-5.0-dark.png)
 
 ## Introduction
 
