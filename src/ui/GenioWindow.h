@@ -147,7 +147,7 @@ private:
 															const entry_ref& ref, bool activate);
 
 			void				_ProjectFolderActivate(ProjectFolder* project);
-			void				_TryAssociateEditorWithProject(IEditor* editor, ProjectFolder* project);
+			bool				_TryAssociateEditorWithProject(IEditor* editor, ProjectFolder* project);
 
 			status_t			_ShowItemInTracker(const entry_ref*);
 			status_t			_ShowInTracker(const entry_ref& ref, const node_ref* nref = NULL);

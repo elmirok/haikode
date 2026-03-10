@@ -2058,7 +2058,8 @@ GenioWindow::_PostFileLoad(IEditor* editor)
 	// Assign the right project to the Editor
 	for (int32 cycleIndex = 0; cycleIndex < GetProjectBrowser()->CountProjects(); cycleIndex++) {
 		ProjectFolder* project = GetProjectBrowser()->ProjectAt(cycleIndex);
-		_TryAssociateEditorWithProject(editor, project);
+		if (_TryAssociateEditorWithProject(editor, project))
+			break;
 	}
 	editor->ApplySettings();
 	if (editor->GetLSPEditorWrapper() != nullptr)
@@ -3555,7 +3556,7 @@ GenioWindow::_ProjectFolderActivate(ProjectFolder *project)
 }
 
 
-void
+bool
 GenioWindow::_TryAssociateEditorWithProject(IEditor* editor, ProjectFolder* project)
 {
 	// let's check if editor belongs to this project
@@ -3569,8 +3570,10 @@ GenioWindow::_TryAssociateEditorWithProject(IEditor* editor, ProjectFolder* proj
 		if (editor->FilePath().StartsWith(projectPath)) {
 			editor->SetProjectFolder(project);
 			fTabManager->SetTabColor(editor, project->Color());
+			return true;
 		}
 	}
+	return false;
 }
 
 
@@ -3974,7 +3977,8 @@ GenioWindow::_ProjectFolderOpenCompleted(ProjectFolder* project,
 
 	for (int32 i = 0; i < fTabManager->CountTabs(); i++) {
 		IEditor* editor = fTabManager->EditorAt(i);
-		_TryAssociateEditorWithProject(editor, project);
+		if (_TryAssociateEditorWithProject(editor, project))
+			break;
 	}
 
 	// TODO: Move this elsewhere!
