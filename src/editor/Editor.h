@@ -20,6 +20,7 @@
 #include "ScintillaView.h"
 
 class LSPEditorWrapper;
+class OverScrollBar;
 class ProjectFolder;
 
 namespace editor {
@@ -30,7 +31,8 @@ enum {
 	EDITOR_POSITION_CHANGED			= 'Epch',
 	EDITOR_UPDATE_SAVEPOINT			= 'EUSP',
 	EDITOR_UPDATE_DIAGNOSTICS		= 'diag',
-	EDITOR_UPDATE_SYMBOLS			= 'symb'
+	EDITOR_UPDATE_SYMBOLS			= 'symb',
+	EDITOR_MARKER_GOTO				= 'Emgo'
 };
 
 enum IndentStyle {
@@ -86,6 +88,8 @@ public:
 			filter_result		BeforeModifiersChanged(BMessage* message);
 			void				GrabFocus() override;
 
+			//experimental code
+			void				AttachedToWindow();
 
 			// Cut, Copy and Paste interface
 			bool				CanCopy() override;
@@ -285,4 +289,4 @@ private:
 
 			Sci_Position		fLastWordStartPosition = -1;
 			Sci_Position		fLastWordEndPosition = -1;
-};
+			OverScrollBar*			fOverScrollBar = nullptr;};
