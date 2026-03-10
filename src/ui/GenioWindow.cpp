@@ -2058,8 +2058,10 @@ GenioWindow::_PostFileLoad(IEditor* editor)
 	// Assign the right project to the Editor
 	for (int32 cycleIndex = 0; cycleIndex < GetProjectBrowser()->CountProjects(); cycleIndex++) {
 		ProjectFolder* project = GetProjectBrowser()->ProjectAt(cycleIndex);
-		if (_TryAssociateEditorWithProject(editor, project))
+		if (_TryAssociateEditorWithProject(editor, project)) {
+			printf("Associating editor %s with project %s\n", editor->Name().String(), project->Name().String());
 			break;
+		}
 	}
 	editor->ApplySettings();
 	if (editor->GetLSPEditorWrapper() != nullptr)
@@ -3573,7 +3575,7 @@ GenioWindow::_TryAssociateEditorWithProject(IEditor* editor, ProjectFolder* proj
 			return true;
 		}
 	}
-	return false;
+	return (editor->GetProjectFolder() == project);
 }
 
 
@@ -3977,8 +3979,7 @@ GenioWindow::_ProjectFolderOpenCompleted(ProjectFolder* project,
 
 	for (int32 i = 0; i < fTabManager->CountTabs(); i++) {
 		IEditor* editor = fTabManager->EditorAt(i);
-		if (_TryAssociateEditorWithProject(editor, project))
-			break;
+		_TryAssociateEditorWithProject(editor, project);
 	}
 
 	// TODO: Move this elsewhere!
