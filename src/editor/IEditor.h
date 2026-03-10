@@ -70,6 +70,7 @@ public:
 	virtual status_t			SetFileRef(entry_ref* ref) = 0;
 	virtual node_ref *const		NodeRef() = 0;
 	virtual status_t			LoadFromFile() = 0;
+	virtual	status_t			UnloadFile() = 0; //dual of LoadFromFile
 	virtual status_t			SaveToFile() = 0;
 	virtual status_t			Reload() = 0;
 	virtual status_t			StartMonitoring() = 0;

@@ -163,21 +163,7 @@ Editor::HasLSPCapability(const LSPCapability cap) const
 
 Editor::~Editor()
 {
-	// Stop monitoring
-	StopMonitoring();
-
-	// Set caret position
-	if (gCFG["save_caret"] && HasValidFileRef()) {
-		BNode node(&fFileRef);
-		if (node.InitCheck() == B_OK) {
-			int32 pos = GetCurrentPosition();
-			node.WriteAttr("be:caret_position", B_INT32_TYPE, 0, &pos, sizeof(pos));
-		}
-	}
-
-	fLSPEditorWrapper->UnsetLSPServer();
-	delete fLSPEditorWrapper;
-	fLSPEditorWrapper = NULL;
+	UnloadFile();
 }
 
 status_t
@@ -1174,6 +1160,30 @@ Editor::LoadFromFile()
 	return B_OK;
 }
 
+status_t
+Editor::UnloadFile()
+{
+	// Stop monitoring
+	StopMonitoring();
+
+	// Set caret position
+	if (gCFG["save_caret"] && HasValidFileRef()) {
+		BNode node(&fFileRef);
+		if (node.InitCheck() == B_OK) {
+			int32 pos = GetCurrentPosition();
+			node.WriteAttr("be:caret_position", B_INT32_TYPE, 0, &pos, sizeof(pos));
+		}
+	}
+
+	SetProjectFolder(nullptr);
+
+	fFileName = "";
+	fFileType = "";
+
+	return B_OK;
+}
+
+
 
 BString const
 Editor::ModeString()
@@ -1976,11 +1986,12 @@ Editor::SwitchSourceHeader()
 
 
 void
-Editor::SetProjectFolder(ProjectFolder* proj)
+Editor::SetProjectFolder(ProjectFolder* _proj)
 {
-	fProjectFolder = proj;
-	if (proj != nullptr) {
-		LSPProjectWrapper* lspProject = proj->GetLSPServer(fFileType.c_str());
+	fProjectFolder = _proj;
+
+	if (fProjectFolder != nullptr) {
+		LSPProjectWrapper* lspProject = fProjectFolder->GetLSPServer(fFileType.c_str());
 		if (lspProject != nullptr)
 			fLSPEditorWrapper->SetLSPServer(lspProject);
 		else
@@ -1988,7 +1999,11 @@ Editor::SetProjectFolder(ProjectFolder* proj)
 	} else
 		fLSPEditorWrapper->UnsetLSPServer();
 
-	SetProblems();
+	if (Window()->Lock()) {
+		SetProblems();
+		Window()->Unlock();
+	}
+
 }
 
 

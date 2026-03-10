@@ -180,6 +180,7 @@ private:
 			void				_ToggleScreenMode(int32 action);
 			void				_ForwardToSelectedEditor(BMessage* msg);
 			void				_UpdateWindowTitle(IEditor* editor, const char* currentBranch);
+			void				_ReloadFileInEditor(IEditor* editor, entry_ref* ref);
 
 private:
 			BMenuBar*			fMenuBar;

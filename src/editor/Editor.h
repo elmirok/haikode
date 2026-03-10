@@ -107,6 +107,7 @@ public:
 			status_t			SetFileRef(entry_ref* ref) override;
 			node_ref *const		NodeRef() override;
 			status_t			LoadFromFile() override;
+			status_t			UnloadFile() override;
 			status_t			SaveToFile() override;
 			status_t			Reload() override;
 			status_t			StartMonitoring() override;
