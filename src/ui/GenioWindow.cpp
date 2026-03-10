@@ -2041,7 +2041,7 @@ GenioWindow::_PostFileLoad(IEditor* editor)
 	for (int32 cycleIndex = 0; cycleIndex < GetProjectBrowser()->CountProjects(); cycleIndex++) {
 		ProjectFolder* project = GetProjectBrowser()->ProjectAt(cycleIndex);
 		if (_TryAssociateEditorWithProject(editor, project)) {
-			printf("Associating editor %s with project %s\n", editor->Name().String(), project->Name().String());
+			LogDebug("Associating editor %s with project %s", editor->Name().String(), project->Name().String());
 			break;
 		}
 	}
