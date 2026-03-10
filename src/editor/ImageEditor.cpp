@@ -41,7 +41,7 @@ ImageEditor::ImageEditor(entry_ref* ref, const BMessenger& target)
 ImageEditor::~ImageEditor()
 {
 	StopMonitoring();
-	delete fBitmap;
+	UnloadFile();
 }
 
 
@@ -100,14 +100,24 @@ ImageEditor::LoadFromFile()
 
 
 status_t
+ImageEditor::UnloadFile()
+{
+	delete fBitmap;
+	fBitmap = nullptr;
+	fScale = 0;
+	fOffset = B_ORIGIN;
+	return B_OK;
+}
+
+
+status_t
 ImageEditor::Reload()
 {
 	// Save current zoom and position
 	float oldScale = fScale;
 	BPoint oldOffset = fOffset;
 
-	delete fBitmap;
-	fBitmap = nullptr;
+	UnloadFile();
 
 	status_t status = _LoadImage();
 	if (status == B_OK) {

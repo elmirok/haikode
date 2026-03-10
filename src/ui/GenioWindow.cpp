@@ -2002,30 +2002,12 @@ GenioWindow::_FileSaveAs(IEditor* editor, BMessage* message)
 	if ((status = entry.GetRef(&newRef)) != B_OK)
 		return status;
 
-	//we could have changed filetype/project
-
-	editor->SetProjectFolder(nullptr);
-	editor->SetFileType("");
-
+	//Changing the ref temporarly to save the file
 	editor->SetFileRef(&newRef);
-
 	_FileSave(editor);
 
-	//TODO: maybe the best strategy is to close the editor
-	//		and reload it at the same position.
-
-	editor->LoadFromFile();
-
-	_PostFileLoad(editor);
-
-	fTabManager->SetTabLabel(editor, editor->Name().String());
-
-	/* Modified files 'Saved as' get saved to an unmodified state.
-	 * It should be cool to take the modified state to the new file and let
-	 * user choose to save or discard modifications. Left as a TODO.
-	 * In case do not forget to update label
-	 */
-	//_UpdateLabel(selection, editor->IsModified());
+	//Clean reaload
+	_ReloadFileInEditor(editor, &newRef);
 	return B_OK;
 }
 
@@ -2265,34 +2247,7 @@ GenioWindow::_HandleExternalMoveModification(entry_ref* oldRef, entry_ref* newRe
 		_FileRequestClose(editor);
 	} else if (choice == 2) {
 
-		editor->SetFileRef(newRef);
-
-		// if the file is moved outside of the project folder it should be
-		// detached from it as well
-		auto project = editor->GetProjectFolder();
-		if (project) {
-			if (editor->FilePath().StartsWith(project->Path()) == false) {
-				editor->SetProjectFolder(NULL);
-				fTabManager->UnsetTabColor(editor);
-				LogInfo("Removing file [%s] from project", editor->Name().String());
-			}
-		}
-
-		// a file could have been moved to another project..
-		BString baseDir("");
-		for (int32 index = 0; index < GetProjectBrowser()->CountProjects(); index++) {
-			ProjectFolder * project = GetProjectBrowser()->ProjectAt(index);
-			BString projectPath = project->Path();
-			projectPath = projectPath.Append("/");
-			if (editor->FilePath().StartsWith(projectPath)) {
-				editor->SetProjectFolder(project);
-				fTabManager->SetTabColor(editor, project->Color());
-			}
-		}
-
-		//UI updates
-		fTabManager->SetTabLabel(editor, editor->Name().String());
-		_UpdateLabelModifiedStatus(editor, editor->IsModified());
+		_ReloadFileInEditor(editor, newRef);
 
 		BString notification;
 		notification << "File info: " << oldPath.Path()
@@ -4724,4 +4679,15 @@ GenioWindow::_UpdateWindowTitle(IEditor* editor, const char* branch)
 	}
 
 	SetTitle(title.String());
+}
+
+
+void
+GenioWindow::_ReloadFileInEditor(IEditor* editor, entry_ref* newRef)
+{
+	editor->UnloadFile();
+	editor->SetFileRef(newRef);
+	_PreFileLoad(editor);
+	editor->LoadFromFile();
+	_PostFileLoad(editor);
 }

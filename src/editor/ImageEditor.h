@@ -58,6 +58,7 @@ public:
 	status_t					SetFileRef(entry_ref* ref) override;
 	node_ref *const				NodeRef() override { return &fNodeRef; }
 	status_t					LoadFromFile() override;
+	status_t					UnloadFile() override;
 	status_t					SaveToFile() override { return B_NOT_ALLOWED; }
 	status_t					Reload() override;
 	status_t					StartMonitoring() override;
