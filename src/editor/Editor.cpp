@@ -39,12 +39,12 @@
 #include "Log.h"
 #include "LSPEditorWrapper.h"
 #include "NoticeMessages.h"
+#include "OverScrollBar.h"
 #include "ProjectFolder.h"
 #include "ResourceImport.h"
 #include "ScintillaUtils.h"
 #include "Styler.h"
 #include "Utils.h"
-#include "OverScrollBar.h"
 
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "Editor"

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Editor.h"
 #include <InterfaceDefs.h>
 #include <Messenger.h>
 #include <ToolTip.h>
@@ -11,6 +10,8 @@
 #include <string>
 #include <vector>
 
+#include "Editor.h"
+#include "Log.h"
 
 class OverScrollBar : public BView {
 	public:
@@ -76,7 +77,6 @@ class OverScrollBar : public BView {
 							BRect r = Bounds();
 							float startPoint = r.Width() * (_DoubleArrows(r) ? 2 : 1);
 							float endPoint   = r.Height() - startPoint;
-
 
 							float trackHeight = endPoint - startPoint;
 
