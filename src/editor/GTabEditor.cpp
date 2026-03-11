@@ -85,7 +85,11 @@ GTabEditor::DrawLabel(BView* owner, BRect frame, const BRect& updateRect, bool i
 {
 	rgb_color base = ui_color(B_PANEL_BACKGROUND_COLOR);
 	DrawCircle(owner, frame);
-	be_control_look->DrawLabel(owner, fLabel.String(), frame, updateRect,
+	BFont font;
+	owner->GetFont(&font);
+	BString truncatedLabel = fLabel;
+	font.TruncateString(&truncatedLabel, B_TRUNCATE_SMART, frame.Width());
+	be_control_look->DrawLabel(owner, truncatedLabel, frame, updateRect,
 		base, 0, BAlignment(B_ALIGN_LEFT, B_ALIGN_MIDDLE));
 }
 
