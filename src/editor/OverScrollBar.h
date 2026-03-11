@@ -36,7 +36,7 @@ class OverScrollBar : public BView {
 		{
 			fCursorPosition.ratio = -1; //invalid
 			fCursorPosition.severity = 100;
-			fCursorPosition.message = "Cursor position"; //todo translate
+			fCursorPosition.message = B_TRANSLATE("Cursor position");
 
 			if (get_scroll_bar_info(&info) != B_OK) {
 				LogError("get_scroll_bar_info failed!");
