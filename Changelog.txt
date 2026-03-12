@@ -17,7 +17,7 @@ v5.0
 	- Search for pylsp in various paths instead of hardcoding it.
 	- Mark the active project instead of disabling the menu item in the project menu.
 	- Greatly improved the code that handles project activation, making it less crash-prone.
-	- Made the code more robust by checking for NULL in more places and using C++ casts (mostly identified with Codacy).
+	- Made the code more robust by checking for NULL pointers in more places (mostly identified with Codacy).
 	- Fixed a couple of dangerous casts and use C++ casts where possible (mostly found with Codacy).
 	- Fixed possible layout settings corruption.
 	- Fixed incorrect project colors in tabs in certain cases.
