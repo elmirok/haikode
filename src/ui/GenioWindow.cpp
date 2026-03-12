@@ -1146,7 +1146,7 @@ GenioWindow::MessageReceived(BMessage* message)
 			break;
 		case MSG_HELP_PROJECT:
 		{
-			const char *argv[2] = {"https://codeberg.org/Genio/Genio", NULL};
+			const char *argv[2] = {"https://codeberg.org/Genio/Genio", nullptr};
 			be_roster->Launch("text/html", 1, argv);
 			break;
 		}
@@ -1322,6 +1322,8 @@ GenioWindow::_PrepareWorkspace()
 		}
 	}
 
+	// TODO: Since _ProjectFolderOpen() is now asynchronous,
+	// we could get here before projects have been fully loaded.
 	BMessage completed(MSG_NOTIFY_WORKSPACE_PREPARATION_COMPLETED);
 	SendNotices(MSG_NOTIFY_WORKSPACE_PREPARATION_COMPLETED, &completed);
 }
@@ -1543,7 +1545,7 @@ GenioWindow::QuitRequested()
 
 	// remove link between all editors and all projects
 	for (int32 index = 0; index < fTabManager->CountTabs(); index++) {
-		fTabManager->EditorAt(index)->SetProjectFolder(NULL);
+		fTabManager->EditorAt(index)->SetProjectFolder(nullptr);
 	}
 
 	// Projects to reopen
@@ -1970,7 +1972,7 @@ GenioWindow::_FileSaveAll(ProjectFolder* onlyThisProject)
 		}
 
 		// If a project was specified and the file doesn't belong, skip
-		if (onlyThisProject != NULL && editor->GetProjectFolder() != onlyThisProject)
+		if (onlyThisProject != nullptr && editor->GetProjectFolder() != onlyThisProject)
 			continue;
 
 		if (editor->IsModified())
@@ -2476,7 +2478,7 @@ GenioWindow::_InitCommandRunToolbar()
 		fRunGroup->ChangeIconSize(be_control_look->ComposeIconSize(kDefaultIconSize).Width());
 	}
 
-	fRunMenuField = new BMenuField("RecentMenuField", NULL, new BMenu(B_TRANSLATE("Run:")));
+	fRunMenuField = new BMenuField("RecentMenuField", nullptr, new BMenu(B_TRANSLATE("Run:")));
 	fRunMenuField->SetExplicitMaxSize(BSize(kFindReplaceOPSize, B_SIZE_UNSET));
 	fRunMenuField->SetExplicitMinSize(BSize(kFindReplaceOPSize, B_SIZE_UNSET));
 
@@ -2511,7 +2513,7 @@ void
 GenioWindow::_InitCentralSplit()
 {
 	// Find group
-	fFindMenuField = new BMenuField("FindMenuField", NULL, new BMenu(B_TRANSLATE("Find:")));
+	fFindMenuField = new BMenuField("FindMenuField", nullptr, new BMenu(B_TRANSLATE("Find:")));
 	fFindMenuField->SetExplicitMaxSize(BSize(kFindReplaceOPSize, B_SIZE_UNSET));
 	fFindMenuField->SetExplicitMinSize(BSize(kFindReplaceOPSize, B_SIZE_UNSET));
 
@@ -2559,12 +2561,12 @@ GenioWindow::_InitCentralSplit()
 	fFindGroup->Hide();
 
 	// Replace group
-	fReplaceMenuField = new BMenuField("ReplaceMenu", NULL,
+	fReplaceMenuField = new BMenuField("ReplaceMenu", nullptr,
 										new BMenu(B_TRANSLATE("Replace:")));
 	fReplaceMenuField->SetExplicitMaxSize(BSize(kFindReplaceOPSize, B_SIZE_UNSET));
 	fReplaceMenuField->SetExplicitMinSize(BSize(kFindReplaceOPSize, B_SIZE_UNSET));
 
-	fReplaceTextControl = new BTextControl("ReplaceTextControl", "", "", NULL);
+	fReplaceTextControl = new BTextControl("ReplaceTextControl", "", "", nullptr);
 	fReplaceTextControl->TextView()->SetMaxBytes(kFindReplaceMaxBytes);
 	fReplaceTextControl->SetExplicitMaxSize(fFindTextControl->MaxSize());
 	fReplaceTextControl->SetExplicitMinSize(fFindTextControl->MinSize());
@@ -3667,7 +3669,7 @@ GenioWindow::_TemplateNewProject(BMessage* message)
 		BFilePanel* createNewProjectPanel = new BFilePanel(B_SAVE_PANEL, new BMessenger(this),
 										&ref, B_DIRECTORY_NODE, false,
 										message,
-										NULL, true, true);
+										nullptr, true, true);
 		createNewProjectPanel->Show();
 	}
 }
@@ -3747,7 +3749,7 @@ GenioWindow::_ProjectFolderClose(ProjectFolder *project)
 
 	fTabManager->ReverseForEachEditor([&](IEditor* editor){
 		if (editor->GetProjectFolder() == project) {
-			editor->SetProjectFolder(NULL);
+			editor->SetProjectFolder(nullptr);
 			_RemoveTab(editor);
 		}
 		return true;
@@ -4316,7 +4318,7 @@ GenioWindow::_UpdateReplaceMenuItems(const BString& text)
 {
 	int32 items = fReplaceMenuField->Menu()->CountItems();
 	// Add item if not already present
-	if (fReplaceMenuField->Menu()->FindItem(text) == NULL) {
+	if (!fReplaceMenuField->Menu()->FindItem(text)) {
 		BMenuItem* item = new BMenuItem(text, new BMessage(MSG_REPLACE_MENU_SELECTED));
 		fReplaceMenuField->Menu()->AddItem(item, 0);
 	}
