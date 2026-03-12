@@ -1,4 +1,4 @@
-1	English	application/x-vnd.Genio	740798728
+1	English	application/x-vnd.Genio	312392808
 Create new branch from \"%selected_branch%\"	SourceControlPanel		Create new branch from \"%selected_branch%\"
 Enable brace matching	SettingsWindow		Enable brace matching
 Clear	ConsoleIOView		Clear
@@ -348,6 +348,7 @@ View	GenioWindow		View
 Don't save	Editor		Don't save
 Show statusbar	SettingsWindow		Show statusbar
 Wrap around	SettingsWindow	Continue searching from the beginning when reaching the end of the file	Wrap around
+Cursor position	Scrollbar Overlay		Cursor position
 Show toolbar	SettingsWindow		Show toolbar
 Scheme:	SettingsWindow	Name identically to Terminal's color setting	Scheme:
 Deleting branch: \"%branch%\".\n\nAfter deletion, the item will be lost.\nDo you really want to delete it?	SourceControlPanel		Deleting branch: \"%branch%\".\n\nAfter deletion, the item will be lost.\nDo you really want to delete it?
@@ -408,7 +409,6 @@ Deleting item: \"%name%\".\n\nAfter deletion, the item will be lost.\nDo you rea
 Find next	GenioWindow		Find next
 The project is building, changing branch not allowed.	SourceControlPanel		The project is building, changing branch not allowed.
 No LSP file status information	EditorStatusView		No LSP file status information
-Cursor position	ConfigWindow		Cursor position
 OK	Utilities		OK
 Location	SearchResultPanel		Location
 Paste	GenioWindow		Paste
