@@ -925,39 +925,6 @@ GenioWindow::MessageReceived(BMessage* message)
 		case MSG_PROJECT_FOLDER_OPEN:
 			_ProjectFolderOpen(message);
 			break;
-		case MSG_PROJECT_OPEN_INITIATED:
-		{
-			ProjectFolder* project = nullptr;
-			if (message->FindPointer("project", reinterpret_cast<void**>(&project)) != B_OK)
-				break;
-			bool activate = message->GetBool("activate", false);
-			entry_ref ref;
-			message->FindRef("ref", &ref);
-			_ProjectFolderOpenInitiated(project, ref, activate);
-			break;
-		}
-		case MSG_PROJECT_OPEN_ABORTED:
-		{
-			ProjectFolder* project = nullptr;
-			if (message->FindPointer("project", reinterpret_cast<void**>(&project)) != B_OK)
-				break;
-			bool activate = message->GetBool("activate", false);
-			entry_ref ref;
-			message->FindRef("ref", &ref);
-			_ProjectFolderOpenAborted(project, ref, activate);
-			break;
-		}
-		case MSG_PROJECT_OPEN_COMPLETED:
-		{
-			ProjectFolder* project = nullptr;
-			if (message->FindPointer("project", reinterpret_cast<void**>(&project)) != B_OK)
-				break;
-			bool activate = message->GetBool("activate", false);
-			entry_ref ref;
-			message->FindRef("ref", &ref);
-			_ProjectFolderOpenCompleted(project, ref, activate);
-			break;
-		}
 		case MSG_REPLACE_GROUP_SHOW:
 			_ReplaceGroupShow(true);
 			break;
@@ -3960,6 +3927,7 @@ GenioWindow::_ProjectFolderOpenCompleted(ProjectFolder* project,
 }
 
 
+// TODO: this is never called yet
 void
 GenioWindow::_ProjectFolderOpenAborted(ProjectFolder* project,
 	const entry_ref& ref, bool activate)
