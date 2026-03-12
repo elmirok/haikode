@@ -288,4 +288,4 @@ private:
 
 			Sci_Position		fLastWordStartPosition = -1;
 			Sci_Position		fLastWordEndPosition = -1;
-			OverScrollBar*			fOverScrollBar = nullptr;};
+			OverScrollBar*		fOverScrollBar = nullptr;};

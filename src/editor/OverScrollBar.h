@@ -15,7 +15,13 @@
 
 class OverScrollBar : public BView {
 	public:
-		// LSP severity: 1=Error, 2=Warning, 3=Information, 4=Hint (0=Unsupported by LSP server)
+		// severity:
+		//	1=Error,
+		//	2=Warning,
+		//	3=Information,
+		//	4=Hint (0=Unsupported by LSP server)
+		//	100 = Cursor position.
+
 		struct ProblemMarker {
 			float       ratio;    // normalised position in [0.0, 1.0]
 			int         severity; // as per LSP DiagnosticSeverity
@@ -28,6 +34,10 @@ class OverScrollBar : public BView {
 					B_FOLLOW_ALL, B_WILL_DRAW | B_TRANSPARENT_BACKGROUND)
 			, fTarget(target)
 		{
+			fCursorPosition.ratio = -1; //invalid
+			fCursorPosition.severity = 100;
+			fCursorPosition.message = B_TRANSLATE("Cursor position");
+
 			if (get_scroll_bar_info(&info) != B_OK) {
 				LogError("get_scroll_bar_info failed!");
 				info.min_knob_size = -1;
@@ -37,6 +47,22 @@ class OverScrollBar : public BView {
 	void				SetProblemsData(std::vector<ProblemMarker> markers)
 						{
 							fMarkers = std::move(markers);
+							fMarkers.insert(fMarkers.begin(), fCursorPosition);
+							Invalidate();
+						}
+
+	void				SetCursorPosition(float ratio, int32 line)
+						{
+							fCursorPosition.ratio = ratio;
+							fCursorPosition.line = line;
+
+							if (fMarkers.empty() || fMarkers[0].severity != 100) {
+								fMarkers.push_back(fCursorPosition);
+							} else {
+								fMarkers[0].ratio = ratio;
+								fMarkers[0].line  = line;
+							}
+
 							Invalidate();
 						}
 
@@ -71,7 +97,7 @@ class OverScrollBar : public BView {
 
 	void				Draw(BRect /*rect*/) override {
 
-							if (info.min_knob_size < 0 || fMarkers.empty())
+							if (info.min_knob_size < 0 )
 								return;
 
 							BRect r = Bounds();
@@ -80,27 +106,31 @@ class OverScrollBar : public BView {
 
 							float trackHeight = endPoint - startPoint;
 
-							// Cluster markers into pixel rows; keep worst severity per bucket.
-							// severity 1 (Error) is "worst", higher numbers are less severe.
-							std::map<int, int> buckets; // pixel_y -> worst severity
-							for (const auto& m : fMarkers) {
-								int y = (int)(startPoint + m.ratio * trackHeight);
-								auto it = buckets.find(y);
-								if (it == buckets.end() || m.severity < it->second)
-									buckets[y] = m.severity;
-							}
 
-							for (const auto& kv : buckets) {
-								rgb_color color;
-								switch (kv.second) {
-									case 0:
-									case 1:  color = {220,  50,  50, 255}; break; // Error   – red
-									case 2:  color = {220, 180,  40, 255}; break; // Warning – yellow
-									default: color = { 60, 120, 220, 255}; break; // Info/Hint – blue
+							if (fMarkers.empty() == false) {
+								// Cluster markers into pixel rows; keep worst severity per bucket.
+								// severity 1 (Error) is "worst", higher numbers are less severe.
+								std::map<int, int> buckets; // pixel_y -> worst severity
+								for (const auto& m : fMarkers) {
+									int y = (int)(startPoint + m.ratio * trackHeight);
+									auto it = buckets.find(y);
+									if (it == buckets.end() || m.severity < it->second)
+										buckets[y] = m.severity;
 								}
-								SetHighColor(color);
-								float y = (float)kv.first;
-								FillRect(BRect(r.left + 1, y, r.right + 1, y + 1));
+
+								for (const auto& kv : buckets) {
+									rgb_color color;
+									switch (kv.second) {
+										case 0:
+										case 1:   color = {220,  50,  50, 255}; break; // Error   – red
+										case 2:   color = {220, 180,  40, 255}; break; // Warning – yellow
+										case 100: color = ui_color(B_MENU_ITEM_TEXT_COLOR); break; // Black? - the cursor.
+										default:  color = { 60, 120, 220, 255}; break; // Blue - Info
+									}
+									SetHighColor(color);
+									float y = (float)kv.first;
+									FillRect(BRect(r.left + 1, y, r.right + 1, y + 1));
+								}
 							}
 						}
 
@@ -144,4 +174,5 @@ private:
 			scroll_bar_info             info;
 			BMessenger                  fTarget;
 			std::vector<ProblemMarker>  fMarkers;
+			ProblemMarker				fCursorPosition;
 };

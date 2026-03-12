@@ -1723,6 +1723,13 @@ Editor::SendPositionChanges()
 	message.AddInt32("line", fCurrentLine);
 	message.AddInt32("column", fCurrentColumn);
 	fTarget.SendMessage(&message);
+
+	//Update OverScrollBar
+	if (fOverScrollBar) {
+		int32 totalLines = SendMessage(SCI_GETLINECOUNT);
+		float ratio = (totalLines > 1) ? ((float)line / totalLines) : 0.0f;
+		fOverScrollBar->SetCursorPosition(ratio, line);
+	}
 }
 
 
