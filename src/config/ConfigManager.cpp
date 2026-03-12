@@ -1,20 +1,17 @@
 /*
- * Copyright 2018-2024, the Genio team
+ * Copyright 2018-2026, the Genio team
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
 #include "ConfigManager.h"
 
+#include <Entry.h>
 #include <File.h>
 #include <Path.h>
-#include <Entry.h>
-#include <sstream>
-#include <vector>
 
 #include "Log.h"
 #include "psp/PermanentStorageProvider.h"
 #include "psp/YamlPSP.h"
-#include "psp/BMessagePSP.h"
 #include "psp/AttributePSP.h"
 #include "psp/NoStorePSP.h"
 
