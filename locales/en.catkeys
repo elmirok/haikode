@@ -1,4 +1,4 @@
-1	English	application/x-vnd.Genio	3199076617
+1	English	application/x-vnd.Genio	740798728
 Create new branch from \"%selected_branch%\"	SourceControlPanel		Create new branch from \"%selected_branch%\"
 Enable brace matching	SettingsWindow		Enable brace matching
 Clear	ConsoleIOView		Clear
@@ -6,6 +6,7 @@ CR (Classic Mac OS)	GenioWindow		CR (Classic Mac OS)
 Match case	SearchResultTab	Short as possible.	Match case
 Project	ProjectsFolderBrowser		Project
 Show toolbar	GenioWindow		Show toolbar
+Enable auto-indent	SettingsWindow		Enable auto-indent
 Project settings…	ProjectsFolderBrowser		Project settings…
 development	Utilities		development
 Show/Hide replace bar	GenioWindow		Show/Hide replace bar
@@ -68,8 +69,8 @@ Delete file	ProjectsFolderBrowser		Delete file
 Help…	GenioWindow		Help…
 Fetch	SourceControlPanel		Fetch
 Show right pane	SettingsWindow		Show right pane
-Color:	ProjectSettingsWindow		Color:
 Release	ProjectSettingsWindow		Release
+Color:	ProjectSettingsWindow		Color:
 Go forward	GenioWindow		Go forward
 Go back	GenioWindow		Go back
 Find	GenioWindow		Find
@@ -81,8 +82,8 @@ Whole word	GenioWindow	Short as possible.	Whole word
 Git - Username	GitCredentialsWindow		Git - Username
 Delete dialog	SourceControlPanel		Delete dialog
 OK	GitAlert		OK
-Rename	Editor		Rename
 Local branches	SourceControlPanel		Local branches
+Rename	Editor		Rename
 Debug project	GenioWindow		Debug project
 Project:	GenioWindow		Project:
 Replace:	GenioWindow		Replace:
@@ -392,21 +393,22 @@ Find in project	GenioWindow		Find in project
 Category	ProblemsPanel		Category
 Release	ProjectsFolderBrowser		Release
 Save changes to file \"%filename%\"?	Editor		Save changes to file \"%filename%\"?
-Null	FunctionsOutlineView		Null
 Current branch	ProjectsFolderBrowser		Current branch
+Null	FunctionsOutlineView		Null
 Open project	GenioWindow		Open project
-Rename symbol…	GenioWindow		Rename symbol…
 Clean project	ProjectsFolderBrowser		Clean project
+Rename symbol…	GenioWindow		Rename symbol…
 Object	FunctionsOutlineView		Object
 Open project…	GenioWindow		Open project…
 Run in terminal	ProjectSettingsWindow		Run in terminal
-Interface	FunctionsOutlineView		Interface
 Build project	ProjectsFolderBrowser		Build project
+Interface	FunctionsOutlineView		Interface
 File deleted from index	GitRepository		File deleted from index
 Deleting item: \"%name%\".\n\nAfter deletion, the item will be lost.\nDo you really want to delete it?	GenioWindow		Deleting item: \"%name%\".\n\nAfter deletion, the item will be lost.\nDo you really want to delete it?
 Find next	GenioWindow		Find next
-No LSP file status information	EditorStatusView		No LSP file status information
 The project is building, changing branch not allowed.	SourceControlPanel		The project is building, changing branch not allowed.
+No LSP file status information	EditorStatusView		No LSP file status information
+Cursor position	ConfigWindow		Cursor position
 OK	Utilities		OK
 Location	SearchResultPanel		Location
 Paste	GenioWindow		Paste
