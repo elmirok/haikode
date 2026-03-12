@@ -3736,7 +3736,6 @@ GenioWindow::_ProjectFolderClose(ProjectFolder *project)
 	// know (SourceControlPanel for example)
 	SendNotices(MSG_NOTIFY_PROJECT_LIST_CHANGED);
 
-	project->Close();
 	delete project;
 
 	// Disable "Close project" action if no project
@@ -3752,6 +3751,9 @@ GenioWindow::_ProjectFolderClose(ProjectFolder *project)
 status_t
 GenioWindow::_ProjectFolderOpen(BMessage *message)
 {
+	// TODO: Improve error reporting:
+	// If an error occurs, we just open a generic BAlert with a generic
+	// "invalid project folder" message
 	entry_ref ref;
 	status_t status = message->FindRef("refs", &ref);
 	if (status == B_OK)
@@ -3775,11 +3777,7 @@ GenioWindow::_ProjectFolderOpen(const entry_ref& ref, bool activate)
 	if (!dirEntry.IsDirectory())
 		return B_NOT_A_DIRECTORY;
 
-	// TODO: This avoids opening a volume as a project
-	// Since the open operation is synchronous, this would take ages.
-	// Not a complete fix, since if you open a folder with many other nested files/folders
-	// it would still take ages.
-	// Opening a volume seems wrong, anyway.
+	// avoids opening a volume as a project
 	if (BDirectory(&dirEntry).IsRootDirectory())
 		return B_ERROR;
 
@@ -3799,7 +3797,7 @@ GenioWindow::_ProjectFolderOpen(const entry_ref& ref, bool activate)
 		BString existingProjectPath = pProject->Path();
 		existingProjectPath.Append("/");
 		// Check if it's a subfolder of an existing open project
-		// TODO: Ideally, this wouldn't be a problem: it should be perfectly possibile
+		// TODO: Ideally, we should be able to do that
 		if (newProjectPathString.StartsWith(existingProjectPath))
 			return B_ERROR;
 		// check if it's a parent of an existing project

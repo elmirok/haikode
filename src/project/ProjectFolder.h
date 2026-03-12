@@ -69,7 +69,7 @@ public:
 	ProjectFolder&				operator=(const ProjectFolder&) = delete;
 
 	status_t					Open();
-	status_t					Close();
+	void						Close();
 
 	BString	const				Path() const;
 
