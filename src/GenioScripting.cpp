@@ -238,13 +238,6 @@ GenioApp::_HandleScripting(BMessage* data)
 				{
 					if (data->what == B_GET_PROPERTY) {
 						result = reply.AddString("result", editor->Selection());
-					} else if (data->what == B_SET_PROPERTY) {
-						int32 start = specifier.GetInt32("index", -1);
-						int32 range = specifier.GetInt32("range", -1);
-						if (start != -1 && range != -1) {
-							editor->SetSelection(start, start + range);
-							result = B_OK;
-						}
 					}
 					break;
 				}
@@ -333,6 +326,13 @@ GenioApp::_HandleScripting(BMessage* data)
 					if (data->what == B_GET_PROPERTY) {
 						BMessage selectionInfo = editor->GetSelectionRange();
 						result = reply.AddMessage("result", &selectionInfo);
+					} else if (data->what == B_SET_PROPERTY) {
+						int32 start = specifier.GetInt32("index", -1);
+						int32 range = specifier.GetInt32("range", -1);
+						if (start != -1 && range != -1) {
+							editor->SetSelection(start, start + range);
+							result = B_OK;
+						}
 					}
 					break;
 				}
