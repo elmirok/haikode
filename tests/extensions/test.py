@@ -35,7 +35,7 @@ def Selection():
     # Test selecting text from line 1: "CHAPTER I. Down the Rabbit-Hole"
     # Select characters at offset 0-9 to get "CHAPTER I"
     testString = "CHAPTER I"
-    SetSelection(0, 9)
+    SetSelectionRange(0, 9)
     message = BMessage(B_GET_PROPERTY)
     message.AddSpecifier("Selection")
     message.AddSpecifier("SelectedEditor")
@@ -56,9 +56,9 @@ def Selection():
         return False
 
 
-def SetSelection(index, length):
+def SetSelectionRange(index, length):
     message = BMessage(B_SET_PROPERTY)
-    message.AddSpecifier("Selection", index, length)
+    message.AddSpecifier("SelectionRange", index, length)
     message.AddSpecifier("SelectedEditor")
     genio.SendMessage(message, None)
 
@@ -131,7 +131,7 @@ def Insert():
         return False
 
     # Verify insertion by selecting the inserted text
-    SetSelection(insertPos, len(testString))
+    SetSelectionRange(insertPos, len(testString))
 
     message = BMessage(B_GET_PROPERTY)
     message.AddSpecifier("Selection")
@@ -237,7 +237,7 @@ def Ref():
 def CaretPosition():
     # Set selection to position the caret at a known location
     testOffset = 50
-    SetSelection(testOffset, 0)
+    SetSelectionRange(testOffset, 0)
 
     message = BMessage(B_GET_PROPERTY)
     message.AddSpecifier("CaretPosition")
@@ -274,7 +274,7 @@ def SelectionRange():
     # Set a known selection range
     testStart = 10
     testLength = 20
-    SetSelection(testStart, testLength)
+    SetSelectionRange(testStart, testLength)
 
     message = BMessage(B_GET_PROPERTY)
     message.AddSpecifier("SelectionRange")
@@ -516,7 +516,7 @@ def main():
     test_results["DocumentInfo"] = DocumentInfo()
 
     # Make a modification to test the Modified property
-    SetSelection(0, 0)
+    SetSelectionRange(0, 0)
     message = BMessage(B_SET_PROPERTY)
     message.AddSpecifier("Text", 0)
     message.AddSpecifier("SelectedEditor")
