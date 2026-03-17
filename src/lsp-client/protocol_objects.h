@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #ifndef protocol_objects_H
@@ -412,6 +412,26 @@ struct SymbolInformation {
     Location location;
     /// The name of the symbol containing this symbol.
     option<std::string> containerName;
+};
+
+
+// enum class CompletionItemKind
+enum class MessageType {
+	Error = 1,
+	Warning = 2,
+	Info = 3,
+	Log = 4,
+	Debug = 5 /* since 3.18.0 (proposed)*/
+};
+
+struct LogMessageParams {
+
+	MessageType type;
+
+	/**
+	 * The actual message
+	 */
+	std::string message;
 };
 
 #endif // protocol_objects_H
