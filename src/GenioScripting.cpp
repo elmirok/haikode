@@ -84,7 +84,8 @@ const property_info sEditorProperties[] = {
 		"Text", {B_SET_PROPERTY, 0},
 		{B_NO_SPECIFIER, 0},
 		"Insert the text at the specified position. "
-		"If Index is omitted or -1, append at the end of the file.",
+		"If Index is omitted, insert at the current caret position or replace the current selection. "
+		"If Index is -1 append at the end of the file.",
 		0,
 		{B_STRING_TYPE, 0}
 	},
@@ -237,10 +238,6 @@ GenioApp::_HandleScripting(BMessage* data)
 				{
 					if (data->what == B_GET_PROPERTY) {
 						result = reply.AddString("result", editor->Selection());
-					} else if (data->what == B_SET_PROPERTY) {
-						BString text;
-						data->FindString("data", &text);
-						editor->Insert(text, -1);
 					}
 					break;
 				}
