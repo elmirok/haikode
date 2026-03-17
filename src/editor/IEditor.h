@@ -112,7 +112,6 @@ public:
 
 	// Scripting interface
 	virtual const BString		Selection() = 0;
-	virtual void				SetSelection(int32 start, int32 end) = 0;
 	virtual const BString		GetSymbol() = 0;
 	virtual void				Insert(BString text, int32 start = -1) = 0;
 	virtual void				Append(BString text) = 0;
@@ -124,6 +123,7 @@ public:
 	virtual int32				GetCurrentPosition() = 0;
 	virtual BMessage			GetCaretPositionInfo() = 0;
 	virtual BMessage			GetSelectionRange() = 0;
+	virtual void				SetSelectionRange(int32 start, int32 end) = 0;
 	virtual BMessage			GetVisibleLines() = 0;
 	virtual BMessage			GetScrollPosition() = 0;
 	virtual void				SetScrollPosition(int32 line) = 0;

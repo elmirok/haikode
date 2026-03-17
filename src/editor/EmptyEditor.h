@@ -115,7 +115,6 @@ public:
 
 	// IEditor interface - Scripting
 	const BString				Selection() override { return ""; }
-	void						SetSelection(int32 start, int32 end) override {}
 	const BString				GetSymbol() override { return ""; }
 	void						Insert(BString text, int32 start = -1) override {}
 	void						Append(BString text) override {}
@@ -127,6 +126,7 @@ public:
 	int32						GetCurrentPosition() override { return 0; }
 	BMessage					GetCaretPositionInfo() override { return BMessage(); }
 	BMessage					GetSelectionRange() override { return BMessage(); }
+	void						SetSelectionRange(int32 start, int32 end) override {}
 	BMessage					GetVisibleLines() override { return BMessage(); }
 	BMessage					GetScrollPosition() override { return BMessage(); }
 	void						SetScrollPosition(int32 line) override {}

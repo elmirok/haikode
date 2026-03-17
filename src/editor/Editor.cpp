@@ -1656,7 +1656,7 @@ Editor::GetSymbol()
 
 
 void
-Editor::SetSelection(int32 start, int32 end)
+Editor::SetSelectionRange(int32 start, int32 end)
 {
 	SendMessage(SCI_SETSELECTIONSTART, start);
 	SendMessage(SCI_SETSELECTIONEND, end);
