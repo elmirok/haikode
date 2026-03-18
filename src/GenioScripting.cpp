@@ -81,12 +81,12 @@ const property_info sEditorProperties[] = {
 		{B_STRING_TYPE, 0}
 	},
 	{
-		"Text", {B_SET_PROPERTY, B_GET_PROPERTY, 0},
+		"Text", {B_SET_PROPERTY, 0},
 		{B_NO_SPECIFIER, 0},
 		"Insert the text at the specified position. "
 		"If Index is omitted or -1, append at the end of the file.",
 		0,
-		{B_STRING_TYPE, B_STRING_TYPE, 0}
+		{B_STRING_TYPE, 0}
 	},
 	{
 		"Line", {B_COUNT_PROPERTIES, 0},
