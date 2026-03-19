@@ -13,9 +13,11 @@
 
 #define MARKER_HEIGHT 6
 
-const BRect markerLanes[3] = {BRect( 0, 0, 5, MARKER_HEIGHT - 1),
-							  BRect( 6, 0,14, MARKER_HEIGHT - 1),
-							  BRect(14, 0,20, MARKER_HEIGHT - 1)};
+enum lanes {
+	BOOKMARKS = 0,
+	PROBLEMS = 1,
+	OTHER = 2
+};
 
 OverScrollBar::OverScrollBar(BRect rect, BMessenger target)
 	:
@@ -25,6 +27,10 @@ OverScrollBar::OverScrollBar(BRect rect, BMessenger target)
 	fCaretMarker.ratio = -1; //invalid
 	fCaretMarker.severity = 100;
 	fCaretMarker.message = B_TRANSLATE("Caret position");
+
+	fLanes[BOOKMARKS] = { 0, BRect(0, 0, 5, MARKER_HEIGHT - 1), };
+	fLanes[PROBLEMS] = { 1, BRect(6, 0, 14, MARKER_HEIGHT - 1), };
+	fLanes[OTHER] = { 2, BRect(14, 0,20, MARKER_HEIGHT - 1), };
 
 	if (get_scroll_bar_info(&info) != B_OK) {
 		LogError("get_scroll_bar_info failed!");
@@ -36,10 +42,10 @@ OverScrollBar::OverScrollBar(BRect rect, BMessenger target)
 void
 OverScrollBar::SetProblemsData(std::vector<ScrollMarker> markers)
 {
-	if (fProblemsMarkers.empty() && markers.empty())
+	if (fLanes[PROBLEMS].markers.empty() && markers.empty())
 		return; // avoid redrawing for nothing.
 
-	fProblemsMarkers = std::move(markers);
+	fLanes[PROBLEMS].markers = std::move(markers);
 	Invalidate();
 }
 
@@ -47,10 +53,10 @@ OverScrollBar::SetProblemsData(std::vector<ScrollMarker> markers)
 void
 OverScrollBar::UpdateSciMarkers(std::vector<ScrollMarker> markers)
 {
-	if (fSciMarkers.empty() && markers.empty())
+	if (fLanes[BOOKMARKS].markers.empty() && markers.empty())
 		return; // avoid redrawing for nothing.
 
-	fSciMarkers = std::move(markers);
+	fLanes[BOOKMARKS].markers = std::move(markers);
 	Invalidate();
 }
 
@@ -69,11 +75,7 @@ void
 OverScrollBar::MouseDown(BPoint where)
 {
 	// Snap to nearest marker and ask the editor to navigate there.
-	const ScrollMarker* hit = _NearestMarker(fProblemsMarkers, 1, where, 6.0f);
-	if (hit == nullptr) {
-		// try Bookmarks
-		hit = _NearestMarker(fSciMarkers, 1, where, 6.0f);
-	}
+	const ScrollMarker* hit = _NearestMarker(where, 6.0f);
 	if (hit != nullptr) {
 		BMessage msg(EDITOR_MARKER_GOTO);
 		msg.AddInt32("line", hit->line);
@@ -125,12 +127,7 @@ OverScrollBar::KeyUp(const char* bytes, int32 numBytes)
 bool
 OverScrollBar::GetToolTipAt(BPoint point, BToolTip** tip)
 {
-	// TODO: Refactor
-	const ScrollMarker* hit = _NearestMarker(fProblemsMarkers, 1, point, 6.0f);
-	if (hit == nullptr) {
-		// try Bookmarks
-		hit = _NearestMarker(fSciMarkers, 1, point, 6.0f);
-	}
+	const ScrollMarker* hit = _NearestMarker(point, 6.0f);
 	if (hit == nullptr)
 		return false;
 	*tip = new BTextToolTip(hit->message.c_str());
@@ -153,8 +150,8 @@ OverScrollBar::Draw(BRect /*rect*/)
 	float trackHeight = endPoint - startPoint;
 
 	_DrawCaret(r, startPoint, trackHeight);
-	_DrawMarkers(fProblemsMarkers, 1, r, startPoint, trackHeight);
-	_DrawMarkers(fSciMarkers, 0, r, startPoint, trackHeight);
+	_DrawMarkers(fLanes[PROBLEMS].markers, 1, r, startPoint, trackHeight);
+	_DrawMarkers(fLanes[BOOKMARKS].markers, 0, r, startPoint, trackHeight);
 }
 
 
@@ -196,8 +193,8 @@ OverScrollBar::_DrawMarkers(std::vector<ScrollMarker>& markers, uint lane, BRect
 			}
 			SetHighColor(color);
 			float y = (float)kv.first;
-			FillRect(BRect(r.left + 1 + markerLanes[lane].left,  y + markerLanes[lane].top,
-						   r.left + 1 + markerLanes[lane].right, y + markerLanes[lane].bottom));
+			FillRect(BRect(r.left + 1 + fLanes[lane].rect.left,  y + fLanes[lane].rect.top,
+						   r.left + 1 + fLanes[lane].rect.right, y + fLanes[lane].rect.bottom));
 		}
 	}
 }
@@ -206,8 +203,7 @@ OverScrollBar::_DrawMarkers(std::vector<ScrollMarker>& markers, uint lane, BRect
 // Returns the marker whose pixel Y is closest to 'y' and within
 // 'tolerance' pixels, or nullptr if none qualifies.
 const OverScrollBar::ScrollMarker*
-OverScrollBar::_NearestMarker(std::vector<ScrollMarker>& markers, uint lane,
-							const BPoint& point, float tolerance) const
+OverScrollBar::_NearestMarker(const BPoint& point, float tolerance) const
 {
 	// move outside?
 	BRect r = Bounds();
@@ -217,8 +213,16 @@ OverScrollBar::_NearestMarker(std::vector<ScrollMarker>& markers, uint lane,
 	const ScrollMarker* best = nullptr;
 	float bestDist = tolerance + 1.0f;
 
-	if (markers.empty() == false) {
-		for (const auto& m : markers) {
+	// Find which lane we are on
+	uint8 lane = 0;
+	for (;lane < 3;) {
+		if (point.x >= fLanes[lane].rect.left && point.x <= fLanes[lane].rect.right)
+			break;
+		lane++;
+	}
+
+	if (!fLanes[lane].markers.empty() ) {
+		for (const auto& m : fLanes[lane].markers) {
 			float markerY = startPoint + m.ratio * trackHeight;
 			float dist = std::abs(markerY - point.y);
 			if (dist < bestDist) {

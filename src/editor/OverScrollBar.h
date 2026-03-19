@@ -26,6 +26,11 @@ class OverScrollBar : public BView {
 			std::string message;  // human-readable diagnostic text for tooltip
 		};
 
+		struct Lane {
+			uint8 index;
+			BRect rect;
+			std::vector<ScrollMarker> markers;
+		};
 			OverScrollBar(BRect rect, BMessenger target);
 
 	void	SetProblemsData(std::vector<ScrollMarker> markers);
@@ -44,8 +49,7 @@ class OverScrollBar : public BView {
 	void	Draw(BRect /*rect*/) override;
 
 private:
-	const ScrollMarker* _NearestMarker(std::vector<ScrollMarker>& markers, uint lane,
-										const BPoint& point, float tolerance) const;
+	const ScrollMarker* _NearestMarker(const BPoint& point, float tolerance) const;
 
 	bool	_DoubleArrows(const BRect& bounds) const;
 
@@ -58,7 +62,6 @@ private:
 
 	scroll_bar_info             info;
 	BMessenger                  fTarget;
-	std::vector<ScrollMarker>	fProblemsMarkers;
-	std::vector<ScrollMarker>	fSciMarkers;
+	Lane 						fLanes[3];
 	ScrollMarker				fCaretMarker;
 };
