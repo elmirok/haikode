@@ -45,7 +45,7 @@ class OverScrollBar : public BView {
 
 private:
 	const ScrollMarker* _NearestMarker(std::vector<ScrollMarker>& markers, uint lane,
-										float y, float tolerance) const;
+										const BPoint& point, float tolerance) const;
 
 	bool	_DoubleArrows(const BRect& bounds) const;
 

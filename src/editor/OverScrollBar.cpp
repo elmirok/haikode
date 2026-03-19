@@ -69,10 +69,10 @@ void
 OverScrollBar::MouseDown(BPoint where)
 {
 	// Snap to nearest marker and ask the editor to navigate there.
-	const ScrollMarker* hit = _NearestMarker(fProblemsMarkers, 1, where.y, 6.0f);
+	const ScrollMarker* hit = _NearestMarker(fProblemsMarkers, 1, where, 6.0f);
 	if (hit == nullptr) {
 		// try Bookmarks
-		hit = _NearestMarker(fSciMarkers, 1, where.y, 6.0f);
+		hit = _NearestMarker(fSciMarkers, 1, where, 6.0f);
 	}
 	if (hit != nullptr) {
 		BMessage msg(EDITOR_MARKER_GOTO);
@@ -126,10 +126,10 @@ bool
 OverScrollBar::GetToolTipAt(BPoint point, BToolTip** tip)
 {
 	// TODO: Refactor
-	const ScrollMarker* hit = _NearestMarker(fProblemsMarkers, 1, point.y, 6.0f);
+	const ScrollMarker* hit = _NearestMarker(fProblemsMarkers, 1, point, 6.0f);
 	if (hit == nullptr) {
 		// try Bookmarks
-		hit = _NearestMarker(fSciMarkers, 1, point.y, 6.0f);
+		hit = _NearestMarker(fSciMarkers, 1, point, 6.0f);
 	}
 	if (hit == nullptr)
 		return false;
@@ -207,7 +207,7 @@ OverScrollBar::_DrawMarkers(std::vector<ScrollMarker>& markers, uint lane, BRect
 // 'tolerance' pixels, or nullptr if none qualifies.
 const OverScrollBar::ScrollMarker*
 OverScrollBar::_NearestMarker(std::vector<ScrollMarker>& markers, uint lane,
-							float y, float tolerance) const
+							const BPoint& point, float tolerance) const
 {
 	// move outside?
 	BRect r = Bounds();
@@ -220,7 +220,7 @@ OverScrollBar::_NearestMarker(std::vector<ScrollMarker>& markers, uint lane,
 	if (markers.empty() == false) {
 		for (const auto& m : markers) {
 			float markerY = startPoint + m.ratio * trackHeight;
-			float dist = std::abs(markerY - y);
+			float dist = std::abs(markerY - point.y);
 			if (dist < bestDist) {
 				bestDist = dist;
 				best = &m;
@@ -231,7 +231,7 @@ OverScrollBar::_NearestMarker(std::vector<ScrollMarker>& markers, uint lane,
 	// Check the Caret position as well!
 	if (fCaretMarker.ratio > 0) {
 		float markerY = startPoint + fCaretMarker.ratio * trackHeight;
-		float dist = std::abs(markerY - y);
+		float dist = std::abs(markerY - point.y);
 		if (dist < bestDist) {
 			best = &fCaretMarker;
 		}
