@@ -42,6 +42,14 @@ OverScrollBar::SetProblemsData(std::vector<ScrollMarker> markers)
 
 
 void
+OverScrollBar::UpdateSciMarkers(std::vector<ScrollMarker> markers)
+{
+	fSciMarkers = std::move(markers);
+	Invalidate();
+}
+
+
+void
 OverScrollBar::SetCursorPosition(float ratio, int32 line)
 {
 	fCaretMarker.ratio = ratio;
@@ -131,6 +139,7 @@ OverScrollBar::Draw(BRect /*rect*/)
 
 	_DrawCaret(r, startPoint, trackHeight);
 	_DrawMarkers(fProblemsMarkers, 1, r, startPoint, trackHeight);
+	_DrawMarkers(fSciMarkers, 0, r, startPoint, trackHeight);
 }
 
 

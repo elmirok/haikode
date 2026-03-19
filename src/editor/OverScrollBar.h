@@ -29,6 +29,7 @@ class OverScrollBar : public BView {
 			OverScrollBar(BRect rect, BMessenger target);
 
 	void	SetProblemsData(std::vector<ScrollMarker> markers);
+	void	UpdateSciMarkers(std::vector<ScrollMarker> markers);
 
 	void	SetCursorPosition(float ratio, int32 line);
 
@@ -58,5 +59,6 @@ private:
 	scroll_bar_info             info;
 	BMessenger                  fTarget;
 	std::vector<ScrollMarker>	fProblemsMarkers;
+	std::vector<ScrollMarker>	fSciMarkers;
 	ScrollMarker				fCaretMarker;
 };
