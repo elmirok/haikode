@@ -521,9 +521,8 @@ Editor::_UpdateOverScrollBarSciMarkers()
 		std::vector<OverScrollBar::ScrollMarker> markers;
 		int64 line = 0;
 		while((line = SendMessage(SCI_MARKERNEXT, line, (1 << sci_BOOKMARK))) >= 0) {
-
 			float ratio = (totalLines > 1) ? ((float)line / totalLines) : 0.0f;
-			markers.push_back({ratio, 7, (int32)line, "Marker"});
+			markers.push_back({ratio, 7, (int32)line, "Bookmark"});
 
 			line++;
 		}
