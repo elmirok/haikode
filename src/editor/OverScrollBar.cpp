@@ -36,6 +36,9 @@ OverScrollBar::OverScrollBar(BRect rect, BMessenger target)
 void
 OverScrollBar::SetProblemsData(std::vector<ScrollMarker> markers)
 {
+	if (fProblemsMarkers.empty() && markers.empty())
+		return; // avoid redrawing for nothing.
+
 	fProblemsMarkers = std::move(markers);
 	Invalidate();
 }
@@ -44,6 +47,9 @@ OverScrollBar::SetProblemsData(std::vector<ScrollMarker> markers)
 void
 OverScrollBar::UpdateSciMarkers(std::vector<ScrollMarker> markers)
 {
+	if (fSciMarkers.empty() && markers.empty())
+		return; // avoid redrawing for nothing.
+
 	fSciMarkers = std::move(markers);
 	Invalidate();
 }
