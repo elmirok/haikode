@@ -8,6 +8,8 @@
 #include <vector>
 
 class BToolTip;
+
+
 class OverScrollBar : public BView {
 	public:
 		// severity:
@@ -45,8 +47,15 @@ private:
 
 	bool	_DoubleArrows(const BRect& bounds) const;
 
+	void	_DrawMarkers(std::vector<ScrollMarker>& markers, uint lane,
+							BRect& bounds,
+							float startPoint,
+							float trackHeight);
+
+	void	_DrawCaret(BRect& bounds, float startPoint, float trackHeight);
+
 	scroll_bar_info             info;
 	BMessenger                  fTarget;
-	std::vector<ScrollMarker>  fMarkers;
-	ScrollMarker				fCursorPosition;
+	std::vector<ScrollMarker>	fProblemsMarkers;
+	ScrollMarker				fCaretMarker;
 };

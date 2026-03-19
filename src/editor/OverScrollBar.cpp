@@ -20,9 +20,9 @@ OverScrollBar::OverScrollBar(BRect rect, BMessenger target)
 	BView(rect, "over_VSB_", B_FOLLOW_ALL, B_WILL_DRAW | B_TRANSPARENT_BACKGROUND),
 	fTarget(target)
 {
-	fCursorPosition.ratio = -1; //invalid
-	fCursorPosition.severity = 100;
-	fCursorPosition.message = B_TRANSLATE("Cursor position");
+	fCaretMarker.ratio = -1; //invalid
+	fCaretMarker.severity = 100;
+	fCaretMarker.message = B_TRANSLATE("Cursor position");
 
 	if (get_scroll_bar_info(&info) != B_OK) {
 		LogError("get_scroll_bar_info failed!");
@@ -34,8 +34,8 @@ OverScrollBar::OverScrollBar(BRect rect, BMessenger target)
 void
 OverScrollBar::SetProblemsData(std::vector<ScrollMarker> markers)
 {
-	fMarkers = std::move(markers);
-	fMarkers.insert(fMarkers.begin(), fCursorPosition);
+	fProblemsMarkers = std::move(markers);
+	fProblemsMarkers.insert(fProblemsMarkers.begin(), fCaretMarker);
 	Invalidate();
 }
 
@@ -43,14 +43,14 @@ OverScrollBar::SetProblemsData(std::vector<ScrollMarker> markers)
 void
 OverScrollBar::SetCursorPosition(float ratio, int32 line)
 {
-	fCursorPosition.ratio = ratio;
-	fCursorPosition.line = line;
+	fCaretMarker.ratio = ratio;
+	fCaretMarker.line = line;
 
-	if (fMarkers.empty() || fMarkers[0].severity != 100) {
-		fMarkers.push_back(fCursorPosition);
+	if (fProblemsMarkers.empty() || fProblemsMarkers[0].severity != 100) {
+		fProblemsMarkers.push_back(fCaretMarker);
 	} else {
-		fMarkers[0].ratio = ratio;
-		fMarkers[0].line  = line;
+		fProblemsMarkers[0].ratio = ratio;
+		fProblemsMarkers[0].line  = line;
 	}
 
 	Invalidate();
@@ -130,16 +130,40 @@ OverScrollBar::Draw(BRect /*rect*/)
 		return;
 
 	BRect r = Bounds();
+
 	float startPoint = r.Width() * (_DoubleArrows(r) ? 2 : 1);
 	float endPoint   = r.Height() - startPoint;
 
 	float trackHeight = endPoint - startPoint;
 
-	if (fMarkers.empty() == false) {
+	_DrawCaret(r, startPoint, trackHeight);
+	_DrawMarkers(fProblemsMarkers, 1, r, startPoint, trackHeight);
+}
+
+
+void
+OverScrollBar::_DrawCaret(BRect& r, float startPoint, float trackHeight)
+{
+	if (fCaretMarker.ratio > -1 ) {
+		float y = (float)(startPoint + fCaretMarker.ratio * trackHeight);
+		printf("Caret y %f\n", y);
+		SetHighColor({255, 255, 255, 255});
+		FillRect(BRect(r.left + 1, y, r.right - 1, y + 1));
+	}
+}
+
+
+void
+OverScrollBar::_DrawMarkers(std::vector<ScrollMarker>& markers, uint lane, BRect& r,
+							float startPoint,
+							float trackHeight)
+{
+	if (markers.empty() == false) {
+
 		// Cluster markers into pixel rows; keep worst severity per bucket.
 		// severity 1 (Error) is "worst", higher numbers are less severe.
 		std::map<int, int> buckets; // pixel_y -> worst severity
-		for (const auto& m : fMarkers) {
+		for (const auto& m : markers) {
 			int y = (int)(startPoint + m.ratio * trackHeight);
 			auto it = buckets.find(y);
 			if (it == buckets.end() || m.severity < it->second)
@@ -152,12 +176,12 @@ OverScrollBar::Draw(BRect /*rect*/)
 				case 0:
 				case 1:   color = {220,  50,  50, 255}; break; // Error   – red
 				case 2:   color = {220, 180,  40, 255}; break; // Warning – yellow
-				case 100: color = ui_color(B_MENU_ITEM_TEXT_COLOR); break; // Black? - the cursor.
+				case 100: color = {255, 255, 255, 255}; break; // White - the caret
 				default:  color = { 60, 120, 220, 255}; break; // Blue - Info
 			}
 			SetHighColor(color);
 			float y = (float)kv.first;
-			FillRect(BRect(r.left + 1, y, r.right + 1, y + 1));
+			FillRect(BRect(r.left + 1, y, r.right - 1, y + 1));
 		}
 	}
 }
@@ -168,7 +192,7 @@ OverScrollBar::Draw(BRect /*rect*/)
 const OverScrollBar::ScrollMarker*
 OverScrollBar::_NearestMarker(float y, float tolerance) const
 {
-	if (fMarkers.empty())
+	if (fProblemsMarkers.empty())
 		return nullptr;
 
 	BRect r = Bounds();
@@ -177,7 +201,7 @@ OverScrollBar::_NearestMarker(float y, float tolerance) const
 
 	const ScrollMarker* best = nullptr;
 	float bestDist = tolerance + 1.0f;
-	for (const auto& m : fMarkers) {
+	for (const auto& m : fProblemsMarkers) {
 		float markerY = startPoint + m.ratio * trackHeight;
 		float dist = std::abs(markerY - y);
 		if (dist < bestDist) {
