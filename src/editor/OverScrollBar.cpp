@@ -24,7 +24,7 @@ OverScrollBar::OverScrollBar(BRect rect, BMessenger target)
 {
 	fCaretMarker.ratio = -1; //invalid
 	fCaretMarker.severity = 100;
-	fCaretMarker.message = B_TRANSLATE("Cursor position");
+	fCaretMarker.message = B_TRANSLATE("Caret position");
 
 	if (get_scroll_bar_info(&info) != B_OK) {
 		LogError("get_scroll_bar_info failed!");
