@@ -70,6 +70,10 @@ OverScrollBar::MouseDown(BPoint where)
 {
 	// Snap to nearest marker and ask the editor to navigate there.
 	const ScrollMarker* hit = _NearestMarker(fProblemsMarkers, 1, where.y, 6.0f);
+	if (hit == nullptr) {
+		// try Bookmarks
+		hit = _NearestMarker(fSciMarkers, 1, where.y, 6.0f);
+	}
 	if (hit != nullptr) {
 		BMessage msg(EDITOR_MARKER_GOTO);
 		msg.AddInt32("line", hit->line);
@@ -121,7 +125,12 @@ OverScrollBar::KeyUp(const char* bytes, int32 numBytes)
 bool
 OverScrollBar::GetToolTipAt(BPoint point, BToolTip** tip)
 {
+	// TODO: Refactor
 	const ScrollMarker* hit = _NearestMarker(fProblemsMarkers, 1, point.y, 6.0f);
+	if (hit == nullptr) {
+		// try Bookmarks
+		hit = _NearestMarker(fSciMarkers, 1, point.y, 6.0f);
+	}
 	if (hit == nullptr)
 		return false;
 	*tip = new BTextToolTip(hit->message.c_str());
@@ -166,7 +175,6 @@ OverScrollBar::_DrawMarkers(std::vector<ScrollMarker>& markers, uint lane, BRect
 							float trackHeight)
 {
 	if (markers.empty() == false) {
-
 		// Cluster markers into pixel rows; keep worst severity per bucket.
 		// severity 1 (Error) is "worst", higher numbers are less severe.
 		std::map<int, int> buckets; // pixel_y -> worst severity
