@@ -11,6 +11,10 @@
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "Scrollbar Overlay"
 
+const BRect markerLanes[3] = {BRect( 0, 0, 5, 3),
+							  BRect( 6, 0,14, 3),
+							  BRect(14, 0,20, 3)};
+
 OverScrollBar::OverScrollBar(BRect rect, BMessenger target)
 	:
 	BView(rect, "over_VSB_", B_FOLLOW_ALL, B_WILL_DRAW | B_TRANSPARENT_BACKGROUND),
@@ -28,7 +32,7 @@ OverScrollBar::OverScrollBar(BRect rect, BMessenger target)
 
 
 void
-OverScrollBar::SetProblemsData(std::vector<ProblemMarker> markers)
+OverScrollBar::SetProblemsData(std::vector<ScrollMarker> markers)
 {
 	fMarkers = std::move(markers);
 	fMarkers.insert(fMarkers.begin(), fCursorPosition);
@@ -58,7 +62,7 @@ void
 OverScrollBar::MouseDown(BPoint where)
 {
 	// Snap to nearest marker and ask the editor to navigate there.
-	const ProblemMarker* hit = _NearestMarker(where.y, 6.0f);
+	const ScrollMarker* hit = _NearestMarker(where.y, 6.0f);
 	if (hit != nullptr) {
 		BMessage msg(EDITOR_MARKER_GOTO);
 		msg.AddInt32("line", hit->line);
@@ -110,7 +114,7 @@ OverScrollBar::KeyUp(const char* bytes, int32 numBytes)
 bool
 OverScrollBar::GetToolTipAt(BPoint point, BToolTip** tip)
 {
-	const ProblemMarker* hit = _NearestMarker(point.y, 6.0f);
+	const ScrollMarker* hit = _NearestMarker(point.y, 6.0f);
 	if (hit == nullptr)
 		return false;
 	*tip = new BTextToolTip(hit->message.c_str());
@@ -161,7 +165,7 @@ OverScrollBar::Draw(BRect /*rect*/)
 
 // Returns the marker whose pixel Y is closest to 'y' and within
 // 'tolerance' pixels, or nullptr if none qualifies.
-const OverScrollBar::ProblemMarker*
+const OverScrollBar::ScrollMarker*
 OverScrollBar::_NearestMarker(float y, float tolerance) const
 {
 	if (fMarkers.empty())
@@ -171,7 +175,7 @@ OverScrollBar::_NearestMarker(float y, float tolerance) const
 	float startPoint = r.Width() * (_DoubleArrows(r) ? 2 : 1);
 	float trackHeight = r.Height() - startPoint * 2;
 
-	const ProblemMarker* best = nullptr;
+	const ScrollMarker* best = nullptr;
 	float bestDist = tolerance + 1.0f;
 	for (const auto& m : fMarkers) {
 		float markerY = startPoint + m.ratio * trackHeight;

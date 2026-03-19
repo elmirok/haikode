@@ -2401,7 +2401,7 @@ Editor::SetProblems()
 
 		if (fOverScrollBar) {
 			int32 totalLines = SendMessage(SCI_GETLINECOUNT);
-			std::vector<OverScrollBar::ProblemMarker> markers;
+			std::vector<OverScrollBar::ScrollMarker> markers;
 			markers.reserve(diagnostics.size());
 			for (auto& dia : diagnostics) {
 				int32 line = dia.diagnostic.range.start.line + 1;
