@@ -11,9 +11,11 @@
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "Scrollbar Overlay"
 
-const BRect markerLanes[3] = {BRect( 0, 0, 5, 3),
-							  BRect( 6, 0,14, 3),
-							  BRect(14, 0,20, 3)};
+#define MARKER_HEIGHT 6
+
+const BRect markerLanes[3] = {BRect( 0, 0, 5, MARKER_HEIGHT - 1),
+							  BRect( 6, 0,14, MARKER_HEIGHT - 1),
+							  BRect(14, 0,20, MARKER_HEIGHT - 1)};
 
 OverScrollBar::OverScrollBar(BRect rect, BMessenger target)
 	:
@@ -123,7 +125,7 @@ OverScrollBar::Draw(BRect /*rect*/)
 	BRect r = Bounds();
 
 	float startPoint = r.Width() * (_DoubleArrows(r) ? 2 : 1);
-	float endPoint   = r.Height() - startPoint;
+	float endPoint   = r.Height() - startPoint - MARKER_HEIGHT;
 
 	float trackHeight = endPoint - startPoint;
 
@@ -166,12 +168,13 @@ OverScrollBar::_DrawMarkers(std::vector<ScrollMarker>& markers, uint lane, BRect
 				case 0:
 				case 1:   color = {220,  50,  50, 255}; break; // Error   – red
 				case 2:   color = {220, 180,  40, 255}; break; // Warning – yellow
-				case 100: color = {255, 255, 255, 255}; break; // White - the caret
+				case 100: color = {255, 255, 255, 255}; break; // White - the caret (?)
 				default:  color = { 60, 120, 220, 255}; break; // Blue - Info
 			}
 			SetHighColor(color);
 			float y = (float)kv.first;
-			FillRect(BRect(r.left + 1, y, r.right - 1, y + 1));
+			FillRect(BRect(r.left + 1 + markerLanes[lane].left,  y + markerLanes[lane].top,
+						   r.left + 1 + markerLanes[lane].right, y + markerLanes[lane].bottom));
 		}
 	}
 }
