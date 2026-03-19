@@ -43,7 +43,8 @@ class OverScrollBar : public BView {
 	void	Draw(BRect /*rect*/) override;
 
 private:
-	const ScrollMarker* _NearestMarker(float y, float tolerance) const;
+	const ScrollMarker* _NearestMarker(std::vector<ScrollMarker>& markers, uint lane,
+										float y, float tolerance) const;
 
 	bool	_DoubleArrows(const BRect& bounds) const;
 

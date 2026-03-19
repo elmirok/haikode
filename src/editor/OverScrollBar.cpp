@@ -35,7 +35,6 @@ void
 OverScrollBar::SetProblemsData(std::vector<ScrollMarker> markers)
 {
 	fProblemsMarkers = std::move(markers);
-	fProblemsMarkers.insert(fProblemsMarkers.begin(), fCaretMarker);
 	Invalidate();
 }
 
@@ -45,14 +44,6 @@ OverScrollBar::SetCursorPosition(float ratio, int32 line)
 {
 	fCaretMarker.ratio = ratio;
 	fCaretMarker.line = line;
-
-	if (fProblemsMarkers.empty() || fProblemsMarkers[0].severity != 100) {
-		fProblemsMarkers.push_back(fCaretMarker);
-	} else {
-		fProblemsMarkers[0].ratio = ratio;
-		fProblemsMarkers[0].line  = line;
-	}
-
 	Invalidate();
 }
 
@@ -62,7 +53,7 @@ void
 OverScrollBar::MouseDown(BPoint where)
 {
 	// Snap to nearest marker and ask the editor to navigate there.
-	const ScrollMarker* hit = _NearestMarker(where.y, 6.0f);
+	const ScrollMarker* hit = _NearestMarker(fProblemsMarkers, 1, where.y, 6.0f);
 	if (hit != nullptr) {
 		BMessage msg(EDITOR_MARKER_GOTO);
 		msg.AddInt32("line", hit->line);
@@ -114,7 +105,7 @@ OverScrollBar::KeyUp(const char* bytes, int32 numBytes)
 bool
 OverScrollBar::GetToolTipAt(BPoint point, BToolTip** tip)
 {
-	const ScrollMarker* hit = _NearestMarker(point.y, 6.0f);
+	const ScrollMarker* hit = _NearestMarker(fProblemsMarkers, 1, point.y, 6.0f);
 	if (hit == nullptr)
 		return false;
 	*tip = new BTextToolTip(hit->message.c_str());
@@ -146,7 +137,6 @@ OverScrollBar::_DrawCaret(BRect& r, float startPoint, float trackHeight)
 {
 	if (fCaretMarker.ratio > -1 ) {
 		float y = (float)(startPoint + fCaretMarker.ratio * trackHeight);
-		printf("Caret y %f\n", y);
 		SetHighColor({255, 255, 255, 255});
 		FillRect(BRect(r.left + 1, y, r.right - 1, y + 1));
 	}
@@ -190,23 +180,34 @@ OverScrollBar::_DrawMarkers(std::vector<ScrollMarker>& markers, uint lane, BRect
 // Returns the marker whose pixel Y is closest to 'y' and within
 // 'tolerance' pixels, or nullptr if none qualifies.
 const OverScrollBar::ScrollMarker*
-OverScrollBar::_NearestMarker(float y, float tolerance) const
+OverScrollBar::_NearestMarker(std::vector<ScrollMarker>& markers, uint lane,
+							float y, float tolerance) const
 {
-	if (fProblemsMarkers.empty())
-		return nullptr;
-
+	// move outside?
 	BRect r = Bounds();
 	float startPoint = r.Width() * (_DoubleArrows(r) ? 2 : 1);
 	float trackHeight = r.Height() - startPoint * 2;
 
 	const ScrollMarker* best = nullptr;
 	float bestDist = tolerance + 1.0f;
-	for (const auto& m : fProblemsMarkers) {
-		float markerY = startPoint + m.ratio * trackHeight;
+
+	if (markers.empty() == false) {
+		for (const auto& m : markers) {
+			float markerY = startPoint + m.ratio * trackHeight;
+			float dist = std::abs(markerY - y);
+			if (dist < bestDist) {
+				bestDist = dist;
+				best = &m;
+			}
+		}
+	}
+
+	// Check the Caret position as well!
+	if (fCaretMarker.ratio > 0) {
+		float markerY = startPoint + fCaretMarker.ratio * trackHeight;
 		float dist = std::abs(markerY - y);
 		if (dist < bestDist) {
-			bestDist = dist;
-			best = &m;
+			best = &fCaretMarker;
 		}
 	}
 	return best;
