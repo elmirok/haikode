@@ -3,6 +3,7 @@
 #include <Catalog.h>
 #include <ToolTip.h>
 
+#include <iostream>
 #include <map>
 
 #include "Editor.h"
@@ -30,12 +31,7 @@ OverScrollBar::OverScrollBar(BRect rect, BMessenger target)
 
 	fLanes[BOOKMARKS] = { 0, BRect(0, 0, 5, MARKER_HEIGHT - 1), };
 	fLanes[PROBLEMS] = { 1, BRect(6, 0, 14, MARKER_HEIGHT - 1), };
-	fLanes[OTHER] = { 2, BRect(14, 0,20, MARKER_HEIGHT - 1), };
-
-	if (get_scroll_bar_info(&info) != B_OK) {
-		LogError("get_scroll_bar_info failed!");
-		info.min_knob_size = -1;
-	}
+	fLanes[OTHER] = { 2, BRect(14, 0, 20, MARKER_HEIGHT - 1), };
 }
 
 
@@ -67,6 +63,29 @@ OverScrollBar::SetCursorPosition(float ratio, int32 line)
 	fCaretMarker.ratio = ratio;
 	fCaretMarker.line = line;
 	Invalidate();
+}
+
+
+/* virtual */
+void
+OverScrollBar::AttachedToWindow()
+{
+	BView::AttachedToWindow();
+	if (get_scroll_bar_info(&fScrollBarInfo) != B_OK) {
+		LogError("get_scroll_bar_info failed!");
+		fScrollBarInfo.min_knob_size = -1;
+	}
+
+	BScrollBar* parent = dynamic_cast<BScrollBar*>(Parent());
+	if (parent != nullptr) {
+		const float width = parent->Bounds().Width();
+		const float laneWidth = ::roundf(width / 3);
+		for (int32 l = 0; l < 3; l++) {
+			if (l != 0)
+				fLanes[l].rect.left = fLanes[l - 1].rect.right + 1;
+			fLanes[l].rect.right = fLanes[l].rect.left + laneWidth;
+		}
+	}
 }
 
 
@@ -139,7 +158,7 @@ OverScrollBar::GetToolTipAt(BPoint point, BToolTip** tip)
 void
 OverScrollBar::Draw(BRect /*rect*/)
 {
-	if (info.min_knob_size < 0 )
+	if (fScrollBarInfo.min_knob_size < 0 )
 		return;
 
 	BRect r = Bounds();
@@ -247,11 +266,11 @@ OverScrollBar::_NearestMarker(const BPoint& point, float tolerance) const
 bool
 OverScrollBar::_DoubleArrows(const BRect& bounds) const
 {
-	if (!info.double_arrows)
+	if (!fScrollBarInfo.double_arrows)
 		return false;
 
 	// From BScrollBar source:
 	// if there is not enough room, switch to single arrows even though
 	// double arrows is specified
-	return bounds.Height() > (bounds.Width() + 1) * 4 + info.min_knob_size * 2;
+	return bounds.Height() > (bounds.Width() + 1) * 4 + fScrollBarInfo.min_knob_size * 2;
 }

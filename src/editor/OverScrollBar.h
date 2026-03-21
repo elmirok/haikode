@@ -38,6 +38,7 @@ class OverScrollBar : public BView {
 
 	void	SetCursorPosition(float ratio, int32 line);
 
+	void	AttachedToWindow() override;
 	void	MouseDown(BPoint where) override;
 	void	MouseUp(BPoint where) override;
 	void	MouseMoved(BPoint where, uint32 code, const BMessage* dragMessage) override;
@@ -60,7 +61,7 @@ private:
 
 	void	_DrawCaret(BRect& bounds, float startPoint, float trackHeight);
 
-	scroll_bar_info             info;
+	scroll_bar_info             fScrollBarInfo;
 	BMessenger                  fTarget;
 	Lane 						fLanes[3];
 	ScrollMarker				fCaretMarker;
