@@ -467,6 +467,7 @@ void
 Editor::BookmarkClearAll(int marker)
 {
 	SendMessage(SCI_MARKERDELETEALL, marker, UNSET);
+	_UpdateOverScrollBarSciMarkers();
 }
 
 
@@ -507,6 +508,26 @@ Editor::BookmarkToggle(int position)
 		SendMessage(SCI_MARKERDELETE, line, sci_BOOKMARK);
 	else
 		SendMessage(SCI_MARKERADD, line, sci_BOOKMARK);
+
+	_UpdateOverScrollBarSciMarkers();
+}
+
+
+void
+Editor::_UpdateOverScrollBarSciMarkers()
+{
+	if (fOverScrollBar != nullptr) {
+		int32 totalLines = SendMessage(SCI_GETLINECOUNT);
+		std::vector<OverScrollBar::ScrollMarker> markers;
+		int64 line = 0;
+		while((line = SendMessage(SCI_MARKERNEXT, line, (1 << sci_BOOKMARK))) >= 0) {
+			float ratio = (totalLines > 1) ? ((float)line / totalLines) : 0.0f;
+			markers.push_back({ratio, 7, (int32)line, "Bookmark"});
+
+			line++;
+		}
+		fOverScrollBar->UpdateSciMarkers(markers);
+	}
 }
 
 
@@ -744,6 +765,8 @@ Editor::FindMarkAll(const BString& text, int flags)
 			count++;
 		}
 	}
+
+	_UpdateOverScrollBarSciMarkers();
 
 	SendMessage(SCI_GOTOPOS, firstMark, UNSET);
 	BString message;
@@ -1262,9 +1285,12 @@ Editor::NotificationReceived(SCNotification* notification)
 					fLSPEditorWrapper->CharAdded(0);
 					EvaluateIdleTime();
 			}
-			if (notification->linesAdded != 0)
-				if (gCFG["show_linenumber"])
+			if (notification->linesAdded != 0) {
+				if (gCFG["show_linenumber"]) {
 					_RedrawNumberMargin(false);
+				}
+				_UpdateOverScrollBarSciMarkers();
+			}
 			break;
 		}
 		case SCN_CALLTIPCLICK:
@@ -2401,7 +2427,7 @@ Editor::SetProblems()
 
 		if (fOverScrollBar) {
 			int32 totalLines = SendMessage(SCI_GETLINECOUNT);
-			std::vector<OverScrollBar::ProblemMarker> markers;
+			std::vector<OverScrollBar::ScrollMarker> markers;
 			markers.reserve(diagnostics.size());
 			for (auto& dia : diagnostics) {
 				int32 line = dia.diagnostic.range.start.line + 1;
