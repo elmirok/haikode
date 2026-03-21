@@ -1,6 +1,6 @@
 //
 // Created by Alex on 2020/1/28. (https://github.com/microsoft/language-server-protocol)
-// Additional changes by Andrea Anzani 
+// Additional changes by Andrea Anzani
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -441,16 +441,8 @@ JSON_SERIALIZE(InitializeParams, MAP_JSON(
         MAP_KEY(initializationOptions),
         MAP_KEY(rootPath)), {});
 
-enum class MessageType {
-    /// An error message.
-            Error = 1,
-    /// A warning message.
-            Warning = 2,
-    /// An information message.
-            Info = 3,
-    /// A log message.
-            Log = 4,
-};
+
+
 struct ShowMessageParams {
     /// The message type.
     MessageType type = MessageType::Info;
@@ -727,6 +719,9 @@ JSON_SERIALIZE(DocumentSymbol, {/*NOT REQUIRED*/},{FROM_KEY(name);FROM_KEY(detai
 //struct SymbolInformation
 JSON_SERIALIZE(SymbolInformation, MAP_JSON(MAP_KEY(name), MAP_KEY(kind), MAP_KEY(location), MAP_KEY(containerName)), {FROM_KEY(name);FROM_KEY(kind);FROM_KEY(location);FROM_KEY(containerName)});
 
+//struct LogMessageParams (same as ShowMessageParams?)
+JSON_SERIALIZE(LogMessageParams, {}, {FROM_KEY(type); FROM_KEY(message)});
+
 struct SymbolDetails {
     TextType name;
     TextType containerName;
@@ -976,6 +971,7 @@ struct DocumentLink {
     return !(LHS == RHS);
   }
 };
+
 JSON_SERIALIZE(DocumentLink, MAP_JSON(MAP_KEY(range), MAP_KEY(target)), {FROM_KEY(range);FROM_KEY(target);});
 
 #endif //LSP_PROTOCOL_H

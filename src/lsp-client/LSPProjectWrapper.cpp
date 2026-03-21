@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #include "LSPProjectWrapper.h"
@@ -229,6 +229,28 @@ LSPProjectWrapper::onNotify(std::string method, value& params)
 			fMessenger.SendMessage(&fWorkDone);
 		}
 
+		return;
+
+	} else if (method.compare("window/logMessage") == 0) {
+		MessageType type = params["type"];
+		std::string message = params["message"].get<std::string>();
+		switch(type) {
+			case MessageType::Error:
+				LogError("(Error) %s", message.c_str());
+				break;
+			case MessageType::Warning:
+				LogError("(Warning) %s",message.c_str());
+				break;
+			case MessageType::Info:
+				LogInfo("(Info) %s", message.c_str());
+				break;
+			case MessageType::Log:
+				LogInfo("(Log) %s", message.c_str());
+				break;
+			case MessageType::Debug:
+				LogDebug("(Debug) %s", message.c_str());
+				break;
+		};
 		return;
 	}
 	LogError("LSPProjectWrapper::onNotify not implemented! [%s]", method.c_str());
