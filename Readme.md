@@ -11,11 +11,13 @@ Some of the features of the Genio IDE are:
 
 * LSP Server support (autocompletion, signature help, go to definition/implementation/declaration, quick fix, format)
 * Multi-project browser
+* Customizable workspace
 * Integrated source control with GIT (including opening a remote project)
 * Find in files
 * Links to file and build errors in Build Log and Console I/O
 * Symbols outline view
 * "Problems" tab
+* Integrated terminal
 * Build on save / Save on build
 * User templates for quickly creating new files and projects
 * Rich editor with many features:
@@ -27,6 +29,7 @@ Some of the features of the Genio IDE are:
   * Delete lines
   * Switch between source and header
 * Full screen and Focus mode
+* Scripting support (with hey)
 
 Genio started off as a fork of [Ideam](https://github.com/AmosCaster/ideam), and
  the editor is based on [Scintilla for Haiku](https://sourceforge.net/p/scintilla/haiku/ci/default/tree/).
@@ -35,10 +38,10 @@ We also took inspiration and code from the editor [Koder](https://github.com/Kap
 
 * strongly recommended for full Genio experience (autocompletion, jump to definition, etc):
   * gcc_syslibs_devel
-  * llvm17_clang
+  * llvm17_clang (or a newer version; tested with llvm22_clang as today)
 
 ```bash
-pkgman install gcc_syslibs_devel llvm17_clang
+pkgman install gcc_syslibs_devel cmd:clang
 ```
 
 ## Goals and roadmap
@@ -51,7 +54,7 @@ Genio aims to be an easy, simple yet powerful IDE for Haiku inspired by VS Code 
 
 ## Configuring LSP
 
-For more advanced IDE features, Genio implements the LSP protocol. (<https://microsoft.github.io/language-server-protocol/>)
+For more advanced IDE features, Genio implements the [LSP protocol](https://microsoft.github.io/language-server-protocol/)
 
 * For C and C++ projects you can use clangd. See [Configuring-clangd-lsp.md](Configuring-clangd-lsp.md)
 * For Python projects you can install and use [Python LSP Server](https://github.com/python-lsp/python-lsp-server)
