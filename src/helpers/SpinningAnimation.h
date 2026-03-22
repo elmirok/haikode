@@ -11,8 +11,6 @@
 
 #include <set>
 
-class BLooper;
-class BView;
 class SpinningAnimation {
 public:
 	static void		Draw(BView* owner, BRect bounds);
@@ -27,7 +25,7 @@ private:
 	static std::vector<BBitmap*> sBuildAnimationFrames;
 	static thread_id sThread;
 	static BLocker sLocker;
-	static std::set<BView*> sViews;
+	static std::set<BMessenger> sMessengers;
 	static sem_id sSemaphore;
 };
 

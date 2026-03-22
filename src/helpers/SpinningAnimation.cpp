@@ -21,7 +21,7 @@ std::vector<BBitmap*> SpinningAnimation::sBuildAnimationFrames;
 BLocker SpinningAnimation::sLocker("SpinningAnimation locker");
 thread_id SpinningAnimation::sThread = -1;
 sem_id SpinningAnimation::sSemaphore = -1;
-std::set<BView*> SpinningAnimation::sViews;
+std::set<BMessenger> SpinningAnimation::sMessengers;
 
 /* static */
 void
@@ -49,10 +49,10 @@ SpinningAnimation::Initialize(BView* view)
 	BAutolock _(sLocker);
 
 	// fail if the view is already there
-	if (sViews.find(view) != sViews.end())
+	if (sMessengers.find(view) != sMessengers.end())
 		return B_ERROR;
 
-	sViews.insert(view);
+	sMessengers.insert(view);
 
 	if (sThread < 0) {
 		// first time called, initialize
@@ -75,10 +75,10 @@ SpinningAnimation::Dispose(BView* view)
 {
 	BAutolock _(sLocker);
 
-	sViews.erase(view);
+	sMessengers.erase(view);
 
 	// Only dispose things if there aren't any connected views
-	if (sViews.size() != 0)
+	if (sMessengers.size() != 0)
 		return B_OK;
 
 	delete_sem(sSemaphore);
@@ -150,11 +150,8 @@ SpinningAnimation::_AnimationThread(void* castToThis)
 		if (++SpinningAnimation::sBuildAnimationIndex >= (int32)sBuildAnimationFrames.size())
 			SpinningAnimation::sBuildAnimationIndex = 0;
 
-		for (BView* view : sViews) {
-			if (view->LockLooper()) {
-				view->Invalidate();
-				view->UnlockLooper();
-			}
+		for (BMessenger messenger : sMessengers) {
+			messenger.SendMessage(B_INVALIDATE);
 		}
 
 		sLocker.Unlock();
