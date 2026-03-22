@@ -7,6 +7,8 @@
 #include "SpinningAnimation.h"
 
 #include <Application.h>
+#include <Autolock.h>
+#include <MessageRunner.h>
 #include <Resources.h>
 #include <TranslationUtils.h>
 #include <View.h>
@@ -16,7 +18,10 @@
 
 int32 SpinningAnimation::sBuildAnimationIndex = 0;
 std::vector<BBitmap*> SpinningAnimation::sBuildAnimationFrames;
-
+BLocker SpinningAnimation::sLocker("SpinningAnimation locker");
+thread_id SpinningAnimation::sThread = -1;
+sem_id SpinningAnimation::sSemaphore = -1;
+std::set<BView*> SpinningAnimation::sViews;
 
 /* static */
 void
@@ -39,10 +44,68 @@ SpinningAnimation::Draw(BView* owner, BRect bounds)
 
 /* static */
 status_t
-SpinningAnimation::InitAnimationIcons(const char* iconNamePrefix, int32 numIcons)
+SpinningAnimation::Initialize(BView* view)
 {
-	// TODO: icon names are "waiting-N" where N is the index
-	// 1 to 6
+	BAutolock _(sLocker);
+
+	// fail if the view is already there
+	if (sViews.find(view) != sViews.end())
+		return B_ERROR;
+
+	sViews.insert(view);
+
+	if (sThread < 0) {
+		// first time called, initialize
+		status_t status = _LoadIcons();
+		if (status == B_OK) {
+			sSemaphore = create_sem(1, "SpinningAnimation semaphore");
+			sThread = spawn_thread(_AnimationThread, "SpinningAnimation thread", B_NORMAL_PRIORITY, nullptr);
+			resume_thread(sThread);
+		} else
+			return B_ERROR;
+	}
+
+	return B_OK;
+}
+
+
+/* static */
+status_t
+SpinningAnimation::Dispose(BView* view)
+{
+	BAutolock _(sLocker);
+
+	sViews.erase(view);
+
+	// Only dispose things if there aren't any connected views
+	if (sViews.size() != 0)
+		return B_OK;
+
+	delete_sem(sSemaphore);
+	sSemaphore = -1;
+
+	status_t status;
+	wait_for_thread(sThread, &status);
+	sThread = -1;
+
+	for (std::vector<BBitmap*>::iterator i = sBuildAnimationFrames.begin();
+		i != sBuildAnimationFrames.end(); i++) {
+		delete *i;
+	}
+	sBuildAnimationFrames.clear();
+
+	return B_OK;
+}
+
+
+/* static */
+status_t
+SpinningAnimation::_LoadIcons()
+{
+	// icon names are "waiting-N" where N is the index 1 to 6
+	BString iconNamePrefix = "waiting-";
+	const int32 numIcons = 6;
+
 	BResources* resources = BApplication::AppResources();
 	for (int32 i = 1; i <= numIcons; i++) {
 		BString name(iconNamePrefix);
@@ -64,28 +127,42 @@ SpinningAnimation::InitAnimationIcons(const char* iconNamePrefix, int32 numIcons
 
 		sBuildAnimationFrames.push_back(frame);
 	}
+
 	return B_OK;
 }
 
 
 /* static */
-status_t
-SpinningAnimation::DisposeAnimationIcons()
+int32
+SpinningAnimation::_AnimationThread(void* castToThis)
 {
-	for (std::vector<BBitmap*>::iterator i = sBuildAnimationFrames.begin();
-		i != sBuildAnimationFrames.end(); i++) {
-		delete *i;
+	while (true) {
+		status_t status;
+		do {
+			status = acquire_sem(sSemaphore);
+		} while (status == B_INTERRUPTED);
+
+		if (status != B_OK)
+			break;
+
+		sLocker.Lock();
+
+		if (++SpinningAnimation::sBuildAnimationIndex >= (int32)sBuildAnimationFrames.size())
+			SpinningAnimation::sBuildAnimationIndex = 0;
+
+		for (BView* view : sViews) {
+			if (view->LockLooper()) {
+				view->Invalidate();
+				view->UnlockLooper();
+			}
+		}
+
+		sLocker.Unlock();
+
+		release_sem(sSemaphore);
+
+		snooze(100000);
 	}
-	sBuildAnimationFrames.clear();
 
-	return B_OK;
-}
-
-
-/* static */
-void
-SpinningAnimation::TickAnimation()
-{
-	if (++SpinningAnimation::sBuildAnimationIndex >= (int32)sBuildAnimationFrames.size())
-		SpinningAnimation::sBuildAnimationIndex = 0;
+	return 0;
 }

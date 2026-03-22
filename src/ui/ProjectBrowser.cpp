@@ -40,8 +40,6 @@
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "ProjectsFolderBrowser"
 
-const uint32 kTick = 'tick';
-
 static BMessageRunner* sAnimationTickRunner;
 
 class ProjectOutlineListView : public GOutlineListView {
@@ -406,17 +404,6 @@ ProjectBrowser::MessageReceived(BMessage* message)
 			}
 			break;
 		}
-		case kTick:
-		{
-			SpinningAnimation::TickAnimation();
-			for (ProjectItem* titleItem: fProjectProjectItemList) {
-				if (titleItem->GetSourceItem()->GetProjectFolder()->IsBuilding()) {
-					int32 itemIndex = fOutlineListView->IndexOf(titleItem);
-					fOutlineListView->InvalidateItem(itemIndex);
-				}
-			}
-			break;
-		}
 		case B_OBSERVER_NOTICE_CHANGE:
 		{
 			int32 code;
@@ -717,11 +704,7 @@ ProjectBrowser::AttachedToWindow()
 		Window()->UnlockLooper();
 	}
 
-	SpinningAnimation::InitAnimationIcons("waiting-", 6);
-
-	BMessage message(kTick);
-	if (sAnimationTickRunner == nullptr)
-		sAnimationTickRunner = new BMessageRunner(BMessenger(this), &message, bigtime_t(100000));
+	SpinningAnimation::Initialize(fOutlineListView);
 
 	if (fOutlineListView->CountItems() == 0)
 		static_cast<BCardLayout*>(GetLayout())->SetVisibleItem(int32(1));
@@ -735,7 +718,7 @@ ProjectBrowser::DetachedFromWindow()
 	delete sAnimationTickRunner;
 	sAnimationTickRunner = nullptr;
 
-	SpinningAnimation::DisposeAnimationIcons();
+	SpinningAnimation::Dispose(fOutlineListView);
 
 	if (Window()->LockLooper()) {
 		Window()->StopWatching(this, MSG_NOTIFY_EDITOR_FILE_OPENED);
