@@ -40,7 +40,6 @@
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "ProjectsFolderBrowser"
 
-static BMessageRunner* sAnimationTickRunner;
 
 class ProjectOutlineListView : public GOutlineListView {
 public:
@@ -715,9 +714,6 @@ ProjectBrowser::AttachedToWindow()
 void
 ProjectBrowser::DetachedFromWindow()
 {
-	delete sAnimationTickRunner;
-	sAnimationTickRunner = nullptr;
-
 	SpinningAnimation::Dispose(fOutlineListView);
 
 	if (Window()->LockLooper()) {
