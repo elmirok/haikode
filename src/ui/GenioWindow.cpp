@@ -307,14 +307,6 @@ GenioWindow::MessageReceived(BMessage* message)
 				LogError("Can't find entry_ref");
 			break;
 		}
-		case kClassOutline:
-		{
-			IEditor* editor = fTabManager->SelectedEditor();
-			if (editor != nullptr &&
-				editor->GetLSPEditorWrapper() != nullptr)
-				editor->GetLSPEditorWrapper()->RequestDocumentSymbols();
-			break;
-		}
 		case kApplyFix:
 		{
 			entry_ref ref;

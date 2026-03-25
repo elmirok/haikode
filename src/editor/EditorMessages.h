@@ -1,18 +1,13 @@
 /*
- * Copyright 2018, Your Name 
+ * Copyright 2018-2026, The Genio team 
  * All rights reserved. Distributed under the terms of the MIT license.
  */
-#ifndef EditorMessages_H
-#define EditorMessages_H
+#pragma once
 
 
 enum {
 	kApplyFix			= 'Fixy',
-	kClassOutline		= 'ClsO',
 	kCallTipClick		= 'Ctck',
 	kIdle				= 'IDLE',
 	kCheckEntryRemoved  = 'ENRE'
 };
-
-
-#endif // EditorMessages_H
