@@ -1,69 +1,4 @@
-1	Sardinian	application/x-vnd.Genio	1940528103
-(follow editor style)	TermView		(follow editor style)
-(follow system style)	TermView		(follow system style)
-Banner	TermView	A separating line inserted at the start and end of a command output in the console. Short as possible.	Banner
-Clear	TermView		Clear
-Stop	TermView		Stop
-Wrap	TermView	As in wrapping long lines. Short as possible.	Wrap
-(follow editor style)	SettingsWindow		(follow editor style)
-(follow system style)	SettingsWindow		(follow system style)
-Appearance	SettingsWindow		Appearance
-Auto collapse/expand projects	SettingsWindow		Cumprimi o ispania is progetos de manera automàtica
-Auto-Build on resource save	SettingsWindow		Cumpila de manera automàtica cando allogas sa resursa
-Auto-Save changed files when building	SettingsWindow		Cumpilende alloga is ischedas mudadas de manera automàtica
-Build	SettingsWindow		Cumpila
-Console banner	SettingsWindow	A separating line inserted at the start and end of a command output in the console. Short as possible.	Bandera de sa consola
-Console style:	SettingsWindow		Console style:
-Convert tabs to spaces	SettingsWindow		Cunverti is tabulatziones in ispatzios
-Default font	SettingsWindow		Default font
-Default size	SettingsWindow		Mannaria pro difalta
-Editor	SettingsWindow		Editore
-Editor style:	SettingsWindow		Istile de s'editore:
-Editor zoom:	SettingsWindow		Zum de s'editore:
-Enable brace matching	SettingsWindow		Abìlita su cuncordu intra is gafas
-Enable syntax highlighting	SettingsWindow		Abìlita s'iscobiu de sa sintassi
-Exclude folders:	SettingsWindow		Esclue is foddes:
-Find	SettingsWindow		Agata
-Font size:	SettingsWindow		Mannaria de su caràtere tipogràficu:
-Font:	SettingsWindow		Font:
-Force showing Build log panel when building	SettingsWindow		Force showing Build log panel when building
-General	SettingsWindow		Generale
-Ignore .editorconfig	SettingsWindow		Ignore .editorconfig
-Log destination:	SettingsWindow		Destinatzione de su registru:
-Log level:	SettingsWindow		Livellu de su registru:
-Log size:	SettingsWindow		Log size:
-Mark caret line	SettingsWindow		Marca sa linia de su cursore
-Match case	SettingsWindow	Short as possible.	Match case
-Projects folder:	SettingsWindow		Fodde de su progetu:
-Reload files	SettingsWindow		Torra a carrigare is ischedas
-Reload projects	SettingsWindow		Torra a carrigare is progetos
-Save caret position	SettingsWindow		Alloga sa positzione de su cursore
-Set ruler to column:	SettingsWindow		Cuncorda sa règula a sa colunna:
-Show bottom pane	SettingsWindow		Show bottom pane
-Show comment margin	SettingsWindow		Mustra s'óru de su cummentu
-Show folding margin	SettingsWindow		Show folding margin
-Show full path in window title	SettingsWindow		Mustra su caminu intreu in su tìtulu de sa ventana
-Show left pane	SettingsWindow		Show left pane
-Show line endings	SettingsWindow		Mustra is finales de linia
-Show line numbers	SettingsWindow		Mustra su nùmeru de sa linia
-Show repository outline	SettingsWindow		Mustra s'ischema de su repositoriu
-Show right pane	SettingsWindow		Show right pane
-Show statusbar	SettingsWindow		Show statusbar
-Show toolbar	SettingsWindow		Mustra sa barra de is ainas
-Show vertical ruler	SettingsWindow		Mustra sa règula de manera verticale
-Show whitespace	SettingsWindow		Mustra s'ispatziadura
-Source control	SettingsWindow		Cumpuda sa fonte
-Startup	SettingsWindow		Cumentzu
-Tab width:	SettingsWindow		Largaria de sa tabulatzione:
-These are only applied if no .editorconfig is used:	SettingsWindow	The translation shouldn't be much longer than the English original	These are only applied if no .editorconfig is used:
-This setting will be updated on restart.	SettingsWindow		Custu cuncordu at a èssere annoadu torrende a aviare.
-Trim trailing whitespace on save	SettingsWindow		Alloghende boga s'ispatziadura a s'agabbu
-Use smaller icons in toolbar	SettingsWindow		Use smaller icons in toolbar
-Visuals	SettingsWindow		Visuals
-Whole word	SettingsWindow	Short as possible.	Paràula intrea
-Wrap around	SettingsWindow	Continue searching from the beginning when reaching the end of the file	Wrap around
-Wrap lines	SettingsWindow		Imbòliga
-Wrap lines in console	SettingsWindow		Imbòliga sa consola
+1	Sardinian	application/x-vnd.Genio	1484233109
 {0, plural,one{# element found}other{# elements found}}	Editor		{0, plural,one{# element found}other{# elements found}}
 {0, plural,one{# element replaced}other{# elements replaced}}	Editor		{0, plural,one{# element replaced}other{# elements replaced}}
 1 element replaced	Editor		1 element replaced
@@ -158,11 +93,13 @@ New file	GenioWindow		Ischeda noa
 New folder	GenioWindow		Fodde noa
 Next	GenioWindow	Bookmark menu	A fatu
 Open in Terminal	GenioWindow		Open in Terminal
+Open project	GenioWindow		Open project
 Open project…	GenioWindow		Aberi unu progetu…
 Open recent…	GenioWindow		Aberi unu recente…
 Open remote project…	GenioWindow		Aberi unu progetu a tesu…
 Open…	GenioWindow		Aberi…
 Overwrite	GenioWindow		Iscrie a subra
+Panels	GenioWindow		Panels
 Paste	GenioWindow		Incolla
 Previous	GenioWindow	Bookmark menu	In antis
 Project	GenioWindow		Progetu
@@ -223,6 +160,7 @@ Toggle	GenioWindow	Bookmark menu	Còmmuta
 Tools	GenioWindow		Tools
 Trim trailing whitespace	GenioWindow		Boga s'ispatziadura a s'agabbu
 Undo	GenioWindow		Isfa
+Use smaller icons in statusbar	GenioWindow		Use smaller icons in statusbar
 View	GenioWindow		Vista
 Whole word	GenioWindow	Short as possible.	Paràula intrea
 Window	GenioWindow		Ventana
@@ -235,7 +173,6 @@ An unknown error occurred.	SourceControlPanel		Est acontessida una faddina disco
 Cancel	SourceControlPanel		Annudda
 Changes stashed.	SourceControlPanel		Mudas istugiadas.
 Choose branch…	SourceControlPanel		Issèbera su ramu…
-Choose project…	SourceControlPanel		Issèbera su progetu…
 Conflicts	SourceControlPanel		Cunflitos
 Copy name	SourceControlPanel		Copia su nùmene
 Create branch	SourceControlPanel		Create branch
@@ -257,9 +194,7 @@ Init repository	SourceControlPanel		Inchingia su repositoriu
 Local branches	SourceControlPanel		Ramos locales
 New branch name:	SourceControlPanel		New branch name:
 OK	SourceControlPanel		Ello
-Project:	SourceControlPanel		Progetu:
 Remote branches	SourceControlPanel		Ramos a tesu
-Remotes	SourceControlPanel		A tesu
 Rename \"%selected_branch%\"	SourceControlPanel		Muda su nùmene de \"%selected_branch%\"
 Rename branch	SourceControlPanel		Muda su nùmene a su ramu
 Rename branch:	SourceControlPanel		Muda su nùmene a su ramu:
@@ -296,6 +231,7 @@ Drop folder here	ProjectsFolderBrowser		Drop folder here
 New	ProjectsFolderBrowser		Nou
 OK	ProjectsFolderBrowser		Ello
 Open file	ProjectsFolderBrowser		Aberi s'ischeda
+Open file with default application	ProjectsFolderBrowser		Open file with default application
 Path	ProjectsFolderBrowser		Caminu
 Project	ProjectsFolderBrowser		Progetu
 Project settings…	ProjectsFolderBrowser		Cuncordos de su progetu…
@@ -306,14 +242,66 @@ Set active	ProjectsFolderBrowser		Cuncorda che ativu
 Switch to branch	ProjectsFolderBrowser		Cuncambia a su ramu
 The project folder has been deleted or moved to another location and it will be closed and unloaded from the workspace.	ProjectsFolderBrowser		Sa fodde de su progetu est istada bogada o mòvida a àteru logu, at a èssere serrada e iscarrigada dae s'ispatziu de trabalgiu.\n\nThe project folder has been deleted or moved to another location and it will be closed and unloaded from the workspace.
 The project folder has been renamed. It will be closed and reopened automatically.	ProjectsFolderBrowser		Sa fodde de su progetu at mudadu su nùmene. At a èssere serrada e torrada a aberri de manera automàtica.
-Another command is running.	ConsoleIOView		Esecutende un'àteru cumandu.
-Banner	ConsoleIOView	A separating line inserted at the start and end of a command output in the console. Short as possible.	Bandera
-Clear	ConsoleIOView		Limpia
-Restarting build…	ConsoleIOView		Torra a aviare sa cumpilatzione…
-stderr	ConsoleIOView		stderr
-stdout	ConsoleIOView		stdout
-Stop	ConsoleIOView		Firma
-Wrap	ConsoleIOView	As in wrapping long lines. Short as possible.	Imbòliga
+Appearance	SettingsWindow		Appearance
+Auto collapse/expand projects	SettingsWindow		Cumprimi o ispania is progetos de manera automàtica
+Auto-Build on resource save	SettingsWindow		Cumpila de manera automàtica cando allogas sa resursa
+Auto-Save changed files when building	SettingsWindow		Cumpilende alloga is ischedas mudadas de manera automàtica
+Build	SettingsWindow		Cumpila
+Convert tabs to spaces	SettingsWindow		Cunverti is tabulatziones in ispatzios
+Default font	SettingsWindow		Default font
+Default size	SettingsWindow		Mannaria pro difalta
+Editor	SettingsWindow		Editore
+Editor style:	SettingsWindow		Istile de s'editore:
+Editor zoom:	SettingsWindow		Zum de s'editore:
+Enable auto-indent	SettingsWindow		Enable auto-indent
+Enable brace matching	SettingsWindow		Abìlita su cuncordu intra is gafas
+Enable syntax highlighting	SettingsWindow		Abìlita s'iscobiu de sa sintassi
+Exclude folders:	SettingsWindow		Esclue is foddes:
+Find	SettingsWindow		Agata
+Font size:	SettingsWindow		Mannaria de su caràtere tipogràficu:
+Font:	SettingsWindow		Font:
+Force showing Build log panel when building	SettingsWindow		Force showing Build log panel when building
+General	SettingsWindow		Generale
+Ignore .editorconfig	SettingsWindow		Ignore .editorconfig
+Log destination:	SettingsWindow		Destinatzione de su registru:
+Log level:	SettingsWindow		Livellu de su registru:
+Log size:	SettingsWindow		Log size:
+Mark caret line	SettingsWindow		Marca sa linia de su cursore
+Match case	SettingsWindow	Short as possible.	Match case
+Open non-text files externally	SettingsWindow		Open non-text files externally
+Projects folder:	SettingsWindow		Fodde de su progetu:
+Reload files	SettingsWindow		Torra a carrigare is ischedas
+Reload projects	SettingsWindow		Torra a carrigare is progetos
+Save caret position	SettingsWindow		Alloga sa positzione de su cursore
+Scheme:	SettingsWindow	Name identically to Terminal's color setting	Scheme:
+Set ruler to column:	SettingsWindow		Cuncorda sa règula a sa colunna:
+Show bottom pane	SettingsWindow		Show bottom pane
+Show branch name in window title	SettingsWindow		Show branch name in window title
+Show comment margin	SettingsWindow		Mustra s'óru de su cummentu
+Show folding margin	SettingsWindow		Show folding margin
+Show full path in window title	SettingsWindow		Mustra su caminu intreu in su tìtulu de sa ventana
+Show left pane	SettingsWindow		Show left pane
+Show line endings	SettingsWindow		Mustra is finales de linia
+Show line numbers	SettingsWindow		Mustra su nùmeru de sa linia
+Show project name in window title	SettingsWindow		Show project name in window title
+Show repository outline	SettingsWindow		Mustra s'ischema de su repositoriu
+Show right pane	SettingsWindow		Show right pane
+Show statusbar	SettingsWindow		Show statusbar
+Show toolbar	SettingsWindow		Mustra sa barra de is ainas
+Show vertical ruler	SettingsWindow		Mustra sa règula de manera verticale
+Show whitespace	SettingsWindow		Mustra s'ispatziadura
+Source control	SettingsWindow		Cumpuda sa fonte
+Startup	SettingsWindow		Cumentzu
+Tab width from label	SettingsWindow		Tab width from label
+Tab width:	SettingsWindow		Largaria de sa tabulatzione:
+These are only applied if no .editorconfig is used:	SettingsWindow	The translation shouldn't be much longer than the English original	These are only applied if no .editorconfig is used:
+This setting will be updated on restart.	SettingsWindow		Custu cuncordu at a èssere annoadu torrende a aviare.
+Trim trailing whitespace on save	SettingsWindow		Alloghende boga s'ispatziadura a s'agabbu
+Use smaller icons in toolbar	SettingsWindow		Use smaller icons in toolbar
+Visuals	SettingsWindow		Visuals
+Whole word	SettingsWindow	Short as possible.	Paràula intrea
+Wrap around	SettingsWindow	Continue searching from the beginning when reaching the end of the file	Wrap around
+Wrap lines	SettingsWindow		Imbòliga
 Array	FunctionsOutlineView		Array
 Boolean	FunctionsOutlineView		Boolean
 Class	FunctionsOutlineView		Class
@@ -392,20 +380,20 @@ Password:	GitCredentialsWindow		Clae de acessu:
 Username:	GitCredentialsWindow		Nùmene de acessu:
 Cancel	GTextAlert		Annudda
 OK	GTextAlert		Ello
+Caret position	Scrollbar Overlay		Caret position
 Category	ProblemsPanel		Categorìa
 Line	ProblemsPanel		Line
 Message	ProblemsPanel		Messagiu
 No fix available	ProblemsPanel		No fix available
 Problems	ProblemsPanel		Problemas
 Source	ProblemsPanel		Fonte
-Choose project…	SearchResultTab		Choose project…
-Find in project	SearchResultTab		Find in project
-Match case	SearchResultTab	Short as possible.	Match case
-Project:	SearchResultTab		Project:
-Whole word	SearchResultTab	Short as possible.	Whole word
+Choose project…	ProjectMenuField		Choose project…
+Project:	ProjectMenuField		Project:
+Clear	ConsoleIOView		Limpia
+Stop	ConsoleIOView		Firma
 Contributors:	GenioApp		Contributors:
 Genio is a fork of Ideam and available under the MIT license.	GenioApp		Genio est una furca de Ideam e disponìbile a suta de sa licentzia MIT.
-Genio uses:\nScintilla lib\nCopyright 1998-2003 by Neil Hodgson \n\nScintilla for Haiku\nCopyright 2011 by Andrea Anzani \nCopyright 2014-2015 by Kacper Kasper \n\n	GenioApp		Genio impleat:\nScintilla lib\nDeretu de autore 1998-2003 de Neil Hodgson \n\nScintilla pro Haiku\nDeretu de autore 2011 de Andrea Anzani \nDeretu de autore 2014-2015 by Kacper Kasper \n\n
+Genio uses:\nScintilla lib\nCopyright 1998-2003 by Neil Hodgson \n\nScintilla for Haiku\nCopyright 2011 by Andrea Anzani \nCopyright 2014-2015 by Kacper Kasper \n\n	GenioApp		Genio uses:\nScintilla lib\nCopyright 1998-2003 by Neil Hodgson \n\nScintilla for Haiku\nCopyright 2011 by Andrea Anzani \nCopyright 2014-2015 by Kacper Kasper \n\n
 Made with love in Italy	GenioApp		Fatu cun amore in Italia
 See credits for a complete list.\n\n	GenioApp		Mira is reconnoschentzias pro una lista cumprida.\n\n
 Defaults	ConfigWindow		Balores pro difalta
@@ -417,13 +405,15 @@ File modified	GitRepository		Ischeda mudada
 File modified on index	GitRepository		Ischeda mudada in s'ìndice
 New file	GitRepository		Ischeda noa
 New file staged	GitRepository		Ischeda noa ordingiada
+Find in project	SearchResultTab		Find in project
+Match case	SearchResultTab	Short as possible.	Match case
+Whole word	SearchResultTab	Short as possible.	Whole word
 Genio	System name		Genio
 Global settings applied	EditorStatusView		Global settings applied
 No LSP file status information	EditorStatusView		No LSP file status information
 Settings in .editorconfig applied	EditorStatusView		Settings in .editorconfig applied
-Loading project	ProjectOpenerWindow		Loading project
-Loading project '%project_name%'	ProjectOpenerWindow		Loading project '%project_name%'
 Location	SearchResultPanel		Logu
 Search results	SearchResultPanel		Resultados de sa chirca
 New folder	TemplateManager		Fodde noa
 OK	GitAlert		Ello
+Unable to load image	ImageEditor		Unable to load image

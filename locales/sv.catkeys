@@ -1,69 +1,4 @@
-1	Swedish	application/x-vnd.Genio	1940528103
-(follow editor style)	TermView		(följ redaktörens stil)
-(follow system style)	TermView		(följ systemstil)
-Banner	TermView	A separating line inserted at the start and end of a command output in the console. Short as possible.	Baner
-Clear	TermView		Rensa
-Stop	TermView		Stopp
-Wrap	TermView	As in wrapping long lines. Short as possible.	Wrap
-(follow editor style)	SettingsWindow		(följ redaktörens stil)
-(follow system style)	SettingsWindow		(följ systemstil)
-Appearance	SettingsWindow		Utseende
-Auto collapse/expand projects	SettingsWindow		Autokollaps/expandera projekt
-Auto-Build on resource save	SettingsWindow		Autobygg på resursbesparing
-Auto-Save changed files when building	SettingsWindow		Spara ändrade filer automatiskt när du bygger
-Build	SettingsWindow		Bygga
-Console banner	SettingsWindow	A separating line inserted at the start and end of a command output in the console. Short as possible.	Konsol banner
-Console style:	SettingsWindow		Konsolstil:
-Convert tabs to spaces	SettingsWindow		Konvertera tabbar till blanksteg
-Default font	SettingsWindow		Standardteckensnitt
-Default size	SettingsWindow		Standardstorlek
-Editor	SettingsWindow		Redaktör
-Editor style:	SettingsWindow		Redaktörsstil:
-Editor zoom:	SettingsWindow		Redaktörszoom:
-Enable brace matching	SettingsWindow		Aktivera tandställningsmatchning
-Enable syntax highlighting	SettingsWindow		Aktivera syntaxmarkering
-Exclude folders:	SettingsWindow		Uteslut mappar:
-Find	SettingsWindow		Hitta
-Font size:	SettingsWindow		Fontstorlek:
-Font:	SettingsWindow		Font:
-Force showing Build log panel when building	SettingsWindow		Tvinga visning av byggloggpanel när du bygger
-General	SettingsWindow		Allmän
-Ignore .editorconfig	SettingsWindow		Ignorera .editorconfig
-Log destination:	SettingsWindow		Loggdestination:
-Log level:	SettingsWindow		Loggnivå:
-Log size:	SettingsWindow		Loggstorlek:
-Mark caret line	SettingsWindow		Markera caret-linjen
-Match case	SettingsWindow	Short as possible.	Matchfodral
-Projects folder:	SettingsWindow		Projektmapp:
-Reload files	SettingsWindow		Ladda om filer
-Reload projects	SettingsWindow		Ladda om projekt
-Save caret position	SettingsWindow		Spara vaktposition
-Set ruler to column:	SettingsWindow		Ställ in linjal till kolumn:
-Show bottom pane	SettingsWindow		Visa den nedre rutan
-Show comment margin	SettingsWindow		Visa kommentarsmarginal
-Show folding margin	SettingsWindow		Visa vikmarginal
-Show full path in window title	SettingsWindow		Visa hela sökvägen i fönstrets titel
-Show left pane	SettingsWindow		Visa vänster ruta
-Show line endings	SettingsWindow		Visa radslut
-Show line numbers	SettingsWindow		Visa radnummer
-Show repository outline	SettingsWindow		Visa förvarskontur
-Show right pane	SettingsWindow		Visa höger ruta
-Show statusbar	SettingsWindow		Visa statusfältet
-Show toolbar	SettingsWindow		Visa verktygsfält
-Show vertical ruler	SettingsWindow		Visa vertikal linjal
-Show whitespace	SettingsWindow		Visa blanksteg
-Source control	SettingsWindow		Källkontroll
-Startup	SettingsWindow		Uppstart
-Tab width:	SettingsWindow		Flikens bredd:
-These are only applied if no .editorconfig is used:	SettingsWindow	The translation shouldn't be much longer than the English original	Dessa tillämpas endast om ingen .editorconfig används:
-This setting will be updated on restart.	SettingsWindow		Den här inställningen kommer att uppdateras vid omstart.
-Trim trailing whitespace on save	SettingsWindow		Trimma efterföljande blanksteg vid spara
-Use smaller icons in toolbar	SettingsWindow		Använd mindre ikoner i verktygsfältet
-Visuals	SettingsWindow		Visuals
-Whole word	SettingsWindow	Short as possible.	Hela ordet
-Wrap around	SettingsWindow	Continue searching from the beginning when reaching the end of the file	Linda runt
-Wrap lines	SettingsWindow		Wrap linjer
-Wrap lines in console	SettingsWindow		Linda linjer i konsolen
+1	Swedish	application/x-vnd.Genio	1484233109
 {0, plural,one{# element found}other{# elements found}}	Editor		{0, plural,one{# element hittades}other{# element hittades}}
 {0, plural,one{# element replaced}other{# elements replaced}}	Editor		{0, plural,one{# element ersätt}other{# elementer ersätta}}
 1 element replaced	Editor		1 element bytt
@@ -158,11 +93,13 @@ New file	GenioWindow		Ny fil
 New folder	GenioWindow		Ny mapp
 Next	GenioWindow	Bookmark menu	Nästa
 Open in Terminal	GenioWindow		Öppna i Terminal
+Open project	GenioWindow		Öppet projekt
 Open project…	GenioWindow		Öppna projekt...
 Open recent…	GenioWindow		Öppna senaste...
 Open remote project…	GenioWindow		Öppna fjärrprojekt...
 Open…	GenioWindow		Öppna…
 Overwrite	GenioWindow		Skriva över
+Panels	GenioWindow		Paneler
 Paste	GenioWindow		Klistra
 Previous	GenioWindow	Bookmark menu	Tidigare
 Project	GenioWindow		Projekt
@@ -223,6 +160,7 @@ Toggle	GenioWindow	Bookmark menu	Växla
 Tools	GenioWindow		Verktyg
 Trim trailing whitespace	GenioWindow		Trimma efterföljande blanksteg
 Undo	GenioWindow		Ångra
+Use smaller icons in statusbar	GenioWindow		Använd mindre ikoner i statusfältet
 View	GenioWindow		Vy
 Whole word	GenioWindow	Short as possible.	Hela ordet
 Window	GenioWindow		Fönster
@@ -235,7 +173,6 @@ An unknown error occurred.	SourceControlPanel		Ett okänt fel uppstod.
 Cancel	SourceControlPanel		Avbryt
 Changes stashed.	SourceControlPanel		Ändringar gömda.
 Choose branch…	SourceControlPanel		Välj filial...
-Choose project…	SourceControlPanel		Välj filial...
 Conflicts	SourceControlPanel		Konflikter
 Copy name	SourceControlPanel		Kopiera namn
 Create branch	SourceControlPanel		Skapa gren
@@ -257,9 +194,7 @@ Init repository	SourceControlPanel		Init arkiv
 Local branches	SourceControlPanel		Lokala filialer
 New branch name:	SourceControlPanel		Nytt filialnamn:
 OK	SourceControlPanel		OK
-Project:	SourceControlPanel		Projekt:
 Remote branches	SourceControlPanel		Avlägsna grenar
-Remotes	SourceControlPanel		Fjärrkontroller
 Rename \"%selected_branch%\"	SourceControlPanel		Byt namn på \"%selected_branch%\"
 Rename branch	SourceControlPanel		Byt namn på \"%selected_branch%\"
 Rename branch:	SourceControlPanel		Byt namn på gren:
@@ -296,6 +231,7 @@ Drop folder here	ProjectsFolderBrowser		Släpp mappen här
 New	ProjectsFolderBrowser		Ny
 OK	ProjectsFolderBrowser		OK
 Open file	ProjectsFolderBrowser		Öppna filen
+Open file with default application	ProjectsFolderBrowser		Öppna filen med standardprogrammet
 Path	ProjectsFolderBrowser		Väg
 Project	ProjectsFolderBrowser		Projekt
 Project settings…	ProjectsFolderBrowser		Projektinställningar...
@@ -306,14 +242,66 @@ Set active	ProjectsFolderBrowser		Ställ in aktiv
 Switch to branch	ProjectsFolderBrowser		Byt till filial
 The project folder has been deleted or moved to another location and it will be closed and unloaded from the workspace.	ProjectsFolderBrowser		Projektmappen har tagits bort eller flyttats till en annan plats och den kommer att stängas och laddas bort från arbetsytan.
 The project folder has been renamed. It will be closed and reopened automatically.	ProjectsFolderBrowser		Projektmappen har bytt namn. Den kommer att stängas och öppnas igen automatiskt.
-Another command is running.	ConsoleIOView		Ett annat kommando körs.
-Banner	ConsoleIOView	A separating line inserted at the start and end of a command output in the console. Short as possible.	Baner
-Clear	ConsoleIOView		Rensa
-Restarting build…	ConsoleIOView		Startar om bygget...
-stderr	ConsoleIOView		stderr
-stdout	ConsoleIOView		stdout
-Stop	ConsoleIOView		Stopp
-Wrap	ConsoleIOView	As in wrapping long lines. Short as possible.	Radbrytning
+Appearance	SettingsWindow		Utseende
+Auto collapse/expand projects	SettingsWindow		Autokollaps/expandera projekt
+Auto-Build on resource save	SettingsWindow		Autobygg på resursbesparing
+Auto-Save changed files when building	SettingsWindow		Spara ändrade filer automatiskt när du bygger
+Build	SettingsWindow		Bygga
+Convert tabs to spaces	SettingsWindow		Konvertera tabbar till blanksteg
+Default font	SettingsWindow		Standardteckensnitt
+Default size	SettingsWindow		Standardstorlek
+Editor	SettingsWindow		Redaktör
+Editor style:	SettingsWindow		Redaktörsstil:
+Editor zoom:	SettingsWindow		Redaktörszoom:
+Enable auto-indent	SettingsWindow		Aktivera automatiskt indrag
+Enable brace matching	SettingsWindow		Aktivera tandställningsmatchning
+Enable syntax highlighting	SettingsWindow		Aktivera syntaxmarkering
+Exclude folders:	SettingsWindow		Uteslut mappar:
+Find	SettingsWindow		Hitta
+Font size:	SettingsWindow		Fontstorlek:
+Font:	SettingsWindow		Font:
+Force showing Build log panel when building	SettingsWindow		Tvinga visning av byggloggpanel när du bygger
+General	SettingsWindow		Allmän
+Ignore .editorconfig	SettingsWindow		Ignorera .editorconfig
+Log destination:	SettingsWindow		Loggdestination:
+Log level:	SettingsWindow		Loggnivå:
+Log size:	SettingsWindow		Loggstorlek:
+Mark caret line	SettingsWindow		Markera caret-linjen
+Match case	SettingsWindow	Short as possible.	Matchfodral
+Open non-text files externally	SettingsWindow		Öppna icke-textfiler externt
+Projects folder:	SettingsWindow		Projektmapp:
+Reload files	SettingsWindow		Ladda om filer
+Reload projects	SettingsWindow		Ladda om projekt
+Save caret position	SettingsWindow		Spara vaktposition
+Scheme:	SettingsWindow	Name identically to Terminal's color setting	Schema:
+Set ruler to column:	SettingsWindow		Ställ in linjal till kolumn:
+Show bottom pane	SettingsWindow		Visa den nedre rutan
+Show branch name in window title	SettingsWindow		Visa grennamn i fönstertitel
+Show comment margin	SettingsWindow		Visa kommentarsmarginal
+Show folding margin	SettingsWindow		Visa vikmarginal
+Show full path in window title	SettingsWindow		Visa hela sökvägen i fönstrets titel
+Show left pane	SettingsWindow		Visa vänster ruta
+Show line endings	SettingsWindow		Visa radslut
+Show line numbers	SettingsWindow		Visa radnummer
+Show project name in window title	SettingsWindow		Visa projektnamn i fönstertitel
+Show repository outline	SettingsWindow		Visa förvarskontur
+Show right pane	SettingsWindow		Visa höger ruta
+Show statusbar	SettingsWindow		Visa statusfältet
+Show toolbar	SettingsWindow		Visa verktygsfält
+Show vertical ruler	SettingsWindow		Visa vertikal linjal
+Show whitespace	SettingsWindow		Visa blanksteg
+Source control	SettingsWindow		Källkontroll
+Startup	SettingsWindow		Uppstart
+Tab width from label	SettingsWindow		Flikens bredd från etiketten
+Tab width:	SettingsWindow		Flikens bredd:
+These are only applied if no .editorconfig is used:	SettingsWindow	The translation shouldn't be much longer than the English original	Dessa tillämpas endast om ingen .editorconfig används:
+This setting will be updated on restart.	SettingsWindow		Den här inställningen kommer att uppdateras vid omstart.
+Trim trailing whitespace on save	SettingsWindow		Trimma efterföljande blanksteg vid spara
+Use smaller icons in toolbar	SettingsWindow		Använd mindre ikoner i verktygsfältet
+Visuals	SettingsWindow		Visuals
+Whole word	SettingsWindow	Short as possible.	Hela ordet
+Wrap around	SettingsWindow	Continue searching from the beginning when reaching the end of the file	Linda runt
+Wrap lines	SettingsWindow		Wrap linjer
 Array	FunctionsOutlineView		Array
 Boolean	FunctionsOutlineView		Boolean
 Class	FunctionsOutlineView		Klass
@@ -392,20 +380,20 @@ Password:	GitCredentialsWindow		Lösenord:
 Username:	GitCredentialsWindow		Användarnamn:
 Cancel	GTextAlert		Avbryt
 OK	GTextAlert		OK
+Caret position	Scrollbar Overlay		Caret position
 Category	ProblemsPanel		Kategori
 Line	ProblemsPanel		Linje
 Message	ProblemsPanel		Message
 No fix available	ProblemsPanel		Ingen fix tillgänglig
 Problems	ProblemsPanel		Problem
 Source	ProblemsPanel		Källa
-Choose project…	SearchResultTab		Välj projekt...
-Find in project	SearchResultTab		Hitta i projekt
-Match case	SearchResultTab	Short as possible.	Matchfodral
-Project:	SearchResultTab		Projekt:
-Whole word	SearchResultTab	Short as possible.	Hela ordet
+Choose project…	ProjectMenuField		Välj projekt...
+Project:	ProjectMenuField		Projekt:
+Clear	ConsoleIOView		Rensa
+Stop	ConsoleIOView		Stopp
 Contributors:	GenioApp		Bidragsgivare:
 Genio is a fork of Ideam and available under the MIT license.	GenioApp		Genio är en gaffel av Ideam och tillgänglig under MIT-licensen.
-Genio uses:\nScintilla lib\nCopyright 1998-2003 by Neil Hodgson \n\nScintilla for Haiku\nCopyright 2011 by Andrea Anzani \nCopyright 2014-2015 by Kacper Kasper \n\n	GenioApp		Genio använder:\nScintilla lib\nCopyright 1998-2003 av Neil Hodgson \n\nScintilla för Haiku\nCopyright 2011 av Andrea Anzani \nCopyright 20154 av Ka-c20154 \n\n
+Genio uses:\nScintilla lib\nCopyright 1998-2003 by Neil Hodgson \n\nScintilla for Haiku\nCopyright 2011 by Andrea Anzani \nCopyright 2014-2015 by Kacper Kasper \n\n	GenioApp		Genio använder:\nScintilla lib\nCopyright 1998-2003 av Neil Hodgson \n\nScintilla för Haiku\nCopyright 2011 av Andrea Anzani \nCopyright 2014-2015 av Kacper Kasper \n\n
 Made with love in Italy	GenioApp		Tillverkad med kärlek i Italien
 See credits for a complete list.\n\n	GenioApp		Se krediter för en komplett lista.\n\n
 Defaults	ConfigWindow		Standardvärden
@@ -417,13 +405,15 @@ File modified	GitRepository		Filen ändrad
 File modified on index	GitRepository		Filen ändrad på index
 New file	GitRepository		Ny fil
 New file staged	GitRepository		Ny fil iscensatt
+Find in project	SearchResultTab		Hitta i projekt
+Match case	SearchResultTab	Short as possible.	Matchfodral
+Whole word	SearchResultTab	Short as possible.	Hela ordet
 Genio	System name		Genio
 Global settings applied	EditorStatusView		Globala inställningar tillämpas
 No LSP file status information	EditorStatusView		Ingen LSP-filstatusinformation
 Settings in .editorconfig applied	EditorStatusView		Inställningar i .editorconfig tillämpas
-Loading project	ProjectOpenerWindow		Laddar projekt
-Loading project '%project_name%'	ProjectOpenerWindow		Laddar projektet '%project_name%'
 Location	SearchResultPanel		Plats
 Search results	SearchResultPanel		Sökresultat
 New folder	TemplateManager		Ny mapp
 OK	GitAlert		OK
+Unable to load image	ImageEditor		Det gick inte att ladda bilden
