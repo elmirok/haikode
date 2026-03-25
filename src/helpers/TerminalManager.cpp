@@ -19,7 +19,7 @@ TerminalManager::TerminalManager()
 	:
 	fId(-1)
 {
-	BPath genioPath = GetNearbyDataDirectory();
+	BPath genioPath = GetDataDirectory();
 	if (genioPath.Append("genio_terminal_addon") == B_OK) {
 		fId = load_add_on(genioPath.Path());
 		if (fId < 0)
