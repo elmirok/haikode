@@ -1,5 +1,5 @@
 /*
- * Copyright 2025, Andrea Anzani 
+ * Copyright 2025, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -19,12 +19,22 @@ TerminalManager::TerminalManager()
 	:
 	fId(-1)
 {
-	BPath genioPath = GetDataDirectory();
+	BPath genioPath = GetNearbyDataDirectory();
 	if (genioPath.Append("genio_terminal_addon") == B_OK) {
 		fId = load_add_on(genioPath.Path());
-		if (fId < 0)
-			LogError("Can't load genio_terminal_addon (%s): %s\n",
+		if (fId < 0) {
+			LogDebug("Can't load genio_terminal_addon (%s): %s\n",
 				genioPath.Path(), ::strerror(fId));
+
+			 genioPath = GetDataDirectory();
+			 if (genioPath.Append("genio_terminal_addon") == B_OK) {
+				fId = load_add_on(genioPath.Path());
+				if (fId < 0) {
+					LogError("Can't load genio_terminal_addon (%s): %s\n",
+						genioPath.Path(), ::strerror(fId));
+				}
+			}
+		}
 	}
 	LogInfo("TerminalManager, loading addon at [%s] -> %d\n", genioPath.Path(), fId);
 }
