@@ -1346,6 +1346,7 @@ Editor::NotificationReceived(SCNotification* notification)
 				fLSPEditorWrapper->HideCallTip();
 			}
 			_BraceHighlight();
+
 			// Selection/Position has changed
 			if (notification->updated & SC_UPDATE_SELECTION) {
 				// Ugly hack to enable mouse selection scrolling
@@ -2558,35 +2559,36 @@ Editor::_HandleDoubleClik()
 
 	BString selection = Selection();
 	int32 selLen = selection.Length();
-	if (selLen == 0 || selection.StartsWith(" ") || selection.EndsWith(" "))
-		return;
-
 	fLastHighlight = selection;
 
-	int32 docLength = SendMessage(SCI_GETTEXTLENGTH, 0, 0);
-    SendMessage(SCI_SETSEARCHFLAGS, SCFIND_WHOLEWORD | SCFIND_MATCHCASE, 0);
-    SendMessage(SCI_SETTARGETRANGE, 0, docLength);
+	if (selLen != 0 && !selection.StartsWith(" ") && !selection.EndsWith(" ")) {
 
-    SendMessage(SCI_SETINDICATORCURRENT, IND_HIGHLIGHT, 0);
+		int32 docLength = SendMessage(SCI_GETTEXTLENGTH, 0, 0);
+		SendMessage(SCI_SETSEARCHFLAGS, SCFIND_WHOLEWORD | SCFIND_MATCHCASE, 0);
+		SendMessage(SCI_SETTARGETRANGE, 0, docLength);
 
-	int32 totalLines = SendMessage(SCI_GETLINECOUNT);
+		SendMessage(SCI_SETINDICATORCURRENT, IND_HIGHLIGHT, 0);
 
-	//NOTE: Should we put a max number of results to avoid locks in huge file? 100? 1000?
-    while (SendMessage(SCI_SEARCHINTARGET, selLen, (sptr_t)selection.String()) != -1) {
-        int32 matchStart = SendMessage(SCI_GETTARGETSTART, 0, 0);
-        int32 matchEnd = SendMessage(SCI_GETTARGETEND, 0, 0);
+		int32 totalLines = SendMessage(SCI_GETLINECOUNT);
 
-        // Highlight the matches
-        SendMessage(SCI_INDICATORFILLRANGE, matchStart, matchEnd - matchStart);
+		//NOTE: Should we put a max number of results to avoid locks in huge file? 100? 1000?
+		while (SendMessage(SCI_SEARCHINTARGET, selLen, (sptr_t)selection.String()) != -1) {
+			int32 matchStart = SendMessage(SCI_GETTARGETSTART, 0, 0);
+			int32 matchEnd = SendMessage(SCI_GETTARGETEND, 0, 0);
 
-		int32 line  = SendMessage(SCI_LINEFROMPOSITION, matchStart, 0);
-		float ratio = (totalLines > 1) ? ((float)line / totalLines) : 0.0f;
-		markers.push_back({ratio, 7, (int32)line, selection.String()});
+			// Highlight the matches
+			SendMessage(SCI_INDICATORFILLRANGE, matchStart, matchEnd - matchStart);
 
-		//Next one.
-        SendMessage(SCI_SETTARGETRANGE, matchEnd, docLength);
-    }
+			int32 line  = SendMessage(SCI_LINEFROMPOSITION, matchStart, 0);
+			if (line > 0) {
+				float ratio = (totalLines > 1) ? ((float)line / totalLines) : 0.0f;
+				markers.push_back({ratio, 7, (int32)line, selection.String()});
+			}
 
+			//Next one.
+			SendMessage(SCI_SETTARGETRANGE, matchEnd, docLength);
+		}
+	}
 	if (fOverScrollBar != nullptr)
 		fOverScrollBar->UpdateHighlightMarkers(markers);
 
@@ -2603,6 +2605,11 @@ Editor::_UpdateHighlight()
 		selection.Compare(fLastHighlight) != 0) {
 
         _ClearHighlight();
+		if (fOverScrollBar != nullptr) {
+			std::vector<OverScrollBar::ScrollMarker> markers;
+			fOverScrollBar->UpdateHighlightMarkers(markers);
+		}
+
         return;
     }
 }

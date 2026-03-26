@@ -27,7 +27,7 @@ class OverScrollBar : public BView {
 		};
 
 		struct Lane {
-			uint8 index;
+			uint8 index; //not used?
 			BRect rect;
 			std::vector<ScrollMarker> markers;
 		};
