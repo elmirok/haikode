@@ -1364,6 +1364,7 @@ Editor::NotificationReceived(SCNotification* notification)
 				SendPositionChanges();
 				// Update status bar
 				UpdateStatusBar();
+				_UpdateHighlight();
 			}
 			break;
 		}
@@ -2552,43 +2553,54 @@ Editor::HasValidFileRef() const
 void
 Editor::_HandleDoubleClik()
 {
-	printf("_HandleDoubleClik\n");
-    // 1. Pulizia: Rimuovi l'indicatore 8 da tutto il documento
-    int docLength = SendMessage(SCI_GETTEXTLENGTH, 0, 0);
-    SendMessage(SCI_SETINDICATORCURRENT, IND_HIGHLIGHT, 0);
-    SendMessage(SCI_INDICATORCLEARRANGE, 0, docLength);
+    _ClearHighlight();
 
-    // 2. Ottieni la parola selezionata
-   /* int selStart = SendMessage(SCI_GETSELECTIONSTART, 0, 0);
-    int selEnd = SendMessage(SCI_GETSELECTIONEND, 0, 0);
-    int selLen = selEnd - selStart;
-
-    if (selLen <= 0) return; // NOTA: minimo lunghezza 3?? oppure devo saltare gli operatori?
-
-    // Leggi il testo selezionato
-    std::string selectedText(selLen, '\0');
-    SendMessage(sciHwnd, SCI_GETSELTEXT, 0, (LPARAM)&selectedText[0]);
-	*/
 	BString selection = Selection();
 	int32 selLen = selection.Length();
 	if (selLen == 0 || selection.StartsWith(" ") || selection.EndsWith(" "))
 		return;
 
-	printf("Selection %s\n", selection.String());
-    // 3. Ricerca globale
+	fLastHighlight = selection;
+
+	int32 docLength = SendMessage(SCI_GETTEXTLENGTH, 0, 0);
     SendMessage(SCI_SETSEARCHFLAGS, SCFIND_WHOLEWORD | SCFIND_MATCHCASE, 0);
     SendMessage(SCI_SETTARGETRANGE, 0, docLength);
 
-    while (SendMessage(SCI_SEARCHINTARGET, selLen, (sptr_t)selection.String()) != -1) { //NOTA: MAX 100 risultati? 1000?
+    SendMessage(SCI_SETINDICATORCURRENT, IND_HIGHLIGHT, 0);
+
+	//NOTE: Should we put a max number of results to avoid locks in huge file? 100? 1000?
+    while (SendMessage(SCI_SEARCHINTARGET, selLen, (sptr_t)selection.String()) != -1) {
         int matchStart = SendMessage(SCI_GETTARGETSTART, 0, 0);
         int matchEnd = SendMessage(SCI_GETTARGETEND, 0, 0);
 
-        // 4. Applica l'indicatore al match trovato
+        // Highlight the matches
         SendMessage(SCI_INDICATORFILLRANGE, matchStart, matchEnd - matchStart);
 
-		printf("Match at %d -> %d\n", matchStart, matchEnd);
-
-        // Sposta il target per la prossima ricerca
+		//Next one.
         SendMessage(SCI_SETTARGETRANGE, matchEnd, docLength);
     }
+}
+
+
+void
+Editor::_UpdateHighlight()
+{
+	BString selection = Selection();
+    // Se non c'è selezione o la lunghezza è diversa dalla parola evidenziata
+    if (selection.Length() == 0 ||
+		selection.Length() != fLastHighlight.Length() ||
+		selection.Compare(fLastHighlight) != 0) {
+
+        _ClearHighlight();
+        return;
+    }
+}
+
+
+void
+Editor::_ClearHighlight()
+{
+    SendMessage(SCI_SETINDICATORCURRENT, IND_HIGHLIGHT, 0);
+    SendMessage(SCI_INDICATORCLEARRANGE, 0, SendMessage(SCI_GETTEXTLENGTH, 0, 0));
+	fLastHighlight = "";
 }
