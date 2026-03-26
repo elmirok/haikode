@@ -14,6 +14,7 @@
 #include "Log.h"
 #include "Utils.h"
 
+static TerminalManager* sTerminalManager = nullptr;
 
 TerminalManager::TerminalManager()
 	:
@@ -44,8 +45,9 @@ TerminalManager::TerminalManager()
 TerminalManager&
 TerminalManager::GetInstance()
 {
-	static TerminalManager manager;
-	return manager;
+	if (sTerminalManager == nullptr)
+		sTerminalManager = new TerminalManager();
+	return *sTerminalManager;
 }
 
 
