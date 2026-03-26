@@ -2553,6 +2553,7 @@ Editor::HasValidFileRef() const
 void
 Editor::_HandleDoubleClik()
 {
+	std::vector<OverScrollBar::ScrollMarker> markers;
     _ClearHighlight();
 
 	BString selection = Selection();
@@ -2568,17 +2569,27 @@ Editor::_HandleDoubleClik()
 
     SendMessage(SCI_SETINDICATORCURRENT, IND_HIGHLIGHT, 0);
 
+	int32 totalLines = SendMessage(SCI_GETLINECOUNT);
+
 	//NOTE: Should we put a max number of results to avoid locks in huge file? 100? 1000?
     while (SendMessage(SCI_SEARCHINTARGET, selLen, (sptr_t)selection.String()) != -1) {
-        int matchStart = SendMessage(SCI_GETTARGETSTART, 0, 0);
-        int matchEnd = SendMessage(SCI_GETTARGETEND, 0, 0);
+        int32 matchStart = SendMessage(SCI_GETTARGETSTART, 0, 0);
+        int32 matchEnd = SendMessage(SCI_GETTARGETEND, 0, 0);
 
         // Highlight the matches
         SendMessage(SCI_INDICATORFILLRANGE, matchStart, matchEnd - matchStart);
 
+		int32 line  = SendMessage(SCI_LINEFROMPOSITION, matchStart, 0);
+		float ratio = (totalLines > 1) ? ((float)line / totalLines) : 0.0f;
+		markers.push_back({ratio, 7, (int32)line, selection.String()});
+
 		//Next one.
         SendMessage(SCI_SETTARGETRANGE, matchEnd, docLength);
     }
+
+	if (fOverScrollBar != nullptr)
+		fOverScrollBar->UpdateHighlightMarkers(markers);
+
 }
 
 

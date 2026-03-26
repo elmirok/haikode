@@ -16,8 +16,9 @@
 
 enum lanes {
 	BOOKMARKS = 0,
-	PROBLEMS = 1,
-	OTHER = 2
+	PROBLEMS  = 1,
+	HIGHLIGHT = 2,
+	LANES_COUNT = 3
 };
 
 OverScrollBar::OverScrollBar(BRect rect, BMessenger target)
@@ -29,9 +30,9 @@ OverScrollBar::OverScrollBar(BRect rect, BMessenger target)
 	fCaretMarker.severity = 100;
 	fCaretMarker.message = B_TRANSLATE("Caret position");
 
-	fLanes[BOOKMARKS] = { 0, BRect(0, 0, 5, MARKER_HEIGHT - 1), };
-	fLanes[PROBLEMS] = { 1, BRect(6, 0, 14, MARKER_HEIGHT - 1), };
-	fLanes[OTHER] = { 2, BRect(14, 0, 20, MARKER_HEIGHT - 1), };
+	fLanes[BOOKMARKS] = { BOOKMARKS, BRect( 0, 0,  5, MARKER_HEIGHT - 1), };
+	fLanes[PROBLEMS]  = { PROBLEMS,  BRect( 6, 0, 14, MARKER_HEIGHT - 1), };
+	fLanes[HIGHLIGHT] = { HIGHLIGHT, BRect(14, 0, 20, MARKER_HEIGHT - 1), };
 }
 
 
@@ -58,6 +59,17 @@ OverScrollBar::UpdateSciMarkers(std::vector<ScrollMarker> markers)
 
 
 void
+OverScrollBar::UpdateHighlightMarkers(std::vector<ScrollMarker> markers)
+{
+	if (fLanes[HIGHLIGHT].markers.empty() && markers.empty())
+		return; // avoid redrawing for nothing.
+
+	fLanes[HIGHLIGHT].markers = std::move(markers);
+	Invalidate();
+}
+
+
+void
 OverScrollBar::SetCursorPosition(float ratio, int32 line)
 {
 	fCaretMarker.ratio = ratio;
@@ -79,8 +91,8 @@ OverScrollBar::AttachedToWindow()
 	BScrollBar* parent = dynamic_cast<BScrollBar*>(Parent());
 	if (parent != nullptr) {
 		const float width = parent->Bounds().Width();
-		const float laneWidth = ::roundf(width / 3);
-		for (int32 l = 0; l < 3; l++) {
+		const float laneWidth = (width / (float)LANES_COUNT);
+		for (int32 l = 0; l < LANES_COUNT; l++) {
 			if (l != 0)
 				fLanes[l].rect.left = fLanes[l - 1].rect.right + 1;
 			fLanes[l].rect.right = fLanes[l].rect.left + laneWidth;
@@ -169,8 +181,9 @@ OverScrollBar::Draw(BRect /*rect*/)
 	float trackHeight = endPoint - startPoint;
 
 	_DrawCaret(r, startPoint, trackHeight);
-	_DrawMarkers(fLanes[PROBLEMS].markers, 1, r, startPoint, trackHeight);
-	_DrawMarkers(fLanes[BOOKMARKS].markers, 0, r, startPoint, trackHeight);
+	_DrawMarkers(fLanes[PROBLEMS].markers,  PROBLEMS,  r, startPoint, trackHeight);
+	_DrawMarkers(fLanes[BOOKMARKS].markers, BOOKMARKS, r, startPoint, trackHeight);
+	_DrawMarkers(fLanes[HIGHLIGHT].markers, HIGHLIGHT, r, startPoint, trackHeight);
 }
 
 
@@ -234,7 +247,7 @@ OverScrollBar::_NearestMarker(const BPoint& point, float tolerance) const
 
 	// Find which lane we are on
 	uint8 lane = 0;
-	for (;lane < 3;) {
+	for (;lane < LANES_COUNT;) {
 		if (point.x >= fLanes[lane].rect.left && point.x <= fLanes[lane].rect.right)
 			break;
 		lane++;
