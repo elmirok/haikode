@@ -3,7 +3,6 @@
 #include <Catalog.h>
 #include <ToolTip.h>
 
-#include <iostream>
 #include <map>
 
 #include "Editor.h"
@@ -90,7 +89,7 @@ OverScrollBar::AttachedToWindow()
 
 	BScrollBar* parent = dynamic_cast<BScrollBar*>(Parent());
 	if (parent != nullptr) {
-		const float width = parent->Bounds().Width();
+		const float width = parent->Bounds().Width() - 2.0;
 		const float laneWidth = (width / (float)LANES_COUNT);
 		for (int32 l = 0; l < LANES_COUNT; l++) {
 			if (l != 0)
@@ -181,9 +180,8 @@ OverScrollBar::Draw(BRect /*rect*/)
 	float trackHeight = endPoint - startPoint;
 
 	_DrawCaret(r, startPoint, trackHeight);
-	_DrawMarkers(fLanes[PROBLEMS].markers,  PROBLEMS,  r, startPoint, trackHeight);
-	_DrawMarkers(fLanes[BOOKMARKS].markers, BOOKMARKS, r, startPoint, trackHeight);
-	_DrawMarkers(fLanes[HIGHLIGHT].markers, HIGHLIGHT, r, startPoint, trackHeight);
+	for (int32 l = 0; l < LANES_COUNT; l++)
+		_DrawMarkers(fLanes[l],  r, startPoint, trackHeight);
 }
 
 
@@ -199,15 +197,15 @@ OverScrollBar::_DrawCaret(BRect& r, float startPoint, float trackHeight)
 
 
 void
-OverScrollBar::_DrawMarkers(std::vector<ScrollMarker>& markers, uint lane, BRect& r,
+OverScrollBar::_DrawMarkers(Lane& lane, BRect& r,
 							float startPoint,
 							float trackHeight)
 {
-	if (markers.empty() == false) {
+	if (lane.markers.empty() == false) {
 		// Cluster markers into pixel rows; keep worst severity per bucket.
 		// severity 1 (Error) is "worst", higher numbers are less severe.
 		std::map<int, int> buckets; // pixel_y -> worst severity
-		for (const auto& m : markers) {
+		for (const auto& m : lane.markers) {
 			int y = (int)(startPoint + m.ratio * trackHeight);
 			auto it = buckets.find(y);
 			if (it == buckets.end() || m.severity < it->second)
@@ -225,8 +223,8 @@ OverScrollBar::_DrawMarkers(std::vector<ScrollMarker>& markers, uint lane, BRect
 			}
 			SetHighColor(color);
 			float y = (float)kv.first;
-			FillRect(BRect(r.left + 1 + fLanes[lane].rect.left,  y + fLanes[lane].rect.top,
-						   r.left + 1 + fLanes[lane].rect.right, y + fLanes[lane].rect.bottom));
+			FillRect(BRect(r.left + 1 + lane.rect.left,  y + lane.rect.top,
+						   r.left + 1 + lane.rect.right, y + lane.rect.bottom));
 		}
 	}
 }

@@ -55,8 +55,7 @@ private:
 
 	bool	_DoubleArrows(const BRect& bounds) const;
 
-	void	_DrawMarkers(std::vector<ScrollMarker>& markers, uint lane,
-							BRect& bounds,
+	void	_DrawMarkers(Lane& markers, BRect& bounds,
 							float startPoint,
 							float trackHeight);
 
