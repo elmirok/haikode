@@ -254,6 +254,7 @@ private:
 			void				EvaluateIdleTime();
 			bool				HasValidFileRef() const;
 			void				_UpdateOverScrollBarSciMarkers();
+			void				_HandleDoubleClik();
 
 private:
 			editor_id			fId;

@@ -59,6 +59,8 @@ const int kIdleTimeout = 400000; //0.4secs
 #define UNSET 0
 #define UNUSED 0
 
+#define IND_HIGHLIGHT	8+4 //FIXME
+
 
 bool Editor::sAutoIndent = true;
 
@@ -144,6 +146,13 @@ Editor::Editor(entry_ref* ref, const BMessenger& target)
 	SendMessage(SCI_ASSIGNCMDKEY, SCK_RIGHT + ( (SCMOD_META + SCMOD_SHIFT)   << 16), SCI_WORDPARTRIGHTEXTEND);
 	SendMessage(SCI_ASSIGNCMDKEY, SCK_LEFT + (SCMOD_META   << 16), SCI_WORDPARTLEFT);
 	SendMessage(SCI_ASSIGNCMDKEY, SCK_LEFT + ( (SCMOD_META + SCMOD_SHIFT)   << 16), SCI_WORDPARTLEFTEXTEND);
+
+	//Indicator for Auto-hightlight
+	SendMessage(SCI_INDICSETSTYLE,        IND_HIGHLIGHT, INDIC_ROUNDBOX);
+	SendMessage(SCI_INDICSETFORE,         IND_HIGHLIGHT, 0xff0000); //RGB(0, 120, 215)); // Colore blu
+	SendMessage(SCI_INDICSETALPHA,        IND_HIGHLIGHT, 100);             // Trasparenza
+	SendMessage(SCI_INDICSETOUTLINEALPHA, IND_HIGHLIGHT, 150);      // Bordo
+
 }
 
 
@@ -1325,6 +1334,9 @@ Editor::NotificationReceived(SCNotification* notification)
 			_UpdateSavePoint(false);
 			break;
 		}
+		case SCN_DOUBLECLICK:
+			_HandleDoubleClik();
+		break;
 		case SCN_UPDATEUI:
 		{
 			if (notification->updated &
@@ -2509,6 +2521,7 @@ Editor::SetCommentBlockTokens(const std::string& startBlock, const std::string& 
 }
 
 
+
 void
 Editor::EvaluateIdleTime()
 {
@@ -2534,4 +2547,48 @@ bool
 Editor::HasValidFileRef() const
 {
 	return fFileRef.device >= 0 && fFileRef.directory >= 0;
+}
+
+void
+Editor::_HandleDoubleClik()
+{
+	printf("_HandleDoubleClik\n");
+    // 1. Pulizia: Rimuovi l'indicatore 8 da tutto il documento
+    int docLength = SendMessage(SCI_GETTEXTLENGTH, 0, 0);
+    SendMessage(SCI_SETINDICATORCURRENT, IND_HIGHLIGHT, 0);
+    SendMessage(SCI_INDICATORCLEARRANGE, 0, docLength);
+
+    // 2. Ottieni la parola selezionata
+   /* int selStart = SendMessage(SCI_GETSELECTIONSTART, 0, 0);
+    int selEnd = SendMessage(SCI_GETSELECTIONEND, 0, 0);
+    int selLen = selEnd - selStart;
+
+    if (selLen <= 0) return; // NOTA: minimo lunghezza 3?? oppure devo saltare gli operatori?
+
+    // Leggi il testo selezionato
+    std::string selectedText(selLen, '\0');
+    SendMessage(sciHwnd, SCI_GETSELTEXT, 0, (LPARAM)&selectedText[0]);
+	*/
+	BString selection = Selection();
+	int32 selLen = selection.Length();
+	if (selLen == 0 || selection.StartsWith(" ") || selection.EndsWith(" "))
+		return;
+
+	printf("Selection %s\n", selection.String());
+    // 3. Ricerca globale
+    SendMessage(SCI_SETSEARCHFLAGS, SCFIND_WHOLEWORD | SCFIND_MATCHCASE, 0);
+    SendMessage(SCI_SETTARGETRANGE, 0, docLength);
+
+    while (SendMessage(SCI_SEARCHINTARGET, selLen, (sptr_t)selection.String()) != -1) { //NOTA: MAX 100 risultati? 1000?
+        int matchStart = SendMessage(SCI_GETTARGETSTART, 0, 0);
+        int matchEnd = SendMessage(SCI_GETTARGETEND, 0, 0);
+
+        // 4. Applica l'indicatore al match trovato
+        SendMessage(SCI_INDICATORFILLRANGE, matchStart, matchEnd - matchStart);
+
+		printf("Match at %d -> %d\n", matchStart, matchEnd);
+
+        // Sposta il target per la prossima ricerca
+        SendMessage(SCI_SETTARGETRANGE, matchEnd, docLength);
+    }
 }
