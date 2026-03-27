@@ -61,6 +61,8 @@ private:
 
 	void	_DrawCaret(BRect& bounds, float startPoint, float trackHeight);
 
+	void	_UpdateMarkers(uint8 index, std::vector<ScrollMarker> markers);
+
 	scroll_bar_info             fScrollBarInfo;
 	BMessenger                  fTarget;
 	Lane 						fLanes[3];

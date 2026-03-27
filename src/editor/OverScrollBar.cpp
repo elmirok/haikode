@@ -38,35 +38,31 @@ OverScrollBar::OverScrollBar(BRect rect, BMessenger target)
 void
 OverScrollBar::SetProblemsData(std::vector<ScrollMarker> markers)
 {
-	if (fLanes[PROBLEMS].markers.empty() && markers.empty())
-		return; // avoid redrawing for nothing.
-
-	fLanes[PROBLEMS].markers = std::move(markers);
-	Invalidate();
+	_UpdateMarkers(PROBLEMS, markers);
 }
-
 
 void
 OverScrollBar::UpdateSciMarkers(std::vector<ScrollMarker> markers)
 {
-	if (fLanes[BOOKMARKS].markers.empty() && markers.empty())
-		return; // avoid redrawing for nothing.
-
-	fLanes[BOOKMARKS].markers = std::move(markers);
-	Invalidate();
+	_UpdateMarkers(BOOKMARKS, markers);
 }
-
 
 void
 OverScrollBar::UpdateHighlightMarkers(std::vector<ScrollMarker> markers)
 {
-	if (fLanes[HIGHLIGHT].markers.empty() && markers.empty())
-		return; // avoid redrawing for nothing.
-
-	fLanes[HIGHLIGHT].markers = std::move(markers);
-	Invalidate();
+	_UpdateMarkers(HIGHLIGHT, markers);
 }
 
+
+void
+OverScrollBar::_UpdateMarkers(uint8 index, std::vector<ScrollMarker> markers)
+{
+	if (markers.empty() && fLanes[index].markers.empty())
+		return; // avoid redrawing for nothing.
+
+	fLanes[index].markers = std::move(markers);
+	Invalidate();
+}
 
 void
 OverScrollBar::SetCursorPosition(float ratio, int32 line)
@@ -111,6 +107,7 @@ OverScrollBar::MouseDown(BPoint where)
 		msg.AddInt32("line", hit->line);
 		fTarget.SendMessage(&msg);
 	}
+
 	// Always let the BScrollBar handle the click too.
 	if (Parent() != nullptr)
 		Parent()->MouseDown(where);
@@ -246,13 +243,13 @@ OverScrollBar::_NearestMarker(const BPoint& point, float tolerance) const
 
 	// Find which lane we are on
 	uint8 lane = 0;
-	for (;lane < LANES_COUNT;) {
-		if (point.x >= fLanes[lane].rect.left && point.x <= fLanes[lane].rect.right)
+	for (; lane < LANES_COUNT; lane++) {
+		if (point.x >= fLanes[lane].rect.left &&
+			point.x <= fLanes[lane].rect.right)
 			break;
-		lane++;
 	}
 
-	if (!fLanes[lane].markers.empty() ) {
+	if (lane < LANES_COUNT && !fLanes[lane].markers.empty() ) {
 		for (const auto& m : fLanes[lane].markers) {
 			float markerY = startPoint + m.ratio * trackHeight;
 			float dist = std::abs(markerY - point.y);
