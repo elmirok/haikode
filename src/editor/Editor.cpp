@@ -531,11 +531,10 @@ Editor::_UpdateOverScrollBarSciMarkers()
 		int64 line = 0;
 		while((line = SendMessage(SCI_MARKERNEXT, line, (1 << sci_BOOKMARK))) >= 0) {
 			float ratio = (totalLines > 1) ? ((float)line / totalLines) : 0.0f;
-			markers.push_back({ratio, 7, (int32)line, "Bookmark"});
-
+			markers.push_back({ratio, 7, (int32)line+1, B_TRANSLATE("Bookmark")});
 			line++;
 		}
-		fOverScrollBar->UpdateSciMarkers(markers);
+		fOverScrollBar->UpdateSciMarkers(std::move(markers));
 	}
 }
 
@@ -2582,7 +2581,7 @@ Editor::_HandleDoubleClik()
 			int32 line  = SendMessage(SCI_LINEFROMPOSITION, matchStart, 0);
 			if (line > 0) {
 				float ratio = (totalLines > 1) ? ((float)line / totalLines) : 0.0f;
-				markers.push_back({ratio, 200, (int32)line, selection.String()});
+				markers.push_back({ratio, 200, (int32)line+1, selection.String()});
 			}
 
 			//Next one.
@@ -2590,7 +2589,7 @@ Editor::_HandleDoubleClik()
 		}
 	}
 	if (fOverScrollBar != nullptr)
-		fOverScrollBar->UpdateHighlightMarkers(markers);
+		fOverScrollBar->UpdateHighlightMarkers(std::move(markers));
 
 }
 
