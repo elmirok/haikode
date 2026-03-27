@@ -391,8 +391,18 @@ Editor::MessageReceived(BMessage* message)
 		case EDITOR_MARKER_GOTO:
 		{
 			int32 line = message->GetInt32("line", 0);
-			if (line > 0)
-				GoToLine(line);
+			if (line > 0) {
+				//scroll and put the line in the center
+				int targetLine0 = line - 1;
+				int lineHeight = SendMessage(SCI_TEXTHEIGHT, targetLine0, 0);
+				int clientHeight = Bounds().Height();
+				int linesPerPage = clientHeight / lineHeight;
+				int firstLine = targetLine0 - linesPerPage/2;
+				if (firstLine < 0)
+					firstLine = 0;
+				SendMessage(SCI_LINESCROLL, 0, firstLine - SendMessage(SCI_GETFIRSTVISIBLELINE,0,0));
+
+			}
 			break;
 		}
 
