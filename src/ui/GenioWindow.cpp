@@ -1741,7 +1741,7 @@ GenioWindow::_FileOpen(BMessage* msg)
 		const bool openWithPreferred = msg->GetBool("openWithPreferred", false);
 
 		IEditor* editor = fTabManager->EditorBy(&ref);
-		if (editor != nullptr) {
+		if (!openWithPreferred && editor != nullptr) {
 			_SelectEditorToPosition(editor, be_line, lsp_char);
 		} else {
 			if (_FileOpenWithPosition(&ref, openWithPreferred, be_line, lsp_char) != B_OK)
