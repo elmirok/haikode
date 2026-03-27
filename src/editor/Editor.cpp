@@ -527,7 +527,7 @@ Editor::_UpdateOverScrollBarSciMarkers()
 {
 	if (fOverScrollBar != nullptr) {
 		int32 totalLines = SendMessage(SCI_GETLINECOUNT);
-		std::vector<OverScrollBar::ScrollMarker> markers;
+		std::vector<OverScrollBar::ScrollMarker> markers = {};
 		int64 line = 0;
 		while((line = SendMessage(SCI_MARKERNEXT, line, (1 << sci_BOOKMARK))) >= 0) {
 			float ratio = (totalLines > 1) ? ((float)line / totalLines) : 0.0f;
@@ -2554,7 +2554,7 @@ Editor::HasValidFileRef() const
 void
 Editor::_HandleDoubleClik()
 {
-	std::vector<OverScrollBar::ScrollMarker> markers;
+	std::vector<OverScrollBar::ScrollMarker> markers = {};
     _ClearHighlight();
 
 	BString selection = Selection();
@@ -2606,8 +2606,7 @@ Editor::_UpdateHighlight()
 
         _ClearHighlight();
 		if (fOverScrollBar != nullptr) {
-			std::vector<OverScrollBar::ScrollMarker> markers;
-			fOverScrollBar->UpdateHighlightMarkers(markers);
+			fOverScrollBar->UpdateHighlightMarkers({});
 		}
 
         return;
