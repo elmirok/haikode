@@ -1,27 +1,30 @@
 /*
- * Copyright 2025, Andrea Anzani 
+ * Copyright 2025, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
 
 #include "TerminalTab.h"
 
+#include <Looper.h>
 #include <Messenger.h>
 
 #include <cstdio>
 #include <sys/wait.h>
 
+#include "Log.h"
 #include "TerminalManager.h"
 
 
-TerminalTab::TerminalTab()
+TerminalTab::TerminalTab(bool autorestart)
 	:
 	BView("Terminal", B_FRAME_EVENTS),
 	fTermView(nullptr),
 	fCommand(""),
-	fThemeName("")
+	fThemeName(""),
+	fAutorestart(autorestart)
 {
-	SetInitialCommand("/bin/sh -c \"while :; /bin/clear; do /bin/sh -l ;  done\"");
+	SetInitialCommand("/bin/bash -l");
 	SetResizingMode(B_FOLLOW_ALL);
 }
 
@@ -72,12 +75,15 @@ void
 TerminalTab::NotifyCommandQuit(bool exitNormal, int exitStatus)
 {
 	if (exitNormal && exitStatus == 0) {
-		printf("/* the program terminated normally and executed successfully */\n");
+		LogDebug("/* the program terminated normally and executed successfully */\n");
 	} else if (exitNormal && exitStatus != 0) {
-		printf("/* the program terminated normally, but returned a non-zero status */\n");
+		LogDebug("/* the program terminated normally, but returned a non-zero status */\n");
 	} else {
-		printf("/* the program didn't terminate normally */\n");
+		LogDebug("/* the program didn't terminate normally */\n");
 	}
+
+	if (fAutorestart)
+		_RunCommand(fCommand, true);
 }
 
 
@@ -91,4 +97,34 @@ void
 TerminalTab::SetInitialTheme(const char* theme)
 {
 	fThemeName = theme;
+}
+
+
+status_t
+TerminalTab::_RunCommand(const char* cmd, bool clean)
+{
+	//temporary big hack!
+	BView*	target = _FindTarget();
+	if (target == nullptr)
+		return B_ERROR;
+
+	BMessage exec(B_EXECUTE_PROPERTY);
+	exec.AddSpecifier("command");
+	exec.AddString("argv", "/bin/sh");
+	exec.AddString("argv", "-c");
+	exec.AddString("argv", cmd);
+	exec.AddBool("clear", clean);
+
+	return Looper()->PostMessage(&exec, target);
+}
+
+
+BView*
+TerminalTab::_FindTarget() //ugly hack
+{
+	//We need a more deterministic way to find the view!
+	if (fTermView && fTermView->ChildAt(0) && fTermView->ChildAt(0)->ChildAt(0))
+		return fTermView->ChildAt(0)->ChildAt(0);
+
+	return nullptr;
 }

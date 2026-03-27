@@ -1,5 +1,5 @@
 /*
- * Copyright 2025, Andrea Anzani 
+ * Copyright 2025, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -59,11 +59,6 @@ ConsoleIOTab::Stop()
 status_t
 ConsoleIOTab::RunCommand(BMessage* message, bool clean, bool notifyMessage)
 {
-	//temporary big hack!
-	BView*	target = _FindTarget();
-	if (target == nullptr)
-		return B_ERROR;
-
 	BString cmd;
 	if (notifyMessage) {
 		cmd << _BannerCommand(message->GetString("banner_claim", "command"), "started   ", false) << "\n";
@@ -72,16 +67,11 @@ ConsoleIOTab::RunCommand(BMessage* message, bool clean, bool notifyMessage)
 	if (notifyMessage) {
 		cmd << "\n" << _BannerCommand(message->GetString("banner_claim", "command"), "ended     ", true);
 	}
-	BMessage exec(B_EXECUTE_PROPERTY);
-	exec.AddSpecifier("command");
-	exec.AddString("argv", "/bin/sh");
-	exec.AddString("argv", "-c");
-	exec.AddString("argv", cmd);
-	exec.AddBool("clear", clean);
+
 	if (notifyMessage)
 		fContextMessage = *message;
 
-	return Looper()->PostMessage(&exec, target);
+	return _RunCommand(cmd.String(), clean);
 }
 
 BString
@@ -117,12 +107,3 @@ ConsoleIOTab::NotifyCommandQuit(bool exitNormal, int exitStatus)
 	}
 }
 
-BView*
-ConsoleIOTab::_FindTarget()
-{
-	//We need a more deterministic way to find the view!
-	if (fTermView && fTermView->ChildAt(0) && fTermView->ChildAt(0)->ChildAt(0))
-		return fTermView->ChildAt(0)->ChildAt(0);
-
-	return nullptr;
-}

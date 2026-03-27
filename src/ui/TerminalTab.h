@@ -1,5 +1,5 @@
 /*
- * Copyright 2025, Andrea Anzani 
+ * Copyright 2025, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #pragma once
@@ -10,7 +10,7 @@
 
 class TerminalTab : public BView {
 public:
-				TerminalTab();
+				TerminalTab(bool autorestart = false);
 		void	FrameResized(float w, float h) override;
 		void	MessageReceived(BMessage* msg) override;
 		void	AttachedToWindow() override;
@@ -21,7 +21,11 @@ public:
 virtual	void 	NotifyCommandQuit(bool exitNormal, int exitStatus);
 
 protected:
+		BView*	_FindTarget();
+		status_t _RunCommand(const char* argv, bool clean);
+
 	BView*	fTermView;
 	BString fCommand;
 	BString fThemeName;
+	bool	fAutorestart;
 };

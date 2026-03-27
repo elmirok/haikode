@@ -1,5 +1,5 @@
 /*
- * Copyright 2025, Andrea Anzani 
+ * Copyright 2025, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #pragma once
@@ -23,7 +23,6 @@ public:
 
 private:
 
-	BView*		_FindTarget();
 	BString		_BannerCommand(BString claim, BString status, bool ending);
 	BMessage	fContextMessage;
 	BMessenger  fMessenger;

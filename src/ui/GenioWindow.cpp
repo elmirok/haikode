@@ -3335,7 +3335,7 @@ GenioWindow::_InitTabViews()
 	fPanelTabManager->AddPanelByConfig(fBuildLogView, kTabBuildLog);
 	fPanelTabManager->AddPanelByConfig(fMTermView, kTabOutputLog);
 	fPanelTabManager->AddPanelByConfig(fSearchResultTab, kTabSearchResult);
-	fPanelTabManager->AddPanelByConfig(new TerminalTab(), kTabTerminal);
+	fPanelTabManager->AddPanelByConfig(new TerminalTab(true), kTabTerminal);
 
 	//LEFT
 	fProjectsFolderBrowser = new ProjectBrowser();
