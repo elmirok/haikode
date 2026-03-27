@@ -219,6 +219,7 @@ OverScrollBar::_DrawMarkers(Lane& lane, BRect& r,
 				case 1:   color = {220,  50,  50, 255}; break; // Error   – red
 				case 2:   color = {220, 180,  40, 255}; break; // Warning – yellow
 				case 100: color = {255, 255, 255, 255}; break; // White - the caret (?)
+				case 200: color = {255, 255,   0, 255}; break; // Bright yellow
 				default:  color = { 60, 120, 220, 255}; break; // Blue - Info
 			}
 			SetHighColor(color);

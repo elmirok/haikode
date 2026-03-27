@@ -2582,7 +2582,7 @@ Editor::_HandleDoubleClik()
 			int32 line  = SendMessage(SCI_LINEFROMPOSITION, matchStart, 0);
 			if (line > 0) {
 				float ratio = (totalLines > 1) ? ((float)line / totalLines) : 0.0f;
-				markers.push_back({ratio, 7, (int32)line, selection.String()});
+				markers.push_back({ratio, 200, (int32)line, selection.String()});
 			}
 
 			//Next one.
