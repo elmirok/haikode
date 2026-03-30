@@ -41,11 +41,13 @@ OverScrollBar::SetProblemsData(std::vector<ScrollMarker> markers)
 	_UpdateMarkers(PROBLEMS, markers);
 }
 
+
 void
 OverScrollBar::UpdateSciMarkers(std::vector<ScrollMarker> markers)
 {
 	_UpdateMarkers(BOOKMARKS, markers);
 }
+
 
 void
 OverScrollBar::UpdateHighlightMarkers(std::vector<ScrollMarker> markers)
@@ -63,6 +65,7 @@ OverScrollBar::_UpdateMarkers(uint8 index, std::vector<ScrollMarker> markers)
 	fLanes[index].markers = std::move(markers);
 	Invalidate();
 }
+
 
 void
 OverScrollBar::SetCursorPosition(float ratio, int32 line)
