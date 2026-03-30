@@ -64,7 +64,7 @@ public:
 
 
 public:
-    RequestID Initialize(option<DocumentUri> rootUri = {});
+    RequestID Initialize(std::optional<DocumentUri> rootUri = {});
     RequestID Shutdown();
     RequestID Sync();
     void Exit();
@@ -74,7 +74,7 @@ public:
     void DidOpen(LSPTextDocument* textDocument, string_ref text, string_ref languageId);
     void DidClose(LSPTextDocument* textDocument);
     void DidChange(LSPTextDocument* textDocument, std::vector<TextDocumentContentChangeEvent> &changes,
-                   option<bool> wantDiagnostics = {});
+                   std::optional<bool> wantDiagnostics = {});
     void DidSave(LSPTextDocument* textDocument);
     RequestID RangeFomatting(LSPTextDocument* textDocument, Range range);
     RequestID FoldingRange(LSPTextDocument* textDocument);

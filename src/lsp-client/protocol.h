@@ -15,6 +15,7 @@
 #include <tuple>
 #include <map>
 #include <memory>
+#include <optional>
 
 #include <json.hpp>
 
@@ -36,19 +37,19 @@
 
 namespace nlohmann {
     template <typename T>
-    struct adl_serializer<option<T>> {
-        static void to_json(json& j, const option<T>& opt) {
-            if (opt.has()) {
+    struct adl_serializer<std::optional<T>> {
+        static void to_json(json& j, const std::optional<T>& opt) {
+            if (opt.has_value()) {
                 j = opt.value();
             } else {
                 j = nullptr;
             }
         }
-        static void from_json(const json& j, option<T>& opt) {
+        static void from_json(const json& j, std::optional<T>& opt) {
             if (j.is_null()) {
-                opt = option<T>();
+                opt = std::nullopt;
             } else {
-                opt = option<T>(j.get<T>());
+                opt = j.get<T>();
             }
         }
     };
@@ -412,7 +413,7 @@ struct InitializationOptions {
     // also set through the initialize request (initializationOptions field).
     ConfigurationSettings configSettings;
 
-    option<TextType> compilationDatabasePath;
+    std::optional<TextType> compilationDatabasePath;
     // Additional flags to be included in the "fallback command" used when
     // the compilation database doesn't describe an opened file.
     // The command used will be approximately `clang $FILE $fallbackFlags`.
@@ -430,8 +431,8 @@ JSON_SERIALIZE(InitializationOptions, MAP_JSON(
 struct InitializeParams {
     unsigned processId = 0;
     ClientCapabilities capabilities;
-    option<DocumentUri> rootUri;
-    option<TextType> rootPath;
+    std::optional<DocumentUri> rootUri;
+    std::optional<TextType> rootPath;
     InitializationOptions initializationOptions;
 };
 JSON_SERIALIZE(InitializeParams, MAP_JSON(
@@ -731,7 +732,7 @@ struct SymbolDetails {
     /// It is a common representation across several clang tools.
     /// (See USRGeneration.h)
     TextType USR;
-    option<TextType> ID;
+    std::optional<TextType> ID;
 };
 
 struct WorkspaceSymbolParams {
@@ -769,12 +770,12 @@ struct CompletionContext {
     CompletionTriggerKind triggerKind = CompletionTriggerKind::Invoked;
     /// The trigger character (a single character) that has trigger code complete.
     /// Is undefined if `triggerKind !== CompletionTriggerKind.TriggerCharacter`
-    option<TextType> triggerCharacter;
+    std::optional<TextType> triggerCharacter;
 };
 JSON_SERIALIZE(CompletionContext, MAP_JSON(MAP_KEY(triggerKind), MAP_KEY(triggerCharacter)), {});
 
 struct CompletionParams : TextDocumentPositionParams {
-    option<CompletionContext> context;
+    std::optional<CompletionContext> context;
 };
 JSON_SERIALIZE(CompletionParams, MAP_JSON(MAP_KEY(context), MAP_KEY(textDocument), MAP_KEY(position)), {});
 
@@ -790,7 +791,7 @@ struct Hover {
 
     /// An optional range is a range inside a text document
     /// that is used to visualize a hover, e.g. by changing the background color.
-    option<Range> range;
+    std::optional<Range> range;
 };
 JSON_SERIALIZE(Hover, {}, {FROM_KEY(contents);FROM_KEY(range)});
 // enum class InsertTextFormat
@@ -888,7 +889,7 @@ struct TypeHierarchyItem {
 
     /// Optional detail for the hierarchy item. It can be, for instance, the
     /// signature of a function or method.
-    option<std::string> detail;
+    std::optional<std::string> detail;
 
     /// The kind of the hierarchy item. For instance, class or interface.
     SymbolKind kind;
@@ -913,12 +914,12 @@ struct TypeHierarchyItem {
     /// If this type hierarchy item is resolved, it contains the direct parents.
     /// Could be empty if the item does not have direct parents. If not defined,
     /// the parents have not been resolved yet.
-    option<std::vector<TypeHierarchyItem>> parents;
+    std::optional<std::vector<TypeHierarchyItem>> parents;
 
     /// If this type hierarchy item is resolved, it contains the direct children
     /// of the current item. Could be empty if the item does not have any
     /// descendants. If not defined, the children have not been resolved.
-    option<std::vector<TypeHierarchyItem>> children;
+    std::optional<std::vector<TypeHierarchyItem>> children;
 
     /// The protocol has a slot here for an optional 'data' filed, which can
     /// be used to identify a type hierarchy item in a resolve request. We don't

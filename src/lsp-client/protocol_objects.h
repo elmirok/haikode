@@ -5,6 +5,8 @@
 #ifndef protocol_objects_H
 #define protocol_objects_H
 
+#include <map>
+#include <optional>
 #include <string>
 #include <vector>
 #include <tuple>
@@ -61,10 +63,10 @@ struct Range {
 
 struct TextDocumentContentChangeEvent {
     /// The range of the document that changed.
-    option<Range> range;
+    std::optional<Range> range;
 
     /// The length of the range that got replaced.
-    //xed option<int> rangeLength;
+    //xed std::optional<int> rangeLength;
     /// The new text of the range/document.
     std::string text;
 };
@@ -279,23 +281,23 @@ struct Diagnostic {
 
     /// An array of related diagnostic information, e.g. when symbol-names within
     /// a scope collide all definitions can be marked via this property.
-    option<std::vector<DiagnosticRelatedInformation>> relatedInformation;
+    std::optional<std::vector<DiagnosticRelatedInformation>> relatedInformation;
 
     /// The diagnostic's category. Can be omitted.
     /// An LSP extension that's used to send the name of the category over to the
     /// client. The category typically describes the compilation stage during
     /// which the issue was produced, e.g. "Semantic Issue" or "Parse Issue".
-    option<std::string> category;
+    std::optional<std::string> category;
 
     /// Clangd extension: code actions related to this diagnostic.
     /// Only with capability textDocument.publishDiagnostics.codeActionsInline.
     /// (These actions can also be obtained using textDocument/codeAction).
-    option<std::vector<CodeAction>> codeActions;
+    std::optional<std::vector<CodeAction>> codeActions;
 };
 
 struct WorkspaceEdit {
     /// Holds changes to existing resources.
-    option<std::map<std::string, std::vector<TextEdit>>> changes;
+    std::optional<std::map<std::string, std::vector<TextEdit>>> changes;
 
     /// Note: "documentChanges" is not currently used because currently there is
     /// no support for versioned edits.
@@ -313,8 +315,8 @@ struct TweakArgs {
 struct ExecuteCommandParams {
     std::string command;
     // Arguments
-    option<WorkspaceEdit> workspaceEdit;
-    option<TweakArgs> tweakArgs;
+    std::optional<WorkspaceEdit> workspaceEdit;
+    std::optional<TweakArgs> tweakArgs;
 };
 
 struct LspCommand : public ExecuteCommandParams {
@@ -327,18 +329,18 @@ struct CodeAction {
 
     /// The kind of the code action.
     /// Used to filter code actions.
-    option<std::string> kind;
+    std::optional<std::string> kind;
     /// The diagnostics that this code action resolves.
-    option<std::vector<Diagnostic>> diagnostics;
+    std::optional<std::vector<Diagnostic>> diagnostics;
 
     /// The workspace edit this code action performs.
-    option<WorkspaceEdit> edit;
+    std::optional<WorkspaceEdit> edit;
 
     /// A command this code action executes. If a code action provides an edit
     /// and a command, first the edit is executed and then the command.
-    option<LspCommand> command;
+    std::optional<LspCommand> command;
 
-	option<nlohmann::json> data;
+	std::optional<nlohmann::json> data;
 };
 
 
@@ -411,7 +413,7 @@ struct SymbolInformation {
     /// The location of this symbol.
     Location location;
     /// The name of the symbol containing this symbol.
-    option<std::string> containerName;
+    std::optional<std::string> containerName;
 };
 
 

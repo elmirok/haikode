@@ -319,7 +319,7 @@ LSPProjectWrapper::onRequest(std::string method, value& params, value& ID)
 
 
 RequestID
-LSPProjectWrapper::Initialize(option<DocumentUri> rootUri)
+LSPProjectWrapper::Initialize(std::optional<DocumentUri> rootUri)
 {
 	InitializeParams params;
 	params.processId = fLSPPipeClient->GetChildPid();
@@ -444,7 +444,7 @@ LSPProjectWrapper::DidClose(LSPTextDocument* textDocument)
 
 void
 LSPProjectWrapper::DidChange(LSPTextDocument* textDocument,
-	std::vector<TextDocumentContentChangeEvent>& changes, option<bool> wantDiagnostics)
+	std::vector<TextDocumentContentChangeEvent>& changes, std::optional<bool> wantDiagnostics)
 {
 	DidChangeTextDocumentParams params;
 	params.textDocument.uri = std::move(textDocument->GetFilenameURI().String());
@@ -554,7 +554,7 @@ LSPProjectWrapper::Completion(
 	CompletionParams params;
 	params.textDocument.uri = std::move(textDocument->GetFilenameURI().String());
 	params.position = position;
-	params.context = option<CompletionContext>(context);
+	params.context = std::optional<CompletionContext>(context);
 	return SendRequest(X(textDocument), "textDocument/completion", params);
 }
 
