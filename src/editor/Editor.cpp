@@ -2119,6 +2119,9 @@ Editor::_ApplyExtensionSettings()
 		Styler::ApplyLanguage(this, styles);
 	}
 
+	if ((bool)gCFG["highlight_words"] == false)
+		_ClearHighlight();
+
 	fBracingAvailable = gCFG["brace_match"];
 }
 
@@ -2563,6 +2566,9 @@ Editor::HasValidFileRef() const
 void
 Editor::_HandleDoubleClik()
 {
+	if ((bool)gCFG["highlight_words"] == false)
+		return;
+
 	std::vector<OverScrollBar::ScrollMarker> markers = {};
     _ClearHighlight();
 
@@ -2607,6 +2613,9 @@ Editor::_HandleDoubleClik()
 void
 Editor::_UpdateHighlight()
 {
+	if ((bool)gCFG["highlight_words"] == false)
+		return;
+
 	BString selection = Selection();
     // Se non c'è selezione o la lunghezza è diversa dalla parola evidenziata
     if (selection.Length() == 0 ||
