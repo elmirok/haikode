@@ -59,7 +59,7 @@ const int kIdleTimeout = 400000; //0.4secs
 #define UNSET 0
 #define UNUSED 0
 
-#define IND_HIGHLIGHT	8+4 //FIXME
+#define IND_HIGHLIGHT	IndicatorIndex::IND_OVER + 1 //See LSPEditorWrapper.h
 
 
 bool Editor::sAutoIndent = true;
