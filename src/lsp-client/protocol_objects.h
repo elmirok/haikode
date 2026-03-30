@@ -26,16 +26,6 @@ struct TextDocumentContentChangeEvent {
     std::string text;
 };
 
-struct TextEdit {
-    /// The range of the text document to be manipulated. To insert
-    /// text into a document create a range where start === end.
-    Range range;
-
-    /// The string to be inserted. For delete operations use an
-    /// empty string.
-    std::string newText;
-};
-
 enum class CompletionItemKind {
     Missing = 0,
     Text = 1,
@@ -185,22 +175,6 @@ struct SignatureHelp {
     /// This is a clangd-specific extension, it is only available via C++ API and
     /// not currently serialized for the LSP.
     Position argListStart;
-};
-
-struct Location {
-    /// The text document's URI.
-    std::string uri;
-    Range range;
-
-    friend bool operator==(const Location &LHS, const Location &RHS) {
-        return LHS.uri == RHS.uri && LHS.range == RHS.range;
-    }
-    friend bool operator!=(const Location &LHS, const Location &RHS) {
-        return !(LHS == RHS);
-    }
-    friend bool operator<(const Location &LHS, const Location &RHS) {
-        return std::tie(LHS.uri, LHS.range) < std::tie(RHS.uri, RHS.range);
-    }
 };
 
 struct DiagnosticRelatedInformation {

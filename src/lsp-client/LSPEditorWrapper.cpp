@@ -678,7 +678,7 @@ LSPEditorWrapper::_DoGoTo(nlohmann::json& items)
 		else
 			location = items.get<Location>();
 
-		std::string uri = location.uri;
+		std::string uri(location.uri.data());
 		Position pos = location.range.start;
 		OpenFileURI(uri, pos.line + 1, pos.character);
 	}

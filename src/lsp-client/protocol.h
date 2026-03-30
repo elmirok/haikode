@@ -53,6 +53,16 @@ namespace nlohmann {
             }
         }
     };
+
+    template <>
+    struct adl_serializer<lsp::DocumentUri> {
+        static void to_json(json& j, const lsp::DocumentUri& uri) {
+            j = std::string(uri.data());
+        }
+        static void from_json(const json& j, lsp::DocumentUri& uri) {
+            uri = lsp::Uri::parse(j.get<std::string>());
+        }
+    };
 }
 
 using TextType = string_ref;

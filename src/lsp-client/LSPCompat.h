@@ -51,8 +51,8 @@ inline bool operator<(const Range& a, const Range& b) {
 } // namespace lsp
 
 // --- Phase: Location, TextEdit ---
-// using Location = lsp::Location;
-// using TextEdit = lsp::TextEdit;
+using Location = lsp::Location;
+using TextEdit = lsp::TextEdit;
 
 // --- Phase: Completion ---
 // using CompletionItem = lsp::CompletionItem;
