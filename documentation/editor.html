@@ -34,7 +34,8 @@
 	<a href="#elements-lock-menu">┣━ Lock menu</a><br />
 	<a href="#elements-line-column">┣━ Line/Column display</a><br />
 	<a href="#elements-status">┣━ Status display</a><br />
-	<a href="#elements-vruler">┗━ Vertical ruler</a><br />
+	<a href="#elements-vruler">┣━ Vertical ruler</a><br />
+	<a href="#elements-infoscroll">┗━ Info scrollbar</a><br />
 	<a href="#working">Working with the editor</a>
 </td></tr>
 </tbody></table>
@@ -123,11 +124,41 @@ Locked files are marked with a little lock symbol in the tab.</p>
 <p>In <a href="settings-genio.html#editor_visual">Genio's settings</a> you can opt to display a vertical line at a specific column to remind you to keep to a maximal line length, for example, 100 chars.</p>
 
 
+<h3>
+<a href="#"><img src="./images/up.png" style="border:none;float:right" alt="index" /></a>
+<a id="elements-infoscroll" name="elements-infoscroll">Info scrollbar</a></h3>
+
+<p><img src="./images/editor-info-scrollbar.png" style="border:none" class="floatleft" alt="The info scrollbar" /></p>
+
+<p>Besides the ususal scrolling, the vertical scrollbar has indicators to show various information:
+
+<table summary="layout">
+<tr><td><ul>
+<li>Red boxes show lines with errors.</li>
+<li>Blue boxes show bookmarks.</li>
+<li>Yellow boxes show lines with <a href="#highlight">highlighted</a> words.</li>
+<li>The white line is the current caret position.</li></ul></td></tr>
+</table></p>
+
+<p>Click an indicator to jump to that location of the code.</p>
+
+<p>Did you know that left-clicking into the scrollbar moves you by one page up/down, while right-clicking jumps directly to the spot you clicked? That works system-wide, by the way…</p>
+
+<p style="clear:left"></p>
+
+
 <h2>
 <a href="#"><img src="./images/up.png" style="border:none;float:right" alt="index" /></a>
 <a id="working" name="working">Working with the editor</a></h2>
 
 <p>Let's have a quick look at some features that make working in the editor more fun and efficient.</p>
+
+
+<h3>
+<a href="#"><img src="./images/up.png" style="border:none;float:right" alt="index" /></a>
+<a id="highlight" name="highlight">Highlighting words</a></h3>
+
+<p>If you double-click a word, it gets highlighted in the whole file. The vertical info scrollbar will show yellow indicators for every occurence.</p>
 
 
 <h3>
