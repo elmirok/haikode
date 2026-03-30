@@ -19,6 +19,7 @@
 #include <String.h>
 
 #include "Editor.h"
+#include "LSPEditorWrapper.h"
 #include "ScintillaView.h"
 #include "ScintillaUtils.h"
 #include "Utils.h"
@@ -155,6 +156,15 @@ Styler::_ApplyGlobal(BScintillaView* editor, const char* style, const BPath &pat
 				if (s.bgColor != -1) {
 					editor->SendMessage(SCI_MARKERSETBACK, sci_BOOKMARK, s.bgColor);
 				}
+			} else if (name == "Word highlight") {
+				editor->SendMessage(SCI_INDICSETSTYLE, IND_HIGHLIGHT, INDIC_ROUNDBOX);
+				if (s.bgColor != -1) {
+					editor->SendMessage(SCI_INDICSETFORE, IND_HIGHLIGHT, s.bgColor);
+				} else if (s.fgColor != -1) {
+					editor->SendMessage(SCI_INDICSETFORE, IND_HIGHLIGHT, s.fgColor);
+				}
+				editor->SendMessage(SCI_INDICSETALPHA, IND_HIGHLIGHT, 100);
+				editor->SendMessage(SCI_INDICSETOUTLINEALPHA, IND_HIGHLIGHT, 150);
 			}
 		}
 	}

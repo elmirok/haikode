@@ -21,6 +21,7 @@ enum IndicatorIndex {
 	IND_DIAG = INDICATOR_CONTAINER + 1, //Style for Problems
 	IND_LINK = INDICATOR_CONTAINER + 2, //Style for Links
 	IND_OVER = INDICATOR_CONTAINER + 3, //Style for mouse hover
+	IND_HIGHLIGHT = INDICATOR_CONTAINER + 4, //Style for word highlight
 };
 
 //#define DOCUMENT_LINK

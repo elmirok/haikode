@@ -59,7 +59,7 @@ const int kIdleTimeout = 400000; //0.4secs
 #define UNSET 0
 #define UNUSED 0
 
-#define IND_HIGHLIGHT	IndicatorIndex::IND_OVER + 1 //See LSPEditorWrapper.h
+// IND_HIGHLIGHT is now defined in LSPEditorWrapper.h
 
 
 bool Editor::sAutoIndent = true;
@@ -147,11 +147,11 @@ Editor::Editor(entry_ref* ref, const BMessenger& target)
 	SendMessage(SCI_ASSIGNCMDKEY, SCK_LEFT + (SCMOD_META   << 16), SCI_WORDPARTLEFT);
 	SendMessage(SCI_ASSIGNCMDKEY, SCK_LEFT + ( (SCMOD_META + SCMOD_SHIFT)   << 16), SCI_WORDPARTLEFTEXTEND);
 
-	//Indicator for Auto-hightlight
+	//Indicator for Auto-hightlight (defaults, overridden by style "Word highlight")
 	SendMessage(SCI_INDICSETSTYLE,        IND_HIGHLIGHT, INDIC_ROUNDBOX);
-	SendMessage(SCI_INDICSETFORE,         IND_HIGHLIGHT, 0xff0000); //RGB(0, 120, 215)); // Colore blu
-	SendMessage(SCI_INDICSETALPHA,        IND_HIGHLIGHT, 100);             // Trasparenza
-	SendMessage(SCI_INDICSETOUTLINEALPHA, IND_HIGHLIGHT, 150);      // Bordo
+	SendMessage(SCI_INDICSETFORE,         IND_HIGHLIGHT, 0xff0000);
+	SendMessage(SCI_INDICSETALPHA,        IND_HIGHLIGHT, 100);
+	SendMessage(SCI_INDICSETOUTLINEALPHA, IND_HIGHLIGHT, 150);
 
 }
 
