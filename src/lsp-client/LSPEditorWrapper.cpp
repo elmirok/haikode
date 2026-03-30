@@ -707,7 +707,7 @@ LSPEditorWrapper::_DoCompletion(json& params)
 {
 	std::string line;
 	Position position;
-	position.character = -1;
+	bool positionResolved = false;
 
 	CompletionList allItems = params.get<CompletionList>();
 	auto& items = allItems.items;
@@ -729,9 +729,10 @@ LSPEditorWrapper::_DoCompletion(json& params)
 			item.textEdit.range.end = pos;
 
 			// fancy algo to find insertText before current position.
-			if (position.character == -1) {
+			if (!positionResolved) {
 				line = GetCurrentLine();
 				GetCurrentLSPPosition(&position);
+				positionResolved = true;
 			}
 
 			Sci_Position current = position.character - 1;
