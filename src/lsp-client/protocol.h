@@ -57,7 +57,7 @@ namespace nlohmann {
     template <>
     struct adl_serializer<lsp::DocumentUri> {
         static void to_json(json& j, const lsp::DocumentUri& uri) {
-            j = std::string(uri.data());
+            j = uri.toString();
         }
         static void from_json(const json& j, lsp::DocumentUri& uri) {
             uri = lsp::Uri::parse(j.get<std::string>());
@@ -653,29 +653,21 @@ struct DocumentSymbolParams {
 };
 JSON_SERIALIZE(DocumentSymbolParams, MAP_JSON(MAP_KEY(textDocument)), {});
 
-//struct DiagnosticRelatedInformation
-JSON_SERIALIZE(DiagnosticRelatedInformation, MAP_JSON(MAP_KEY(location), MAP_KEY(message)), {FROM_KEY(location);FROM_KEY(message);});
-
-
-//struct Diagnostic
-JSON_SERIALIZE(Diagnostic,
-    MAP_JSON(
-        MAP_KEY(range),
-        MAP_KEY(source),
-        MAP_KEY(message),
-        MAP_KEY(relatedInformation),
-        MAP_KEY(category),
-        MAP_KEY(codeActions)
-    ),
-    {
-        FROM_KEY(range);
-        /*FROM_KEY(code);*/
-        FROM_KEY(source);
-        FROM_KEY(message);
-        FROM_KEY(relatedInformation);
-        FROM_KEY(category);
-        FROM_KEY(codeActions);
-    });
+// Diagnostic and DiagnosticRelatedInformation — migrated to lsp-framework types.
+// Bridge serializer so nlohmann can serialize/deserialize lsp::Diagnostic
+// (needed by CodeActionContext and PublishDiagnosticsParams).
+namespace nlohmann {
+    template <>
+    struct adl_serializer<lsp::Diagnostic> {
+        static void to_json(json& j, const lsp::Diagnostic& value) {
+            lsp::Diagnostic copy = value;
+            j = json::parse(lsp::json::stringify(lsp::toJson(std::move(copy))));
+        }
+        static void from_json(const json& j, lsp::Diagnostic& value) {
+            lsp::fromJson(lsp::json::parse(j.dump()), value);
+        }
+    };
+}
 
 struct PublishDiagnosticsParams {
     /**

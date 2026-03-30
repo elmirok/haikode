@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -114,7 +114,7 @@ LSPEditorWrapper::ApplyFix(BMessage* info)
 	int32 actIndex = info->GetInt32("action", -1);
 	if (diaIndex >= 0 && fLastDiagnostics.size() > (size_t)diaIndex) {
 		std::map<std::string, std::vector<TextEdit>> map =
-			fLastDiagnostics.at(diaIndex).diagnostic.codeActions.value()[actIndex].edit.value().changes.value();
+			fLastDiagnostics.at(diaIndex).codeActions.value()[actIndex].edit.value().changes.value();
 		for (auto& ed : map){
 			if (GetFilenameURI().ICompare(ed.first.c_str()) == 0) {
 				json edits = ed.second;
@@ -718,8 +718,9 @@ LSPEditorWrapper::_DoGoTo(nlohmann::json& items)
 		else
 			location = items.get<Location>();
 
-		std::string uri(location.uri.data());
+		std::string uri = location.uri.toString();
 		Position pos = location.range.start;
+
 		OpenFileURI(uri, pos.line + 1, pos.character);
 	}
 }
@@ -828,36 +829,36 @@ LSPEditorWrapper::_RemoveAllDiagnostics()
 void
 LSPEditorWrapper::_DoDiagnostics(nlohmann::json& params)
 {
-	auto vect = params["diagnostics"].get<std::vector<Diagnostic>>();
-
 	_RemoveAllDiagnostics();
 
-	for (auto& v : vect) {
-		LSPDiagnostic lspDiag;
+	for (auto& diagJson : params["diagnostics"]) {
+		auto diag = LSPBridge::fromNlohmann<lsp::Diagnostic>(diagJson);
 
-		Range& r = v.range;
+		LSPDiagnostic lspDiag;
+		lspDiag.diagnostic = std::move(diag);
+
+		Range& r = lspDiag.diagnostic.range;
 		InfoRange& ir = lspDiag.range;
 		ir.from = FromLSPPositionToSciPosition(&r.start);
 		ir.to = FromLSPPositionToSciPosition(&r.end);
-		ir.info = v.message;
+		ir.info = lspDiag.diagnostic.message;
 
-		lspDiag.diagnostic = v;
+		// Extract clangd extension fields (not part of the LSP spec).
+		if (diagJson.contains("category"))
+			lspDiag.category = diagJson["category"].get<std::string>();
+		if (diagJson.contains("codeActions"))
+			lspDiag.codeActions = diagJson["codeActions"].get<std::vector<CodeAction>>();
 
-		LogTrace("Diagnostics [%ld->%ld] [%s]", ir.from, ir.to, ir.info.c_str());
+		LogTrace("Diagnostics [%ld->%ld] [%s][%s]\n", ir.from, ir.to, ir.info.c_str(),lspDiag.diagnostic.message.c_str());
 		fEditor->SendMessage(SCI_INDICATORFILLRANGE, ir.from, ir.to - ir.from);
 
-		// dia["be:line"] = v.range.start.line + 1;
-		// dia["lsp:character"] = v.range.start.character;
-
-		if (v.codeActions.value().size() == 0) {
-			// if the language serve does not support in-line code actions we request them
-			// asyncronously
-			// TODO: Check the capability
-			RequestCodeActions(v);
+		if (!lspDiag.codeActions.has_value() || lspDiag.codeActions->empty()) {
+			RequestCodeActions(lspDiag.diagnostic);
 		}
 
 		fLastDiagnostics.push_back(lspDiag);
 	}
+
 
 	if (fEditor->LockLooper()) {
 		fEditor->SetProblems();
@@ -877,7 +878,7 @@ void
 LSPEditorWrapper::RequestCodeActions(Diagnostic& diagnostic)
 {
 	CodeActionContext context;
-	context.diagnostics.push_back(std::move(diagnostic));
+	context.diagnostics.push_back(diagnostic);
 	fLSPProjectWrapper->CodeAction(this, diagnostic.range, context);
 }
 
@@ -908,8 +909,12 @@ LSPEditorWrapper::_DoCodeActions(nlohmann::json& params)
 
 		for (auto& d: fLastDiagnostics) {
 			if (d.diagnostic.range == range) {
-				d.diagnostic.codeActions.value().push_back(action);
-				action.diagnostics.value().push_back(d.diagnostic);
+				if (!d.codeActions)
+					d.codeActions.emplace();
+				d.codeActions->push_back(action);
+				if (!action.diagnostics)
+					action.diagnostics.emplace();
+				action.diagnostics->push_back(d.diagnostic);
 
 				if (v["edit"].empty())
 					CodeActionResolve(v);
@@ -938,11 +943,13 @@ LSPEditorWrapper::_DoCodeActionResolve(nlohmann::json& params)
 
 	for (auto& d: fLastDiagnostics) {
 		if (d.diagnostic.range == range) {
-			for (auto& ca: d.diagnostic.codeActions.value()) {
-				auto caIdentifier = ca.data.value()["Identifier"].get<std::string>();
-				auto actionIdentifier = action.data.value()["Identifier"].get<std::string>();
-				if (caIdentifier == actionIdentifier) {
-					ca.edit = action.edit;
+			if (d.codeActions.has_value()) {
+				for (auto& ca: d.codeActions.value()) {
+					auto caIdentifier = ca.data.value()["Identifier"].get<std::string>();
+					auto actionIdentifier = action.data.value()["Identifier"].get<std::string>();
+					if (caIdentifier == actionIdentifier) {
+						ca.edit = action.edit;
+					}
 				}
 			}
 		}
@@ -1201,7 +1208,11 @@ LSPEditorWrapper::OpenFileURI(std::string uri, int32 line, int32 character, BStr
 
 				JumpNavigator::getInstance()->JumpToFile(&refs, fEditor->FileRef());
 			}
+		} else {
+			LogError("OpenFileURI: file does not exist %s", uri.c_str());
 		}
+	} else {
+		LogError("Invalid document URI (%s)", uri.c_str());
 	}
 }
 

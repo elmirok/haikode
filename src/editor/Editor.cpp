@@ -2432,7 +2432,7 @@ Editor::SetProblems()
 			for (auto& dia : diagnostics) {
 				int32 line = dia.diagnostic.range.start.line + 1;
 				float ratio = (totalLines > 1) ? ((float)line / totalLines) : 0.0f;
-				markers.push_back({ratio, dia.diagnostic.severity, line, dia.diagnostic.message});
+				markers.push_back({ratio, dia.diagnostic.severity ? static_cast<int>(*dia.diagnostic.severity) : 0, line, dia.diagnostic.message});
 			}
 			fOverScrollBar->SetProblemsData(std::move(markers));
 		}

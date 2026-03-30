@@ -117,52 +117,9 @@ struct SignatureHelp {
     Position argListStart;
 };
 
-struct DiagnosticRelatedInformation {
-    /// The location of this related diagnostic information.
-    Location location;
-    /// The message of this related diagnostic information.
-    std::string message;
-};
-
-struct CodeAction;
-
-struct Diagnostic {
-    /// The range at which the message applies.
-    Range range;
-
-    /// The diagnostic's severity. Can be omitted. If omitted it is up to the
-    /// client to interpret diagnostics as error, warning, info or hint.
-    int severity = 0;
-
-    /// The diagnostic's code. Can be omitted.
-	/// Note: this has been removed as can be a string (clangd) or a int (ccls)
-	/// we must implement a proper deserializer but because so far is not used,
-	/// let's just comment it.
-
-    ///std::string code; //code?: integer | string;
-
-    /// A human-readable string describing the source of this
-    /// diagnostic, e.g. 'typescript' or 'super lint'.
-    std::string source;
-
-    /// The diagnostic's message.
-    std::string message;
-
-    /// An array of related diagnostic information, e.g. when symbol-names within
-    /// a scope collide all definitions can be marked via this property.
-    std::optional<std::vector<DiagnosticRelatedInformation>> relatedInformation;
-
-    /// The diagnostic's category. Can be omitted.
-    /// An LSP extension that's used to send the name of the category over to the
-    /// client. The category typically describes the compilation stage during
-    /// which the issue was produced, e.g. "Semantic Issue" or "Parse Issue".
-    std::optional<std::string> category;
-
-    /// Clangd extension: code actions related to this diagnostic.
-    /// Only with capability textDocument.publishDiagnostics.codeActionsInline.
-    /// (These actions can also be obtained using textDocument/codeAction).
-    std::optional<std::vector<CodeAction>> codeActions;
-};
+// Diagnostic and DiagnosticRelatedInformation — migrated to lsp-framework types.
+// See LSPCompat.h for the type aliases.
+// Clangd extension fields (category, codeActions) live in LSPDiagnostic (LSPEditorWrapper.h).
 
 struct WorkspaceEdit {
     /// Holds changes to existing resources.

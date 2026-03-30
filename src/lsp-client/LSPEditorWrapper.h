@@ -30,6 +30,10 @@ struct LSPDiagnostic {
 	InfoRange range;
 	Diagnostic diagnostic;
 	std::string fixTitle;
+
+	// Clangd extension fields (not part of the LSP spec, not in lsp::Diagnostic).
+	std::optional<std::string> category;
+	std::optional<std::vector<CodeAction>> codeActions;
 };
 
 class Editor;

@@ -63,9 +63,10 @@ using CompletionList = lsp::CompletionList;
 // using InsertTextFormat = lsp::InsertTextFormat;
 
 // --- Phase: Diagnostics ---
-// using DiagnosticRelatedInformation = lsp::DiagnosticRelatedInformation;
+using DiagnosticRelatedInformation = lsp::DiagnosticRelatedInformation;
+using Diagnostic = lsp::Diagnostic;
 // Note: lsp::Diagnostic does NOT have 'category' or 'codeActions' (clangd extensions).
-// A Genio wrapper struct will be needed — see step 2.9 of the migration plan.
+// Those fields live in LSPDiagnostic (LSPEditorWrapper.h).
 
 // --- Phase: CodeAction, WorkspaceEdit ---
 // using CodeAction = lsp::CodeAction;

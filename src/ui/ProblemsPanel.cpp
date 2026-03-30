@@ -121,8 +121,8 @@ ProblemsPanel::MessageReceived(BMessage* msg)
 					int32 index = lsp->DiagnosticFromRange(range, dia);
 					fPopUpMenu = new BPopUpMenu("_popup");
 					fPopUpMenu->SetRadioMode(false);
-					if (index > -1 && dia.diagnostic.codeActions.value().size() > 0) {
-						std::vector<CodeAction> actions = dia.diagnostic.codeActions.value();
+					if (index > -1 && dia.codeActions.has_value() && dia.codeActions->size() > 0) {
+						std::vector<CodeAction> actions = dia.codeActions.value();
 						for (int i = 0; i < static_cast<int>(actions.size()); i++) {
 							auto item = new BMenuItem(actions[i].title.c_str(),
 								new GMessage({{"what", kApplyFix}, {"index", index}, {"action", i},
@@ -162,16 +162,17 @@ ProblemsPanel::UpdateProblems(IEditor* editor)
 			RangeRow* row = new RangeRow();
 
 			GMessage range;
-			range["start:line"] = dia.diagnostic.range.start.line;
-			range["start:character"] = dia.diagnostic.range.start.character;
-			range["end:line"] = dia.diagnostic.range.end.line;
-			range["end:character"] = dia.diagnostic.range.end.character;
+			range["start:line"] = (int32)dia.diagnostic.range.start.line;
+			range["start:character"] = (int32)dia.diagnostic.range.start.character;
+			range["end:line"] = (int32)dia.diagnostic.range.end.line;
+			range["end:character"] = (int32)dia.diagnostic.range.end.character;
+
 			row->fRange = range;
 			row->fEditor = editor;
 			row->fRange.AddRef("refs", editor->FileRef());
-			row->SetField(new BStringField(dia.diagnostic.category.value().c_str()), kCategoryColumn);
+			row->SetField(new BStringField(dia.category.value_or("").c_str()), kCategoryColumn);
 			row->SetField(new BStringField(dia.diagnostic.message.c_str()), kMessageColumn);
-			row->SetField(new BStringField(dia.diagnostic.source.c_str()), kSourceColumn);
+			row->SetField(new BStringField(dia.diagnostic.source.value_or("").c_str()), kSourceColumn);
 			BString line;
 			line.SetToFormat("%d", dia.diagnostic.range.start.line + 1);
 			row->SetField(new BStringField(line), kPositionColumn);
