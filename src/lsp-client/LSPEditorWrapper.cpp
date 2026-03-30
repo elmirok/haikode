@@ -644,37 +644,31 @@ LSPEditorWrapper::_ShowToolTip(const char* text)
 
 
 static std::string
+_MarkedStringToText(const lsp::MarkedString& ms)
+{
+	if (auto* s = std::get_if<lsp::String>(&ms))
+		return *s;
+	return std::get<lsp::MarkedString_Language_Value>(ms).value;
+}
+
+
+static std::string
 _ExtractHoverText(const lsp::Hover& hover)
 {
-	return std::visit([](auto&& contents) -> std::string {
-		using T = std::decay_t<decltype(contents)>;
-		if constexpr (std::is_same_v<T, lsp::MarkupContent>) {
-			return contents.value;
-		} else if constexpr (std::is_same_v<T, lsp::MarkedString>) {
-			// MarkedString is OneOf<String, MarkedString_Language_Value>
-			return std::visit([](auto&& ms) -> std::string {
-				using U = std::decay_t<decltype(ms)>;
-				if constexpr (std::is_same_v<U, lsp::String>)
-					return ms;
-				else
-					return ms.value;
-			}, contents);
-		} else if constexpr (std::is_same_v<T, lsp::Array<lsp::MarkedString>>) {
-			std::string combined;
-			for (auto& ms : contents) {
-				if (!combined.empty())
-					combined += "\n\n";
-				combined += std::visit([](auto&& m) -> std::string {
-					using U = std::decay_t<decltype(m)>;
-					if constexpr (std::is_same_v<U, lsp::String>)
-						return m;
-					else
-						return m.value;
-				}, ms);
-			}
-			return combined;
-		}
-	}, hover.contents);
+	if (auto* mc = std::get_if<lsp::MarkupContent>(&hover.contents))
+		return mc->value;
+
+	if (auto* ms = std::get_if<lsp::MarkedString>(&hover.contents))
+		return _MarkedStringToText(*ms);
+
+	auto& arr = std::get<lsp::Array<lsp::MarkedString>>(hover.contents);
+	std::string combined;
+	for (auto& ms : arr) {
+		if (!combined.empty())
+			combined += "\n\n";
+		combined += _MarkedStringToText(ms);
+	}
+	return combined;
 }
 
 
