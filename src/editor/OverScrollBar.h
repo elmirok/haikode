@@ -27,7 +27,7 @@ class OverScrollBar : public BView {
 		};
 
 		struct Lane {
-			uint8 index;
+			uint8 index; //not used?
 			BRect rect;
 			std::vector<ScrollMarker> markers;
 		};
@@ -35,6 +35,7 @@ class OverScrollBar : public BView {
 
 	void	SetProblemsData(std::vector<ScrollMarker> markers);
 	void	UpdateSciMarkers(std::vector<ScrollMarker> markers);
+	void	UpdateHighlightMarkers(std::vector<ScrollMarker> markers);
 
 	void	SetCursorPosition(float ratio, int32 line);
 
@@ -54,12 +55,13 @@ private:
 
 	bool	_DoubleArrows(const BRect& bounds) const;
 
-	void	_DrawMarkers(std::vector<ScrollMarker>& markers, uint lane,
-							BRect& bounds,
+	void	_DrawMarkers(Lane& markers, BRect& bounds,
 							float startPoint,
 							float trackHeight);
 
 	void	_DrawCaret(BRect& bounds, float startPoint, float trackHeight);
+
+	void	_UpdateMarkers(uint8 index, std::vector<ScrollMarker> markers);
 
 	scroll_bar_info             fScrollBarInfo;
 	BMessenger                  fTarget;

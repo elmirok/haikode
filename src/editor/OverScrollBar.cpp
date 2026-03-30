@@ -3,7 +3,6 @@
 #include <Catalog.h>
 #include <ToolTip.h>
 
-#include <iostream>
 #include <map>
 
 #include "Editor.h"
@@ -16,8 +15,9 @@
 
 enum lanes {
 	BOOKMARKS = 0,
-	PROBLEMS = 1,
-	OTHER = 2
+	PROBLEMS  = 1,
+	HIGHLIGHT = 2,
+	LANES_COUNT = 3
 };
 
 OverScrollBar::OverScrollBar(BRect rect, BMessenger target)
@@ -29,33 +29,40 @@ OverScrollBar::OverScrollBar(BRect rect, BMessenger target)
 	fCaretMarker.severity = 100;
 	fCaretMarker.message = B_TRANSLATE("Caret position");
 
-	fLanes[BOOKMARKS] = { 0, BRect(0, 0, 5, MARKER_HEIGHT - 1), };
-	fLanes[PROBLEMS] = { 1, BRect(6, 0, 14, MARKER_HEIGHT - 1), };
-	fLanes[OTHER] = { 2, BRect(14, 0, 20, MARKER_HEIGHT - 1), };
+	fLanes[BOOKMARKS] = { BOOKMARKS, BRect( 0, 0,  5, MARKER_HEIGHT - 1), };
+	fLanes[PROBLEMS]  = { PROBLEMS,  BRect( 6, 0, 14, MARKER_HEIGHT - 1), };
+	fLanes[HIGHLIGHT] = { HIGHLIGHT, BRect(14, 0, 20, MARKER_HEIGHT - 1), };
 }
 
 
 void
 OverScrollBar::SetProblemsData(std::vector<ScrollMarker> markers)
 {
-	if (fLanes[PROBLEMS].markers.empty() && markers.empty())
-		return; // avoid redrawing for nothing.
-
-	fLanes[PROBLEMS].markers = std::move(markers);
-	Invalidate();
+	_UpdateMarkers(PROBLEMS, markers);
 }
-
 
 void
 OverScrollBar::UpdateSciMarkers(std::vector<ScrollMarker> markers)
 {
-	if (fLanes[BOOKMARKS].markers.empty() && markers.empty())
-		return; // avoid redrawing for nothing.
-
-	fLanes[BOOKMARKS].markers = std::move(markers);
-	Invalidate();
+	_UpdateMarkers(BOOKMARKS, markers);
 }
 
+void
+OverScrollBar::UpdateHighlightMarkers(std::vector<ScrollMarker> markers)
+{
+	_UpdateMarkers(HIGHLIGHT, markers);
+}
+
+
+void
+OverScrollBar::_UpdateMarkers(uint8 index, std::vector<ScrollMarker> markers)
+{
+	if (markers.empty() && fLanes[index].markers.empty())
+		return; // avoid redrawing for nothing.
+
+	fLanes[index].markers = std::move(markers);
+	Invalidate();
+}
 
 void
 OverScrollBar::SetCursorPosition(float ratio, int32 line)
@@ -78,9 +85,9 @@ OverScrollBar::AttachedToWindow()
 
 	BScrollBar* parent = dynamic_cast<BScrollBar*>(Parent());
 	if (parent != nullptr) {
-		const float width = parent->Bounds().Width();
-		const float laneWidth = ::roundf(width / 3);
-		for (int32 l = 0; l < 3; l++) {
+		const float width = parent->Bounds().Width() - 2.0;
+		const float laneWidth = (width / (float)LANES_COUNT);
+		for (int32 l = 0; l < LANES_COUNT; l++) {
 			if (l != 0)
 				fLanes[l].rect.left = fLanes[l - 1].rect.right + 1;
 			fLanes[l].rect.right = fLanes[l].rect.left + laneWidth;
@@ -100,6 +107,7 @@ OverScrollBar::MouseDown(BPoint where)
 		msg.AddInt32("line", hit->line);
 		fTarget.SendMessage(&msg);
 	}
+
 	// Always let the BScrollBar handle the click too.
 	if (Parent() != nullptr)
 		Parent()->MouseDown(where);
@@ -169,8 +177,8 @@ OverScrollBar::Draw(BRect /*rect*/)
 	float trackHeight = endPoint - startPoint;
 
 	_DrawCaret(r, startPoint, trackHeight);
-	_DrawMarkers(fLanes[PROBLEMS].markers, 1, r, startPoint, trackHeight);
-	_DrawMarkers(fLanes[BOOKMARKS].markers, 0, r, startPoint, trackHeight);
+	for (int32 l = 0; l < LANES_COUNT; l++)
+		_DrawMarkers(fLanes[l],  r, startPoint, trackHeight);
 }
 
 
@@ -186,15 +194,15 @@ OverScrollBar::_DrawCaret(BRect& r, float startPoint, float trackHeight)
 
 
 void
-OverScrollBar::_DrawMarkers(std::vector<ScrollMarker>& markers, uint lane, BRect& r,
+OverScrollBar::_DrawMarkers(Lane& lane, BRect& r,
 							float startPoint,
 							float trackHeight)
 {
-	if (markers.empty() == false) {
+	if (lane.markers.empty() == false) {
 		// Cluster markers into pixel rows; keep worst severity per bucket.
 		// severity 1 (Error) is "worst", higher numbers are less severe.
 		std::map<int, int> buckets; // pixel_y -> worst severity
-		for (const auto& m : markers) {
+		for (const auto& m : lane.markers) {
 			int y = (int)(startPoint + m.ratio * trackHeight);
 			auto it = buckets.find(y);
 			if (it == buckets.end() || m.severity < it->second)
@@ -208,12 +216,13 @@ OverScrollBar::_DrawMarkers(std::vector<ScrollMarker>& markers, uint lane, BRect
 				case 1:   color = {220,  50,  50, 255}; break; // Error   – red
 				case 2:   color = {220, 180,  40, 255}; break; // Warning – yellow
 				case 100: color = {255, 255, 255, 255}; break; // White - the caret (?)
+				case 200: color = {255, 255,   0, 255}; break; // Bright yellow
 				default:  color = { 60, 120, 220, 255}; break; // Blue - Info
 			}
 			SetHighColor(color);
 			float y = (float)kv.first;
-			FillRect(BRect(r.left + 1 + fLanes[lane].rect.left,  y + fLanes[lane].rect.top,
-						   r.left + 1 + fLanes[lane].rect.right, y + fLanes[lane].rect.bottom));
+			FillRect(BRect(r.left + 1 + lane.rect.left,  y + lane.rect.top,
+						   r.left + 1 + lane.rect.right, y + lane.rect.bottom));
 		}
 	}
 }
@@ -234,13 +243,13 @@ OverScrollBar::_NearestMarker(const BPoint& point, float tolerance) const
 
 	// Find which lane we are on
 	uint8 lane = 0;
-	for (;lane < 3;) {
-		if (point.x >= fLanes[lane].rect.left && point.x <= fLanes[lane].rect.right)
+	for (; lane < LANES_COUNT; lane++) {
+		if (point.x >= fLanes[lane].rect.left &&
+			point.x <= fLanes[lane].rect.right)
 			break;
-		lane++;
 	}
 
-	if (!fLanes[lane].markers.empty() ) {
+	if (lane < LANES_COUNT && !fLanes[lane].markers.empty() ) {
 		for (const auto& m : fLanes[lane].markers) {
 			float markerY = startPoint + m.ratio * trackHeight;
 			float dist = std::abs(markerY - point.y);

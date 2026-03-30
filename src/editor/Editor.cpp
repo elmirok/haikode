@@ -59,6 +59,8 @@ const int kIdleTimeout = 400000; //0.4secs
 #define UNSET 0
 #define UNUSED 0
 
+// IND_HIGHLIGHT is now defined in LSPEditorWrapper.h
+
 
 bool Editor::sAutoIndent = true;
 
@@ -144,6 +146,13 @@ Editor::Editor(entry_ref* ref, const BMessenger& target)
 	SendMessage(SCI_ASSIGNCMDKEY, SCK_RIGHT + ( (SCMOD_META + SCMOD_SHIFT)   << 16), SCI_WORDPARTRIGHTEXTEND);
 	SendMessage(SCI_ASSIGNCMDKEY, SCK_LEFT + (SCMOD_META   << 16), SCI_WORDPARTLEFT);
 	SendMessage(SCI_ASSIGNCMDKEY, SCK_LEFT + ( (SCMOD_META + SCMOD_SHIFT)   << 16), SCI_WORDPARTLEFTEXTEND);
+
+	//Indicator for Auto-hightlight (defaults, overridden by style "Word highlight")
+	SendMessage(SCI_INDICSETSTYLE,        IND_HIGHLIGHT, INDIC_ROUNDBOX);
+	SendMessage(SCI_INDICSETFORE,         IND_HIGHLIGHT, 0xff0000);
+	SendMessage(SCI_INDICSETALPHA,        IND_HIGHLIGHT, 100);
+	SendMessage(SCI_INDICSETOUTLINEALPHA, IND_HIGHLIGHT, 150);
+
 }
 
 
@@ -382,8 +391,18 @@ Editor::MessageReceived(BMessage* message)
 		case EDITOR_MARKER_GOTO:
 		{
 			int32 line = message->GetInt32("line", 0);
-			if (line > 0)
-				GoToLine(line);
+			if (line > 0) {
+				//scroll and put the line in the center
+				int targetLine0 = line - 1;
+				int lineHeight = SendMessage(SCI_TEXTHEIGHT, targetLine0, 0);
+				int clientHeight = Bounds().Height();
+				int linesPerPage = clientHeight / lineHeight;
+				int firstLine = targetLine0 - linesPerPage/2;
+				if (firstLine < 0)
+					firstLine = 0;
+				SendMessage(SCI_LINESCROLL, 0, firstLine - SendMessage(SCI_GETFIRSTVISIBLELINE,0,0));
+
+			}
 			break;
 		}
 
@@ -518,15 +537,14 @@ Editor::_UpdateOverScrollBarSciMarkers()
 {
 	if (fOverScrollBar != nullptr) {
 		int32 totalLines = SendMessage(SCI_GETLINECOUNT);
-		std::vector<OverScrollBar::ScrollMarker> markers;
+		std::vector<OverScrollBar::ScrollMarker> markers = {};
 		int64 line = 0;
 		while((line = SendMessage(SCI_MARKERNEXT, line, (1 << sci_BOOKMARK))) >= 0) {
 			float ratio = (totalLines > 1) ? ((float)line / totalLines) : 0.0f;
-			markers.push_back({ratio, 7, (int32)line, "Bookmark"});
-
+			markers.push_back({ratio, 7, (int32)line+1, B_TRANSLATE("Bookmark")});
 			line++;
 		}
-		fOverScrollBar->UpdateSciMarkers(markers);
+		fOverScrollBar->UpdateSciMarkers(std::move(markers));
 	}
 }
 
@@ -1325,6 +1343,9 @@ Editor::NotificationReceived(SCNotification* notification)
 			_UpdateSavePoint(false);
 			break;
 		}
+		case SCN_DOUBLECLICK:
+			_HandleDoubleClik();
+		break;
 		case SCN_UPDATEUI:
 		{
 			if (notification->updated &
@@ -1334,6 +1355,7 @@ Editor::NotificationReceived(SCNotification* notification)
 				fLSPEditorWrapper->HideCallTip();
 			}
 			_BraceHighlight();
+
 			// Selection/Position has changed
 			if (notification->updated & SC_UPDATE_SELECTION) {
 				// Ugly hack to enable mouse selection scrolling
@@ -1352,6 +1374,7 @@ Editor::NotificationReceived(SCNotification* notification)
 				SendPositionChanges();
 				// Update status bar
 				UpdateStatusBar();
+				_UpdateHighlight();
 			}
 			break;
 		}
@@ -2096,6 +2119,9 @@ Editor::_ApplyExtensionSettings()
 		Styler::ApplyLanguage(this, styles);
 	}
 
+	if ((bool)gCFG["highlight_words"] == false)
+		_ClearHighlight();
+
 	fBracingAvailable = gCFG["brace_match"];
 }
 
@@ -2509,6 +2535,7 @@ Editor::SetCommentBlockTokens(const std::string& startBlock, const std::string& 
 }
 
 
+
 void
 Editor::EvaluateIdleTime()
 {
@@ -2534,4 +2561,81 @@ bool
 Editor::HasValidFileRef() const
 {
 	return fFileRef.device >= 0 && fFileRef.directory >= 0;
+}
+
+void
+Editor::_HandleDoubleClik()
+{
+	if ((bool)gCFG["highlight_words"] == false)
+		return;
+
+	std::vector<OverScrollBar::ScrollMarker> markers = {};
+    _ClearHighlight();
+
+	BString selection = Selection();
+	int32 selLen = selection.Length();
+	fLastHighlight = selection;
+
+	if (selLen != 0 && !selection.StartsWith(" ") && !selection.EndsWith(" ")) {
+
+		int32 docLength = SendMessage(SCI_GETTEXTLENGTH, 0, 0);
+		SendMessage(SCI_SETSEARCHFLAGS, SCFIND_WHOLEWORD | SCFIND_MATCHCASE, 0);
+		SendMessage(SCI_SETTARGETRANGE, 0, docLength);
+
+		SendMessage(SCI_SETINDICATORCURRENT, IND_HIGHLIGHT, 0);
+
+		int32 totalLines = SendMessage(SCI_GETLINECOUNT);
+
+		//NOTE: Should we put a max number of results to avoid locks in huge file? 100? 1000?
+		while (SendMessage(SCI_SEARCHINTARGET, selLen, (sptr_t)selection.String()) != -1) {
+			int32 matchStart = SendMessage(SCI_GETTARGETSTART, 0, 0);
+			int32 matchEnd = SendMessage(SCI_GETTARGETEND, 0, 0);
+
+			// Highlight the matches
+			SendMessage(SCI_INDICATORFILLRANGE, matchStart, matchEnd - matchStart);
+
+			int32 line  = SendMessage(SCI_LINEFROMPOSITION, matchStart, 0);
+			if (line > 0) {
+				float ratio = (totalLines > 1) ? ((float)line / totalLines) : 0.0f;
+				markers.push_back({ratio, 200, (int32)line+1, selection.String()});
+			}
+
+			//Next one.
+			SendMessage(SCI_SETTARGETRANGE, matchEnd, docLength);
+		}
+	}
+	if (fOverScrollBar != nullptr)
+		fOverScrollBar->UpdateHighlightMarkers(std::move(markers));
+
+}
+
+
+void
+Editor::_UpdateHighlight()
+{
+	if ((bool)gCFG["highlight_words"] == false)
+		return;
+
+	BString selection = Selection();
+    // Se non c'è selezione o la lunghezza è diversa dalla parola evidenziata
+    if (selection.Length() == 0 ||
+		selection.Length() != fLastHighlight.Length() ||
+		selection.Compare(fLastHighlight) != 0) {
+
+        _ClearHighlight();
+		if (fOverScrollBar != nullptr) {
+			fOverScrollBar->UpdateHighlightMarkers({});
+		}
+
+        return;
+    }
+}
+
+
+void
+Editor::_ClearHighlight()
+{
+    SendMessage(SCI_SETINDICATORCURRENT, IND_HIGHLIGHT, 0);
+    SendMessage(SCI_INDICATORCLEARRANGE, 0, SendMessage(SCI_GETTEXTLENGTH, 0, 0));
+	fLastHighlight = "";
 }
