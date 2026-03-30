@@ -18,6 +18,7 @@
 #include "Editor.h"
 #include "EditorStatusView.h"
 #include "Log.h"
+#include "LSPJsonBridge.h"
 #include "LSPProjectWrapper.h"
 #include "JumpNavigator.h"
 #include "protocol.h"
@@ -642,19 +643,54 @@ LSPEditorWrapper::_ShowToolTip(const char* text)
 }
 
 
+static std::string
+_ExtractHoverText(const lsp::Hover& hover)
+{
+	return std::visit([](auto&& contents) -> std::string {
+		using T = std::decay_t<decltype(contents)>;
+		if constexpr (std::is_same_v<T, lsp::MarkupContent>) {
+			return contents.value;
+		} else if constexpr (std::is_same_v<T, lsp::MarkedString>) {
+			// MarkedString is OneOf<String, MarkedString_Language_Value>
+			return std::visit([](auto&& ms) -> std::string {
+				using U = std::decay_t<decltype(ms)>;
+				if constexpr (std::is_same_v<U, lsp::String>)
+					return ms;
+				else
+					return ms.value;
+			}, contents);
+		} else if constexpr (std::is_same_v<T, lsp::Array<lsp::MarkedString>>) {
+			std::string combined;
+			for (auto& ms : contents) {
+				if (!combined.empty())
+					combined += "\n\n";
+				combined += std::visit([](auto&& m) -> std::string {
+					using U = std::decay_t<decltype(m)>;
+					if constexpr (std::is_same_v<U, lsp::String>)
+						return m;
+					else
+						return m.value;
+				}, ms);
+			}
+			return combined;
+		}
+	}, hover.contents);
+}
+
+
 void
 LSPEditorWrapper::_DoHover(nlohmann::json& result)
 {
 	if (fEditor == nullptr || !fEditor->Window()->IsActive())
 		return;
 
-	if (result == nlohmann::detail::value_t::null &&
-		!result["contents"].contains("value")) {
+	if (result.is_null()) {
 		EndHover();
 		return;
 	}
 
-	std::string tip = result["contents"]["value"].get<std::string>();
+	auto hover = LSPBridge::fromNlohmann<lsp::Hover>(result);
+	std::string tip = _ExtractHoverText(hover);
 
 	if (tip.empty()) {
 		EndHover();

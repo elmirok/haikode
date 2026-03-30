@@ -70,8 +70,8 @@ using TextEdit = lsp::TextEdit;
 // using WorkspaceEdit = lsp::WorkspaceEdit;
 
 // --- Phase: Hover ---
-// using MarkupContent = lsp::MarkupContent;
-// using Hover = lsp::Hover;
+using MarkupContent = lsp::MarkupContent;
+using Hover = lsp::Hover;
 
 // --- Phase: Signatures ---
 // using SignatureHelp = lsp::SignatureHelp;

@@ -793,21 +793,8 @@ struct CompletionParams : TextDocumentPositionParams {
 };
 JSON_SERIALIZE(CompletionParams, MAP_JSON(MAP_KEY(context), MAP_KEY(textDocument), MAP_KEY(position)), {});
 
-struct MarkupContent {
-    MarkupKind kind = MarkupKind::PlainText;
-    std::string value;
-};
-JSON_SERIALIZE(MarkupContent, {}, {FROM_KEY(kind);FROM_KEY(value)});
-
-struct Hover {
-    /// The hover's content
-    MarkupContent contents;
-
-    /// An optional range is a range inside a text document
-    /// that is used to visualize a hover, e.g. by changing the background color.
-    std::optional<Range> range;
-};
-JSON_SERIALIZE(Hover, {}, {FROM_KEY(contents);FROM_KEY(range)});
+// MarkupContent and Hover — migrated to lsp-framework types.
+// See LSPCompat.h for the type aliases.
 // enum class InsertTextFormat
 // struct CompletionItem
 JSON_SERIALIZE(CompletionItem, {}, {
