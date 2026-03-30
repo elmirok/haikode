@@ -735,7 +735,7 @@ LSPEditorWrapper::_DoCompletion(json& params)
 				positionResolved = true;
 			}
 
-			Sci_Position current = position.character - 1;
+			Sci_Position current = static_cast<Sci_Position>(position.character) - 1;
 			int32 points = 0;
 			for (size_t i = 0 ; i < item.insertText.length() ; i++) {
 				if (current - i >= 0) {
@@ -854,10 +854,10 @@ LSPEditorWrapper::_DoCodeActions(nlohmann::json& params)
 		action.data = data;
 
 		Range range;
-		range.start.character = data["Range"]["Start"]["Character"].get<int>();
-		range.start.line = data["Range"]["Start"]["Line"].get<int>();
-		range.end.character = data["Range"]["End"]["Character"].get<int>();
-		range.end.line = data["Range"]["End"]["Line"].get<int>();
+		range.start.character = data["Range"]["Start"]["Character"].get<unsigned int>();
+		range.start.line = data["Range"]["Start"]["Line"].get<unsigned int>();
+		range.end.character = data["Range"]["End"]["Character"].get<unsigned int>();
+		range.end.line = data["Range"]["End"]["Line"].get<unsigned int>();
 
 		for (auto& d: fLastDiagnostics) {
 			if (d.diagnostic.range == range) {
@@ -884,10 +884,10 @@ LSPEditorWrapper::_DoCodeActionResolve(nlohmann::json& params)
 	action.data = data;
 
 	Range range;
-	range.start.character = data["Range"]["Start"]["Character"].get<int>();
-	range.start.line = data["Range"]["Start"]["Line"].get<int>();
-	range.end.character = data["Range"]["End"]["Character"].get<int>();
-	range.end.line = data["Range"]["End"]["Line"].get<int>();
+	range.start.character = data["Range"]["Start"]["Character"].get<unsigned int>();
+	range.start.line = data["Range"]["Start"]["Line"].get<unsigned int>();
+	range.end.character = data["Range"]["End"]["Character"].get<unsigned int>();
+	range.end.line = data["Range"]["End"]["Line"].get<unsigned int>();
 
 	for (auto& d: fLastDiagnostics) {
 		if (d.diagnostic.range == range) {
@@ -1076,9 +1076,9 @@ LSPEditorWrapper::onRequest(std::string method, value& params, value& ID)
 void
 LSPEditorWrapper::FromSciPositionToLSPPosition(const Sci_Position& pos, Position* lsp_position)
 {
-	lsp_position->line = fEditor->SendMessage(SCI_LINEFROMPOSITION, pos, 0);
+	lsp_position->line = static_cast<unsigned int>(fEditor->SendMessage(SCI_LINEFROMPOSITION, pos, 0));
 	Sci_Position end_pos = fEditor->SendMessage(SCI_POSITIONFROMLINE, lsp_position->line, 0);
-	lsp_position->character = fEditor->SendMessage(SCI_COUNTCHARACTERS, end_pos, pos);
+	lsp_position->character = static_cast<unsigned int>(fEditor->SendMessage(SCI_COUNTCHARACTERS, end_pos, pos));
 }
 
 

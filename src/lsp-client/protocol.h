@@ -89,10 +89,14 @@ struct VersionedTextDocumentIdentifier : public TextDocumentIdentifier {
 JSON_SERIALIZE(VersionedTextDocumentIdentifier, MAP_JSON(MAP_KEY(uri), MAP_KEY(version)), {});
 
 #include "protocol_objects.h"
-// struct Position
-JSON_SERIALIZE(Position, MAP_JSON(MAP_KEY(line), MAP_KEY(character)), {FROM_KEY(line);FROM_KEY(character)});
-// struct Range
-JSON_SERIALIZE(Range, MAP_JSON(MAP_KEY(start), MAP_KEY(end)), {FROM_KEY(start);FROM_KEY(end)});
+// struct Position (now lsp::Position with uint fields)
+JSON_SERIALIZE(Position,
+    MAP_JSON(MAP_KEY(line), MAP_KEY(character)),
+    {FROM_KEY(line);FROM_KEY(character)});
+// struct Range (now lsp::Range)
+JSON_SERIALIZE(Range,
+    MAP_JSON(MAP_KEY(start), MAP_KEY(end)),
+    {FROM_KEY(start);FROM_KEY(end)});
 
 //struct Location
 JSON_SERIALIZE(Location, MAP_JSON(MAP_KEY(uri), MAP_KEY(range)), {FROM_KEY(uri);FROM_KEY(range)});

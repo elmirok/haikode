@@ -281,8 +281,8 @@ private:
 
 			const BMessage symbol = item->Details();
 			const Position position = {
-				symbol.GetInt32("start:character", -1),
-				symbol.GetInt32("start:line", -1)
+				(lsp::uint)symbol.GetInt32("start:character", 0),
+				(lsp::uint)symbol.GetInt32("start:line", 0)
 			};
 
 			auto optionsMenu = new BPopUpMenu("Outline menu", false, false);
@@ -296,9 +296,10 @@ private:
 					new GMessage{
 						{"what", kMsgRenameSymbol},
 						{"index", index},
-						{"start:line", position.line},
-						{"start:character", position.character}});
-			renameItem->SetEnabled((position.line != -1 && position.character != -1));
+						{"start:line", (int32)position.line},
+						{"start:character", (int32)position.character}});
+			renameItem->SetEnabled(symbol.GetInt32("start:line", -1) != -1
+				&& symbol.GetInt32("start:character", -1) != -1);
 			optionsMenu->AddItem(renameItem);
 			optionsMenu->SetTargetForItems(Target());
 			optionsMenu->Go(ConvertToScreen(where), true);

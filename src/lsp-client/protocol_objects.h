@@ -14,52 +14,7 @@
 #include <json.hpp>
 
 #include "uri.h"
-
-struct Position {
-    /// Line position in a document (zero-based).
-    int line = 0;
-    /// Character offset on a line in a document (zero-based).
-    /// WARNING: this is in UTF-16 codepoints, not bytes or characters!
-    /// Use the functions in SourceCode.h to construct/interpret Positions.
-    int character = 0;
-    friend bool operator==(const Position &LHS, const Position &RHS) {
-        return std::tie(LHS.line, LHS.character) ==
-               std::tie(RHS.line, RHS.character);
-    }
-    friend bool operator!=(const Position &LHS, const Position &RHS) {
-        return !(LHS == RHS);
-    }
-    friend bool operator<(const Position &LHS, const Position &RHS) {
-        return std::tie(LHS.line, LHS.character) <
-               std::tie(RHS.line, RHS.character);
-    }
-    friend bool operator<=(const Position &LHS, const Position &RHS) {
-        return std::tie(LHS.line, LHS.character) <=
-               std::tie(RHS.line, RHS.character);
-    }
-};
-
-struct Range {
-    /// The range's start position.
-    Position start;
-
-    /// The range's end position.
-    Position end;
-
-    friend bool operator==(const Range &LHS, const Range &RHS) {
-        return std::tie(LHS.start, LHS.end) == std::tie(RHS.start, RHS.end);
-    }
-    friend bool operator!=(const Range &LHS, const Range &RHS) {
-        return !(LHS == RHS);
-    }
-    friend bool operator<(const Range &LHS, const Range &RHS) {
-        return std::tie(LHS.start, LHS.end) < std::tie(RHS.start, RHS.end);
-    }
-    bool contains(Position Pos) const { return start <= Pos && Pos < end; }
-    bool contains(Range Rng) const {
-        return start <= Rng.start && Rng.end <= end;
-    }
-};
+#include "LSPCompat.h"
 
 struct TextDocumentContentChangeEvent {
     /// The range of the document that changed.

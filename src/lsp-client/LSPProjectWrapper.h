@@ -22,8 +22,6 @@
 
 class  LSPTextDocument;
 struct TextDocumentContentChangeEvent;
-struct Range;
-struct Position;
 struct CodeActionContext;
 struct CompletionContext;
 struct TweakArgs;
