@@ -437,6 +437,15 @@ LSPEditorWrapper::SwitchSourceHeader()
 }
 
 
+static lsp::TextEdit*
+_GetTextEdit(lsp::CompletionItem& item)
+{
+	if (!item.textEdit)
+		return nullptr;
+	return std::get_if<lsp::TextEdit>(&*item.textEdit);
+}
+
+
 void
 LSPEditorWrapper::SelectedCompletion(const char* text)
 {
@@ -448,14 +457,15 @@ LSPEditorWrapper::SelectedCompletion(const char* text)
 	if (fCurrentCompletion.items.size() > 0) {
 		for (auto& item : fCurrentCompletion.items) {
 			if (item.label.compare(std::string(text)) == 0) {
-				TextEdit textEdit = item.textEdit;
+				auto* te = _GetTextEdit(item);
+				if (!te) break;
 
-				const Sci_Position s_pos = FromLSPPositionToSciPosition(&textEdit.range.start);
-				const Sci_Position e_pos = FromLSPPositionToSciPosition(&textEdit.range.end);
+				const Sci_Position s_pos = FromLSPPositionToSciPosition(&te->range.start);
+				const Sci_Position e_pos = FromLSPPositionToSciPosition(&te->range.end);
 				const Sci_Position pos = fEditor->SendMessage(SCI_GETCURRENTPOS);
 				Sci_Position cursorPos = e_pos;
 
-				std::string textToAdd = textEdit.newText;
+				std::string textToAdd = te->newText;
 
 				// algo to remove the ${} stuff
 				size_t dollarPos = textToAdd.find_first_of('$');
@@ -498,7 +508,7 @@ LSPEditorWrapper::SelectedCompletion(const char* text)
 		}
 	}
 	fEditor->SendMessage(SCI_AUTOCCANCEL, 0, 0);
-	fCurrentCompletion = CompletionList();
+	fCurrentCompletion = CompletionList{};
 }
 
 
@@ -519,7 +529,7 @@ LSPEditorWrapper::StartCompletion()
 		// --> TODO: cancel previous clangd request!
 
 		// let's clean-up current request details:
-		this->fCurrentCompletion = CompletionList();
+		this->fCurrentCompletion = CompletionList{};
 	}
 
 	Position position;
@@ -739,7 +749,7 @@ LSPEditorWrapper::_DoCompletion(json& params)
 	Position position;
 	bool positionResolved = false;
 
-	CompletionList allItems = params.get<CompletionList>();
+	auto allItems = LSPBridge::fromNlohmann<lsp::CompletionList>(params);
 	auto& items = allItems.items;
 	std::string list;
 	for (auto& item : items) {
@@ -751,12 +761,16 @@ LSPEditorWrapper::_DoCompletion(json& params)
 		item.label = label;
 		// if the server is not providing us the textEdit (like pylsp)
 		// let's try to create it.
-		if (item.textEdit.newText.empty()) {
-			item.textEdit.newText = item.insertText;
+		auto* te = _GetTextEdit(item);
+		if (!te || te->newText.empty()) {
+			std::string insertText = item.insertText.value_or("");
+
+			lsp::TextEdit newTe;
+			newTe.newText = insertText;
 
 			Position pos;
 			FromSciPositionToLSPPosition(fCompletionPosition, &pos);
-			item.textEdit.range.end = pos;
+			newTe.range.end = pos;
 
 			// fancy algo to find insertText before current position.
 			if (!positionResolved) {
@@ -767,16 +781,17 @@ LSPEditorWrapper::_DoCompletion(json& params)
 
 			Sci_Position current = static_cast<Sci_Position>(position.character) - 1;
 			int32 points = 0;
-			for (size_t i = 0 ; i < item.insertText.length() ; i++) {
+			for (size_t i = 0 ; i < insertText.length() ; i++) {
 				if (current - i >= 0) {
-					if (strncasecmp(item.insertText.c_str(), line.c_str() + current-i, i+1) == 0){
+					if (strncasecmp(insertText.c_str(), line.c_str() + current-i, i+1) == 0){
 						points = i+1;
 					}
 				}
 			}
 			FromSciPositionToLSPPosition(fCompletionPosition - points, &pos);
-			item.textEdit.range.start = pos;
+			newTe.range.start = pos;
 
+			item.textEdit = std::move(newTe);
 		}
 	}
 
@@ -788,12 +803,14 @@ LSPEditorWrapper::_DoCompletion(json& params)
 		fEditor->SendMessage(SCI_AUTOCSETORDER, SC_ORDER_CUSTOM, 0);
 
 		// whats' the text already selected so far?
-		const Position start = fCurrentCompletion.items[0].textEdit.range.start;
-		const Sci_Position s_pos = FromLSPPositionToSciPosition(&start);
-		Sci_Position len = fCompletionPosition - s_pos;
-		if (len < 0)
-			len = 0;
-		fEditor->SendMessage(SCI_AUTOCSHOW, len, (sptr_t) list.c_str());
+		auto* firstTe = _GetTextEdit(fCurrentCompletion.items[0]);
+		if (firstTe) {
+			const Sci_Position s_pos = FromLSPPositionToSciPosition(&firstTe->range.start);
+			Sci_Position len = fCompletionPosition - s_pos;
+			if (len < 0)
+				len = 0;
+			fEditor->SendMessage(SCI_AUTOCSHOW, len, (sptr_t) list.c_str());
+		}
 	}
 }
 

@@ -795,25 +795,8 @@ JSON_SERIALIZE(CompletionParams, MAP_JSON(MAP_KEY(context), MAP_KEY(textDocument
 
 // MarkupContent and Hover — migrated to lsp-framework types.
 // See LSPCompat.h for the type aliases.
-// enum class InsertTextFormat
-// struct CompletionItem
-JSON_SERIALIZE(CompletionItem, {}, {
-    FROM_KEY(label);
-    FROM_KEY(kind);
-    FROM_KEY(detail);
-    //FROM_KEY(documentation);
-    FROM_KEY(sortText);
-    FROM_KEY(filterText);
-    FROM_KEY(insertText);
-    FROM_KEY(insertTextFormat);
-    FROM_KEY(textEdit);
-    FROM_KEY(additionalTextEdits);
-});
-// struct CompletionList
-JSON_SERIALIZE(CompletionList, {}, {
-    FROM_KEY(isIncomplete);
-    FROM_KEY(items);
-});
+// CompletionItem and CompletionList — migrated to lsp-framework types.
+// Deserialized via LSPBridge::fromNlohmann<lsp::CompletionList>() instead of nlohmann.
 // struct ParameterInformation
 
 JSON_SERIALIZE(ParameterInformation, {}, {

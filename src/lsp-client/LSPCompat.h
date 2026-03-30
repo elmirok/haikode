@@ -55,8 +55,10 @@ using Location = lsp::Location;
 using TextEdit = lsp::TextEdit;
 
 // --- Phase: Completion ---
-// using CompletionItem = lsp::CompletionItem;
-// using CompletionList = lsp::CompletionList;
+using CompletionItem = lsp::CompletionItem;
+using CompletionList = lsp::CompletionList;
+// CompletionItemKind and InsertTextFormat aliases NOT activated yet —
+// ClientCapabilities still uses the Genio enums (migrated in step 2.13).
 // using CompletionItemKind = lsp::CompletionItemKind;
 // using InsertTextFormat = lsp::InsertTextFormat;
 

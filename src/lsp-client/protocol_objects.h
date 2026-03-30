@@ -70,68 +70,8 @@ enum class InsertTextFormat {
     /// https//github.com/Microsoft/vscode/blob/master/src/vs/editor/contrib/snippet/common/snippet.md
             Snippet = 2,
 };
-struct CompletionItem {
-    /// The label of this completion item. By default also the text that is
-    /// inserted when selecting this completion.
-    std::string label;
-
-    /// The kind of this completion item. Based of the kind an icon is chosen by
-    /// the editor.
-    CompletionItemKind kind = CompletionItemKind::Missing;
-
-    /// A human-readable string with additional information about this item, like
-    /// type or symbol information.
-    std::string detail;
-
-    /// A human-readable string that represents a doc-comment.
-    //std::string documentation;
-
-    /// A string that should be used when comparing this item with other items.
-    /// When `falsy` the label is used.
-    std::string sortText;
-
-    /// A string that should be used when filtering a set of completion items.
-    /// When `falsy` the label is used.
-    std::string filterText;
-
-    /// A string that should be inserted to a document when selecting this
-    /// completion. When `falsy` the label is used.
-    std::string insertText;
-
-    /// The format of the insert text. The format applies to both the `insertText`
-    /// property and the `newText` property of a provided `textEdit`.
-    InsertTextFormat insertTextFormat = InsertTextFormat::Missing;
-
-    /// An edit which is applied to a document when selecting this completion.
-    /// When an edit is provided `insertText` is ignored.
-    ///
-    /// Note: The range of the edit must be a single line range and it must
-    /// contain the position at which completion has been requested.
-    TextEdit textEdit;
-
-    /// An optional array of additional text edits that are applied when selecting
-    /// this completion. Edits must not overlap with the main edit nor with
-    /// themselves.
-    std::vector<TextEdit> additionalTextEdits;
-
-    /// Indicates if this item is deprecated.
-    bool deprecated = false;
-
-    // TODO(krasimir): The following optional fields defined by the language
-    // server protocol are unsupported:
-    //
-    // data?: any - A data entry field that is preserved on a completion item
-    //              between a completion and a completion resolve request.
-};
-
-struct CompletionList {
-    /// The list is not complete. Further typing should result in recomputing the
-    /// list.
-    bool isIncomplete = false;
-
-    /// The completion items.
-    std::vector<CompletionItem> items;
-};
+// CompletionItem and CompletionList — migrated to lsp-framework types.
+// See LSPCompat.h for the type aliases.
 
 ///// SignatureHelp ////////
 
