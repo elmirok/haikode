@@ -68,7 +68,7 @@ const property_info sGeneralProperties[] = {
 const property_info sEditorProperties[] = {
 	{
 		"Selection", {B_GET_PROPERTY, B_SET_PROPERTY, 0},
-		{B_DIRECT_SPECIFIER, B_RANGE_SPECIFIER, 0},
+		{B_DIRECT_SPECIFIER, B_NO_SPECIFIER, 0},
 		"Get/Set the selected text.",
 		0,
 		{B_STRING_TYPE, B_STRING_TYPE, 0}
@@ -84,8 +84,7 @@ const property_info sEditorProperties[] = {
 		"Text", {B_SET_PROPERTY, 0},
 		{B_NO_SPECIFIER, 0},
 		"Insert the text at the specified position. "
-		"If Index is omitted, insert at the current caret position or replace the current selection. "
-		"If Index is -1 append at the end of the file.",
+		"If Index is omitted or -1, append at the end of the file.",
 		0,
 		{B_STRING_TYPE, 0}
 	},
@@ -132,9 +131,10 @@ const property_info sEditorProperties[] = {
 		{B_MESSAGE_TYPE, 0}
 	},
 	{
-		"SelectionRange", {B_GET_PROPERTY, 0},
-		{B_DIRECT_SPECIFIER, 0},
-		"Return the selection range (start_line, start_column, start_offset, end_line, end_column, end_offset).",
+		"SelectionRange", {B_GET_PROPERTY, B_SET_PROPERTY, 0},
+		{B_DIRECT_SPECIFIER, B_RANGE_SPECIFIER, 0},
+		"Return the selection range (start_line, start_column, start_offset, end_line, end_column, end_offset). "
+		"Set the selection range (start, length)",
 		0,
 		{B_MESSAGE_TYPE, 0}
 	},
@@ -239,12 +239,11 @@ GenioApp::_HandleScripting(BMessage* data)
 					if (data->what == B_GET_PROPERTY) {
 						result = reply.AddString("result", editor->Selection());
 					} else if (data->what == B_SET_PROPERTY) {
-						int32 start = specifier.GetInt32("index", -1);
-						int32 range = specifier.GetInt32("range", -1);
-						if (start != -1 && range != -1) {
-							editor->SetSelection(start, start + range);
-							result = B_OK;
-						}
+						BString text;
+						data->FindString("data", &text);
+						// It's okay if text is empty
+						editor->Insert(text, -1);
+						result = B_OK;
 					}
 					break;
 				}
@@ -333,6 +332,13 @@ GenioApp::_HandleScripting(BMessage* data)
 					if (data->what == B_GET_PROPERTY) {
 						BMessage selectionInfo = editor->GetSelectionRange();
 						result = reply.AddMessage("result", &selectionInfo);
+					} else if (data->what == B_SET_PROPERTY) {
+						int32 start = specifier.GetInt32("index", -1);
+						int32 range = specifier.GetInt32("range", -1);
+						if (start != -1 && range != -1) {
+							editor->SetSelectionRange(start, start + range);
+							result = B_OK;
+						}
 					}
 					break;
 				}

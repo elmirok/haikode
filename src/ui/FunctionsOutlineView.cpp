@@ -25,6 +25,7 @@
 #include "Log.h"
 #include "NoticeMessages.h"
 #include "protocol_objects.h"
+#include "SpinningAnimation.h"
 #include "StyledItem.h"
 #include "ToolBar.h"
 #include "Utils.h"
@@ -218,6 +219,22 @@ SymbolListItem::_SetIconAndTooltip()
 }
 
 
+class PendingListItem : public StyledItem {
+public:
+	PendingListItem(const char* text)
+		:
+		StyledItem(text)
+	{
+	}
+
+	void DrawItem(BView* owner, BRect bounds, bool complete) override
+	{
+		StyledItem::DrawItem(owner, bounds, complete);
+		SpinningAnimation::Draw(owner, bounds);
+	};
+};
+
+
 // sort by line
 static int
 CompareItemsLine(const BListItem* itemA, const BListItem* itemB)
@@ -354,6 +371,8 @@ FunctionsOutlineView::AttachedToWindow()
 	// but it isn't so important, since the setting is hidden
 	sSortedByName = gCFG["outline_sort_symbols"];
 	fToolBar->SetActionPressed(kMsgSort, sSortedByName);
+
+	SpinningAnimation::Initialize(fListView);
 }
 
 
@@ -361,6 +380,8 @@ FunctionsOutlineView::AttachedToWindow()
 void
 FunctionsOutlineView::DetachedFromWindow()
 {
+	SpinningAnimation::Dispose(fListView);
+
 	if (gMainWindow != nullptr && gMainWindow->LockLooper()) {
 		gMainWindow->StopWatching(this, MSG_NOTIFY_EDITOR_POSITION_CHANGED);
 		gMainWindow->StopWatching(this, MSG_NOTIFY_EDITOR_SYMBOLS_UPDATED);
@@ -523,7 +544,7 @@ FunctionsOutlineView::_UpdateDocumentSymbols(const BMessage& msg, const entry_re
 			return;
 		case IEditor::STATUS_REQUESTED:
 			fListView->MakeEmpty();
-			fListView->AddItem(new BStringItem(B_TRANSLATE("Creating outline")));
+			fListView->AddItem(new PendingListItem(B_TRANSLATE("Creating outline")));
 			return;
 		default:
 			break;

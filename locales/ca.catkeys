@@ -1,69 +1,4 @@
-1	Catalan	application/x-vnd.Genio	1940528103
-(follow editor style)	TermView		(segueix l'estil de l'editor)
-(follow system style)	TermView		(segueix l'estil del sistema)
-Banner	TermView	A separating line inserted at the start and end of a command output in the console. Short as possible.	Capçalera
-Clear	TermView		Neteja
-Stop	TermView		Atura
-Wrap	TermView	As in wrapping long lines. Short as possible.	Ajusta
-(follow editor style)	SettingsWindow		(segueix l'estil de l'editor)
-(follow system style)	SettingsWindow		(segueix l'estil del sistema)
-Appearance	SettingsWindow		Aparença
-Auto collapse/expand projects	SettingsWindow		Replega / expandeix automàticament els projectes
-Auto-Build on resource save	SettingsWindow		Construcció automàtica en l'estalvi de recursos
-Auto-Save changed files when building	SettingsWindow		Desa automàticament els fitxers canviats en la construcció
-Build	SettingsWindow		Construeix
-Console banner	SettingsWindow	A separating line inserted at the start and end of a command output in the console. Short as possible.	Capçalera de la consola
-Console style:	SettingsWindow		Estil de la consola:
-Convert tabs to spaces	SettingsWindow		Converteix tabulacions a espais
-Default font	SettingsWindow		Lletra per defecte:
-Default size	SettingsWindow		Mida per defecte
-Editor	SettingsWindow		Editor
-Editor style:	SettingsWindow		Estil de l'editor:
-Editor zoom:	SettingsWindow		Zoom de l'editor:
-Enable brace matching	SettingsWindow		Habilita la concordança de claus
-Enable syntax highlighting	SettingsWindow		Habilita el ressaltat de la sintaxi
-Exclude folders:	SettingsWindow		Exclou carpetes:
-Find	SettingsWindow		Cerca
-Font size:	SettingsWindow		Mida de la lletra:
-Font:	SettingsWindow		Lletra:
-Force showing Build log panel when building	SettingsWindow		Força que es mostri el plafó de registre de construcció quan es construeixi.
-General	SettingsWindow		General
-Ignore .editorconfig	SettingsWindow		Ignora .editorconfig
-Log destination:	SettingsWindow		Destinació del registre:
-Log level:	SettingsWindow		Nivell de registre:
-Log size:	SettingsWindow		Mida del registre:
-Mark caret line	SettingsWindow		Marca la línia del cursor
-Match case	SettingsWindow	Short as possible.	Coincidència de majúscules
-Projects folder:	SettingsWindow		Carpeta de projectes:
-Reload files	SettingsWindow		Torna a carregar els fitxers
-Reload projects	SettingsWindow		Torna a carregar els projectes
-Save caret position	SettingsWindow		Desa la posició del cursor
-Set ruler to column:	SettingsWindow		Estableix el regle a la columna:
-Show bottom pane	SettingsWindow		Mostra el plafó inferior
-Show comment margin	SettingsWindow		Mostra el marge del comentari.
-Show folding margin	SettingsWindow		Mostra el marge del plegat.
-Show full path in window title	SettingsWindow		Mostra el camí complet al títol de la finestra
-Show left pane	SettingsWindow		Mostra el plafó de l'esquerra
-Show line endings	SettingsWindow		Mostra els finals de línia.
-Show line numbers	SettingsWindow		Mostra els finals de línia
-Show repository outline	SettingsWindow		Mostra l'esquema del dipòsit.
-Show right pane	SettingsWindow		Mostra el plafó de la dreta
-Show statusbar	SettingsWindow		Mostra la barra d'estat.
-Show toolbar	SettingsWindow		Mostra la barra d'eines.
-Show vertical ruler	SettingsWindow		Mostra el regle vertical.
-Show whitespace	SettingsWindow		Mostra els espais en blanc.
-Source control	SettingsWindow		Control de font
-Startup	SettingsWindow		Inici
-Tab width:	SettingsWindow		Amplada de la tabulació:
-These are only applied if no .editorconfig is used:	SettingsWindow	The translation shouldn't be much longer than the English original	Només s'apliquen si no s'usa cap .editorconfig:
-This setting will be updated on restart.	SettingsWindow		Aquesta configuració s'actualitzarà en reiniciar.
-Trim trailing whitespace on save	SettingsWindow		Retalla els espais en blanc al final en desar.
-Use smaller icons in toolbar	SettingsWindow		Usa icones més petites a la barra d'eines.
-Visuals	SettingsWindow		Visuals
-Whole word	SettingsWindow	Short as possible.	Tot
-Wrap around	SettingsWindow	Continue searching from the beginning when reaching the end of the file	Circular
-Wrap lines	SettingsWindow		Ajusta les línies
-Wrap lines in console	SettingsWindow		Ajusta les línies a la consola
+1	Catalan	application/x-vnd.Genio	1484233109
 {0, plural,one{# element found}other{# elements found}}	Editor		{0, plural,one{# element trobat}other{# elements trobats}}
 {0, plural,one{# element replaced}other{# elements replaced}}	Editor		{0, plural,one{# element substituït}other{# elements substituïts}}
 1 element replaced	Editor		1 element substituït
@@ -158,11 +93,13 @@ New file	GenioWindow		Fitxer nou
 New folder	GenioWindow		Carpeta nova
 Next	GenioWindow	Bookmark menu	Següent
 Open in Terminal	GenioWindow		Obre-ho al terminal
+Open project	GenioWindow		Obre un projecte
 Open project…	GenioWindow		Obre un projecte...
 Open recent…	GenioWindow		Obre el recent...
 Open remote project…	GenioWindow		Obre un projecte remot...
 Open…	GenioWindow		Obre...
 Overwrite	GenioWindow		Sobreescriu
+Panels	GenioWindow		Plafons
 Paste	GenioWindow		Enganxa
 Previous	GenioWindow	Bookmark menu	Anterior
 Project	GenioWindow		Projecte
@@ -198,7 +135,7 @@ Search	GenioWindow		Cerca
 Select all	GenioWindow		Selecciona-ho tot
 Set active	GenioWindow		Estableix com a actiu
 Settings…	GenioWindow		Paràmetres...
-Show bottom pane	GenioWindow		Mostra el plafó inferior
+Show bottom pane	GenioWindow		Mostra el plafó inferior.
 Show config	GenioWindow	The git command	Mostra la configuració.
 Show in projects browser	GenioWindow		Mostra-ho al navegador de projectes.
 Show in Tracker	GenioWindow		Mostra-ho al rastrejador.
@@ -223,6 +160,7 @@ Toggle	GenioWindow	Bookmark menu	Commuta
 Tools	GenioWindow		Eines
 Trim trailing whitespace	GenioWindow		Retalla l'espai en blanc final
 Undo	GenioWindow		Refés
+Use smaller icons in statusbar	GenioWindow		Usa icones més petites a la barra d'estat
 View	GenioWindow		Vista
 Whole word	GenioWindow	Short as possible.	Paraula sencera
 Window	GenioWindow		Finestra
@@ -235,7 +173,6 @@ An unknown error occurred.	SourceControlPanel		S'ha produït un error desconegut
 Cancel	SourceControlPanel		Cancel·la
 Changes stashed.	SourceControlPanel		Canvis amagats
 Choose branch…	SourceControlPanel		Trieu una branca...
-Choose project…	SourceControlPanel		Trieu un projecte...
 Conflicts	SourceControlPanel		Conflictes
 Copy name	SourceControlPanel		Copia'n el nom
 Create branch	SourceControlPanel		Crea'n una branca
@@ -257,9 +194,7 @@ Init repository	SourceControlPanel		Dipòsit d'inici
 Local branches	SourceControlPanel		Branques locals
 New branch name:	SourceControlPanel		Nom de la branca nova:
 OK	SourceControlPanel		D'acord
-Project:	SourceControlPanel		Projecte:
 Remote branches	SourceControlPanel		Branques remotes
-Remotes	SourceControlPanel		Remotes
 Rename \"%selected_branch%\"	SourceControlPanel		Canvia de nom %selected_branch%
 Rename branch	SourceControlPanel		Canvia de nom la branca
 Rename branch:	SourceControlPanel		Canvia de nom la branca:
@@ -296,6 +231,7 @@ Drop folder here	ProjectsFolderBrowser		Deixeu anar la carpeta aquí.
 New	ProjectsFolderBrowser		Nou
 OK	ProjectsFolderBrowser		D'acord
 Open file	ProjectsFolderBrowser		Obre el fitxer
+Open file with default application	ProjectsFolderBrowser		Obre el fitxer amb l'aplicació per defecte
 Path	ProjectsFolderBrowser		Camí
 Project	ProjectsFolderBrowser		Projecte
 Project settings…	ProjectsFolderBrowser		Paràmetres del projecte...
@@ -306,14 +242,66 @@ Set active	ProjectsFolderBrowser		Estableix com a actiu
 Switch to branch	ProjectsFolderBrowser		Canvia a la branca
 The project folder has been deleted or moved to another location and it will be closed and unloaded from the workspace.	ProjectsFolderBrowser		La carpeta del projecte s'ha suprimit o s'ha mogut a una altra ubicació i es tancarà i es descarregarà de l'espai de treball.
 The project folder has been renamed. It will be closed and reopened automatically.	ProjectsFolderBrowser		S'ha canviat el nom de la carpeta del projecte. Es tancarà i es reobrirà automàticament.
-Another command is running.	ConsoleIOView		S'executa una altra ordre.
-Banner	ConsoleIOView	A separating line inserted at the start and end of a command output in the console. Short as possible.	Capçalera
-Clear	ConsoleIOView		Neteja
-Restarting build…	ConsoleIOView		Es reinicia la construcció...
-stderr	ConsoleIOView		stderr
-stdout	ConsoleIOView		stdout
-Stop	ConsoleIOView		Atura
-Wrap	ConsoleIOView	As in wrapping long lines. Short as possible.	Ajusta
+Appearance	SettingsWindow		Aparença
+Auto collapse/expand projects	SettingsWindow		Replega / expandeix automàticament els projectes.
+Auto-Build on resource save	SettingsWindow		Construcció automàtica en l'estalvi de recursos
+Auto-Save changed files when building	SettingsWindow		Desa automàticament els fitxers canviats en la construcció.
+Build	SettingsWindow		Construcció
+Convert tabs to spaces	SettingsWindow		Converteix tabulacions a espais.
+Default font	SettingsWindow		Lletra per defecte:
+Default size	SettingsWindow		Mida per defecte
+Editor	SettingsWindow		Editor
+Editor style:	SettingsWindow		Estil de l'editor:
+Editor zoom:	SettingsWindow		Zoom de l'editor:
+Enable auto-indent	SettingsWindow		Activa el sagnat automàtic
+Enable brace matching	SettingsWindow		Habilita la concordança de claus
+Enable syntax highlighting	SettingsWindow		Habilita el ressaltat de la sintaxi.
+Exclude folders:	SettingsWindow		Exclou carpetes:
+Find	SettingsWindow		Cerca
+Font size:	SettingsWindow		Mida de la lletra:
+Font:	SettingsWindow		Lletra:
+Force showing Build log panel when building	SettingsWindow		Força que es mostri el plafó de registre de construcció quan es construeixi.
+General	SettingsWindow		General
+Ignore .editorconfig	SettingsWindow		Ignora .editorconfig
+Log destination:	SettingsWindow		Destinació del registre:
+Log level:	SettingsWindow		Nivell de registre:
+Log size:	SettingsWindow		Mida del registre:
+Mark caret line	SettingsWindow		Marca la línia del cursor
+Match case	SettingsWindow	Short as possible.	Coincidència de majúscules
+Open non-text files externally	SettingsWindow		Obre els fitxers que no siguin de text externament.
+Projects folder:	SettingsWindow		Carpeta de projectes:
+Reload files	SettingsWindow		Torna a carregar els fitxers.
+Reload projects	SettingsWindow		Torna a carregar els projectes.
+Save caret position	SettingsWindow		Desa la posició del cursor.
+Scheme:	SettingsWindow	Name identically to Terminal's color setting	Esquema:
+Set ruler to column:	SettingsWindow		Estableix el regle a la columna:
+Show bottom pane	SettingsWindow		Mostra el plafó inferior.
+Show branch name in window title	SettingsWindow		Mostra el nom de la branca al títol de la finestra
+Show comment margin	SettingsWindow		Mostra el marge del comentari.
+Show folding margin	SettingsWindow		Mostra el marge del plegat.
+Show full path in window title	SettingsWindow		Mostra el camí complet al títol de la finestra.
+Show left pane	SettingsWindow		Mostra el plafó de l'esquerra.
+Show line endings	SettingsWindow		Mostra els finals de línia.
+Show line numbers	SettingsWindow		Mostra els finals de línia.
+Show project name in window title	SettingsWindow		Mostra el nom del projecte al títol de la finestra.
+Show repository outline	SettingsWindow		Mostra l'esquema del dipòsit.
+Show right pane	SettingsWindow		Mostra el plafó de la dreta.
+Show statusbar	SettingsWindow		Mostra la barra d'estat.
+Show toolbar	SettingsWindow		Mostra la barra d'eines.
+Show vertical ruler	SettingsWindow		Mostra el regle vertical.
+Show whitespace	SettingsWindow		Mostra els espais en blanc.
+Source control	SettingsWindow		Control de font
+Startup	SettingsWindow		Inici
+Tab width from label	SettingsWindow		Amplada de la pestanya de l'etiqueta
+Tab width:	SettingsWindow		Amplada de la tabulació:
+These are only applied if no .editorconfig is used:	SettingsWindow	The translation shouldn't be much longer than the English original	Només s'apliquen si no s'usa cap .editorconfig:
+This setting will be updated on restart.	SettingsWindow		Aquesta configuració s'actualitzarà en reiniciar.
+Trim trailing whitespace on save	SettingsWindow		Retalla els espais en blanc al final en desar.
+Use smaller icons in toolbar	SettingsWindow		Usa icones més petites a la barra d'eines.
+Visuals	SettingsWindow		Visuals
+Whole word	SettingsWindow	Short as possible.	Tot
+Wrap around	SettingsWindow	Continue searching from the beginning when reaching the end of the file	Circular
+Wrap lines	SettingsWindow		Ajusta les línies.
 Array	FunctionsOutlineView		Matriu
 Boolean	FunctionsOutlineView		Booleà
 Class	FunctionsOutlineView		Classe
@@ -392,20 +380,20 @@ Password:	GitCredentialsWindow		Contrasenya:
 Username:	GitCredentialsWindow		Nom d'usuari:
 Cancel	GTextAlert		Cancel·la
 OK	GTextAlert		D'acord
+Caret position	Scrollbar Overlay		Posició del caràcter
 Category	ProblemsPanel		Categoria
 Line	ProblemsPanel		Línia
 Message	ProblemsPanel		Misstge
 No fix available	ProblemsPanel		No hi ha cap solució disponible.
 Problems	ProblemsPanel		Problemes
 Source	ProblemsPanel		Font
-Choose project…	SearchResultTab		Trieu un projecte...
-Find in project	SearchResultTab		Troba al projecte
-Match case	SearchResultTab	Short as possible.	Coincidència de caixa
-Project:	SearchResultTab		Projecte:
-Whole word	SearchResultTab	Short as possible.	Paraula sencera
+Choose project…	ProjectMenuField		Trieu un projecte...
+Project:	ProjectMenuField		Projecte:
+Clear	ConsoleIOView		Neteja
+Stop	ConsoleIOView		Atura
 Contributors:	GenioApp		Col·laboradors:
 Genio is a fork of Ideam and available under the MIT license.	GenioApp		Genio és una bifurcació d'Ideam i està disponible segons la llicència MIT.
-Genio uses:\nScintilla lib\nCopyright 1998-2003 by Neil Hodgson \n\nScintilla for Haiku\nCopyright 2011 by Andrea Anzani \nCopyright 2014-2015 by Kacper Kasper \n\n	GenioApp		Genio usa\nScintilla lib\nCopyright 1998-2003 de Neil Hodgson \n\nScintilla per a Haiku\nCopyright 2011 d'Andrea Anzani \nCopyright 2014 de Kaper-c2015 \n\n
+Genio uses:\nScintilla lib\nCopyright 1998-2003 by Neil Hodgson \n\nScintilla for Haiku\nCopyright 2011 by Andrea Anzani \nCopyright 2014-2015 by Kacper Kasper \n\n	GenioApp		Genio usa el següent:\nScintilla lib\nCopyright 1998-2003 de Neil Hodgson \n\nScintilla per a Haiku\nCopyright 2011 d'Andrea Anzani \nCopyright 2014-2015 de Kacper Kasper \n\n
 Made with love in Italy	GenioApp		Fet amb amor a Itàlia
 See credits for a complete list.\n\n	GenioApp		Consulteu-ne els crèdits per obtenir una llista completa.\n\n
 Defaults	ConfigWindow		Valors per defecte
@@ -417,13 +405,15 @@ File modified	GitRepository		Fitxer modificat
 File modified on index	GitRepository		Fitxer modificat a l'índex
 New file	GitRepository		Fitxer nou
 New file staged	GitRepository		Fitxer nou posat en escena
+Find in project	SearchResultTab		Troba al projecte
+Match case	SearchResultTab	Short as possible.	Coincidència de caixa
+Whole word	SearchResultTab	Short as possible.	Paraula sencera
 Genio	System name		Genio
 Global settings applied	EditorStatusView		Configuració global aplicada
 No LSP file status information	EditorStatusView		No hi ha informació d'estat del fitxer LSP.
 Settings in .editorconfig applied	EditorStatusView		S'ha aplicat la configuració a .editorconfig.
-Loading project	ProjectOpenerWindow		Es carrega el projecte
-Loading project '%project_name%'	ProjectOpenerWindow		Es carrega el projecte %project_name%
 Location	SearchResultPanel		Ubicació
 Search results	SearchResultPanel		Resultats de la cerca
 New folder	TemplateManager		Carpeta nova
 OK	GitAlert		D'acord
+Unable to load image	ImageEditor		No es pot carregar la imatge.

@@ -1,69 +1,4 @@
-1	Spanish	application/x-vnd.Genio	1940528103
-(follow editor style)	TermView		(imitar estilo del editor)
-(follow system style)	TermView		(imitar estilo del sistema)
-Banner	TermView	A separating line inserted at the start and end of a command output in the console. Short as possible.	Pancarta
-Clear	TermView		Limpiar
-Stop	TermView		Detener
-Wrap	TermView	As in wrapping long lines. Short as possible.	Ajuste de línea
-(follow editor style)	SettingsWindow		(imitar estilo del editor)
-(follow system style)	SettingsWindow		(imitar estilo del sistema)
-Appearance	SettingsWindow		Apariencia
-Auto collapse/expand projects	SettingsWindow		Contraer/expandir automáticamente los proyectos
-Auto-Build on resource save	SettingsWindow		Compilar automáticamente al guardar el recurso
-Auto-Save changed files when building	SettingsWindow		Guardar automáticamente al compilar
-Build	SettingsWindow		Compilación
-Console banner	SettingsWindow	A separating line inserted at the start and end of a command output in the console. Short as possible.	Pancarta de la consola
-Console style:	SettingsWindow		Estilo de la consola:
-Convert tabs to spaces	SettingsWindow		Convertir tabulaciones a espacios
-Default font	SettingsWindow		Fuente predeterminada
-Default size	SettingsWindow		Tamaño predeterminado
-Editor	SettingsWindow		Editor
-Editor style:	SettingsWindow		Estilo del editor:
-Editor zoom:	SettingsWindow		Ampliación del editor:
-Enable brace matching	SettingsWindow		Habilitar coincidencia de llaves
-Enable syntax highlighting	SettingsWindow		Habilitar resaltado de sintaxis
-Exclude folders:	SettingsWindow		Excluir carpetas:
-Find	SettingsWindow		Búsqueda
-Font size:	SettingsWindow		Tamaño de fuente:
-Font:	SettingsWindow		Fuente:
-Force showing Build log panel when building	SettingsWindow		Siempre mostrar el panel de registro al compilar
-General	SettingsWindow		General
-Ignore .editorconfig	SettingsWindow		Ignorar .editorconfig
-Log destination:	SettingsWindow		Destino del registro:
-Log level:	SettingsWindow		Nivel de registro:
-Log size:	SettingsWindow		Tamaño del registro:
-Mark caret line	SettingsWindow		Resaltar línea del cursor
-Match case	SettingsWindow	Short as possible.	Coincidir capitalización
-Projects folder:	SettingsWindow		Carpeta de proyectos:
-Reload files	SettingsWindow		Recargar archivos
-Reload projects	SettingsWindow		Recargar proyectos
-Save caret position	SettingsWindow		Guardar posición del cursor
-Set ruler to column:	SettingsWindow		Establecer regla a la columna:
-Show bottom pane	SettingsWindow		Mostrar panel inferior
-Show comment margin	SettingsWindow		Mostrar márgen de comentario
-Show folding margin	SettingsWindow		Mostrar margen de plegado
-Show full path in window title	SettingsWindow		Mostrar ruta completa en el título de la ventana
-Show left pane	SettingsWindow		Mostrar panel izquierdo
-Show line endings	SettingsWindow		Mostrar finales de línea
-Show line numbers	SettingsWindow		Mostrar números de línea
-Show repository outline	SettingsWindow		Mostrar repositorio como árbol
-Show right pane	SettingsWindow		Mostrar panel derecho
-Show statusbar	SettingsWindow		Mostrar barra de estado
-Show toolbar	SettingsWindow		Mostrar barra de herramientas
-Show vertical ruler	SettingsWindow		Mostrar regla vertical
-Show whitespace	SettingsWindow		Mostrar espacios en blanco
-Source control	SettingsWindow		Control de código
-Startup	SettingsWindow		Inicio
-Tab width:	SettingsWindow		Ancho de tabulación:  
-These are only applied if no .editorconfig is used:	SettingsWindow	The translation shouldn't be much longer than the English original	Estas sólo se aplican si no se usa un .editorconfig:
-This setting will be updated on restart.	SettingsWindow		Este ajuste se aplicará al reinicio.
-Trim trailing whitespace on save	SettingsWindow		Eliminar espacios en blanco al final de las líneas al guardar
-Use smaller icons in toolbar	SettingsWindow		Usar iconos pequeños en la barra de herramientas
-Visuals	SettingsWindow		Visuales
-Whole word	SettingsWindow	Short as possible.	Palabra completa
-Wrap around	SettingsWindow	Continue searching from the beginning when reaching the end of the file	Volver al inicio
-Wrap lines	SettingsWindow		Ajuste de línea
-Wrap lines in console	SettingsWindow		Ajuste de línea de la consola
+1	Spanish	application/x-vnd.Genio	1484233109
 {0, plural,one{# element found}other{# elements found}}	Editor		{0, plural,one{# elemento encontrado}other{# elementos encontrados}}
 {0, plural,one{# element replaced}other{# elements replaced}}	Editor		{0, plural,one{# elemento remplazado}other{# elementos remplazados}}
 1 element replaced	Editor		1 elemento remplazado
@@ -158,11 +93,13 @@ New file	GenioWindow		Nuevo archivo
 New folder	GenioWindow		Nueva carpeta
 Next	GenioWindow	Bookmark menu	Siguiente
 Open in Terminal	GenioWindow		Abrir en Terminal
+Open project	GenioWindow		Abrir proyecto
 Open project…	GenioWindow		Abrir proyecto…
 Open recent…	GenioWindow		Abrir reciente…
 Open remote project…	GenioWindow		Abrir proyecto remoto…
 Open…	GenioWindow		Abrir…
 Overwrite	GenioWindow		Sobrescribir
+Panels	GenioWindow		Paneles
 Paste	GenioWindow		Pegar
 Previous	GenioWindow	Bookmark menu	Anterior
 Project	GenioWindow		Proyecto
@@ -223,6 +160,7 @@ Toggle	GenioWindow	Bookmark menu	Cambiar
 Tools	GenioWindow		Herramientas
 Trim trailing whitespace	GenioWindow		Quitar espacios en blanco
 Undo	GenioWindow		Deshacer
+Use smaller icons in statusbar	GenioWindow		Usar iconos pequeños en la barra de estado
 View	GenioWindow		Ver
 Whole word	GenioWindow	Short as possible.	Palabra completa
 Window	GenioWindow		Ventana
@@ -235,7 +173,6 @@ An unknown error occurred.	SourceControlPanel		Ha ocurrido un error desconocido.
 Cancel	SourceControlPanel		Cancelar
 Changes stashed.	SourceControlPanel		Cambios añadidos al depósito (stash).
 Choose branch…	SourceControlPanel		Elegir rama…
-Choose project…	SourceControlPanel		Elegir proyecto…
 Conflicts	SourceControlPanel		Conflictos
 Copy name	SourceControlPanel		Copiar nombre
 Create branch	SourceControlPanel		Crear rama
@@ -257,9 +194,7 @@ Init repository	SourceControlPanel		Iniciar repositorio
 Local branches	SourceControlPanel		Ramas locales
 New branch name:	SourceControlPanel		Nombre de la rama nueva:
 OK	SourceControlPanel		Aceptar
-Project:	SourceControlPanel		Proyecto:
 Remote branches	SourceControlPanel		Ramas remotas
-Remotes	SourceControlPanel		Remotos
 Rename \"%selected_branch%\"	SourceControlPanel		Renombrar \"%selected_branch%\"
 Rename branch	SourceControlPanel		Renombrar rama
 Rename branch:	SourceControlPanel		Renombrar rama:
@@ -296,6 +231,7 @@ Drop folder here	ProjectsFolderBrowser		Soltar carpeta aquí
 New	ProjectsFolderBrowser		Nuevo
 OK	ProjectsFolderBrowser		Aceptar
 Open file	ProjectsFolderBrowser		Abrir archivo
+Open file with default application	ProjectsFolderBrowser		Abrir archivo con la aplicación predeterminada
 Path	ProjectsFolderBrowser		Ruta
 Project	ProjectsFolderBrowser		Proyecto
 Project settings…	ProjectsFolderBrowser		Ajustes del proyecto…
@@ -306,14 +242,66 @@ Set active	ProjectsFolderBrowser		Establecer como activo
 Switch to branch	ProjectsFolderBrowser		Cambiar a rama
 The project folder has been deleted or moved to another location and it will be closed and unloaded from the workspace.	ProjectsFolderBrowser		La carpeta del proyecto ha sido eliminada o movida a otra ubicación, por lo que se cerrará y descargará del espacio de trabajo.
 The project folder has been renamed. It will be closed and reopened automatically.	ProjectsFolderBrowser		La carpeta del proyecto ha sido renombrada. Se cerrará y reabrirá automáticamente.
-Another command is running.	ConsoleIOView		Se está ejecutando otro comando.
-Banner	ConsoleIOView	A separating line inserted at the start and end of a command output in the console. Short as possible.	Pancartas
-Clear	ConsoleIOView		Limpiar
-Restarting build…	ConsoleIOView		Reiniciando compilación…
-stderr	ConsoleIOView		stderr
-stdout	ConsoleIOView		stdout
-Stop	ConsoleIOView		Detener
-Wrap	ConsoleIOView	As in wrapping long lines. Short as possible.	Ajuste de línea
+Appearance	SettingsWindow		Apariencia
+Auto collapse/expand projects	SettingsWindow		Contraer/expandir automáticamente los proyectos
+Auto-Build on resource save	SettingsWindow		Compilar automáticamente al guardar el recurso
+Auto-Save changed files when building	SettingsWindow		Guardar automáticamente al compilar
+Build	SettingsWindow		Compilación
+Convert tabs to spaces	SettingsWindow		Convertir tabulaciones a espacios
+Default font	SettingsWindow		Fuente predeterminada
+Default size	SettingsWindow		Tamaño predeterminado
+Editor	SettingsWindow		Editor
+Editor style:	SettingsWindow		Estilo del editor:
+Editor zoom:	SettingsWindow		Ampliación del editor:
+Enable auto-indent	SettingsWindow		Activar sangría automática
+Enable brace matching	SettingsWindow		Habilitar coincidencia de llaves
+Enable syntax highlighting	SettingsWindow		Habilitar resaltado de sintaxis
+Exclude folders:	SettingsWindow		Excluir carpetas:
+Find	SettingsWindow		Búsqueda
+Font size:	SettingsWindow		Tamaño de fuente:
+Font:	SettingsWindow		Fuente:
+Force showing Build log panel when building	SettingsWindow		Siempre mostrar el panel de registro al compilar
+General	SettingsWindow		General
+Ignore .editorconfig	SettingsWindow		Ignorar .editorconfig
+Log destination:	SettingsWindow		Destino del registro:
+Log level:	SettingsWindow		Nivel de registro:
+Log size:	SettingsWindow		Tamaño del registro:
+Mark caret line	SettingsWindow		Resaltar línea del cursor
+Match case	SettingsWindow	Short as possible.	Coincidir capitalización
+Open non-text files externally	SettingsWindow		Abrir archivos no textuales externamente
+Projects folder:	SettingsWindow		Carpeta de proyectos:
+Reload files	SettingsWindow		Recargar archivos
+Reload projects	SettingsWindow		Recargar proyectos
+Save caret position	SettingsWindow		Guardar posición del cursor
+Scheme:	SettingsWindow	Name identically to Terminal's color setting	Esquema:
+Set ruler to column:	SettingsWindow		Establecer regla a la columna:
+Show bottom pane	SettingsWindow		Mostrar panel inferior
+Show branch name in window title	SettingsWindow		Mostrar nombre de rama en el título de ventana
+Show comment margin	SettingsWindow		Mostrar márgen de comentario
+Show folding margin	SettingsWindow		Mostrar margen de plegado
+Show full path in window title	SettingsWindow		Mostrar ruta completa en el título de la ventana
+Show left pane	SettingsWindow		Mostrar panel izquierdo
+Show line endings	SettingsWindow		Mostrar finales de línea
+Show line numbers	SettingsWindow		Mostrar números de línea
+Show project name in window title	SettingsWindow		Mostrar nombre de proyecto en el título de ventana
+Show repository outline	SettingsWindow		Mostrar repositorio como árbol
+Show right pane	SettingsWindow		Mostrar panel derecho
+Show statusbar	SettingsWindow		Mostrar barra de estado
+Show toolbar	SettingsWindow		Mostrar barra de herramientas
+Show vertical ruler	SettingsWindow		Mostrar regla vertical
+Show whitespace	SettingsWindow		Mostrar espacios en blanco
+Source control	SettingsWindow		Control de código
+Startup	SettingsWindow		Inicio
+Tab width from label	SettingsWindow		Ancho de pestaña según la etiqueta
+Tab width:	SettingsWindow		Ancho de tabulación:  
+These are only applied if no .editorconfig is used:	SettingsWindow	The translation shouldn't be much longer than the English original	Estas sólo se aplican si no se usa un .editorconfig:
+This setting will be updated on restart.	SettingsWindow		Este ajuste se aplicará al reinicio.
+Trim trailing whitespace on save	SettingsWindow		Eliminar espacios en blanco al final de las líneas al guardar
+Use smaller icons in toolbar	SettingsWindow		Usar iconos pequeños en la barra de herramientas
+Visuals	SettingsWindow		Visuales
+Whole word	SettingsWindow	Short as possible.	Palabra completa
+Wrap around	SettingsWindow	Continue searching from the beginning when reaching the end of the file	Volver al inicio
+Wrap lines	SettingsWindow		Ajuste de línea
 Array	FunctionsOutlineView		Arreglo
 Boolean	FunctionsOutlineView		Booleano
 Class	FunctionsOutlineView		Clase
@@ -392,20 +380,20 @@ Password:	GitCredentialsWindow		Contraseña:
 Username:	GitCredentialsWindow		Nombre de usuario:
 Cancel	GTextAlert		Cancelar
 OK	GTextAlert		Aceptar
+Caret position	Scrollbar Overlay		Posición del cursor
 Category	ProblemsPanel		Categoría
 Line	ProblemsPanel		Línea
 Message	ProblemsPanel		Mensaje
 No fix available	ProblemsPanel		No hay una corrección disponible
 Problems	ProblemsPanel		Problemas
 Source	ProblemsPanel		Fuente
-Choose project…	SearchResultTab		Escoger proyecto…
-Find in project	SearchResultTab		Encontrar en proyecto
-Match case	SearchResultTab	Short as possible.	Coincidir mayúsculas
-Project:	SearchResultTab		Proyecto:
-Whole word	SearchResultTab	Short as possible.	Palabra completa
+Choose project…	ProjectMenuField		Elegir proyecto…
+Project:	ProjectMenuField		Proyecto:
+Clear	ConsoleIOView		Limpiar
+Stop	ConsoleIOView		Detener
 Contributors:	GenioApp		Colaboradores:
 Genio is a fork of Ideam and available under the MIT license.	GenioApp		Genio es un software nacido a partir de Ideam y disponible bajo la licencia MIT.
-Genio uses:\nScintilla lib\nCopyright 1998-2003 by Neil Hodgson \n\nScintilla for Haiku\nCopyright 2011 by Andrea Anzani \nCopyright 2014-2015 by Kacper Kasper \n\n	GenioApp		Genio utiliza:\nLa biblioteca Scintilla\nCopyright 1998-2003 por Neil Hodgson \n\nScintilla para Haiku\nCopyright 2011 por Andrea Anzani \nCopyright 2014-2015 por Kacper Kasper \n\n
+Genio uses:\nScintilla lib\nCopyright 1998-2003 by Neil Hodgson \n\nScintilla for Haiku\nCopyright 2011 by Andrea Anzani \nCopyright 2014-2015 by Kacper Kasper \n\n	GenioApp		Genio usa:\nBiblioteca Scintilla\nDerechos de autor 1998-2003 por Neil Hodgson \n\nScintilla para Haiku\nDerechos de autor 2011 por Andrea Anzani \nDerechos de autor 2014-2015 por Kacper Kasper \n\n
 Made with love in Italy	GenioApp		Hecho con amor desde Italia
 See credits for a complete list.\n\n	GenioApp		Véase los créditos por una lista completa.\n\n
 Defaults	ConfigWindow		Predeterminados
@@ -417,13 +405,15 @@ File modified	GitRepository		Archivo modificado
 File modified on index	GitRepository		Archivo modificado en el índice
 New file	GitRepository		Archivo nuevo
 New file staged	GitRepository		Nuevo archivo en el área de preparación (stage)
+Find in project	SearchResultTab		Encontrar en proyecto
+Match case	SearchResultTab	Short as possible.	Coincidir mayúsculas
+Whole word	SearchResultTab	Short as possible.	Palabra completa
 Genio	System name		Genio
 Global settings applied	EditorStatusView		Ajustes globales aplicados
 No LSP file status information	EditorStatusView		Sin información LSP del estado de archivo
 Settings in .editorconfig applied	EditorStatusView		Ajustes aplicados en .editorconfig
-Loading project	ProjectOpenerWindow		Cargando proyecto
-Loading project '%project_name%'	ProjectOpenerWindow		Cargando proyecto '%project_name%'
 Location	SearchResultPanel		Ubicación
 Search results	SearchResultPanel		Resultados de búsqueda
 New folder	TemplateManager		Nueva carpeta
 OK	GitAlert		Aceptar
+Unable to load image	ImageEditor		No se puede cargar la imagen

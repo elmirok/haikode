@@ -1,69 +1,4 @@
-1	Czech	application/x-vnd.Genio	1940528103
-(follow editor style)	TermView		(postupujte ve stylu editoru)\n
-(follow system style)	TermView		(postupujte ve stylu systému)\n
-Banner	TermView	A separating line inserted at the start and end of a command output in the console. Short as possible.	Banner
-Clear	TermView		Vyčistit
-Stop	TermView		Přestat
-Wrap	TermView	As in wrapping long lines. Short as possible.	Zabalit\n
-(follow editor style)	SettingsWindow		\n(postupujte ve stylu editoru)
-(follow system style)	SettingsWindow		\n(postupujte ve stylu systému)
-Appearance	SettingsWindow		Vzhled
-Auto collapse/expand projects	SettingsWindow		Automaticky sbalit/rozbalit projekty\n
-Auto-Build on resource save	SettingsWindow		Automatické sestavení při šetření zdrojů
-Auto-Save changed files when building	SettingsWindow		\nAutomatické ukládání změněných souborů při vytváření
-Build	SettingsWindow		Vytvořit
-Console banner	SettingsWindow	A separating line inserted at the start and end of a command output in the console. Short as possible.	Konzolový banner\n
-Console style:	SettingsWindow		Styl konzole:\n
-Convert tabs to spaces	SettingsWindow		Převést tabulátory na mezery\n
-Default font	SettingsWindow		Výchozí písmo\n
-Default size	SettingsWindow		Výchozí velikost\n
-Editor	SettingsWindow		Editor
-Editor style:	SettingsWindow		Styl editoru:\n
-Editor zoom:	SettingsWindow		Přiblížení editoru:\n
-Enable brace matching	SettingsWindow		Povolit párování složených závorek\n
-Enable syntax highlighting	SettingsWindow		Povolit zvýraznění syntaxe\n
-Exclude folders:	SettingsWindow		Vyloučit složky:\n
-Find	SettingsWindow		Nalézt\n
-Font size:	SettingsWindow		Velikost písma:\n
-Font:	SettingsWindow		Písmo:
-Force showing Build log panel when building	SettingsWindow		Vynutit zobrazení panelu protokolu sestavení při sestavení
-General	SettingsWindow		Obecná nastavení
-Ignore .editorconfig	SettingsWindow		Ignorujte .editorconfig\n
-Log destination:	SettingsWindow		Cíl protokolu:\n
-Log level:	SettingsWindow		Úroveň protokolu:\n
-Log size:	SettingsWindow		Velikost protokolu:\n
-Mark caret line	SettingsWindow		Označte stříšku\n
-Match case	SettingsWindow	Short as possible.	Shoda
-Projects folder:	SettingsWindow		Složka projektů:\n
-Reload files	SettingsWindow		\nZnovu načtěte soubory
-Reload projects	SettingsWindow		Znovu načíst projekty\n
-Save caret position	SettingsWindow		Uložit pozici stříšky\n
-Set ruler to column:	SettingsWindow		Nastavit pravítko na sloupec:\n
-Show bottom pane	SettingsWindow		Zobrazit dolní panel
-Show comment margin	SettingsWindow		Zobrazit okraj komentáře\n
-Show folding margin	SettingsWindow		Zobrazit skládací okraj\n
-Show full path in window title	SettingsWindow		Zobrazit celou cestu v názvu okna\n
-Show left pane	SettingsWindow		Zobrazit levý panel
-Show line endings	SettingsWindow		Zobrazit konce řádků\n
-Show line numbers	SettingsWindow		Zobrazit čísla řádků\n
-Show repository outline	SettingsWindow		Zobrazit obrys úložiště\n
-Show right pane	SettingsWindow		Zobrazit pravý panel
-Show statusbar	SettingsWindow		Zobrazit stavový řádek\n
-Show toolbar	SettingsWindow		Zobrazit panel nástrojů\n
-Show vertical ruler	SettingsWindow		Zobrazit svislé pravítko\n
-Show whitespace	SettingsWindow		Zobrazit mezery\n
-Source control	SettingsWindow		Ovládání zdroje\n
-Startup	SettingsWindow		Spuštění\n
-Tab width:	SettingsWindow		Šířka karty:\n
-These are only applied if no .editorconfig is used:	SettingsWindow	The translation shouldn't be much longer than the English original	Ty se použijí pouze v případě, že není použit žádný .editorconfig:\n
-This setting will be updated on restart.	SettingsWindow		Toto nastavení bude aktualizováno při restartu.\n
-Trim trailing whitespace on save	SettingsWindow		Při uložení ořízněte mezery na konci\n
-Use smaller icons in toolbar	SettingsWindow		Použijte menší ikony na panelu nástrojů\n
-Visuals	SettingsWindow		Vizuály
-Whole word	SettingsWindow	Short as possible.	Celé slovo
-Wrap around	SettingsWindow	Continue searching from the beginning when reaching the end of the file	Zabalit se\n
-Wrap lines	SettingsWindow		Zabalit čáry\n
-Wrap lines in console	SettingsWindow		Zabalit řádky do konzoly\n
+1	Czech	application/x-vnd.Genio	1484233109
 {0, plural,one{# element found}other{# elements found}}	Editor		{0, plural,one{# element nalezen}other{# elementů nalezeno}}
 {0, plural,one{# element replaced}other{# elements replaced}}	Editor		{0, plural,one{# element nahrazen}other{# elementů nahrazeno}}
 1 element replaced	Editor		1 element nahrazen
@@ -158,11 +93,13 @@ New file	GenioWindow		Nový soubor
 New folder	GenioWindow		Nová složka
 Next	GenioWindow	Bookmark menu	Další
 Open in Terminal	GenioWindow		Otevřít terminál
+Open project	GenioWindow		Otevřít projekt
 Open project…	GenioWindow		Otevřít projekt...
 Open recent…	GenioWindow		Otevřít nedávné…
 Open remote project…	GenioWindow		Otevřít vzdálený projekt…
 Open…	GenioWindow		Otevřít…
 Overwrite	GenioWindow		Přepsat
+Panels	GenioWindow		Panely
 Paste	GenioWindow		Vložit
 Previous	GenioWindow	Bookmark menu	Předchozí
 Project	GenioWindow		Projekt
@@ -223,6 +160,7 @@ Toggle	GenioWindow	Bookmark menu	Přepínač
 Tools	GenioWindow		Nástroje\n
 Trim trailing whitespace	GenioWindow		\nOřízněte mezery na konci
 Undo	GenioWindow		Vrátit zpět\n
+Use smaller icons in statusbar	GenioWindow		Použít menší ikonu ve statusbaru
 View	GenioWindow		Pohled
 Whole word	GenioWindow	Short as possible.	Celé slovo
 Window	GenioWindow		Okno\n
@@ -235,7 +173,6 @@ An unknown error occurred.	SourceControlPanel		Došlo k neznámé chybě.\n
 Cancel	SourceControlPanel		Zrušit
 Changes stashed.	SourceControlPanel		Změny byly uloženy.\n
 Choose branch…	SourceControlPanel		Vyberte pobočku…\n
-Choose project…	SourceControlPanel		Vyberte projekt…\n
 Conflicts	SourceControlPanel		Konflikty
 Copy name	SourceControlPanel		Zkopírovat jméno\n
 Create branch	SourceControlPanel		Vytvořit větev\n
@@ -257,9 +194,7 @@ Init repository	SourceControlPanel		Init repository
 Local branches	SourceControlPanel		Lokální větve
 New branch name:	SourceControlPanel		Nový název větve:\n
 OK	SourceControlPanel		OK
-Project:	SourceControlPanel		Projekt:
 Remote branches	SourceControlPanel		Vzdálené větvě\n
-Remotes	SourceControlPanel		Vzdálené
 Rename \"%selected_branch%\"	SourceControlPanel		Přejmenovat \"%selected_branch%\"\n
 Rename branch	SourceControlPanel		Přejmenovat větev\n
 Rename branch:	SourceControlPanel		Přejmenovat větev:\n
@@ -296,6 +231,7 @@ Drop folder here	ProjectsFolderBrowser		Sem přetáhněte složku\n
 New	ProjectsFolderBrowser		Nový
 OK	ProjectsFolderBrowser		OK
 Open file	ProjectsFolderBrowser		Otevřít soubor\n
+Open file with default application	ProjectsFolderBrowser		Open file with default application
 Path	ProjectsFolderBrowser		Cesta\n
 Project	ProjectsFolderBrowser		Projekt
 Project settings…	ProjectsFolderBrowser		Nastavení projektu…\n
@@ -306,14 +242,66 @@ Set active	ProjectsFolderBrowser		Nastavit jako aktivní\n
 Switch to branch	ProjectsFolderBrowser		Přepnout na pobočku\n
 The project folder has been deleted or moved to another location and it will be closed and unloaded from the workspace.	ProjectsFolderBrowser		Složka projektu byla odstraněna nebo přesunuta na jiné místo a bude uzavřena a uvolněna z pracovního prostoru.
 The project folder has been renamed. It will be closed and reopened automatically.	ProjectsFolderBrowser		Složka projektu byla přejmenována. Automaticky se zavře a znovu otevře.
-Another command is running.	ConsoleIOView		Probíhá další příkaz.
-Banner	ConsoleIOView	A separating line inserted at the start and end of a command output in the console. Short as possible.	Prapor
-Clear	ConsoleIOView		Vyčisti
-Restarting build…	ConsoleIOView		Restartování sestavení…
-stderr	ConsoleIOView		stderr
-stdout	ConsoleIOView		stdout
-Stop	ConsoleIOView		Stop
-Wrap	ConsoleIOView	As in wrapping long lines. Short as possible.	Zabalit
+Appearance	SettingsWindow		Vzhled
+Auto collapse/expand projects	SettingsWindow		Automaticky sbalit/rozbalit projekty\n
+Auto-Build on resource save	SettingsWindow		Automatické sestavení při šetření zdrojů
+Auto-Save changed files when building	SettingsWindow		\nAutomatické ukládání změněných souborů při vytváření
+Build	SettingsWindow		Vytvořit
+Convert tabs to spaces	SettingsWindow		Převést tabulátory na mezery\n
+Default font	SettingsWindow		Výchozí písmo\n
+Default size	SettingsWindow		Výchozí velikost\n
+Editor	SettingsWindow		Editor
+Editor style:	SettingsWindow		Styl editoru:\n
+Editor zoom:	SettingsWindow		Přiblížení editoru:\n
+Enable auto-indent	SettingsWindow		Enable auto-indent
+Enable brace matching	SettingsWindow		Povolit párování složených závorek\n
+Enable syntax highlighting	SettingsWindow		Povolit zvýraznění syntaxe\n
+Exclude folders:	SettingsWindow		Vyloučit složky:\n
+Find	SettingsWindow		Nalézt\n
+Font size:	SettingsWindow		Velikost písma:\n
+Font:	SettingsWindow		Písmo:
+Force showing Build log panel when building	SettingsWindow		Vynutit zobrazení panelu protokolu sestavení při sestavení
+General	SettingsWindow		Obecná nastavení
+Ignore .editorconfig	SettingsWindow		Ignorujte .editorconfig\n
+Log destination:	SettingsWindow		Cíl protokolu:\n
+Log level:	SettingsWindow		Úroveň protokolu:\n
+Log size:	SettingsWindow		Velikost protokolu:\n
+Mark caret line	SettingsWindow		Označte stříšku\n
+Match case	SettingsWindow	Short as possible.	Shoda
+Open non-text files externally	SettingsWindow		Open non-text files externally
+Projects folder:	SettingsWindow		Složka projektů:\n
+Reload files	SettingsWindow		\nZnovu načtěte soubory
+Reload projects	SettingsWindow		Znovu načíst projekty\n
+Save caret position	SettingsWindow		Uložit pozici stříšky\n
+Scheme:	SettingsWindow	Name identically to Terminal's color setting	Schéma:
+Set ruler to column:	SettingsWindow		Nastavit pravítko na sloupec:\n
+Show bottom pane	SettingsWindow		Zobrazit dolní panel
+Show branch name in window title	SettingsWindow		Ukázat jméno větve v titulku okna
+Show comment margin	SettingsWindow		Zobrazit okraj komentáře\n
+Show folding margin	SettingsWindow		Zobrazit skládací okraj\n
+Show full path in window title	SettingsWindow		Zobrazit celou cestu v názvu okna\n
+Show left pane	SettingsWindow		Zobrazit levý panel
+Show line endings	SettingsWindow		Zobrazit konce řádků\n
+Show line numbers	SettingsWindow		Zobrazit čísla řádků\n
+Show project name in window title	SettingsWindow		Ukázat jméno projektu v titulku okna
+Show repository outline	SettingsWindow		Zobrazit obrys úložiště\n
+Show right pane	SettingsWindow		Zobrazit pravý panel
+Show statusbar	SettingsWindow		Zobrazit stavový řádek\n
+Show toolbar	SettingsWindow		Zobrazit panel nástrojů\n
+Show vertical ruler	SettingsWindow		Zobrazit svislé pravítko\n
+Show whitespace	SettingsWindow		Zobrazit mezery\n
+Source control	SettingsWindow		Ovládání zdroje\n
+Startup	SettingsWindow		Spuštění\n
+Tab width from label	SettingsWindow		Tab width from label
+Tab width:	SettingsWindow		Šířka karty:\n
+These are only applied if no .editorconfig is used:	SettingsWindow	The translation shouldn't be much longer than the English original	Ty se použijí pouze v případě, že není použit žádný .editorconfig:\n
+This setting will be updated on restart.	SettingsWindow		Toto nastavení bude aktualizováno při restartu.\n
+Trim trailing whitespace on save	SettingsWindow		Při uložení ořízněte mezery na konci\n
+Use smaller icons in toolbar	SettingsWindow		Použijte menší ikony na panelu nástrojů\n
+Visuals	SettingsWindow		Vizuály
+Whole word	SettingsWindow	Short as possible.	Celé slovo
+Wrap around	SettingsWindow	Continue searching from the beginning when reaching the end of the file	Zabalit se\n
+Wrap lines	SettingsWindow		Zabalit čáry\n
 Array	FunctionsOutlineView		Pole
 Boolean	FunctionsOutlineView		Boolean
 Class	FunctionsOutlineView		Třída
@@ -392,20 +380,20 @@ Password:	GitCredentialsWindow		Heslo:
 Username:	GitCredentialsWindow		Uživatelské jméno:
 Cancel	GTextAlert		Zrušit
 OK	GTextAlert		OK
+Caret position	Scrollbar Overlay		Caret position
 Category	ProblemsPanel		Kategorie\n
 Line	ProblemsPanel		Řádek
 Message	ProblemsPanel		Zpráva\n
 No fix available	ProblemsPanel		Žádná oprava není k dispozici
 Problems	ProblemsPanel		Problémy\n
 Source	ProblemsPanel		Zdroj\n
-Choose project…	SearchResultTab		Vyberte projekt…\n
-Find in project	SearchResultTab		Najít v projektu\n
-Match case	SearchResultTab	Short as possible.	Shoda 
-Project:	SearchResultTab		Projekt:\n
-Whole word	SearchResultTab	Short as possible.	Celé slovo\n
+Choose project…	ProjectMenuField		Vybrat projekt...
+Project:	ProjectMenuField		Projekt:
+Clear	ConsoleIOView		Vyčisti
+Stop	ConsoleIOView		Stop
 Contributors:	GenioApp		Přispěvatelé:
 Genio is a fork of Ideam and available under the MIT license.	GenioApp		Genio je odnož programu Ideam a je k dispozici pod licencí MIT.
-Genio uses:\nScintilla lib\nCopyright 1998-2003 by Neil Hodgson \n\nScintilla for Haiku\nCopyright 2011 by Andrea Anzani \nCopyright 2014-2015 by Kacper Kasper \n\n	GenioApp		Genio používá:\nScintilla lib\nCopyright 1998-2003 by Neil Hodgson \n\nScintilla for Haiku\nCopyright 2011 by Andrea Anzani \nCopyright 2014-2015 by Kacper Kasper \n\n
+Genio uses:\nScintilla lib\nCopyright 1998-2003 by Neil Hodgson \n\nScintilla for Haiku\nCopyright 2011 by Andrea Anzani \nCopyright 2014-2015 by Kacper Kasper \n\n	GenioApp		Genio používá:\nScintilla lib\nCopyright 1998-2003 od Neil Hodgson \n\nScintilla pro Haiku\nCopyright 2011 od Andrea Anzani \nCopyright 2014-2015 od Kacper Kasper \n\n
 Made with love in Italy	GenioApp		Vyrobeno s láskou v Itálii
 See credits for a complete list.\n\n	GenioApp		Kompletní seznam naleznete v záznamech.\n\n
 Defaults	ConfigWindow		Výchozí
@@ -417,13 +405,15 @@ File modified	GitRepository		Upravený soubor
 File modified on index	GitRepository		Soubor upravený na indexu
 New file	GitRepository		Nový soubor
 New file staged	GitRepository		Byl vytvořen nový soubor
+Find in project	SearchResultTab		Najít v projektu\n
+Match case	SearchResultTab	Short as possible.	Shoda 
+Whole word	SearchResultTab	Short as possible.	Celé slovo\n
 Genio	System name		Genio
 Global settings applied	EditorStatusView		Použitá globální nastavení
 No LSP file status information	EditorStatusView		Žádné informace o stavu souboru LSP
 Settings in .editorconfig applied	EditorStatusView		Použitá nastavení v souboru .editorconfig
-Loading project	ProjectOpenerWindow		Načítání projektu
-Loading project '%project_name%'	ProjectOpenerWindow		Načítání projektu '%project_name%'
 Location	SearchResultPanel		Umístění
 Search results	SearchResultPanel		Výsledky vyhledávání\n
 New folder	TemplateManager		Nová složka
 OK	GitAlert		OK
+Unable to load image	ImageEditor		Unable to load image

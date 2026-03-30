@@ -1,77 +1,12 @@
-1	Friulian	application/x-vnd.Genio	1940528103
-(follow editor style)	TermView		(va daûr dal stîl dal editôr)
-(follow system style)	TermView		(va daûr dal stîl dal sisteme)
-Banner	TermView	A separating line inserted at the start and end of a command output in the console. Short as possible.	Strisson
-Clear	TermView		Nete
-Stop	TermView		Ferme
-Wrap	TermView	As in wrapping long lines. Short as possible.	Va a gnove rie
-(follow editor style)	SettingsWindow		(va daûr dal stîl dal editôr)
-(follow system style)	SettingsWindow		(va daûr dal stîl dal sisteme)
-Appearance	SettingsWindow		Aspiet
-Auto collapse/expand projects	SettingsWindow		Strenç/slargje in automatic i progjets
-Auto-Build on resource save	SettingsWindow		Auto-compile al salvament des risorsis
-Auto-Save changed files when building	SettingsWindow		Auto-Salve i files modificâts ae compilazion
-Build	SettingsWindow		Compilazion
-Console banner	SettingsWindow	A separating line inserted at the start and end of a command output in the console. Short as possible.	Strisson de console
-Console style:	SettingsWindow		Stîl de console:
-Convert tabs to spaces	SettingsWindow		Convertìs tabulazions in spazis
-Default font	SettingsWindow		Caratar predefinît
-Default size	SettingsWindow		Dimension predefinide
-Editor	SettingsWindow		Editôr
-Editor style:	SettingsWindow		Stîl editôr:
-Editor zoom:	SettingsWindow		Zoom editôr:
-Enable brace matching	SettingsWindow		Abilite corispondence parentesis a grafis
-Enable syntax highlighting	SettingsWindow		Abilite evidenziazion sintassi
-Exclude folders:	SettingsWindow		Cartelis di escludi:
-Find	SettingsWindow		Cjate
-Font size:	SettingsWindow		Dimension caratar:
-Font:	SettingsWindow		Caratar:
-Force showing Build log panel when building	SettingsWindow		Force showing Build log panel when building
-General	SettingsWindow		Gjenerâl
-Ignore .editorconfig	SettingsWindow		Ignore .editorconfig
-Log destination:	SettingsWindow		Destinazion regjistri:
-Log level:	SettingsWindow		Nivel dal regjistri:
-Log size:	SettingsWindow		Dimension regjistri:
-Mark caret line	SettingsWindow		Segne linie dal cursôr
-Match case	SettingsWindow	Short as possible.	Maiusculis/Minusculis
-Projects folder:	SettingsWindow		Cartele progjets:
-Reload files	SettingsWindow		Torne cjame i files
-Reload projects	SettingsWindow		Torne cjame i progjets
-Save caret position	SettingsWindow		Salve posizion cursôr
-Set ruler to column:	SettingsWindow		Posizione la rie ae colone:
-Show bottom pane	SettingsWindow		Show bottom pane
-Show comment margin	SettingsWindow		Mostre margjin dai coments
-Show folding margin	SettingsWindow		Mostre margjin di pleadure
-Show full path in window title	SettingsWindow		Mostre il percors complet tal titul dal barcon
-Show left pane	SettingsWindow		Show left pane
-Show line endings	SettingsWindow		Mostre fin rie
-Show line numbers	SettingsWindow		Mostre il numar de rie
-Show repository outline	SettingsWindow		Mostre struture dal dipuesit
-Show right pane	SettingsWindow		Show right pane
-Show statusbar	SettingsWindow		Mostre sbare di stât
-Show toolbar	SettingsWindow		Mostre sbare dai struments
-Show vertical ruler	SettingsWindow		Mostre rie verticâl
-Show whitespace	SettingsWindow		Mostre spazis
-Source control	SettingsWindow		Control sorzint
-Startup	SettingsWindow		Inviament
-Tab width:	SettingsWindow		Largjece tabulazion:
-These are only applied if no .editorconfig is used:	SettingsWindow	The translation shouldn't be much longer than the English original	Aplicâts dome se nol ven doprât .editorconfig:
-This setting will be updated on restart.	SettingsWindow		Cheste impostazion e vignarà inzornade al prossim inviament.
-Trim trailing whitespace on save	SettingsWindow		Al salvament gjave i spazis di fin rie
-Use smaller icons in toolbar	SettingsWindow		Dopre iconis plui piçulis te sbare struments 
-Visuals	SettingsWindow		Visuâls
-Whole word	SettingsWindow	Short as possible.	Peraule interie
-Wrap around	SettingsWindow	Continue searching from the beginning when reaching the end of the file	Torne tache dal inizi
-Wrap lines	SettingsWindow		Va a gnove rie
-Wrap lines in console	SettingsWindow		Va a gnove rie te console
-{0, plural,one{# element found}other{# elements found}}	Editor		{0, plural,one{# element found}other{# elements found}}
-{0, plural,one{# element replaced}other{# elements replaced}}	Editor		{0, plural,one{# element replaced}other{# elements replaced}}
-1 element replaced	Editor		1 element replaced
+1	Friulian	application/x-vnd.Genio	1484233109
+{0, plural,one{# element found}other{# elements found}}	Editor		{0, plural,one{cjatât # element}other{cjatâts # elements}}
+{0, plural,one{# element replaced}other{# elements replaced}}	Editor		{0, plural,one{sostituît # element}other{sostituîts # elements}}
+1 element replaced	Editor		1 element sostituît
 Cancel	Editor		Anule
 Do you want to set a starting index?	Editor		Desideristu stabilî un indiç di inizi?
 Don't save	Editor		No sta salvâ
 Index	Editor		Indiç
-No matches found.	Editor		No matches found.
+No matches found.	Editor		Nissune corispondence cjatade.
 Rename	Editor		Cambie non
 Rename symbol '%symbol_name%':	Editor		Cambie non al simbul '%symbol_name%':
 Save	Editor		Salve
@@ -131,14 +66,14 @@ Format	GenioWindow		Formât
 Fullscreen	GenioWindow		Plen visôr
 Genio project…	GenioWindow		Progjet Genio…
 Git	GenioWindow		Git
-Go back	GenioWindow		Go back
-Go forward	GenioWindow		Go forward
+Go back	GenioWindow		Va indaûr
+Go forward	GenioWindow		Va indevant
 Go to declaration	GenioWindow		Va ae declarazion
 Go to definition	GenioWindow		Va ae definizion
 Go to implementation	GenioWindow		Va ae implementazion
 Go to line…	GenioWindow		Va ae rie…
-Go to next tab	GenioWindow		Go to next tab
-Go to previous tab	GenioWindow		Go to previous tab
+Go to next tab	GenioWindow		Va ae schede sucessive
+Go to previous tab	GenioWindow		Va ae schede prime
 Help…	GenioWindow		Jutori…
 Ignore	GenioWindow		Ignore
 Import as RDEF array…	GenioWindow		Impuarte come array RDEF…
@@ -158,11 +93,13 @@ New file	GenioWindow		Gnûf file
 New folder	GenioWindow		Gnove cartele
 Next	GenioWindow	Bookmark menu	Sucessîf
 Open in Terminal	GenioWindow		Vierç tal Terminâl
+Open project	GenioWindow		Open project
 Open project…	GenioWindow		Vierç progjet…
 Open recent…	GenioWindow		Vierç resint…
 Open remote project…	GenioWindow		Vierç progjet lontan…
 Open…	GenioWindow		Vierç…
 Overwrite	GenioWindow		Sorescrîf
+Panels	GenioWindow		Panei
 Paste	GenioWindow		Tache
 Previous	GenioWindow	Bookmark menu	Precedent
 Project	GenioWindow		Progjet
@@ -198,22 +135,22 @@ Search	GenioWindow		Cîr
 Select all	GenioWindow		Selezione dut
 Set active	GenioWindow		Met atîf
 Settings…	GenioWindow		Impostazions…
-Show bottom pane	GenioWindow		Show bottom pane
+Show bottom pane	GenioWindow		Mostre ricuadri inferiôr
 Show config	GenioWindow	The git command	Show config
 Show in projects browser	GenioWindow		Mostre in navigadôr progjets
 Show in Tracker	GenioWindow		Mostre in Tracker
-Show left pane	GenioWindow		Show left pane
+Show left pane	GenioWindow		Mostre ricuadri a çampe
 Show line endings	GenioWindow		Mostre fin rie
-Show right pane	GenioWindow		Show right pane
+Show right pane	GenioWindow		Mostre ricuadri a diestre
 Show statusbar	GenioWindow		Mostre sbare di stât
 Show toolbar	GenioWindow		Mostre sbare dai struments
 Show whitespace	GenioWindow		Mostre spazis
 Show whitespace and line endings	GenioWindow		Mostre spazis vueits e fin di riis
-Show/Hide bottom pane	GenioWindow		Show/Hide bottom pane
+Show/Hide bottom pane	GenioWindow		Mostre/Plate ricuadri inferiôr
 Show/Hide find bar	GenioWindow		Mostre/Plate sbare di ricercje
-Show/Hide left pane	GenioWindow		Show/Hide left pane
+Show/Hide left pane	GenioWindow		Mostre/Plate ricuadri a çampe
 Show/Hide replace bar	GenioWindow		Mostre/Plate sbare pes sostituzions
-Show/Hide right pane	GenioWindow		Show/Hide right pane
+Show/Hide right pane	GenioWindow		Mostre/Plate ricuadri a diestre
 Status	GenioWindow	The git command	Status
 Status (short)	GenioWindow	The git command	Status (short)
 Switch source/header	GenioWindow		Passe tra sorzint/intestazion
@@ -223,6 +160,7 @@ Toggle	GenioWindow	Bookmark menu	Comute
 Tools	GenioWindow		Struments
 Trim trailing whitespace	GenioWindow		Gjave spazis di fin rie
 Undo	GenioWindow		Disfe
+Use smaller icons in statusbar	GenioWindow		Dopre iconis plui piçulis te sbare di stât
 View	GenioWindow		Viodude
 Whole word	GenioWindow	Short as possible.	Peraule interie
 Window	GenioWindow		Barcon
@@ -235,7 +173,6 @@ An unknown error occurred.	SourceControlPanel		Al è capitât un erôr no cognos
 Cancel	SourceControlPanel		Anule
 Changes stashed.	SourceControlPanel		Modifichis metudis in bande.
 Choose branch…	SourceControlPanel		Sielç il ram…
-Choose project…	SourceControlPanel		Sielç il progjet…
 Conflicts	SourceControlPanel		Conflits
 Copy name	SourceControlPanel		Copie non
 Create branch	SourceControlPanel		Cree ram
@@ -257,9 +194,7 @@ Init repository	SourceControlPanel		Inizialize dipuesit
 Local branches	SourceControlPanel		Rams locâi
 New branch name:	SourceControlPanel		Non dal gnûf ram:
 OK	SourceControlPanel		Va ben
-Project:	SourceControlPanel		Progjet:
 Remote branches	SourceControlPanel		Rams lontans
-Remotes	SourceControlPanel		Lontans
 Rename \"%selected_branch%\"	SourceControlPanel		Cambie non a \"%selected_branch%\"
 Rename branch	SourceControlPanel		Cambie non al ram
 Rename branch:	SourceControlPanel		Cambie non al ram:
@@ -284,7 +219,7 @@ gold master	Utilities		version finâl
 OK	Utilities		Va ben
 Version	Utilities		Version
 An error occurred attempting to rename file 	ProjectsFolderBrowser		Al è capitât un erôr cirint di cambiâ non al file
-Build mode	ProjectsFolderBrowser		Build mode
+Build mode	ProjectsFolderBrowser		Modalitât di compilazion
 Build project	ProjectsFolderBrowser		Compile progjet
 Clean project	ProjectsFolderBrowser		Nete progjet
 Close project	ProjectsFolderBrowser		Siere progjet
@@ -296,24 +231,77 @@ Drop folder here	ProjectsFolderBrowser		Mole la cartele achì
 New	ProjectsFolderBrowser		Gnûf
 OK	ProjectsFolderBrowser		Va ben
 Open file	ProjectsFolderBrowser		Vierç file
+Open file with default application	ProjectsFolderBrowser		Open file with default application
 Path	ProjectsFolderBrowser		Percors
 Project	ProjectsFolderBrowser		Progjet
 Project settings…	ProjectsFolderBrowser		Impostazions progjet…
-Release	ProjectsFolderBrowser		Release
+Release	ProjectsFolderBrowser		Publicazion
 Rename file	ProjectsFolderBrowser		Cambie non file
 Rename folder	ProjectsFolderBrowser		Cambie non cartele
 Set active	ProjectsFolderBrowser		Met atîf
 Switch to branch	ProjectsFolderBrowser		Passe al ram
 The project folder has been deleted or moved to another location and it will be closed and unloaded from the workspace.	ProjectsFolderBrowser		La cartele dal progjet e je stade eliminade o spostade intune altre posizion, e vignarà sierade e discjariade dal spazi di lavôr.
 The project folder has been renamed. It will be closed and reopened automatically.	ProjectsFolderBrowser		La cartele dal progjet e à cambiât non. E vignarà sierade e tornade a vierzi in automatic.
-Another command is running.	ConsoleIOView		Al è in esecuzion un altri comant.
-Banner	ConsoleIOView	A separating line inserted at the start and end of a command output in the console. Short as possible.	Strisson
-Clear	ConsoleIOView		Nete
-Restarting build…	ConsoleIOView		Daûr a tornâ a scomençâ la compilazion…
-stderr	ConsoleIOView		stderr
-stdout	ConsoleIOView		stdout
-Stop	ConsoleIOView		Ferme
-Wrap	ConsoleIOView	As in wrapping long lines. Short as possible.	Fâs sù
+Appearance	SettingsWindow		Aspiet
+Auto collapse/expand projects	SettingsWindow		Strenç/slargje in automatic i progjets
+Auto-Build on resource save	SettingsWindow		Auto-compile al salvament des risorsis
+Auto-Save changed files when building	SettingsWindow		Auto-Salve i files modificâts ae compilazion
+Build	SettingsWindow		Compilazion
+Convert tabs to spaces	SettingsWindow		Convertìs tabulazions in spazis
+Default font	SettingsWindow		Caratar predefinît
+Default size	SettingsWindow		Dimension predefinide
+Editor	SettingsWindow		Editôr
+Editor style:	SettingsWindow		Stîl editôr:
+Editor zoom:	SettingsWindow		Zoom editôr:
+Enable auto-indent	SettingsWindow		Enable auto-indent
+Enable brace matching	SettingsWindow		Abilite corispondence parentesis a grafis
+Enable syntax highlighting	SettingsWindow		Abilite evidenziazion sintassi
+Exclude folders:	SettingsWindow		Cartelis di escludi:
+Find	SettingsWindow		Cjate
+Font size:	SettingsWindow		Dimension caratar:
+Font:	SettingsWindow		Caratar:
+Force showing Build log panel when building	SettingsWindow		Intant de compilazion, sfuarce la visualizazion dal panel cul regjistri de compilazion
+General	SettingsWindow		Gjenerâl
+Ignore .editorconfig	SettingsWindow		Ignore .editorconfig
+Log destination:	SettingsWindow		Destinazion regjistri:
+Log level:	SettingsWindow		Nivel dal regjistri:
+Log size:	SettingsWindow		Dimension regjistri:
+Mark caret line	SettingsWindow		Segne linie dal cursôr
+Match case	SettingsWindow	Short as possible.	Maiusculis/Minusculis
+Open non-text files externally	SettingsWindow		Open non-text files externally
+Projects folder:	SettingsWindow		Cartele progjets:
+Reload files	SettingsWindow		Torne cjame i files
+Reload projects	SettingsWindow		Torne cjame i progjets
+Save caret position	SettingsWindow		Salve posizion cursôr
+Scheme:	SettingsWindow	Name identically to Terminal's color setting	Scheme:
+Set ruler to column:	SettingsWindow		Posizione la rie ae colone:
+Show bottom pane	SettingsWindow		Mostre ricuadri inferiôr
+Show branch name in window title	SettingsWindow		Mostre non dal ram tal titul dal barcon
+Show comment margin	SettingsWindow		Mostre margjin dai coments
+Show folding margin	SettingsWindow		Mostre margjin di pleadure
+Show full path in window title	SettingsWindow		Mostre il percors complet tal titul dal barcon
+Show left pane	SettingsWindow		Mostre ricuadri a çampe
+Show line endings	SettingsWindow		Mostre fin rie
+Show line numbers	SettingsWindow		Mostre il numar de rie
+Show project name in window title	SettingsWindow		Mostre non dal progjet tal titul dal barcon
+Show repository outline	SettingsWindow		Mostre struture dal dipuesit
+Show right pane	SettingsWindow		Mostre ricuadri a diestre
+Show statusbar	SettingsWindow		Mostre sbare di stât
+Show toolbar	SettingsWindow		Mostre sbare dai struments
+Show vertical ruler	SettingsWindow		Mostre rie verticâl
+Show whitespace	SettingsWindow		Mostre spazis
+Source control	SettingsWindow		Control sorzint
+Startup	SettingsWindow		Inviament
+Tab width from label	SettingsWindow		Tab width from label
+Tab width:	SettingsWindow		Largjece tabulazion:
+These are only applied if no .editorconfig is used:	SettingsWindow	The translation shouldn't be much longer than the English original	Aplicâts dome se nol ven doprât .editorconfig:
+This setting will be updated on restart.	SettingsWindow		Cheste impostazion e vignarà inzornade al prossim inviament.
+Trim trailing whitespace on save	SettingsWindow		Al salvament gjave i spazis di fin rie
+Use smaller icons in toolbar	SettingsWindow		Dopre iconis plui piçulis te sbare struments 
+Visuals	SettingsWindow		Visuâls
+Whole word	SettingsWindow	Short as possible.	Peraule interie
+Wrap around	SettingsWindow	Continue searching from the beginning when reaching the end of the file	Torne tache dal inizi
+Wrap lines	SettingsWindow		Va a gnove rie
 Array	FunctionsOutlineView		Array
 Boolean	FunctionsOutlineView		Boolean
 Class	FunctionsOutlineView		Classe
@@ -392,20 +380,20 @@ Password:	GitCredentialsWindow		Password:
 Username:	GitCredentialsWindow		Non utent:
 Cancel	GTextAlert		Anule
 OK	GTextAlert		Va ben
+Caret position	Scrollbar Overlay		Caret position
 Category	ProblemsPanel		Categorie
 Line	ProblemsPanel		Rie
 Message	ProblemsPanel		Messaç
 No fix available	ProblemsPanel		Nissune corezion disponibile
 Problems	ProblemsPanel		Problemis
 Source	ProblemsPanel		Sorzint
-Choose project…	SearchResultTab		Sielç il progjet…
-Find in project	SearchResultTab		Cjate tal progjet
-Match case	SearchResultTab	Short as possible.	Corispondence maiusculis
-Project:	SearchResultTab		Progjet:
-Whole word	SearchResultTab	Short as possible.	Peraule interie
+Choose project…	ProjectMenuField		Sielç progjet…
+Project:	ProjectMenuField		Progjet:
+Clear	ConsoleIOView		Nete
+Stop	ConsoleIOView		Ferme
 Contributors:	GenioApp		Colaboradôrs:
 Genio is a fork of Ideam and available under the MIT license.	GenioApp		Genio al derive di Ideam e al è disponibil sot i tiermins de licence MIT.
-Genio uses:\nScintilla lib\nCopyright 1998-2003 by Neil Hodgson \n\nScintilla for Haiku\nCopyright 2011 by Andrea Anzani \nCopyright 2014-2015 by Kacper Kasper \n\n	GenioApp		Genio al dopre:\nScintilla lib\nCopyright 1998-2003 di Neil Hodgson \n\nScintilla par Haiku\nCopyright 2011 di Andrea Anzani \nCopyright 2014-2015 di Kacper Kasper \n\n
+Genio uses:\nScintilla lib\nCopyright 1998-2003 by Neil Hodgson \n\nScintilla for Haiku\nCopyright 2011 by Andrea Anzani \nCopyright 2014-2015 by Kacper Kasper \n\n	GenioApp		Genio al dopre:\nLibrarie Scintilla\nCopyright 1998-2003 by Neil Hodgson \n\nScintilla par Haiku\nCopyright 2011 di Andrea Anzani \nCopyright 2014-2015 di Kacper Kasper \n\n
 Made with love in Italy	GenioApp		Fat cun amôr in Italie
 See credits for a complete list.\n\n	GenioApp		Viôt i ringraciaments par vê une liste complete.\n\n
 Defaults	ConfigWindow		Predefinîts
@@ -417,13 +405,15 @@ File modified	GitRepository		File modificât
 File modified on index	GitRepository		File modificât su la tabele
 New file	GitRepository		Gnûf file
 New file staged	GitRepository		Gnûf file preparât (staged)
+Find in project	SearchResultTab		Cjate tal progjet
+Match case	SearchResultTab	Short as possible.	Corispondence maiusculis
+Whole word	SearchResultTab	Short as possible.	Peraule interie
 Genio	System name		Genio
 Global settings applied	EditorStatusView		Impostazions globâls aplicadis
-No LSP file status information	EditorStatusView		No LSP file status information
+No LSP file status information	EditorStatusView		Nissune informazion di stât dal file LSP
 Settings in .editorconfig applied	EditorStatusView		Impostazions in .editorconfig aplicadis
-Loading project	ProjectOpenerWindow		Loading project
-Loading project '%project_name%'	ProjectOpenerWindow		Loading project '%project_name%'
 Location	SearchResultPanel		Posizion
 Search results	SearchResultPanel		Risultâts de ricercje
 New folder	TemplateManager		Gnove cartele
 OK	GitAlert		Va ben
+Unable to load image	ImageEditor		Unable to load image

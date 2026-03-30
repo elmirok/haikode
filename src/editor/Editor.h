@@ -151,7 +151,6 @@ public:
 
 			// Scripting methods
 			const 	BString		Selection() override;
-			void				SetSelection(int32 start, int32 end) override;
 			const 	BString		GetSymbol() override;
 			void				Insert(BString text, int32 start = -1) override;
 			void				Append(BString text) override;
@@ -163,6 +162,7 @@ public:
 			int32				GetCurrentPosition() override;
 			BMessage			GetCaretPositionInfo() override;
 			BMessage			GetSelectionRange() override;
+			void				SetSelectionRange(int32 start, int32 end) override;
 			BMessage			GetVisibleLines() override;
 			BMessage			GetScrollPosition() override;
 			void				SetScrollPosition(int32 line) override;
@@ -253,6 +253,7 @@ private:
 
 			void				EvaluateIdleTime();
 			bool				HasValidFileRef() const;
+			void				_UpdateOverScrollBarSciMarkers();
 
 private:
 			editor_id			fId;

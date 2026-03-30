@@ -1,5 +1,5 @@
 /*
- * Copyright 2025, Andrea Anzani 
+ * Copyright 2025, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -14,6 +14,7 @@
 #include "Log.h"
 #include "Utils.h"
 
+static TerminalManager* sTerminalManager = nullptr;
 
 TerminalManager::TerminalManager()
 	:
@@ -22,9 +23,19 @@ TerminalManager::TerminalManager()
 	BPath genioPath = GetNearbyDataDirectory();
 	if (genioPath.Append("genio_terminal_addon") == B_OK) {
 		fId = load_add_on(genioPath.Path());
-		if (fId < 0)
-			LogError("Can't load genio_terminal_addon (%s): %s\n",
+		if (fId < 0) {
+			LogDebug("Can't load genio_terminal_addon (%s): %s\n",
 				genioPath.Path(), ::strerror(fId));
+
+			 genioPath = GetDataDirectory();
+			 if (genioPath.Append("genio_terminal_addon") == B_OK) {
+				fId = load_add_on(genioPath.Path());
+				if (fId < 0) {
+					LogError("Can't load genio_terminal_addon (%s): %s\n",
+						genioPath.Path(), ::strerror(fId));
+				}
+			}
+		}
 	}
 	LogInfo("TerminalManager, loading addon at [%s] -> %d\n", genioPath.Path(), fId);
 }
@@ -34,8 +45,9 @@ TerminalManager::TerminalManager()
 TerminalManager&
 TerminalManager::GetInstance()
 {
-	static TerminalManager manager;
-	return manager;
+	if (sTerminalManager == nullptr)
+		sTerminalManager = new TerminalManager();
+	return *sTerminalManager;
 }
 
 
