@@ -2,6 +2,7 @@ name: Cppcheck Static Analysis
 
 on:
   push:
+	  branches: [ "main" ]
   pull_request:
 
 jobs:
@@ -25,8 +26,7 @@ jobs:
                    --xml \
                    --xml-version=2 \
                    --suppress=missingIncludeSystem \
-                   -I include/ \
-                   src/ \
+                   --suppress=missingInclude . \
                    2> cppcheck-report.xml
 
       - name: Upload Cppcheck report
