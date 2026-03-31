@@ -29,8 +29,8 @@ jobs:
                    --suppress=missingInclude . \
                    2> cppcheck-report.xml
 
-	  - name: Convert Cppcheck report to HTML
-		run: |
+      - name: Convert Cppcheck report to HTML
+        run: |
           cppcheck-htmlreport \
                    --file=cppcheck-report.xml \
                    --report-dir=cppcheck_html_report \
