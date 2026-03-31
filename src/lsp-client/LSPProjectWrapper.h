@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #ifndef _H_LSPProjectWrapper
@@ -26,7 +26,6 @@ class  LSPTextDocument;
 struct TextDocumentContentChangeEvent;
 struct FileEvent;
 struct ConfigurationSettings;
-enum class TypeHierarchyDirection: int;
 class LSPPipeClient;
 class LSPServerConfigInterface;
 
@@ -92,7 +91,6 @@ public:
     RequestID DocumentColor(LSPTextDocument* textDocument);
     RequestID DocumentHighlight(LSPTextDocument* textDocument, Position position);
     RequestID SymbolInfo(LSPTextDocument* textDocument, Position position);
-    RequestID TypeHierarchy(LSPTextDocument* textDocument, Position position, TypeHierarchyDirection direction, int resolve);
     RequestID DocumentLink(LSPTextDocument* textDocument);
 
     RequestID 	SendRequest(RequestID id, string_ref method, value params);

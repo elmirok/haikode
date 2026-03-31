@@ -839,19 +839,6 @@ LSPProjectWrapper::SymbolInfo(LSPTextDocument* textDocument, Position position)
 
 
 RequestID
-LSPProjectWrapper::TypeHierarchy(
-	LSPTextDocument* textDocument, Position position, TypeHierarchyDirection direction, int resolve)
-{
-	TypeHierarchyParams params;
-	params.textDocument.uri = std::move(textDocument->GetFilenameURI().String());
-	params.position = position;
-	params.direction = direction;
-	params.resolve = resolve;
-	return SendRequest(X(textDocument), "textDocument/typeHierarchy", std::move(params));
-}
-
-
-RequestID
 LSPProjectWrapper::DocumentLink(LSPTextDocument* textDocument)
 {
 	if (!HasCapability(kLCapDocLink))
