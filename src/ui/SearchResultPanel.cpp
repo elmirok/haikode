@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -25,9 +25,9 @@ enum {
 	kLocationColumn = 0,
 };
 
-class RangeRow : public BRow {
+class SearchRangeRow : public BRow {
 public:
-	RangeRow()
+	SearchRangeRow()
 	{
 	};
 
@@ -132,7 +132,7 @@ SearchResultPanel::MessageReceived(BMessage* msg)
 			break;
 		case SEARCHRESULT_CLICK:
 		{
-			RangeRow* range = dynamic_cast<RangeRow*>(CurrentSelection());
+			SearchRangeRow* range = dynamic_cast<SearchRangeRow*>(CurrentSelection());
 			if (range && range->fRange.what == B_REFS_RECEIVED) {
 				Window()->PostMessage(&range->fRange);
 			} else {
@@ -174,7 +174,7 @@ SearchResultPanel::UpdateSearch(BMessage* msg)
 	filename.RemoveFirst(fProjectPath);
 	if (filename.IsEmpty())
 		return;
-	RangeRow* parent = new RangeRow();
+	SearchRangeRow* parent = new SearchRangeRow();
 	parent->fRange.MakeEmpty();
 
 	parent->SetField(new BBoldStringField(filename), kLocationColumn);
@@ -184,7 +184,7 @@ SearchResultPanel::UpdateSearch(BMessage* msg)
 	BString text;
 	while (msg->FindMessage("line", c++, &line) == B_OK) {
 		if (line.FindString("text", &text) == B_OK) {
-			RangeRow* row = new RangeRow();
+			SearchRangeRow* row = new SearchRangeRow();
 			row->fRange = line;
 			row->SetField(new BStringField(text), kLocationColumn);
 			AddRow(row, parent);
@@ -200,7 +200,7 @@ void
 SearchResultPanel::KeyDown(const char* bytes, int32 numBytes)
 {
 	if (numBytes > 0 && bytes[0] == B_DELETE) {
-		RangeRow* range = dynamic_cast<RangeRow*>(CurrentSelection());
+		SearchRangeRow* range = dynamic_cast<SearchRangeRow*>(CurrentSelection());
 		if (range != nullptr)
 			RemoveRow(range);
 	}
