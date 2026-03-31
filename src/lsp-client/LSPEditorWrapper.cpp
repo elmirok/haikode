@@ -29,9 +29,7 @@
 
 
 #define IF_ID(METHOD_NAME, METHOD) if (id.compare(METHOD_NAME) == 0) { METHOD(result); return; }
-#define IND_DIAG INDICATOR_CONTAINER + 1 //Style for Problems
-#define IND_LINK INDICATOR_CONTAINER + 2 //Style for Links
-#define IND_OVER INDICATOR_CONTAINER + 3 //Style for mouse hover
+
 
 LSPEditorWrapper::LSPEditorWrapper(BPath filenamePath, Editor* editor)
 	:

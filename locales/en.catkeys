@@ -1,4 +1,4 @@
-1	English	application/x-vnd.Genio	1484233109
+1	English	application/x-vnd.Genio	2515569603
 Create new branch from \"%selected_branch%\"	SourceControlPanel		Create new branch from \"%selected_branch%\"
 Enable brace matching	SettingsWindow		Enable brace matching
 Clear	ConsoleIOView		Clear
@@ -250,6 +250,7 @@ Failed building project '\"%project%\"'	GlobalStatusView		Failed building projec
 Console I/O	GenioWindow		Console I/O
 Run	GenioWindow		Run
 Save current file	GenioWindow		Save current file
+Bookmark	Editor		Bookmark
 Stash changes	SourceControlPanel		Stash changes
 Genio	System name		Genio
 OK	ProjectsFolderBrowser		OK
@@ -399,6 +400,7 @@ Null	FunctionsOutlineView		Null
 Open project	GenioWindow		Open project
 Clean project	ProjectsFolderBrowser		Clean project
 Rename symbol…	GenioWindow		Rename symbol…
+Highlight matching words	SettingsWindow		Highlight matching words
 Object	FunctionsOutlineView		Object
 Open project…	GenioWindow		Open project…
 Run in terminal	ProjectSettingsWindow		Run in terminal

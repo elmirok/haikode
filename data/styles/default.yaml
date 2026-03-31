@@ -42,6 +42,8 @@ Global:
         background: "#e4e4e4"
     Smart highlight:
         background: "#a3a3a3"
+    Word highlight:
+        background: "#FFE08A"
     Find mark:
         background: "#0000ff"
     Incremental highlight:

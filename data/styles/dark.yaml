@@ -20,8 +20,8 @@ Global:
         foreground: "#282629"
         background: "#474247"
     Fold marker:
-        foreground: "#e4e4e4"
-        background: "#808080"
+        foreground: "#282629"
+        background: "#FFFCFF"
     Indent guideline:
         id: 37
         foreground: "#474247"
@@ -42,6 +42,8 @@ Global:
         background: "#212022"
     Smart highlight:
         background: "#FF4050"
+    Word highlight:
+        background: "#665520"
     Find mark:
         background: "#0000ff"
     Incremental highlight:

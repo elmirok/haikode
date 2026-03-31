@@ -254,6 +254,9 @@ private:
 			void				EvaluateIdleTime();
 			bool				HasValidFileRef() const;
 			void				_UpdateOverScrollBarSciMarkers();
+			void				_HandleDoubleClik();
+			void				_UpdateHighlight();
+			void				_ClearHighlight();
 
 private:
 			editor_id			fId;
@@ -289,4 +292,6 @@ private:
 
 			Sci_Position		fLastWordStartPosition = -1;
 			Sci_Position		fLastWordEndPosition = -1;
-			OverScrollBar*		fOverScrollBar = nullptr;};
+			OverScrollBar*		fOverScrollBar = nullptr;
+			BString				fLastHighlight = "";
+};
