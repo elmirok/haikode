@@ -16,15 +16,8 @@
 #include "uri.h"
 #include "LSPCompat.h"
 
-struct TextDocumentContentChangeEvent {
-    /// The range of the document that changed.
-    std::optional<Range> range;
-
-    /// The length of the range that got replaced.
-    //xed std::optional<int> rangeLength;
-    /// The new text of the range/document.
-    std::string text;
-};
+// TextDocumentContentChangeEvent — migrated to lsp-framework types.
+// (lsp::TextDocumentContentChangeEvent = OneOf<..._Range_Text, ..._Text>)
 
 // CompletionItemKind and InsertTextFormat — migrated to lsp-framework types.
 // See LSPCompat.h for the type aliases.

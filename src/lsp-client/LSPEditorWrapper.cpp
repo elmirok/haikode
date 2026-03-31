@@ -209,7 +209,7 @@ LSPEditorWrapper::didChange(
 
 	Sci_Position end_pos = fEditor->SendMessage(SCI_POSITIONRELATIVE, start_pos, poslength);
 
-	TextDocumentContentChangeEvent event;
+	lsp::TextDocumentContentChangeEvent_Range_Text event;
 	Range range;
 	FromSciPositionToLSPPosition(start_pos, &range.start);
 	FromSciPositionToLSPPosition(end_pos, &range.end);
@@ -217,7 +217,7 @@ LSPEditorWrapper::didChange(
 	event.range = range;
 	event.text.assign(text, len);
 
-	fChanges.push_back(event);
+	fChanges.push_back(lsp::TextDocumentContentChangeEvent{std::move(event)});
 }
 
 

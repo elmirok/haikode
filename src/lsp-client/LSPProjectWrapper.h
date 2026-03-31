@@ -23,7 +23,6 @@
 #include <lsp/types.h>
 
 class  LSPTextDocument;
-struct TextDocumentContentChangeEvent;
 struct FileEvent;
 struct ConfigurationSettings;
 class LSPPipeClient;
@@ -67,7 +66,7 @@ public:
     RequestID RegisterCapability();
     void DidOpen(LSPTextDocument* textDocument, string_ref text, string_ref languageId);
     void DidClose(LSPTextDocument* textDocument);
-    void DidChange(LSPTextDocument* textDocument, std::vector<TextDocumentContentChangeEvent> &changes,
+    void DidChange(LSPTextDocument* textDocument, std::vector<lsp::TextDocumentContentChangeEvent> &changes,
                    std::optional<bool> wantDiagnostics = {});
     void DidSave(LSPTextDocument* textDocument);
     RequestID RangeFomatting(LSPTextDocument* textDocument, Range range);

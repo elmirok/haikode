@@ -579,17 +579,18 @@ LSPProjectWrapper::DidClose(LSPTextDocument* textDocument)
 
 void
 LSPProjectWrapper::DidChange(LSPTextDocument* textDocument,
-	std::vector<TextDocumentContentChangeEvent>& changes, std::optional<bool> wantDiagnostics)
+	std::vector<lsp::TextDocumentContentChangeEvent>& changes, std::optional<bool> wantDiagnostics)
 {
-	DidChangeTextDocumentParams params;
-	params.textDocument.uri = std::move(textDocument->GetFilenameURI().String());
+	lsp::DidChangeTextDocumentParams params;
+	params.textDocument.uri = MakeDocUri(textDocument);
+	params.textDocument.version = 0; // Genio does not track document versions yet
 	params.contentChanges = std::move(changes);
-	// params.wantDiagnostics = wantDiagnostics;
-	SendNotify("textDocument/didChange", params);
+	// wantDiagnostics is a clangd extension — not wired yet
+	SendNotify("textDocument/didChange", LSPBridge::toNlohmann(params));
 }
 
 
-// xed
+
 void
 LSPProjectWrapper::DidSave(LSPTextDocument* textDocument)
 {
@@ -836,6 +837,7 @@ LSPProjectWrapper::SymbolInfo(LSPTextDocument* textDocument, Position position)
 	params.position = position;
 	return SendRequest(X(textDocument), "textDocument/symbolInfo", LSPBridge::toNlohmann(std::move(params)));
 }
+
 
 
 RequestID

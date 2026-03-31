@@ -156,7 +156,7 @@ private:
 						BString edits = "");
 	std::string 	GetCurrentLine();
 	bool			IsStatusValid();
-	std::vector<TextDocumentContentChangeEvent> fChanges;
+	std::vector<lsp::TextDocumentContentChangeEvent> fChanges;
 };
 
 #endif // LSPEditorWrapper_H

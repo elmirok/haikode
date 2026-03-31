@@ -355,25 +355,8 @@ struct DidSaveTextDocumentParams {
 };
 JSON_SERIALIZE(DidSaveTextDocumentParams, MAP_JSON(MAP_KEY(textDocument)), {});
 
-//struct TextDocumentContentChangeEvent
-JSON_SERIALIZE(TextDocumentContentChangeEvent, MAP_JSON(MAP_KEY(range)/*, MAP_KEY(rangeLength)*/, MAP_KEY(text)), {});
-
-struct DidChangeTextDocumentParams {
-    /// The document that did change. The version number points
-    /// to the version after all provided content changes have
-    /// been applied.
-    TextDocumentIdentifier textDocument;
-
-    /// The actual content changes.
-    std::vector<TextDocumentContentChangeEvent> contentChanges;
-
-    /// Forces diagnostics to be generated, or to not be generated, for this
-    /// version of the file. If not set, diagnostics are eventually consistent:
-    /// either they will be provided for this version or some subsequent one.
-    /// This is a clangd extension.
-    //option<bool> wantDiagnostics;
-};
-JSON_SERIALIZE(DidChangeTextDocumentParams, MAP_JSON(MAP_KEY(textDocument), MAP_KEY(contentChanges)/*, MAP_KEY(wantDiagnostics)*/), {});
+// TextDocumentContentChangeEvent — migrated to lsp-framework types.
+// DidChangeTextDocumentParams — migrated to lsp-framework types.
 
 enum class FileChangeType {
     /// The file got created.
