@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -9,8 +9,6 @@
 #include <json_fwd.hpp>
 
 #include <string>
-
-#include "uri.h"
 
 using value = nlohmann::json;
 using RequestID = std::string;

@@ -20,7 +20,6 @@
 #include <json.hpp>
 
 #include "LSPProjectWrapper.h"
-#include "uri.h"
 
 #define MAP_JSON(...) {j = {__VA_ARGS__};}
 #define MAP_KEY(KEY) {#KEY, value.KEY}
@@ -65,7 +64,7 @@ namespace nlohmann {
     };
 }
 
-using TextType = string_ref;
+using TextType = std::string;
 
 #include "protocol_objects.h"
 // struct Position (now lsp::Position with uint fields)

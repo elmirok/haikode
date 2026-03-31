@@ -26,18 +26,18 @@ AsyncJsonTransport::AsyncJsonTransport(uint32 what, BMessenger& msgr)
 
 
 void
-AsyncJsonTransport::notify(string_ref method, value &params)
+AsyncJsonTransport::notify(std::string_view method, value &params)
 {
-	nlohmann::json value = {{"jsonrpc", jsonrpc}, {"method", method}, {"params", params}};
+	nlohmann::json value = {{"jsonrpc", jsonrpc}, {"method", std::string(method)}, {"params", params}};
 	writeJson(value);
 }
 
 
 void
-AsyncJsonTransport::request(string_ref method, value &params, RequestID &id)
+AsyncJsonTransport::request(std::string_view method, value &params, RequestID &id)
 {
 	nlohmann::json rpc = {
-		{"jsonrpc", jsonrpc}, {"id", id}, {"method", method}, {"params", params}};
+		{"jsonrpc", jsonrpc}, {"id", id}, {"method", std::string(method)}, {"params", params}};
 	writeJson(rpc);
 }
 

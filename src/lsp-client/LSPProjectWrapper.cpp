@@ -229,7 +229,7 @@ LSPProjectWrapper::_Create()
 		return false;
 	}
 
-	Initialize(string_ref(fUrl.UrlString().String()));
+	Initialize(std::string(fUrl.UrlString().String()));
 
 	return true;
 }
@@ -432,7 +432,7 @@ LSPProjectWrapper::onRequest(std::string method, value& params, value& ID)
 
 
 RequestID
-LSPProjectWrapper::Initialize(std::optional<DocumentUri> rootUri)
+LSPProjectWrapper::Initialize(std::optional<std::string> rootUri)
 {
 	lsp::InitializeParams params;
 	params.processId = static_cast<int>(fLSPPipeClient->GetChildPid());
@@ -559,7 +559,7 @@ LSPProjectWrapper::RegisterCapability()
 
 
 void
-LSPProjectWrapper::DidOpen(LSPTextDocument* textDocument, string_ref text, string_ref languageId)
+LSPProjectWrapper::DidOpen(LSPTextDocument* textDocument, std::string_view text, std::string_view languageId)
 {
 	lsp::DidOpenTextDocumentParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
@@ -637,7 +637,7 @@ LSPProjectWrapper::SelectionRange(LSPTextDocument* textDocument, std::vector<Pos
 
 
 RequestID
-LSPProjectWrapper::OnTypeFormatting(LSPTextDocument* textDocument, Position position, string_ref ch)
+LSPProjectWrapper::OnTypeFormatting(LSPTextDocument* textDocument, Position position, std::string_view ch)
 {
 	lsp::DocumentOnTypeFormattingParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
@@ -777,7 +777,7 @@ LSPProjectWrapper::SwitchSourceHeader(LSPTextDocument* textDocument)
 
 
 RequestID
-LSPProjectWrapper::Rename(LSPTextDocument* textDocument, Position position, string_ref newName)
+LSPProjectWrapper::Rename(LSPTextDocument* textDocument, Position position, std::string_view newName)
 {
 	lsp::RenameParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
@@ -854,7 +854,7 @@ LSPProjectWrapper::DocumentLink(LSPTextDocument* textDocument)
 
 
 RequestID
-LSPProjectWrapper::SendRequest(RequestID id, string_ref method, value params)
+LSPProjectWrapper::SendRequest(RequestID id, std::string_view method, value params)
 {
 	id.append("_").append(method);
 	fLSPPipeClient->request(method, params, id);
@@ -863,7 +863,7 @@ LSPProjectWrapper::SendRequest(RequestID id, string_ref method, value params)
 
 
 void
-LSPProjectWrapper::SendNotify(string_ref method, value params = json())
+LSPProjectWrapper::SendNotify(std::string_view method, value params)
 {
 	fLSPPipeClient->notify(method, params);
 }

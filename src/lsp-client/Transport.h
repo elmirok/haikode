@@ -11,10 +11,12 @@
 #include <Looper.h>
 #include <Messenger.h>
 
+#include <string_view>
+
 class Transport {
 public:
-    virtual void notify(string_ref method,  value &params) = 0;
-    virtual void request(string_ref method, value &params, RequestID &id) = 0;
+    virtual void notify(std::string_view method,  value &params) = 0;
+    virtual void request(std::string_view method, value &params, RequestID &id) = 0;
 
     virtual bool  readStep() = 0;
 
@@ -27,8 +29,8 @@ class AsyncJsonTransport: public Transport, public BLooper {
 public:
 		 AsyncJsonTransport(uint32 handler, BMessenger& msgr);
 
-    void notify(string_ref method, value &params) override;
-    void request(string_ref method, value &params, RequestID &id) override;
+    void notify(std::string_view method, value &params) override;
+    void request(std::string_view method, value &params, RequestID &id) override;
 
 	bool readStep() override;
 

@@ -9,6 +9,7 @@
 #include <Path.h>
 #include <Locker.h>
 #include <atomic>
+#include <string_view>
 #include <MessageFilter.h>
 #include <Messenger.h>
 #include <Url.h>
@@ -56,14 +57,14 @@ public:
 
 
 public:
-    RequestID Initialize(std::optional<DocumentUri> rootUri = {});
+    RequestID Initialize(std::optional<std::string> rootUri = {});
     RequestID Shutdown();
     RequestID Sync();
     void Exit();
     void Initialized(json& result);
 
     RequestID RegisterCapability();
-    void DidOpen(LSPTextDocument* textDocument, string_ref text, string_ref languageId);
+    void DidOpen(LSPTextDocument* textDocument, std::string_view text, std::string_view languageId);
     void DidClose(LSPTextDocument* textDocument);
     void DidChange(LSPTextDocument* textDocument, std::vector<lsp::TextDocumentContentChangeEvent> &changes,
                    std::optional<bool> wantDiagnostics = {});
@@ -71,7 +72,7 @@ public:
     RequestID RangeFomatting(LSPTextDocument* textDocument, Range range);
     RequestID FoldingRange(LSPTextDocument* textDocument);
     RequestID SelectionRange(LSPTextDocument* textDocument, std::vector<Position> &positions);
-    RequestID OnTypeFormatting(LSPTextDocument* textDocument, Position position, string_ref ch);
+    RequestID OnTypeFormatting(LSPTextDocument* textDocument, Position position, std::string_view ch);
     RequestID Formatting(LSPTextDocument* textDocument);
     RequestID CodeAction(LSPTextDocument* textDocument, Range range, lsp::CodeActionContext& context);
 	RequestID CodeActionResolve(LSPTextDocument* textDocument, lsp::CodeAction& data);
@@ -83,7 +84,7 @@ public:
     RequestID GoToDeclaration(LSPTextDocument* textDocument, Position position);
     RequestID References(LSPTextDocument* textDocument, Position position);
     RequestID SwitchSourceHeader(LSPTextDocument* textDocument);
-    RequestID Rename(LSPTextDocument* textDocument, Position position, string_ref newName);
+    RequestID Rename(LSPTextDocument* textDocument, Position position, std::string_view newName);
     RequestID Hover(LSPTextDocument* textDocument, Position position);
     RequestID DocumentSymbol(LSPTextDocument* textDocument);
     RequestID DocumentColor(LSPTextDocument* textDocument);
@@ -91,8 +92,8 @@ public:
     RequestID SymbolInfo(LSPTextDocument* textDocument, Position position);
     RequestID DocumentLink(LSPTextDocument* textDocument);
 
-    RequestID 	SendRequest(RequestID id, string_ref method, value params);
-    void 		SendNotify(string_ref method, value params);
+    RequestID 	SendRequest(RequestID id, std::string_view method, value params);
+    void 		SendNotify(std::string_view method, value params);
 
     std::string&	allCommitCharacters() { return fAllCommitCharacters; } //not yet used.
     std::string&	triggerCharacters() { return fTriggerCharacters; } //for completion
