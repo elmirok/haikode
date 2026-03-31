@@ -69,8 +69,9 @@ using Diagnostic = lsp::Diagnostic;
 // Those fields live in LSPDiagnostic (LSPEditorWrapper.h).
 
 // --- Phase: CodeAction, WorkspaceEdit ---
-// using CodeAction = lsp::CodeAction;
-// using WorkspaceEdit = lsp::WorkspaceEdit;
+using CodeAction = lsp::CodeAction;
+using WorkspaceEdit = lsp::WorkspaceEdit;
+using Command = lsp::Command;
 
 // --- Phase: Hover ---
 using MarkupContent = lsp::MarkupContent;

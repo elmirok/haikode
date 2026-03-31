@@ -5,6 +5,7 @@
 #include "LSPProjectWrapper.h"
 
 #include "Log.h"
+#include "LSPJsonBridge.h"
 #include "LSPPipeClient.h"
 #include "LSPReaderThread.h"
 #include "LSPServersManager.h"
@@ -531,9 +532,10 @@ LSPProjectWrapper::CodeAction(LSPTextDocument* textDocument, Range range, CodeAc
 
 
 RequestID
-LSPProjectWrapper::CodeActionResolve(LSPTextDocument* textDocument, struct CodeAction& data)
+LSPProjectWrapper::CodeActionResolve(LSPTextDocument* textDocument, lsp::CodeAction& data)
 {
-	return SendRequest(X(textDocument), "codeAction/resolve", data);
+	auto j = LSPBridge::toNlohmann(data);
+	return SendRequest(X(textDocument), "codeAction/resolve", j);
 }
 
 

@@ -121,54 +121,10 @@ struct SignatureHelp {
 // See LSPCompat.h for the type aliases.
 // Clangd extension fields (category, codeActions) live in LSPDiagnostic (LSPEditorWrapper.h).
 
-struct WorkspaceEdit {
-    /// Holds changes to existing resources.
-    std::optional<std::map<std::string, std::vector<TextEdit>>> changes;
-
-    /// Note: "documentChanges" is not currently used because currently there is
-    /// no support for versioned edits.
-};
-
-struct TweakArgs {
-    /// A file provided by the client on a textDocument/codeAction request.
-    std::string file;
-    /// A selection provided by the client on a textDocument/codeAction request.
-    Range selection;
-    /// ID of the tweak that should be executed. Corresponds to Tweak::id().
-    std::string tweakID;
-};
-
-struct ExecuteCommandParams {
-    std::string command;
-    // Arguments
-    std::optional<WorkspaceEdit> workspaceEdit;
-    std::optional<TweakArgs> tweakArgs;
-};
-
-struct LspCommand : public ExecuteCommandParams {
-    std::string title;
-};
-
-struct CodeAction {
-    /// A short, human-readable, title for this code action.
-    std::string title;
-
-    /// The kind of the code action.
-    /// Used to filter code actions.
-    std::optional<std::string> kind;
-    /// The diagnostics that this code action resolves.
-    std::optional<std::vector<Diagnostic>> diagnostics;
-
-    /// The workspace edit this code action performs.
-    std::optional<WorkspaceEdit> edit;
-
-    /// A command this code action executes. If a code action provides an edit
-    /// and a command, first the edit is executed and then the command.
-    std::optional<LspCommand> command;
-
-	std::optional<nlohmann::json> data;
-};
-
+// CodeAction, WorkspaceEdit — migrated to lsp-framework types.
+// See LSPCompat.h for the type aliases.
+// TweakArgs, ExecuteCommandParams, LspCommand were clangd-specific structs
+// only used inside CodeAction serialization — removed with the migration.
 
 // enum class CompletionItemKind
 enum class SymbolKind {

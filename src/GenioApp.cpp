@@ -12,8 +12,8 @@
 #include <Catalog.h>
 #include <FindDirectory.h>
 #include <String.h>
-
 #include <getopt.h>
+
 
 #include "ConfigManager.h"
 #include "ExtensionManager.h"

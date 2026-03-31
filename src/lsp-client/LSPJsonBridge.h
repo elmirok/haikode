@@ -42,11 +42,14 @@ T fromNlohmann(const nlohmann::json& nj)
 	return result;
 }
 
-// Serialize an lsp-framework type into a nlohmann::json value
+// Serialize an lsp-framework type into a nlohmann::json value.
+// lsp::toJson() requires rvalues, so we always copy+move to handle lvalue args.
 template<typename T>
 nlohmann::json toNlohmann(T&& value)
 {
-	return toNlohmannJson(lsp::toJson(std::forward<T>(value)));
+	using U = std::remove_cvref_t<T>;
+	U copy{std::forward<T>(value)};
+	return toNlohmannJson(lsp::toJson(std::move(copy)));
 }
 
 } // namespace LSPBridge

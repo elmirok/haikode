@@ -113,12 +113,12 @@ LSPEditorWrapper::ApplyFix(BMessage* info)
 	int32 diaIndex = info->GetInt32("index", -1);
 	int32 actIndex = info->GetInt32("action", -1);
 	if (diaIndex >= 0 && fLastDiagnostics.size() > (size_t)diaIndex) {
-		std::map<std::string, std::vector<TextEdit>> map =
+		auto& changes =
 			fLastDiagnostics.at(diaIndex).codeActions.value()[actIndex].edit.value().changes.value();
-		for (auto& ed : map){
-			if (GetFilenameURI().ICompare(ed.first.c_str()) == 0) {
-				json edits = ed.second;
-				_DoFormat(edits);
+		for (auto& [uri, edits] : changes) {
+			if (GetFilenameURI().ICompare(uri.toString().c_str()) == 0) {
+				json j = LSPBridge::toNlohmann(edits);
+				_DoFormat(j);
 			}
 		}
 	}
@@ -846,8 +846,13 @@ LSPEditorWrapper::_DoDiagnostics(nlohmann::json& params)
 		// Extract clangd extension fields (not part of the LSP spec).
 		if (diagJson.contains("category"))
 			lspDiag.category = diagJson["category"].get<std::string>();
-		if (diagJson.contains("codeActions"))
-			lspDiag.codeActions = diagJson["codeActions"].get<std::vector<CodeAction>>();
+		if (diagJson.contains("codeActions")) {
+			auto& codeActionsJson = diagJson["codeActions"];
+			std::vector<CodeAction> actions;
+			for (auto& caJson : codeActionsJson)
+				actions.push_back(LSPBridge::fromNlohmann<lsp::CodeAction>(caJson));
+			lspDiag.codeActions = std::move(actions);
+		}
 
 		LogTrace("Diagnostics [%ld->%ld] [%s][%s]\n", ir.from, ir.to, ir.info.c_str(),lspDiag.diagnostic.message.c_str());
 		fEditor->SendMessage(SCI_INDICATORFILLRANGE, ir.from, ir.to - ir.from);
@@ -894,18 +899,19 @@ void
 LSPEditorWrapper::_DoCodeActions(nlohmann::json& params)
 {
 	for (auto& v : params) {
-		CodeAction action;
+		auto action = LSPBridge::fromNlohmann<lsp::CodeAction>(v);
 
-		action.kind = v["kind"].get<std::string>();
-		action.title = v["title"].get<std::string>();
-		auto data = v["data"];
-		action.data = data;
+		// Extract range from clangd-specific data field
+		auto& dataObj = action.data.value().object();
+		auto& rangeObj = dataObj.get("Range").object();
+		auto& startObj = rangeObj.get("Start").object();
+		auto& endObj = rangeObj.get("End").object();
 
 		Range range;
-		range.start.character = data["Range"]["Start"]["Character"].get<unsigned int>();
-		range.start.line = data["Range"]["Start"]["Line"].get<unsigned int>();
-		range.end.character = data["Range"]["End"]["Character"].get<unsigned int>();
-		range.end.line = data["Range"]["End"]["Line"].get<unsigned int>();
+		range.start.character = static_cast<unsigned int>(startObj.get("Character").integer());
+		range.start.line = static_cast<unsigned int>(startObj.get("Line").integer());
+		range.end.character = static_cast<unsigned int>(endObj.get("Character").integer());
+		range.end.line = static_cast<unsigned int>(endObj.get("Line").integer());
 
 		for (auto& d: fLastDiagnostics) {
 			if (d.diagnostic.range == range) {
@@ -927,26 +933,26 @@ LSPEditorWrapper::_DoCodeActions(nlohmann::json& params)
 void
 LSPEditorWrapper::_DoCodeActionResolve(nlohmann::json& params)
 {
-	CodeAction action;
+	auto action = LSPBridge::fromNlohmann<lsp::CodeAction>(params);
 
-	action.kind = params["kind"].get<std::string>();
-	action.title = params["title"].get<std::string>();
-	action.edit = params["edit"].get<WorkspaceEdit>();
-	auto data = params["data"];
-	action.data = data;
+	// Extract range from clangd-specific data field
+	auto& dataObj = action.data.value().object();
+	auto& rangeObj = dataObj.get("Range").object();
+	auto& startObj = rangeObj.get("Start").object();
+	auto& endObj = rangeObj.get("End").object();
 
 	Range range;
-	range.start.character = data["Range"]["Start"]["Character"].get<unsigned int>();
-	range.start.line = data["Range"]["Start"]["Line"].get<unsigned int>();
-	range.end.character = data["Range"]["End"]["Character"].get<unsigned int>();
-	range.end.line = data["Range"]["End"]["Line"].get<unsigned int>();
+	range.start.character = static_cast<unsigned int>(startObj.get("Character").integer());
+	range.start.line = static_cast<unsigned int>(startObj.get("Line").integer());
+	range.end.character = static_cast<unsigned int>(endObj.get("Character").integer());
+	range.end.line = static_cast<unsigned int>(endObj.get("Line").integer());
 
 	for (auto& d: fLastDiagnostics) {
 		if (d.diagnostic.range == range) {
 			if (d.codeActions.has_value()) {
 				for (auto& ca: d.codeActions.value()) {
-					auto caIdentifier = ca.data.value()["Identifier"].get<std::string>();
-					auto actionIdentifier = action.data.value()["Identifier"].get<std::string>();
+					auto& caIdentifier = ca.data.value().object().get("Identifier").string();
+					auto& actionIdentifier = action.data.value().object().get("Identifier").string();
 					if (caIdentifier == actionIdentifier) {
 						ca.edit = action.edit;
 					}

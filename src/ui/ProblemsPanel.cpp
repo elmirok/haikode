@@ -113,10 +113,10 @@ ProblemsPanel::MessageReceived(BMessage* msg)
 					LSPDiagnostic dia;
 
 					Range range;
-					range.start.line = row->fRange["start:line"];
-					range.start.character = row->fRange["start:character"];
-					range.end.line = row->fRange["end:line"];
-					range.end.character = row->fRange["end:character"];
+					range.start.line = (int32)row->fRange["start:line"];
+					range.start.character = (int32)row->fRange["start:character"];
+					range.end.line = (int32)row->fRange["end:line"];
+					range.end.character = (int32)row->fRange["end:character"];
 
 					int32 index = lsp->DiagnosticFromRange(range, dia);
 					fPopUpMenu = new BPopUpMenu("_popup");

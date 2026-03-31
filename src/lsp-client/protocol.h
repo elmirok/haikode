@@ -699,24 +699,37 @@ struct CodeActionParams {
 };
 JSON_SERIALIZE(CodeActionParams, MAP_JSON(MAP_KEY(textDocument), MAP_KEY(range), MAP_KEY(context)), {});
 
-//struct WorkspaceEdit
-JSON_SERIALIZE(WorkspaceEdit, MAP_JSON(MAP_KEY(changes)), {FROM_KEY(changes);});
+//struct WorkspaceEdit — migrated to lsp-framework (see LSPCompat.h)
+//struct TweakArgs — removed (clangd-specific, only used in old CodeAction serialization)
+//struct ExecuteCommandParams — removed (clangd-specific)
+//struct LspCommand — removed (clangd-specific, replaced by lsp::Command)
+//struct CodeAction — migrated to lsp-framework (see LSPCompat.h)
 
-//struct TweakArgs
-JSON_SERIALIZE(TweakArgs, MAP_JSON(MAP_KEY(file), MAP_KEY(selection), MAP_KEY(tweakID)), {FROM_KEY(file);FROM_KEY(selection);FROM_KEY(tweakID);});
+// Bridge serializers for lsp::WorkspaceEdit and lsp::CodeAction
+// (needed by ApplyWorkspaceEditParams and CodeActionResolve).
+namespace nlohmann {
+    template <>
+    struct adl_serializer<lsp::WorkspaceEdit> {
+        static void to_json(json& j, const lsp::WorkspaceEdit& value) {
+            lsp::WorkspaceEdit copy = value;
+            j = json::parse(lsp::json::stringify(lsp::toJson(std::move(copy))));
+        }
+        static void from_json(const json& j, lsp::WorkspaceEdit& value) {
+            lsp::fromJson(lsp::json::parse(j.dump()), value);
+        }
+    };
 
-//struct ExecuteCommandParams
-JSON_SERIALIZE(ExecuteCommandParams, MAP_JSON(MAP_KEY(command), MAP_KEY(workspaceEdit), MAP_KEY(tweakArgs)), {});
-
-//struct LspCommand
-JSON_SERIALIZE(LspCommand, MAP_JSON(MAP_KEY(command), MAP_KEY(workspaceEdit), MAP_KEY(tweakArgs), MAP_KEY(title)),
-        {FROM_KEY(command);FROM_KEY(workspaceEdit);FROM_KEY(tweakArgs);FROM_KEY(title);});
-
-//struct CodeAction
-JSON_SERIALIZE(CodeAction, MAP_JSON(MAP_KEY(title), MAP_KEY(kind), MAP_KEY(diagnostics), MAP_KEY(edit), MAP_KEY(command)
-               , {"data", (basic_json<>&)value.data }),
-        {FROM_KEY(title);FROM_KEY(kind);FROM_KEY(diagnostics);FROM_KEY(edit);FROM_KEY(command);
-                 if (j.contains("data")) value.data = j.at("data");});
+    template <>
+    struct adl_serializer<lsp::CodeAction> {
+        static void to_json(json& j, const lsp::CodeAction& value) {
+            lsp::CodeAction copy = value;
+            j = json::parse(lsp::json::stringify(lsp::toJson(std::move(copy))));
+        }
+        static void from_json(const json& j, lsp::CodeAction& value) {
+            lsp::fromJson(lsp::json::parse(j.dump()), value);
+        }
+    };
+}
 
 
 //TODO Write Serialize for DocumentSymbol (one way only);
