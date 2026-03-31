@@ -30,7 +30,7 @@ jobs:
                    2> cppcheck-report.xml
 
 	  - name: Convert Cppcheck report to HTML
-        run: | 
+		run: |
           cppcheck-htmlreport \
                    --file=cppcheck-report.xml \
                    --report-dir=cppcheck_html_report \
