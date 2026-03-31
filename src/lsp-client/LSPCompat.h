@@ -78,9 +78,9 @@ using MarkupContent = lsp::MarkupContent;
 using Hover = lsp::Hover;
 
 // --- Phase: Signatures ---
-// using SignatureHelp = lsp::SignatureHelp;
-// using SignatureInformation = lsp::SignatureInformation;
-// using ParameterInformation = lsp::ParameterInformation;
+using SignatureHelp = lsp::SignatureHelp;
+using SignatureInformation = lsp::SignatureInformation;
+using ParameterInformation = lsp::ParameterInformation;
 
 // --- Phase: Document Symbols ---
 // using DocumentSymbol = lsp::DocumentSymbol;

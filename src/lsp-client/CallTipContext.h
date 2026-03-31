@@ -10,7 +10,7 @@
 #include <cstring>
 #include <vector>
 
-#include "protocol_objects.h"
+#include "LSPCompat.h"
 
 enum CallTipAction {
 	CALLTIP_NOTHING = 0, //nothing to do
@@ -32,7 +32,7 @@ public:
 	void HideCallTip();
 	void ShowCallTip();
 
-	void UpdateSignatures(std::vector<SignatureInformation>& funcs);
+	void UpdateSignatures(lsp::Array<SignatureInformation>& funcs);
 
 	int32 Position() const { return fPosition; };
 
@@ -48,5 +48,5 @@ private:
 	size_t 	fCurrentParam;
 
 	// LSP signatures
-	std::vector<SignatureInformation> fSignatures;
+	lsp::Array<SignatureInformation> fSignatures;
 };

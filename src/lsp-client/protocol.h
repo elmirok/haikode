@@ -802,34 +802,8 @@ JSON_SERIALIZE(CompletionParams, MAP_JSON(MAP_KEY(context), MAP_KEY(textDocument
 // See LSPCompat.h for the type aliases.
 // CompletionItem and CompletionList — migrated to lsp-framework types.
 // Deserialized via LSPBridge::fromNlohmann<lsp::CompletionList>() instead of nlohmann.
-// struct ParameterInformation
-
-JSON_SERIALIZE(ParameterInformation, {}, {
-
-    if (j.contains("label")) {
-        try {
-            j.at("label").get_to(value.labelString);
-        } catch(...) {
-            try {
-                j.at("label").get_to(value.labelOffsets);
-            } catch(...) {}
-        }
-    }
-
-    FROM_KEY(documentation);
-});
-// struct SignatureInformation
-JSON_SERIALIZE(SignatureInformation, {}, {
-    FROM_KEY(label);
-    FROM_KEY(documentation);
-    FROM_KEY(parameters);
-});
-// struct SignatureHelp
-JSON_SERIALIZE(SignatureHelp, {}, {
-    FROM_KEY(signatures);
-    FROM_KEY(activeParameter);
-    FROM_KEY(argListStart);
-});
+// SignatureHelp, SignatureInformation, ParameterInformation — migrated to lsp-framework types.
+// Deserialized via LSPBridge::fromNlohmann<lsp::SignatureHelp>() instead of nlohmann.
 
 struct RenameParams {
     /// The document that was opened.

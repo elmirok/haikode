@@ -727,8 +727,8 @@ LSPEditorWrapper::_DoGoTo(nlohmann::json& items)
 void
 LSPEditorWrapper::_DoSignatureHelp(json& result)
 {
-	auto signs = result.get<SignatureHelp>().signatures;
-	fCallTip.UpdateSignatures(signs);
+	auto signatureHelp = LSPBridge::fromNlohmann<lsp::SignatureHelp>(result);
+	fCallTip.UpdateSignatures(signatureHelp.signatures);
 	fCallTip.ShowCallTip();
 }
 

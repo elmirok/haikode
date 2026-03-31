@@ -73,49 +73,8 @@ enum class InsertTextFormat {
 // CompletionItem and CompletionList — migrated to lsp-framework types.
 // See LSPCompat.h for the type aliases.
 
-///// SignatureHelp ////////
-
-struct ParameterInformation {
-
-    /// The label of this parameter. Ignored when labelOffsets is set.
-    std::string labelString;
-
-    /// Inclusive start and exclusive end offsets withing the containing signature
-    /// label.
-    /// Offsets are computed by lspLength(), which counts UTF-16 code units by
-    /// default but that can be overriden, see its documentation for details.
-    std::pair<unsigned, unsigned> labelOffsets;
-
-    /// The documentation of this parameter. Optional.
-    std::string documentation;
-};
-
-struct SignatureInformation {
-
-    /// The label of this signature. Mandatory.
-    std::string label;
-
-    /// The documentation of this signature. Optional.
-    std::string documentation;
-
-    /// The parameters of this signature.
-    std::vector<ParameterInformation> parameters;
-};
-
-struct SignatureHelp {
-    /// The resulting signatures.
-    std::vector<SignatureInformation> signatures;
-    /// The active signature.
-    int activeSignature = 0;
-    /// The active parameter of the active signature.
-    int activeParameter = 0;
-    /// Position of the start of the argument list, including opening paren. e.g.
-    /// foo("first arg",   "second arg",
-    ///    ^-argListStart   ^-cursor
-    /// This is a clangd-specific extension, it is only available via C++ API and
-    /// not currently serialized for the LSP.
-    Position argListStart;
-};
+// SignatureHelp, SignatureInformation, ParameterInformation — migrated to lsp-framework types.
+// See LSPCompat.h for the type aliases.
 
 // Diagnostic and DiagnosticRelatedInformation — migrated to lsp-framework types.
 // See LSPCompat.h for the type aliases.
