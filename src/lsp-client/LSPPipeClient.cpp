@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023-2026, Andrea Anzani
  *
  * Source code derived from AGMSScriptOCron
  * 	Copyright (c) 2018 by Alexander G. M. Smith.
@@ -12,6 +12,25 @@
 
 #include "Log.h"
 #include "LSPReaderThread.h"
+
+#include <lsp/jsonrpc/jsonrpc.h>
+
+
+enum {
+	kReadResult = 'read'
+};
+
+
+LSPPipeClient::LSPPipeClient(uint32 what, BMessenger& msgr)
+	:
+	BLooper("LSPPipeClient"),
+	fWhat(what),
+	fMessenger(msgr),
+	fReaderThread(nullptr),
+	fPipeStream(fPipeImage),
+	fConnection(fPipeStream)
+{
+}
 
 
 status_t
@@ -36,6 +55,9 @@ LSPPipeClient::~LSPPipeClient()
 	Close();
 	ForceQuit();
 }
+
+
+// --- Read path (hand-rolled Content-Length framing, unchanged) ---
 
 
 bool
@@ -95,33 +117,12 @@ LSPPipeClient::Read(int length, std::string &out)
 
 
 bool
-LSPPipeClient::Write(std::string &in)
-{
-	ssize_t hasWritten = 0;
-	if (fWriteLock.Lock()) { // for production code: WithTimeout(1000000) == B_OK)
-		size_t writeSize = 0;
-		size_t totalSize = in.length();
-		while ((hasWritten = fPipeImage.Write(&in[writeSize], totalSize)) != -1) {
-			writeSize += hasWritten;
-			if (writeSize >= totalSize || hasWritten == 0) {
-				break;
-			}
-		}
-		fWriteLock.Unlock();
-	}
-	return (hasWritten != 0);
-}
-
-
-bool
 LSPPipeClient::readMessage(std::string &json)
 {
 	json.clear();
 	int length = ReadMessageHeader();
 	if (length == 0)
 		return false;
-	//SkipLine();
-	//std::string read;
 	if (Read(length, json) == 0)
 		return false;
 	LogTrace("Client - rcv %d:\n%s\n", length, json.c_str());
@@ -130,21 +131,72 @@ LSPPipeClient::readMessage(std::string &json)
 
 
 bool
-LSPPipeClient::writeMessage(std::string &content)
+LSPPipeClient::readStep()
 {
-	std::string header = "Content-Length: " + std::to_string(content.length()) +
-                       "\r\n\r\n" + content;
-	LogTrace("Client: - snd \n%s\n", content.c_str());
-	return Write(header);
+	std::string data;
+	bool result = readMessage(data);
+	if (result) {
+		BMessage req(kReadResult);
+		req.AddString("data", data.c_str());
+		return BLooper::PostMessage(&req) == B_OK;
+	}
+	return result;
 }
 
 
-LSPPipeClient::LSPPipeClient(uint32 what, BMessenger& msgr)
-	:
-	AsyncJsonTransport(what, msgr),
-	fReaderThread(nullptr)
+void
+LSPPipeClient::MessageReceived(BMessage* msg)
 {
+	switch (msg->what) {
+		case kReadResult:
+		{
+			const char* data;
+			if (msg->FindString("data", &data) == B_OK) {
+				msg->what = fWhat;
+				fMessenger.SendMessage(msg);
+			}
+			break;
+		}
+		default:
+			BLooper::MessageReceived(msg);
+			break;
+	}
 }
+
+
+// --- Write path (via lsp::Connection) ---
+
+
+void
+LSPPipeClient::notify(std::string_view method, value params)
+{
+	try {
+		auto notification = lsp::jsonrpc::createNotification(method, std::move(params));
+		lsp::jsonrpc::Message msg{std::move(notification)};
+		fConnection.writeMessage(std::move(msg));
+	} catch (const std::exception& e) {
+		LogTrace("LSPPipeClient::notify write error: %s", e.what());
+	}
+}
+
+
+void
+LSPPipeClient::request(std::string_view method, value params, RequestID &id)
+{
+	try {
+		auto req = lsp::jsonrpc::createRequest(
+			lsp::jsonrpc::MessageId{lsp::json::String(id)},
+			method,
+			std::move(params));
+		lsp::jsonrpc::Message msg{std::move(req)};
+		fConnection.writeMessage(std::move(msg));
+	} catch (const std::exception& e) {
+		LogTrace("LSPPipeClient::request write error: %s", e.what());
+	}
+}
+
+
+// --- Lifecycle ---
 
 
 pid_t

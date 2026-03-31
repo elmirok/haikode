@@ -6,11 +6,11 @@
 #ifndef MessageHandler_H
 #define MessageHandler_H
 
-#include <json_fwd.hpp>
+#include <lsp/json/json.h>
 
 #include <string>
 
-using value = nlohmann::json;
+using value = lsp::json::Value;
 using RequestID = std::string;
 
 class MessageHandler {

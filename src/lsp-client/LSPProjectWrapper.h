@@ -14,8 +14,6 @@
 #include <Messenger.h>
 #include <Url.h>
 
-#include <json_fwd.hpp>
-
 #include "LSPServersManager.h"
 #include "MessageHandler.h"
 #include "LSPCapabilities.h"
@@ -28,7 +26,7 @@ struct ConfigurationSettings;
 class LSPPipeClient;
 class LSPServerConfigInterface;
 
-using json = nlohmann::json;
+using json = lsp::json::Value;
 
 const int32 kLSPWorkProgress = 'lswp';
 
@@ -76,7 +74,7 @@ public:
     RequestID Formatting(LSPTextDocument* textDocument);
     RequestID CodeAction(LSPTextDocument* textDocument, Range range, lsp::CodeActionContext& context);
 	RequestID CodeActionResolve(LSPTextDocument* textDocument, lsp::CodeAction& data);
-	RequestID CodeActionResolve(LSPTextDocument* textDocument, nlohmann::json& data);
+	RequestID CodeActionResolve(LSPTextDocument* textDocument, value& data);
     RequestID Completion(LSPTextDocument* textDocument, Position position, lsp::CompletionContext& context);
     RequestID SignatureHelp(LSPTextDocument* textDocument, Position position);
     RequestID GoToDefinition(LSPTextDocument* textDocument, Position position);

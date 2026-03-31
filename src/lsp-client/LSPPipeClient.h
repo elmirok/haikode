@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023-2026, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -8,12 +8,17 @@
 #include <unistd.h>
 
 #include "PipeImage.h"
-#include "Transport.h"
+#include "PipeStream.h"
+#include "MessageHandler.h"
 
-#include <Locker.h>
+#include <Looper.h>
+#include <Messenger.h>
+
+#include <lsp/connection.h>
 
 class LSPReaderThread;
-class LSPPipeClient : public AsyncJsonTransport {
+
+class LSPPipeClient : public BLooper {
 
 public:
 
@@ -24,8 +29,10 @@ public:
 
 	void	Close();
 
-	bool 	readMessage(std::string &json) override;
-	bool 	writeMessage(std::string &json) override;
+	void	notify(std::string_view method, value params);
+	void	request(std::string_view method, value params, RequestID &id);
+
+	bool	readStep();
 
 	pid_t	GetChildPid() const;
 
@@ -34,14 +41,20 @@ public:
 	void	KillThread();
 
 private:
+  // Read path (hand-rolled Content-Length framing, kept for now)
+  bool	readMessage(std::string &json);
   int 	ReadMessageHeader();
   bool	ReadHeaderLine(char* header, size_t maxlen);
   int 	Read(int length, std::string &out);
-  bool 	Write(std::string &in);
+
+  void	MessageReceived(BMessage* msg) override;
   void	Quit() override;
   thread_id	Run() override;
 
-  BLocker 			fWriteLock;
+  uint32			fWhat;
+  BMessenger		fMessenger;
   LSPReaderThread*	fReaderThread;
   PipeImage			fPipeImage;
+  PipeStream		fPipeStream;
+  lsp::Connection	fConnection;
 };

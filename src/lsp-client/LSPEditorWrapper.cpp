@@ -21,7 +21,6 @@
 #include "LSPJsonBridge.h"
 #include "LSPProjectWrapper.h"
 #include "JumpNavigator.h"
-#include "protocol.h"
 #include "TextUtils.h"
 
 #undef B_TRANSLATION_CONTEXT
@@ -115,7 +114,7 @@ LSPEditorWrapper::ApplyFix(BMessage* info)
 			fLastDiagnostics.at(diaIndex).codeActions.value()[actIndex].edit.value().changes.value();
 		for (auto& [uri, edits] : changes) {
 			if (GetFilenameURI().ICompare(uri.toString().c_str()) == 0) {
-				json j = LSPBridge::toNlohmann(edits);
+				auto j = LSPBridge::toJson(edits);
 				_DoFormat(j);
 			}
 		}
@@ -129,7 +128,7 @@ LSPEditorWrapper::ApplyEdit(std::string info)
 	if (!HasLSPServer())
 		return;
 
-	json items = nlohmann::json::parse(info);
+	auto items = lsp::json::parse(info);
 	_DoFormat(items);
 }
 
@@ -232,11 +231,11 @@ LSPEditorWrapper::flushChanges()
 
 
 void
-LSPEditorWrapper::_DoFormat(json& params)
+LSPEditorWrapper::_DoFormat(value& params)
 {
 	fEditor->SendMessage(SCI_BEGINUNDOACTION, 0, 0);
-	auto items = params;
-	for (json::reverse_iterator it = items.rbegin(); it != items.rend(); ++it) {
+	auto& items = params.array();
+	for (auto it = items.rbegin(); it != items.rend(); ++it) {
 		ApplyTextEdit((*it));
 	}
 	fEditor->SendMessage(SCI_ENDUNDOACTION, 0, 0);
@@ -250,22 +249,21 @@ LSPEditorWrapper::_DoFormat(json& params)
 
 
 void
-LSPEditorWrapper::_DoRename(json& params)
+LSPEditorWrapper::_DoRename(value& params)
 {
 	BMessage bjson;
-	if (!params["changes"].is_null()) {
-		for (auto& [uri, edits] : params["changes"].items()) {
-			for (auto& e: edits) {
-				auto edit = e.get<TextEdit>();
-				edit.range.start.line += 1;
-				edit.range.end.line += 1;
-			}
-			OpenFileURI(uri, -1, -1, edits.dump().c_str());
+	auto* changes = params.object().find("changes");
+	if (changes && !changes->isNull()) {
+		for (auto& [uri, edits] : changes->object().keyValueMap()) {
+			OpenFileURI(uri, -1, -1, lsp::json::stringify(edits).c_str());
 		}
-	} else if (params["documentChanges"].is_array()) {
-		for (auto& block : params["documentChanges"]) {
-			std::string uri = block["textDocument"]["uri"].get<std::string>();
-			OpenFileURI(uri, -1, -1, block["edits"].dump().c_str());
+	} else {
+		auto* docChanges = params.object().find("documentChanges");
+		if (docChanges && docChanges->isArray()) {
+			for (auto& block : docChanges->array()) {
+				std::string uri = block.object().get("textDocument").object().get("uri").string();
+				OpenFileURI(uri, -1, -1, lsp::json::stringify(block.object().get("edits")).c_str());
+			}
 		}
 	}
 }
@@ -682,17 +680,17 @@ _ExtractHoverText(const lsp::Hover& hover)
 
 
 void
-LSPEditorWrapper::_DoHover(nlohmann::json& result)
+LSPEditorWrapper::_DoHover(value& result)
 {
 	if (fEditor == nullptr || !fEditor->Window()->IsActive())
 		return;
 
-	if (result.is_null()) {
+	if (result.isNull()) {
 		EndHover();
 		return;
 	}
 
-	auto hover = LSPBridge::fromNlohmann<lsp::Hover>(result);
+	auto hover = LSPBridge::fromJson<lsp::Hover>(result);
 	std::string tip = _ExtractHoverText(hover);
 
 	if (tip.empty()) {
@@ -704,52 +702,56 @@ LSPEditorWrapper::_DoHover(nlohmann::json& result)
 
 
 void
-LSPEditorWrapper::_DoGoTo(nlohmann::json& items)
+LSPEditorWrapper::_DoGoTo(value& items)
 {
-	if (!items.empty()) {
-		Location location;
+	if (items.isNull())
+		return;
 
-		// TODO if more than one match??
-		// clangd sends an array of Locations while OmniSharp seems to conform to the standard
-		// and sends just one.
-		if (items.is_array())
-			location = items[0].get<Location>();
-		else
-			location = items.get<Location>();
+	Location location;
 
-		std::string uri = location.uri.toString();
-		Position pos = location.range.start;
-
-		OpenFileURI(uri, pos.line + 1, pos.character);
+	// TODO if more than one match??
+	// clangd sends an array of Locations while OmniSharp seems to conform to the standard
+	// and sends just one.
+	if (items.isArray()) {
+		if (items.array().empty())
+			return;
+		lsp::fromJson(lsp::json::Value(items.array()[0]), location);
+	} else {
+		lsp::fromJson(lsp::json::Value(items), location);
 	}
+
+	std::string uri = location.uri.toString();
+	Position pos = location.range.start;
+
+	OpenFileURI(uri, pos.line + 1, pos.character);
 }
 
 
 void
-LSPEditorWrapper::_DoSignatureHelp(json& result)
+LSPEditorWrapper::_DoSignatureHelp(value& result)
 {
-	auto signatureHelp = LSPBridge::fromNlohmann<lsp::SignatureHelp>(result);
+	auto signatureHelp = LSPBridge::fromJson<lsp::SignatureHelp>(result);
 	fCallTip.UpdateSignatures(signatureHelp.signatures);
 	fCallTip.ShowCallTip();
 }
 
 
 void
-LSPEditorWrapper::_DoSwitchSourceHeader(json& result)
+LSPEditorWrapper::_DoSwitchSourceHeader(value& result)
 {
-	std::string url = result.get<std::string>();
+	std::string url = result.string();
 	OpenFileURI(url);
 }
 
 
 void
-LSPEditorWrapper::_DoCompletion(json& params)
+LSPEditorWrapper::_DoCompletion(value& params)
 {
 	std::string line;
 	Position position;
 	bool positionResolved = false;
 
-	auto allItems = LSPBridge::fromNlohmann<lsp::CompletionList>(params);
+	auto allItems = LSPBridge::fromJson<lsp::CompletionList>(params);
 	auto& items = allItems.items;
 	std::string list;
 	for (auto& item : items) {
@@ -826,12 +828,12 @@ LSPEditorWrapper::_RemoveAllDiagnostics()
 
 
 void
-LSPEditorWrapper::_DoDiagnostics(nlohmann::json& params)
+LSPEditorWrapper::_DoDiagnostics(value& params)
 {
 	_RemoveAllDiagnostics();
 
-	for (auto& diagJson : params["diagnostics"]) {
-		auto diag = LSPBridge::fromNlohmann<lsp::Diagnostic>(diagJson);
+	for (auto& diagJson : params.object().get("diagnostics").array()) {
+		auto diag = LSPBridge::fromJson<lsp::Diagnostic>(diagJson);
 
 		LSPDiagnostic lspDiag;
 		lspDiag.diagnostic = std::move(diag);
@@ -843,13 +845,14 @@ LSPEditorWrapper::_DoDiagnostics(nlohmann::json& params)
 		ir.info = lspDiag.diagnostic.message;
 
 		// Extract clangd extension fields (not part of the LSP spec).
-		if (diagJson.contains("category"))
-			lspDiag.category = diagJson["category"].get<std::string>();
-		if (diagJson.contains("codeActions")) {
-			auto& codeActionsJson = diagJson["codeActions"];
+		auto& diagObj = diagJson.object();
+		if (diagObj.contains("category"))
+			lspDiag.category = diagObj.get("category").string();
+		if (diagObj.contains("codeActions")) {
+			auto& codeActionsArr = diagObj.get("codeActions").array();
 			std::vector<CodeAction> actions;
-			for (auto& caJson : codeActionsJson)
-				actions.push_back(LSPBridge::fromNlohmann<lsp::CodeAction>(caJson));
+			for (auto& caJson : codeActionsArr)
+				actions.push_back(LSPBridge::fromJson<lsp::CodeAction>(caJson));
 			lspDiag.codeActions = std::move(actions);
 		}
 
@@ -895,10 +898,10 @@ LSPEditorWrapper::CodeActionResolve(value &params)
 
 
 void
-LSPEditorWrapper::_DoCodeActions(nlohmann::json& params)
+LSPEditorWrapper::_DoCodeActions(value& params)
 {
-	for (auto& v : params) {
-		auto action = LSPBridge::fromNlohmann<lsp::CodeAction>(v);
+	for (auto& v : params.array()) {
+		auto action = LSPBridge::fromJson<lsp::CodeAction>(v);
 
 		// Extract range from clangd-specific data field
 		auto& dataObj = action.data.value().object();
@@ -921,7 +924,8 @@ LSPEditorWrapper::_DoCodeActions(nlohmann::json& params)
 					action.diagnostics.emplace();
 				action.diagnostics->push_back(d.diagnostic);
 
-				if (v["edit"].empty())
+				auto* editField = v.object().find("edit");
+				if (!editField || editField->isNull())
 					CodeActionResolve(v);
 			}
 		}
@@ -930,9 +934,9 @@ LSPEditorWrapper::_DoCodeActions(nlohmann::json& params)
 
 
 void
-LSPEditorWrapper::_DoCodeActionResolve(nlohmann::json& params)
+LSPEditorWrapper::_DoCodeActionResolve(value& params)
 {
-	auto action = LSPBridge::fromNlohmann<lsp::CodeAction>(params);
+	auto action = LSPBridge::fromJson<lsp::CodeAction>(params);
 
 	// Extract range from clangd-specific data field
 	auto& dataObj = action.data.value().object();
@@ -972,7 +976,7 @@ LSPEditorWrapper::_RemoveAllDocumentLinks()
 }
 
 void
-LSPEditorWrapper::_DoInitialize(nlohmann::json& params)
+LSPEditorWrapper::_DoInitialize(value& params)
 {
 	fInitialized = true;
 	didOpen();
@@ -985,12 +989,12 @@ LSPEditorWrapper::_DoInitialize(nlohmann::json& params)
 
 
 void
-LSPEditorWrapper::_DoDocumentLink(nlohmann::json& result)
+LSPEditorWrapper::_DoDocumentLink(value& result)
 {
 	_RemoveAllDocumentLinks();
 
-	for (auto& element : result) {
-		auto l = LSPBridge::fromNlohmann<lsp::DocumentLink>(element);
+	for (auto& element : result.array()) {
+		auto l = LSPBridge::fromJson<lsp::DocumentLink>(element);
 		Range& r = l.range;
 		InfoRange ir;
 		ir.from = FromLSPPositionToSciPosition(&r.start);
@@ -1006,9 +1010,9 @@ LSPEditorWrapper::_DoDocumentLink(nlohmann::json& result)
 
 
 void
-LSPEditorWrapper::_DoFileStatus(nlohmann::json& params)
+LSPEditorWrapper::_DoFileStatus(value& params)
 {
-	auto state = params["state"].get<std::string>();
+	auto state = params.object().get("state").string();
 	LogInfo("FileStatus [%s] -> [%s]", GetFileStatus().String(), state.c_str());
 	SetFileStatus(state.c_str());
 	if (fEditor != nullptr) {
@@ -1018,15 +1022,16 @@ LSPEditorWrapper::_DoFileStatus(nlohmann::json& params)
 }
 
 void
-LSPEditorWrapper::_DoDocumentSymbol(nlohmann::json& params)
+LSPEditorWrapper::_DoDocumentSymbol(value& params)
 {
 	BMessage msg(EDITOR_UPDATE_SYMBOLS);
-	if (params.is_array() && params.size() > 0) {
-		if (params[0]["location"].is_null()) {
-			auto vect = LSPBridge::fromNlohmann<lsp::Array<lsp::DocumentSymbol>>(params);
+	if (params.isArray() && !params.array().empty()) {
+		auto* loc = params.array()[0].object().find("location");
+		if (!loc || loc->isNull()) {
+			auto vect = LSPBridge::fromJson<lsp::Array<lsp::DocumentSymbol>>(params);
 			_DoRecursiveDocumentSymbol(vect, msg);
 		} else {
-			auto vect = LSPBridge::fromNlohmann<lsp::Array<lsp::SymbolInformation>>(params);
+			auto vect = LSPBridge::fromJson<lsp::Array<lsp::SymbolInformation>>(params);
 			_DoLinearSymbolInformation(vect, msg);
 		}
 	}
@@ -1119,7 +1124,7 @@ LSPEditorWrapper::onResponse(RequestID id, value& result)
 void
 LSPEditorWrapper::onError(RequestID id, value& error)
 {
-	LogError("onError [%s] [%s]", GetFileStatus().String(), error.dump().c_str());
+	LogError("onError [%s] [%s]", GetFileStatus().String(), lsp::json::stringify(error).c_str());
 }
 
 
@@ -1169,9 +1174,10 @@ LSPEditorWrapper::FromSciPositionToRange(Sci_Position s_start, Sci_Position s_en
 
 
 Sci_Position
-LSPEditorWrapper::ApplyTextEdit(json& textEditJson)
+LSPEditorWrapper::ApplyTextEdit(value& textEditJson)
 {
-	TextEdit textEdit = textEditJson.get<TextEdit>();
+	TextEdit textEdit;
+	lsp::fromJson(lsp::json::Value(textEditJson), textEdit);
 	return ApplyTextEdit(textEdit);
 }
 

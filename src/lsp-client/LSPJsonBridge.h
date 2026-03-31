@@ -5,51 +5,35 @@
 #pragma once
 
 /*
- * Bridge between nlohmann::json (used by the existing transport layer)
- * and lsp::json::Value (used by lsp-framework types).
+ * Convenience wrappers around lsp::fromJson / lsp::toJson.
  *
- * Uses stringify → parse round-tripping. Simple and correct for the
- * small payloads typical of LSP messages.
- *
- * This file is temporary scaffolding — it will be removed once the
- * transport layer itself migrates to lsp-framework's Connection.
+ * fromJson<T>(val) — Deserialize a typed lsp-framework struct from a json::Value.
+ * toJson(val)      — Serialize a typed lsp-framework struct into a json::Value.
+ *                    Accepts lvalues (copies internally) and rvalues (moves).
  */
 
-#include <json.hpp>
 #include <lsp/json/json.h>
 #include <lsp/serialization.h>
 
 namespace LSPBridge {
 
-// nlohmann::json → lsp::json::Value
-inline lsp::json::Value toLspJson(const nlohmann::json& nj)
-{
-	return lsp::json::parse(nj.dump());
-}
-
-// lsp::json::Value → nlohmann::json
-inline nlohmann::json toNlohmannJson(const lsp::json::Value& lj)
-{
-	return nlohmann::json::parse(lsp::json::stringify(lj));
-}
-
-// Deserialize an lsp-framework type from a nlohmann::json value
+// Deserialize an lsp-framework type from a lsp::json::Value
 template<typename T>
-T fromNlohmann(const nlohmann::json& nj)
+T fromJson(const lsp::json::Value& j)
 {
 	T result{};
-	lsp::fromJson(toLspJson(nj), result);
+	lsp::fromJson(lsp::json::Value(j), result);
 	return result;
 }
 
-// Serialize an lsp-framework type into a nlohmann::json value.
+// Serialize an lsp-framework type into a lsp::json::Value.
 // lsp::toJson() requires rvalues, so we always copy+move to handle lvalue args.
 template<typename T>
-nlohmann::json toNlohmann(T&& value)
+lsp::json::Value toJson(T&& val)
 {
 	using U = std::remove_cvref_t<T>;
-	U copy{std::forward<T>(value)};
-	return toNlohmannJson(lsp::toJson(std::move(copy)));
+	U copy{std::forward<T>(val)};
+	return lsp::toJson(std::move(copy));
 }
 
 } // namespace LSPBridge

@@ -11,8 +11,6 @@
 #include <vector>
 #include <tuple>
 
-#include <json.hpp>
-
 #include "LSPCompat.h"
 
 // Most LSP types have been migrated to lsp-framework (see LSPCompat.h).

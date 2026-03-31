@@ -1,5 +1,10 @@
 // Code and inspiration taken from https://github.com/microsoft/language-server-protocol
-// Copyright 2023, Andrea Anzani 
+// Copyright 2023, Andrea Anzani
+
+// This file is no longer used — LSPPipeClient now handles transport directly
+// via lsp::Connection.  Kept for reference; disabled to avoid compile errors
+// from the removed nlohmann::json dependency.
+#if 0
 
 #include "Transport.h"
 
@@ -92,3 +97,5 @@ AsyncJsonTransport::writeJson(value& msg)
 	req.AddString("data", msg.dump().c_str());
 	return BLooper::PostMessage(&req) == B_OK;
 }
+
+#endif // disabled — dead code

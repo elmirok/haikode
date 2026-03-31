@@ -10,8 +10,8 @@
 #include "LSPReaderThread.h"
 #include "LSPServersManager.h"
 #include "LSPTextDocument.h"
-#include "protocol.h"
 
+#include <lsp/json/json.h>
 #include <lsp/messages.h>
 
 
@@ -147,19 +147,24 @@ LSPProjectWrapper::MessageReceived(BMessage* msg)
 		const char* json;
 		if (msg->FindString("data", &json) == B_OK && fLSPPipeClient) {
 			try {
-				auto value = nlohmann::json::parse(json);
+				auto value = lsp::json::parse(json);
+				auto& obj = value.object();
 
-				if (value.count("id")) {
-					if (value.contains("method")) {
-						onRequest(value["method"].get<std::string>(), value["params"], value["id"]);
-					} else if (value.contains("result")) {
-						onResponse(value["id"].get<std::string>(), value["result"]);
-					} else if (value.contains("error")) {
-						onError(value["id"].get<std::string>(), value["error"]);
+				if (obj.contains("id")) {
+					if (obj.contains("method")) {
+						auto& params = obj.get("params");
+						onRequest(obj.get("method").string(), params, obj.get("id"));
+					} else if (obj.contains("result")) {
+						auto& result = obj.get("result");
+						onResponse(obj.get("id").string(), result);
+					} else if (obj.contains("error")) {
+						auto& error = obj.get("error");
+						onError(obj.get("id").string(), error);
 					}
-				} else if (value.contains("method")) {
-					if (value.contains("params")) {
-						onNotify(value["method"].get<std::string>(), value["params"]);
+				} else if (obj.contains("method")) {
+					if (obj.contains("params")) {
+						auto& params = obj.get("params");
+						onNotify(obj.get("method").string(), params);
 					}
 				}
 			}
@@ -286,14 +291,15 @@ LSPProjectWrapper::onNotify(std::string method, value& params)
 {
 	if (method.compare("textDocument/publishDiagnostics") == 0
 		|| method.compare("textDocument/clangd.fileStatus") == 0) {
-		auto uri = params["uri"].get<std::string>();
+		auto uri = params.object().get("uri").string();
 
 		LSPTextDocument* doc = _DocumentByURI(uri.c_str());
 		if (doc) {
 			doc->onNotify(method, params);
 		} else {
 			LogError(
-				"Can't deliver a notify from LSP to %s\n%s\n", uri.c_str(), params.dump().c_str());
+				"Can't deliver a notify from LSP to %s\n%s\n", uri.c_str(),
+				lsp::json::stringify(params).c_str());
 		}
 		return;
 	} else if (method.compare("$/progress") == 0) {
@@ -304,36 +310,41 @@ LSPProjectWrapper::onNotify(std::string method, value& params)
  {"token":"backgroundIndexProgress","value":{"kind":"report","message":"0/1","percentage":0}}
  {"token":"backgroundIndexProgress","value":{"kind":"end"}}
 */
-		auto value = params["value"];
-		auto kind  = value["kind"].get<std::string>();
+		auto& val = params.object().get("value");
+		auto kind = val.object().get("kind").string();
 		if (kind.compare("begin") == 0) {
 			fWorkDone.MakeEmpty();
 			fWorkDone.what = kLSPWorkProgress;
 			fWorkDone.AddString("project", fUrl.Path().String());
 			fWorkDone.AddString("kind", kind.c_str());
-			fWorkDone.AddString("title", value["title"].get<std::string>().c_str());
-			if (value["percentage"].is_null() == false)
-				fWorkDone.AddInt32("percentage", value["percentage"].get<int>());
-			if (value["message"].is_null() == false)
-				fWorkDone.AddString("message", value["message"].get<std::string>().c_str());
+			fWorkDone.AddString("title", val.object().get("title").string().c_str());
+			auto* percentage = val.object().find("percentage");
+			if (percentage && !percentage->isNull())
+				fWorkDone.AddInt32("percentage", percentage->integer());
+			auto* message = val.object().find("message");
+			if (message && !message->isNull())
+				fWorkDone.AddString("message", message->string().c_str());
 			else
 				fWorkDone.AddString("message", "");
 
 		} else if (kind.compare("report") == 0 && fWorkDone.IsEmpty() == false) {
 			fWorkDone.ReplaceString("kind", kind.c_str());
-			if (value["percentage"].is_null() == false) {
+			auto* percentage = val.object().find("percentage");
+			if (percentage && !percentage->isNull()) {
 			if(fWorkDone.HasInt32("percentage"))
-				fWorkDone.ReplaceInt32("percentage", value["percentage"].get<int>());
+				fWorkDone.ReplaceInt32("percentage", percentage->integer());
 			else
-				fWorkDone.AddInt32("percentage", value["percentage"].get<int>());
+				fWorkDone.AddInt32("percentage", percentage->integer());
 			}
-			if (value["message"].is_null() == false)
-				fWorkDone.ReplaceString("message", value["message"].get<std::string>().c_str());
+			auto* message = val.object().find("message");
+			if (message && !message->isNull())
+				fWorkDone.ReplaceString("message", message->string().c_str());
 
 		} else if (kind.compare("end") == 0 && fWorkDone.IsEmpty() == false) {
 			fWorkDone.ReplaceString("kind", kind.c_str());
-			if (value["message"].is_null() == false)
-				fWorkDone.ReplaceString("message", value["message"].get<std::string>().c_str());
+			auto* message = val.object().find("message");
+			if (message && !message->isNull())
+				fWorkDone.ReplaceString("message", message->string().c_str());
 		}
 
 		if(fWorkDone.IsEmpty() == false) {
@@ -343,7 +354,7 @@ LSPProjectWrapper::onNotify(std::string method, value& params)
 		return;
 
 	} else if (method.compare("window/logMessage") == 0) {
-		auto logParams = LSPBridge::fromNlohmann<lsp::LogMessageParams>(params);
+		auto logParams = LSPBridge::fromJson<lsp::LogMessageParams>(params);
 		lsp::MessageType type = static_cast<lsp::MessageType>(logParams.type);
 		switch(type) {
 			case lsp::MessageType::Error:
@@ -427,7 +438,7 @@ void
 LSPProjectWrapper::onRequest(std::string method, value& params, value& ID)
 {
 	LogError("LSPProjectWrapper::onRequest not implemented! [%s] [%s]", method.c_str(),
-		ID.dump().c_str());
+		lsp::json::stringify(ID).c_str());
 }
 
 
@@ -444,23 +455,24 @@ LSPProjectWrapper::Initialize(std::optional<std::string> rootUri)
 
 	params.capabilities = BuildClientCapabilities();
 
-	// Serialize clangd-specific InitializationOptions via old struct, then
-	// inject as opaque LSPAny (the lsp-framework field is Opt<LSPAny>).
-	InitializationOptions initOpts;
-	initOpts.clangdFileStatus = true;
-	nlohmann::json jInitOpts = initOpts;
-	params.initializationOptions = LSPBridge::fromNlohmann<lsp::LSPAny>(jInitOpts);
+	// Build clangd-specific InitializationOptions directly as JSON.
+	lsp::json::Object initOptsObj;
+	initOptsObj["clangdFileStatus"] = lsp::json::Value(true);
+	params.initializationOptions = lsp::json::Value(std::move(initOptsObj));
 
-	// Serialize to nlohmann::json via bridge
-	nlohmann::json jParams = LSPBridge::toNlohmann(params);
+	// Serialize to lsp::json::Value
+	auto jParams = lsp::toJson(std::move(params));
 
 	// Patch clangd extension fields into capabilities (no lsp-framework model)
-	jParams["capabilities"]["textDocument"]["publishDiagnostics"]["categorySupport"] = true;
-	jParams["capabilities"]["textDocument"]["publishDiagnostics"]["codeActionsInline"] = true;
-	jParams["capabilities"]["textDocument"]["completion"]["editsNearCursor"] = true;
-	jParams["capabilities"]["window"]["implicitWorkDoneProgressCreate"] = true;
+	auto& caps = jParams.object()["capabilities"].object();
+	auto& textDoc = caps["textDocument"].object();
+	auto& pubDiagObj = textDoc["publishDiagnostics"].object();
+	pubDiagObj["categorySupport"] = lsp::json::Value(true);
+	pubDiagObj["codeActionsInline"] = lsp::json::Value(true);
+	textDoc["completion"].object()["editsNearCursor"] = lsp::json::Value(true);
+	caps["window"].object()["implicitWorkDoneProgressCreate"] = lsp::json::Value(true);
 
-	return SendRequest("client", "initialize", jParams);
+	return SendRequest("client", "initialize", std::move(jParams));
 }
 
 
@@ -488,9 +500,9 @@ LSPProjectWrapper::Exit()
 bool
 LSPProjectWrapper::_CheckAndSetCapability(json& capas, const char* str, const LSPCapability flag)
 {
-	auto& cap = capas[str];
-	if (!cap.is_null()) {
-		if ( (cap.is_boolean() && cap.get<bool>() == true) || cap.is_object()) {
+	auto* cap = capas.object().find(str);
+	if (cap && !cap->isNull()) {
+		if ((cap->isBoolean() && cap->boolean()) || cap->isObject()) {
 				fServerCapabilities |= flag;
 				return true;
 		}
@@ -509,39 +521,30 @@ LSPProjectWrapper::HasCapability(const LSPCapability flag)
 void
 LSPProjectWrapper::Initialized(json& result)
 {
-	auto& capas = result["capabilities"];
-	if (!capas.is_null()) {
+	auto* capas = result.object().find("capabilities");
+	if (capas && !capas->isNull()) {
 
-		if (_CheckAndSetCapability(capas, "completionProvider", kLCapCompletion)) {
-			auto& completionProvider = capas["completionProvider"];
-			// auto& allCommitCharacters = completionProvider["allCommitCharacters"];
-			// if (allCommitCharacters != value::value_t::null) {
-				// fAllCommitCharacters.clear();
-				// for (auto& c : allCommitCharacters) {
-					// printf("--> %s\n", c.get<std::string>().c_str());
-					// fAllCommitCharacters.append(c.get<std::string>().c_str());
-				// }
-				// LogDebug("allCommitCharacters [%s]", this->allCommitCharacters().c_str());
-			// }
-			auto& triggerCharacters = completionProvider["triggerCharacters"];
-			if (!triggerCharacters.is_null()) {
+		if (_CheckAndSetCapability(*capas, "completionProvider", kLCapCompletion)) {
+			auto& completionProvider = capas->object().get("completionProvider");
+			auto* triggerCharacters = completionProvider.object().find("triggerCharacters");
+			if (triggerCharacters && !triggerCharacters->isNull()) {
 				fTriggerCharacters.clear();
-				for (auto& c : triggerCharacters) {
-					fTriggerCharacters.append(c.get<std::string>().c_str());
+				for (auto& c : triggerCharacters->array()) {
+					fTriggerCharacters.append(c.string().c_str());
 				}
 				LogDebug("triggerCharacters [%s]", this->triggerCharacters().c_str());
 			}
 		}
-		_CheckAndSetCapability(capas, "documentFormattingProvider", kLCapDocFormatting);
-		_CheckAndSetCapability(capas, "documentRangeFormattingProvider", kLCapDocRangeFormatting);
-		_CheckAndSetCapability(capas, "definitionProvider", kLCapDefinition);
-		_CheckAndSetCapability(capas, "declarationProvider", kLCapDeclaration);
-		_CheckAndSetCapability(capas, "implementationProvider", kLCapImplementation);
-		_CheckAndSetCapability(capas, "documentLinkProvider", kLCapDocLink);
-		_CheckAndSetCapability(capas, "hoverProvider", kLCapHover);
-		_CheckAndSetCapability(capas, "signatureHelpProvider", kLCapSignatureHelp);
-		_CheckAndSetCapability(capas, "renameProvider", kLCapRename);
-		_CheckAndSetCapability(capas, "documentSymbolProvider", kLCapDocumentSymbols);
+		_CheckAndSetCapability(*capas, "documentFormattingProvider", kLCapDocFormatting);
+		_CheckAndSetCapability(*capas, "documentRangeFormattingProvider", kLCapDocRangeFormatting);
+		_CheckAndSetCapability(*capas, "definitionProvider", kLCapDefinition);
+		_CheckAndSetCapability(*capas, "declarationProvider", kLCapDeclaration);
+		_CheckAndSetCapability(*capas, "implementationProvider", kLCapImplementation);
+		_CheckAndSetCapability(*capas, "documentLinkProvider", kLCapDocLink);
+		_CheckAndSetCapability(*capas, "hoverProvider", kLCapHover);
+		_CheckAndSetCapability(*capas, "signatureHelpProvider", kLCapSignatureHelp);
+		_CheckAndSetCapability(*capas, "renameProvider", kLCapRename);
+		_CheckAndSetCapability(*capas, "documentSymbolProvider", kLCapDocumentSymbols);
 	}
 
 	SendNotify("initialized", json());
@@ -566,7 +569,7 @@ LSPProjectWrapper::DidOpen(LSPTextDocument* textDocument, std::string_view text,
 	params.textDocument.text = std::string(text);
 	params.textDocument.languageId = std::string(languageId);
 	params.textDocument.version = 0;
-	SendNotify("textDocument/didOpen", LSPBridge::toNlohmann(params));
+	SendNotify("textDocument/didOpen", LSPBridge::toJson(params));
 }
 
 
@@ -575,7 +578,7 @@ LSPProjectWrapper::DidClose(LSPTextDocument* textDocument)
 {
 	lsp::DidCloseTextDocumentParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
-	SendNotify("textDocument/didClose", LSPBridge::toNlohmann(params));
+	SendNotify("textDocument/didClose", LSPBridge::toJson(params));
 }
 
 
@@ -588,7 +591,7 @@ LSPProjectWrapper::DidChange(LSPTextDocument* textDocument,
 	params.textDocument.version = 0; // Genio does not track document versions yet
 	params.contentChanges = std::move(changes);
 	// wantDiagnostics is a clangd extension — not wired yet
-	SendNotify("textDocument/didChange", LSPBridge::toNlohmann(params));
+	SendNotify("textDocument/didChange", LSPBridge::toJson(params));
 }
 
 
@@ -598,7 +601,7 @@ LSPProjectWrapper::DidSave(LSPTextDocument* textDocument)
 {
 	lsp::DidSaveTextDocumentParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
-	SendNotify("textDocument/didSave", LSPBridge::toNlohmann(params));
+	SendNotify("textDocument/didSave", LSPBridge::toJson(params));
 }
 
 
@@ -613,7 +616,7 @@ LSPProjectWrapper::RangeFomatting(LSPTextDocument* textDocument, Range range)
 	params.range = range;
 	params.options.tabSize = 4;
 	params.options.insertSpaces = false;
-	return SendRequest(X(textDocument), "textDocument/rangeFormatting", LSPBridge::toNlohmann(params));
+	return SendRequest(X(textDocument), "textDocument/rangeFormatting", LSPBridge::toJson(params));
 }
 
 
@@ -622,7 +625,7 @@ LSPProjectWrapper::FoldingRange(LSPTextDocument* textDocument)
 {
 	lsp::FoldingRangeParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
-	return SendRequest(X(textDocument), "textDocument/foldingRange", LSPBridge::toNlohmann(params));
+	return SendRequest(X(textDocument), "textDocument/foldingRange", LSPBridge::toJson(params));
 }
 
 
@@ -632,7 +635,7 @@ LSPProjectWrapper::SelectionRange(LSPTextDocument* textDocument, std::vector<Pos
 	lsp::SelectionRangeParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.positions = std::move(positions);
-	return SendRequest(X(textDocument), "textDocument/selectionRange", LSPBridge::toNlohmann(params));
+	return SendRequest(X(textDocument), "textDocument/selectionRange", LSPBridge::toJson(params));
 }
 
 
@@ -645,7 +648,7 @@ LSPProjectWrapper::OnTypeFormatting(LSPTextDocument* textDocument, Position posi
 	params.ch = std::string(ch);
 	params.options.tabSize = 4;
 	params.options.insertSpaces = false;
-	return SendRequest(X(textDocument), "textDocument/onTypeFormatting", LSPBridge::toNlohmann(std::move(params)));
+	return SendRequest(X(textDocument), "textDocument/onTypeFormatting", LSPBridge::toJson(std::move(params)));
 }
 
 
@@ -659,7 +662,7 @@ LSPProjectWrapper::Formatting(LSPTextDocument* textDocument)
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.options.tabSize = 4;
 	params.options.insertSpaces = false;
-	return SendRequest(X(textDocument), "textDocument/formatting", LSPBridge::toNlohmann(std::move(params)));
+	return SendRequest(X(textDocument), "textDocument/formatting", LSPBridge::toJson(std::move(params)));
 }
 
 
@@ -670,20 +673,20 @@ LSPProjectWrapper::CodeAction(LSPTextDocument* textDocument, Range range, lsp::C
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.range = range;
 	params.context = context;
-	return SendRequest(X(textDocument), "textDocument/codeAction", LSPBridge::toNlohmann(params));
+	return SendRequest(X(textDocument), "textDocument/codeAction", LSPBridge::toJson(params));
 }
 
 
 RequestID
 LSPProjectWrapper::CodeActionResolve(LSPTextDocument* textDocument, lsp::CodeAction& data)
 {
-	auto j = LSPBridge::toNlohmann(data);
+	auto j = LSPBridge::toJson(data);
 	return SendRequest(X(textDocument), "codeAction/resolve", j);
 }
 
 
 RequestID
-LSPProjectWrapper::CodeActionResolve(LSPTextDocument* textDocument, nlohmann::json& data)
+LSPProjectWrapper::CodeActionResolve(LSPTextDocument* textDocument, value& data)
 {
 	return SendRequest(X(textDocument), "codeAction/resolve", data);
 }
@@ -700,7 +703,7 @@ LSPProjectWrapper::Completion(
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
 	params.context = context;
-	return SendRequest(X(textDocument), "textDocument/completion", LSPBridge::toNlohmann(params));
+	return SendRequest(X(textDocument), "textDocument/completion", LSPBridge::toJson(params));
 }
 
 
@@ -713,7 +716,7 @@ LSPProjectWrapper::SignatureHelp(LSPTextDocument* textDocument, Position positio
 	lsp::TextDocumentPositionParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
-	return SendRequest(X(textDocument), "textDocument/signatureHelp", LSPBridge::toNlohmann(std::move(params)));
+	return SendRequest(X(textDocument), "textDocument/signatureHelp", LSPBridge::toJson(std::move(params)));
 }
 
 
@@ -726,7 +729,7 @@ LSPProjectWrapper::GoToDefinition(LSPTextDocument* textDocument, Position positi
 	lsp::TextDocumentPositionParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
-	return SendRequest(X(textDocument), "textDocument/definition", LSPBridge::toNlohmann(std::move(params)));
+	return SendRequest(X(textDocument), "textDocument/definition", LSPBridge::toJson(std::move(params)));
 }
 
 
@@ -739,7 +742,7 @@ LSPProjectWrapper::GoToImplementation(LSPTextDocument* textDocument, Position po
 	lsp::TextDocumentPositionParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
-	return SendRequest(X(textDocument), "textDocument/implementation", LSPBridge::toNlohmann(std::move(params)));
+	return SendRequest(X(textDocument), "textDocument/implementation", LSPBridge::toJson(std::move(params)));
 }
 
 
@@ -752,7 +755,7 @@ LSPProjectWrapper::GoToDeclaration(LSPTextDocument* textDocument, Position posit
 	lsp::TextDocumentPositionParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
-	return SendRequest(X(textDocument), "textDocument/declaration", LSPBridge::toNlohmann(std::move(params)));
+	return SendRequest(X(textDocument), "textDocument/declaration", LSPBridge::toJson(std::move(params)));
 }
 
 
@@ -763,7 +766,7 @@ LSPProjectWrapper::References(LSPTextDocument* textDocument, Position position)
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
 	params.context.includeDeclaration = true;
-	return SendRequest(X(textDocument), "textDocument/references", LSPBridge::toNlohmann(std::move(params)));
+	return SendRequest(X(textDocument), "textDocument/references", LSPBridge::toJson(std::move(params)));
 }
 
 
@@ -772,7 +775,7 @@ LSPProjectWrapper::SwitchSourceHeader(LSPTextDocument* textDocument)
 {
 	lsp::TextDocumentIdentifier params;
 	params.uri = MakeDocUri(textDocument);
-	return SendRequest(X(textDocument), "textDocument/switchSourceHeader", LSPBridge::toNlohmann(std::move(params)));
+	return SendRequest(X(textDocument), "textDocument/switchSourceHeader", LSPBridge::toJson(std::move(params)));
 }
 
 
@@ -783,7 +786,7 @@ LSPProjectWrapper::Rename(LSPTextDocument* textDocument, Position position, std:
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
 	params.newName = std::string(newName);
-	return SendRequest(X(textDocument), "textDocument/rename", LSPBridge::toNlohmann(std::move(params)));
+	return SendRequest(X(textDocument), "textDocument/rename", LSPBridge::toJson(std::move(params)));
 }
 
 
@@ -796,7 +799,7 @@ LSPProjectWrapper::Hover(LSPTextDocument* textDocument, Position position)
 	lsp::TextDocumentPositionParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
-	return SendRequest(X(textDocument), "textDocument/hover", LSPBridge::toNlohmann(std::move(params)));
+	return SendRequest(X(textDocument), "textDocument/hover", LSPBridge::toJson(std::move(params)));
 }
 
 
@@ -808,7 +811,7 @@ LSPProjectWrapper::DocumentSymbol(LSPTextDocument* textDocument)
 
 	lsp::DocumentSymbolParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
-	return SendRequest(X(textDocument), "textDocument/documentSymbol", LSPBridge::toNlohmann(std::move(params)));
+	return SendRequest(X(textDocument), "textDocument/documentSymbol", LSPBridge::toJson(std::move(params)));
 }
 
 
@@ -817,7 +820,7 @@ LSPProjectWrapper::DocumentColor(LSPTextDocument* textDocument)
 {
 	lsp::DocumentColorParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
-	return SendRequest(X(textDocument), "textDocument/documentColor", LSPBridge::toNlohmann(std::move(params)));
+	return SendRequest(X(textDocument), "textDocument/documentColor", LSPBridge::toJson(std::move(params)));
 }
 
 
@@ -827,7 +830,7 @@ LSPProjectWrapper::DocumentHighlight(LSPTextDocument* textDocument, Position pos
 	lsp::DocumentHighlightParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
-	return SendRequest(X(textDocument), "textDocument/documentHighlight", LSPBridge::toNlohmann(std::move(params)));
+	return SendRequest(X(textDocument), "textDocument/documentHighlight", LSPBridge::toJson(std::move(params)));
 }
 
 
@@ -837,7 +840,7 @@ LSPProjectWrapper::SymbolInfo(LSPTextDocument* textDocument, Position position)
 	lsp::TextDocumentPositionParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
-	return SendRequest(X(textDocument), "textDocument/symbolInfo", LSPBridge::toNlohmann(std::move(params)));
+	return SendRequest(X(textDocument), "textDocument/symbolInfo", LSPBridge::toJson(std::move(params)));
 }
 
 
@@ -849,7 +852,7 @@ LSPProjectWrapper::DocumentLink(LSPTextDocument* textDocument)
 
 	lsp::DocumentLinkParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
-	return SendRequest(X(textDocument), "textDocument/documentLink", LSPBridge::toNlohmann(std::move(params)));
+	return SendRequest(X(textDocument), "textDocument/documentLink", LSPBridge::toJson(std::move(params)));
 }
 
 

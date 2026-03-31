@@ -127,20 +127,20 @@ private:
 
 private:
 	//callbacks:
-	void	_DoFormat(nlohmann::json& params);
-	void	_DoRename(nlohmann::json& params);
-	void	_DoHover(nlohmann::json& params);
-	void	_DoGoTo(nlohmann::json& params);
-	void	_DoSignatureHelp(nlohmann::json& params);
-	void	_DoSwitchSourceHeader(nlohmann::json& params);
-	void	_DoCompletion(nlohmann::json& params);
-	void	_DoDiagnostics(nlohmann::json& params);
-	void	_DoDocumentLink(nlohmann::json& params);
-	void	_DoFileStatus(nlohmann::json& params);
-	void	_DoDocumentSymbol(nlohmann::json& params);
-	void	_DoInitialize(nlohmann::json& params);
-	void	_DoCodeActions(nlohmann::json& params);
-	void	_DoCodeActionResolve(nlohmann::json& params);
+	void	_DoFormat(value& params);
+	void	_DoRename(value& params);
+	void	_DoHover(value& params);
+	void	_DoGoTo(value& params);
+	void	_DoSignatureHelp(value& params);
+	void	_DoSwitchSourceHeader(value& params);
+	void	_DoCompletion(value& params);
+	void	_DoDiagnostics(value& params);
+	void	_DoDocumentLink(value& params);
+	void	_DoFileStatus(value& params);
+	void	_DoDocumentSymbol(value& params);
+	void	_DoInitialize(value& params);
+	void	_DoCodeActions(value& params);
+	void	_DoCodeActionResolve(value& params);
 
 	void	_DoRecursiveDocumentSymbol(lsp::Array<DocumentSymbol>& v, BMessage& msg);
 	void	_DoLinearSymbolInformation(lsp::Array<SymbolInformation>& v, BMessage& msg);
@@ -150,7 +150,7 @@ private:
 	Sci_Position 	FromLSPPositionToSciPosition(const Position* lsp_position);
 	void 			GetCurrentLSPPosition(Position *lsp_position);
 	void 			FromSciPositionToRange(Sci_Position s_start, Sci_Position s_end, Range *range);
-	Sci_Position 	ApplyTextEdit(nlohmann::json &textEdit);
+	Sci_Position 	ApplyTextEdit(value &textEdit);
 	Sci_Position 	ApplyTextEdit(TextEdit &textEdit);
 	void			OpenFileURI(std::string uri, int32 line = -1, int32 character = -1,
 						BString edits = "");
