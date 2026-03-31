@@ -27,6 +27,8 @@ jobs:
                    --xml-version=2 \
                    --suppress=missingIncludeSystem \
                    --suppress=missingInclude . \
+                   -i data \
+                   -i libs
                    2> cppcheck-report.xml
 
       - name: Convert Cppcheck report to HTML
@@ -35,8 +37,8 @@ jobs:
                    --file=cppcheck-report.xml \
                    --report-dir=cppcheck_html_report \
                    --source-dir=.
-      
-      - name: Upload Cppcheck report
+
+      - name: Upload Cppcheck HTML report
         if: always()
         uses: actions/upload-artifact@v3
         with:
