@@ -14,7 +14,7 @@
 #include "LSPCapabilities.h"
 #include "LSPProjectWrapper.h"
 #include "LSPTextDocument.h"
-#include "protocol_objects.h"
+#include "LSPCompat.h"
 #include "Sci_Position.h"
 
 enum IndicatorIndex {

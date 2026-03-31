@@ -24,7 +24,7 @@
 #include "GOutlineListView.h"
 #include "Log.h"
 #include "NoticeMessages.h"
-#include "protocol_objects.h"
+#include "LSPCompat.h"
 #include "SpinningAnimation.h"
 #include "StyledItem.h"
 #include "ToolBar.h"

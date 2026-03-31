@@ -66,7 +66,7 @@ namespace nlohmann {
 
 using TextType = std::string;
 
-#include "protocol_objects.h"
+#include "LSPCompat.h"
 // struct Position (now lsp::Position with uint fields)
 JSON_SERIALIZE(Position,
     MAP_JSON(MAP_KEY(line), MAP_KEY(character)),

@@ -9,6 +9,7 @@
 #include <Path.h>
 #include <Locker.h>
 #include <atomic>
+#include <map>
 #include <string_view>
 #include <MessageFilter.h>
 #include <Messenger.h>
@@ -17,7 +18,7 @@
 #include "LSPServersManager.h"
 #include "MessageHandler.h"
 #include "LSPCapabilities.h"
-#include "protocol_objects.h"
+#include "LSPCompat.h"
 
 #include <lsp/types.h>
 
