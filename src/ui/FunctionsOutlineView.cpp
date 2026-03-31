@@ -93,10 +93,14 @@ private:
 void
 SymbolListItem::_SetIconAndTooltip()
 {
-	SymbolKind symbolKind;
-	Details().FindInt32("kind", reinterpret_cast<int32*>(&symbolKind));
+	// BMessage stores the LSP wire value (1-26) from lsp::SymbolKindEnum::value().
+	// Reconstruct the lsp::SymbolKind enum index by scanning s_values[].
+	int32 wireValue;
+	Details().FindInt32("kind", &wireValue);
+	lsp::SymbolKindEnum symbolKindEnum;
+	symbolKindEnum = static_cast<lsp::SymbolKindEnum::ValueType>(wireValue);
 	BString toolTip;
-	switch (symbolKind) {
+	switch (static_cast<SymbolKind>(symbolKindEnum)) {
 		case SymbolKind::File:
 			fIconName = "file";
 			toolTip = B_TRANSLATE("File");

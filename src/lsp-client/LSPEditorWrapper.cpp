@@ -532,7 +532,8 @@ LSPEditorWrapper::StartCompletion()
 
 	Position position;
 	GetCurrentLSPPosition(&position);
-	CompletionContext context;
+	lsp::CompletionContext context;
+	context.triggerKind = lsp::CompletionTriggerKind::Invoked;
 
 	fCompletionPosition = fEditor->SendMessage(SCI_GETCURRENTPOS, 0, 0);
 	fLSPProjectWrapper->Completion(this, position, context);
@@ -880,7 +881,7 @@ LSPEditorWrapper::_DoDiagnostics(nlohmann::json& params)
 void
 LSPEditorWrapper::RequestCodeActions(Diagnostic& diagnostic)
 {
-	CodeActionContext context;
+	lsp::CodeActionContext context;
 	context.diagnostics.push_back(diagnostic);
 	fLSPProjectWrapper->CodeAction(this, diagnostic.range, context);
 }

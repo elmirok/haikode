@@ -20,10 +20,10 @@
 #include "LSPCapabilities.h"
 #include "protocol_objects.h"
 
+#include <lsp/types.h>
+
 class  LSPTextDocument;
 struct TextDocumentContentChangeEvent;
-struct CodeActionContext;
-struct CompletionContext;
 struct FileEvent;
 struct ConfigurationSettings;
 enum class TypeHierarchyDirection: int;
@@ -76,10 +76,10 @@ public:
     RequestID SelectionRange(LSPTextDocument* textDocument, std::vector<Position> &positions);
     RequestID OnTypeFormatting(LSPTextDocument* textDocument, Position position, string_ref ch);
     RequestID Formatting(LSPTextDocument* textDocument);
-    RequestID CodeAction(LSPTextDocument* textDocument, Range range, CodeActionContext& context);
+    RequestID CodeAction(LSPTextDocument* textDocument, Range range, lsp::CodeActionContext& context);
 	RequestID CodeActionResolve(LSPTextDocument* textDocument, lsp::CodeAction& data);
 	RequestID CodeActionResolve(LSPTextDocument* textDocument, nlohmann::json& data);
-    RequestID Completion(LSPTextDocument* textDocument, Position position, CompletionContext& context);
+    RequestID Completion(LSPTextDocument* textDocument, Position position, lsp::CompletionContext& context);
     RequestID SignatureHelp(LSPTextDocument* textDocument, Position position);
     RequestID GoToDefinition(LSPTextDocument* textDocument, Position position);
     RequestID GoToImplementation(LSPTextDocument* textDocument, Position position);

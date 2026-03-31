@@ -143,54 +143,11 @@ enum class TextDocumentSyncKind {
     /// only incremental updates to the document are send.
     Incremental = 2,
 };
-// enum class CompletionItemKind
 
-enum class OffsetEncoding {
-    // Any string is legal on the wire. Unrecognized encodings parse as this.
-    UnsupportedEncoding,
-    // Length counts code units of UTF-16 encoded text. (Standard LSP behavior).
-    UTF16,
-    // Length counts bytes of UTF-8 encoded text. (Clangd extension).
-    UTF8,
-    // Length counts codepoints in unicode text. (Clangd extension).
-    UTF32,
-};
-enum class MarkupKind {
-    PlainText,
-    Markdown,
-};
-enum class ResourceOperationKind {
-    Create,
-    Rename,
-    Delete
-};
-enum class FailureHandlingKind {
-    Abort,
-    Transactional,
-    Undo,
-    TextOnlyTransactional
-};
-NLOHMANN_JSON_SERIALIZE_ENUM(OffsetEncoding, {
-    {OffsetEncoding::UnsupportedEncoding, "unsupported"},
-    {OffsetEncoding::UTF8, "utf-8"},
-    {OffsetEncoding::UTF16, "utf-16"},
-    {OffsetEncoding::UTF32, "utf-32"},
-})
-NLOHMANN_JSON_SERIALIZE_ENUM(MarkupKind, {
-    {MarkupKind::PlainText, "plaintext"},
-    {MarkupKind::Markdown, "markdown"},
-})
-NLOHMANN_JSON_SERIALIZE_ENUM(ResourceOperationKind, {
-    {ResourceOperationKind::Create, "create"},
-    {ResourceOperationKind::Rename, "rename"},
-    {ResourceOperationKind::Delete, "dename"}
-})
-NLOHMANN_JSON_SERIALIZE_ENUM(FailureHandlingKind, {
-    {FailureHandlingKind::Abort, "abort"},
-    {FailureHandlingKind::Transactional, "transactional"},
-    {FailureHandlingKind::Undo, "undo"},
-    {FailureHandlingKind::TextOnlyTransactional, "textOnlyTransactional"}
-})
+// OffsetEncoding, MarkupKind, ResourceOperationKind, FailureHandlingKind —
+// only used by the old ClientCapabilities struct (now deleted).
+// Position encoding is now lsp::PositionEncodingKindEnum, markup kind is
+// lsp::MarkupKindEnum (both in lsp-framework types.h).
 
 
 namespace CodeActionKind {
@@ -274,109 +231,9 @@ namespace CodeActionKind {
     const std::string SourceFixAll("source.fixAll");
 }
 
-//
-struct ClientCapabilities {
-    /// The supported set of SymbolKinds for workspace/symbol.
-    /// workspace.symbol.symbolKind.valueSet
-    std::vector<SymbolKind> WorkspaceSymbolKinds;
-    /// Whether the client accepts diagnostics with codeActions attached inline.
-    /// textDocument.publishDiagnostics.codeActionsInline.
-    bool DiagnosticFixes = true;
-
-    /// Whether the client accepts diagnostics with related locations.
-    /// textDocument.publishDiagnostics.relatedInformation.
-    bool DiagnosticRelatedInformation = true;
-
-    /// Whether the client accepts diagnostics with category attached to it
-    /// using the "category" extension.
-    /// textDocument.publishDiagnostics.categorySupport
-    bool DiagnosticCategory = true;
-
-    /// Client supports snippets as insert text.
-    /// textDocument.completion.completionItem.snippetSupport
-    bool CompletionSnippets = true;
-
-    bool CompletionDeprecated = true;
-
-    /// Client supports completions with additionalTextEdit near the cursor.
-    /// This is a clangd extension. (LSP says this is for unrelated text only).
-    /// textDocument.completion.editsNearCursor
-    bool CompletionFixes = true;
-
-    /// Client supports hierarchical document symbols.
-    bool HierarchicalDocumentSymbol = true;
-
-    /// Client supports processing label offsets instead of a simple label string.
-    bool OffsetsInSignatureHelp = true;
-
-    /// The supported set of CompletionItemKinds for textDocument/completion.
-    /// textDocument.completion.completionItemKind.valueSet
-    std::vector<CompletionItemKind> CompletionItemKinds;
-
-    /// Client supports CodeAction return value for textDocument/codeAction.
-    /// textDocument.codeAction.codeActionLiteralSupport.
-    // CodeActionLiteralSupport CodeActionStructure;
-    std::vector<std::string> CodeActionKinds;
-    std::vector<std::string> CodeActionResolveSupport;
-
-    /// Supported position encodings in preference order (LSP 3.17).
-    std::vector<OffsetEncoding> positionEncodings = {OffsetEncoding::UTF8};
-    /// The content format that should be used for Hover requests.
-    std::vector<MarkupKind> HoverContentFormat = {MarkupKind::PlainText};
-
-    bool WorkDoneProgress = true;
-    bool ImplicitWorkDoneProgressCreate = true;
-
-    bool ApplyEdit = false;
-    bool DocumentChanges = false;
-    ClientCapabilities() {
-        for (int i = 1; i <= 26; ++i) {
-            WorkspaceSymbolKinds.push_back((SymbolKind) i);
-        }
-        for (int i = 0; i <= 25; ++i) {
-            CompletionItemKinds.push_back((CompletionItemKind) i);
-        }
-
-        CodeActionKinds.push_back(CodeActionKind::QuickFix);
-        CodeActionResolveSupport.push_back("edit");
-    }
-};
-JSON_SERIALIZE(ClientCapabilities,MAP_JSON(
-            MAP_KV("textDocument",
-                MAP_KV("publishDiagnostics", // PublishDiagnosticsClientCapabilities
-                        MAP_TO("categorySupport", DiagnosticCategory),
-                        MAP_TO("codeActionsInline", DiagnosticFixes),
-                        MAP_TO("relatedInformation", DiagnosticRelatedInformation),
-                ),
-                MAP_KV("completion", // CompletionClientCapabilities
-                        MAP_KV("completionItem",
-                                MAP_TO("snippetSupport", CompletionSnippets),
-                                MAP_TO("deprecatedSupport", CompletionDeprecated)),
-                        MAP_KV("completionItemKind", MAP_TO("valueSet", CompletionItemKinds)),
-                        MAP_TO("editsNearCursor", CompletionFixes)
-                ),
-                MAP_KV("codeAction",
-                        MAP_KV("resolveSupport", MAP_TO("properties", CodeActionResolveSupport)),
-                        MAP_KV("codeActionLiteralSupport",
-                        MAP_KV("codeActionKind",
-                            MAP_TO("valueSet", CodeActionKinds)))
-                ),
-                MAP_KV("documentSymbol", MAP_TO("hierarchicalDocumentSymbolSupport", HierarchicalDocumentSymbol)),
-                MAP_KV("hover",  //HoverClientCapabilities
-                        MAP_TO("contentFormat", HoverContentFormat)),
-                MAP_KV("signatureHelp", MAP_KV("signatureInformation", MAP_KV("parameterInformation", MAP_TO("labelOffsetSupport", OffsetsInSignatureHelp))))),
-            MAP_KV("workspace", // WorkspaceEditClientCapabilities
-                    MAP_KV("symbol", // WorkspaceSymbolClientCapabilities
-                            MAP_KV("symbolKind",
-                                    MAP_TO("valueSet", WorkspaceSymbolKinds))),
-                    MAP_TO("applyEdit", ApplyEdit),
-                    MAP_KV("workspaceEdit", // WorkspaceEditClientCapabilities
-                            MAP_TO("documentChanges", DocumentChanges))),
-            MAP_KV("window",
-                    MAP_TO("workDoneProgress", WorkDoneProgress),
-                    MAP_TO("implicitWorkDoneProgressCreate", ImplicitWorkDoneProgressCreate)),
-            MAP_KV("general",
-                    MAP_TO("positionEncodings", positionEncodings))), {});
+// ClientCapabilities — migrated to lsp::ClientCapabilities.
+// Built programmatically in LSPProjectWrapper.cpp (BuildClientCapabilities()).
+// Clangd extension fields are patched into the serialized JSON in Initialize().
 
 struct ServerCapabilities {
     json capabilities;
@@ -442,21 +299,8 @@ JSON_SERIALIZE(InitializationOptions, MAP_JSON(
                 MAP_KEY(fallbackFlags),
                 MAP_KEY(clangdFileStatus)), {});
 
-struct InitializeParams {
-    unsigned processId = 0;
-    ClientCapabilities capabilities;
-    std::optional<DocumentUri> rootUri;
-    std::optional<TextType> rootPath;
-    InitializationOptions initializationOptions;
-};
-JSON_SERIALIZE(InitializeParams, MAP_JSON(
-        MAP_KEY(processId),
-        MAP_KEY(capabilities),
-        MAP_KEY(rootUri),
-        MAP_KEY(initializationOptions),
-        MAP_KEY(rootPath)), {});
-
-
+// InitializeParams — migrated to lsp::InitializeParams.
+// Built in LSPProjectWrapper::Initialize() using lsp types + LSPBridge.
 
 struct ShowMessageParams {
     /// The message type.
@@ -489,18 +333,22 @@ struct UnregistrationParams {
 };
 JSON_SERIALIZE(UnregistrationParams, MAP_JSON(MAP_KEY(unregisterations)), {});
 
+// DidOpenTextDocumentParams — migrated to lsp-framework types.
+// Constructed as lsp::DidOpenTextDocumentParams in LSPProjectWrapper.cpp.
 struct DidOpenTextDocumentParams {
 /// The document that was opened.
     TextDocumentItem textDocument;
 };
 JSON_SERIALIZE(DidOpenTextDocumentParams, MAP_JSON(MAP_KEY(textDocument)), {});
 
+// DidCloseTextDocumentParams — migrated to lsp-framework types.
 struct DidCloseTextDocumentParams {
     /// The document that was closed.
     TextDocumentIdentifier textDocument;
 };
 JSON_SERIALIZE(DidCloseTextDocumentParams, MAP_JSON(MAP_KEY(textDocument)), {});
 
+// DidSaveTextDocumentParams — migrated to lsp-framework types.
 struct DidSaveTextDocumentParams {
   /// The document that was saved.
   TextDocumentIdentifier textDocument;
@@ -554,6 +402,7 @@ struct DidChangeConfigurationParams {
 };
 JSON_SERIALIZE(DidChangeConfigurationParams, MAP_JSON(MAP_KEY(settings)), {});
 
+// DocumentRangeFormattingParams — migrated to lsp-framework types.
 struct DocumentRangeFormattingParams {
     /// The document to format.
     TextDocumentIdentifier textDocument;
@@ -563,6 +412,7 @@ struct DocumentRangeFormattingParams {
 };
 JSON_SERIALIZE(DocumentRangeFormattingParams, MAP_JSON(MAP_KEY(textDocument), MAP_KEY(range)), {});
 
+// DocumentOnTypeFormattingParams — migrated to lsp-framework types.
 struct DocumentOnTypeFormattingParams {
     /// The document to format.
     TextDocumentIdentifier textDocument;
@@ -575,6 +425,7 @@ struct DocumentOnTypeFormattingParams {
 };
 JSON_SERIALIZE(DocumentOnTypeFormattingParams, MAP_JSON(MAP_KEY(textDocument), MAP_KEY(position), MAP_KEY(ch)), {});
 
+// FoldingRangeParams — migrated to lsp-framework types.
 struct FoldingRangeParams {
     /// The document to format.
     TextDocumentIdentifier textDocument;
@@ -622,6 +473,7 @@ JSON_SERIALIZE(FoldingRange, {}, {
     FROM_KEY(kind);
 });
 
+// SelectionRangeParams — migrated to lsp-framework types.
 struct SelectionRangeParams {
     /// The document to format.
     TextDocumentIdentifier textDocument;
@@ -641,12 +493,14 @@ JSON_SERIALIZE(SelectionRange, {}, {
     }
 });
 
+// DocumentFormattingParams — migrated to lsp-framework types.
 struct DocumentFormattingParams {
     /// The document to format.
     TextDocumentIdentifier textDocument;
 };
 JSON_SERIALIZE(DocumentFormattingParams, MAP_JSON(MAP_KEY(textDocument)), {});
 
+// DocumentSymbolParams — migrated to lsp-framework types.
 struct DocumentSymbolParams {
     // The text document to find symbols in.
     TextDocumentIdentifier textDocument;
@@ -669,6 +523,7 @@ namespace nlohmann {
     };
 }
 
+// PublishDiagnosticsParams — migrated to lsp-framework types (was already unused).
 struct PublishDiagnosticsParams {
     /**
      * The URI for which diagnostic information is reported.
@@ -681,12 +536,14 @@ struct PublishDiagnosticsParams {
 };
 JSON_SERIALIZE(PublishDiagnosticsParams, {}, {FROM_KEY(uri);FROM_KEY(diagnostics);});
 
+// CodeActionContext — migrated to lsp::CodeActionContext.
 struct CodeActionContext {
     /// An array of diagnostics.
     std::vector<Diagnostic> diagnostics;
 };
 JSON_SERIALIZE(CodeActionContext, MAP_JSON(MAP_KEY(diagnostics)), {});
 
+// CodeActionParams — migrated to lsp::CodeActionParams.
 struct CodeActionParams {
     /// The document in which the command was invoked.
     TextDocumentIdentifier textDocument;
@@ -761,6 +618,7 @@ struct ApplyWorkspaceEditParams {
 };
 JSON_SERIALIZE(ApplyWorkspaceEditParams, MAP_JSON(MAP_KEY(edit)), {});
 
+// TextDocumentPositionParams — migrated to lsp::TextDocumentPositionParams.
 struct TextDocumentPositionParams {
     /// The text document.
     TextDocumentIdentifier textDocument;
@@ -780,6 +638,7 @@ enum class CompletionTriggerKind {
     /// Completion was re-triggered as the current completion list is incomplete.
             TriggerTriggerForIncompleteCompletions = 3
 };
+// CompletionContext — migrated to lsp::CompletionContext.
 struct CompletionContext {
     /// How the completion was triggered.
     CompletionTriggerKind triggerKind = CompletionTriggerKind::Invoked;
@@ -789,6 +648,7 @@ struct CompletionContext {
 };
 JSON_SERIALIZE(CompletionContext, MAP_JSON(MAP_KEY(triggerKind), MAP_KEY(triggerCharacter)), {});
 
+// CompletionParams — migrated to lsp::CompletionParams.
 struct CompletionParams : TextDocumentPositionParams {
     std::optional<CompletionContext> context;
 };
@@ -801,6 +661,7 @@ JSON_SERIALIZE(CompletionParams, MAP_JSON(MAP_KEY(context), MAP_KEY(textDocument
 // SignatureHelp, SignatureInformation, ParameterInformation — migrated to lsp-framework types.
 // Deserialized via LSPBridge::fromNlohmann<lsp::SignatureHelp>() instead of nlohmann.
 
+// RenameParams — migrated to lsp::RenameParams.
 struct RenameParams {
     /// The document that was opened.
     TextDocumentIdentifier textDocument;
@@ -886,6 +747,7 @@ struct TypeHierarchyItem {
     /// so don't declare it.
 };
 
+// ReferenceParams — migrated to lsp::ReferenceParams.
 struct ReferenceParams : public TextDocumentPositionParams {
     // For now, no options like context.includeDeclaration are supported.
 };
@@ -899,7 +761,7 @@ struct FileStatus {
     // FIXME: add detail messages.
 };
 
-// Parameters for the document link request.
+// DocumentLinkParams — migrated to lsp::DocumentLinkParams.
 struct DocumentLinkParams {
   /// The document to provide document links for.
   TextDocumentIdentifier textDocument;

@@ -8,8 +8,9 @@
  * Compatibility layer for migrating from Genio's hand-rolled LSP protocol types
  * to leon-bckl/lsp-framework auto-generated types.
  *
- * Each alias below is activated by removing the corresponding definition from
- * protocol_objects.h / protocol.h and uncommenting here.
+ * Each alias maps an unqualified name (used throughout Genio) to the
+ * corresponding lsp:: type. ClientCapabilities and InitializeParams have been
+ * fully migrated to lsp:: types in LSPProjectWrapper.cpp.
  *
  * This file is temporary scaffolding — it will be removed once all types
  * have been migrated and the old headers are deleted.
@@ -57,10 +58,9 @@ using TextEdit = lsp::TextEdit;
 // --- Phase: Completion ---
 using CompletionItem = lsp::CompletionItem;
 using CompletionList = lsp::CompletionList;
-// CompletionItemKind and InsertTextFormat aliases NOT activated yet —
-// ClientCapabilities still uses the Genio enums (migrated in step 2.13).
-// using CompletionItemKind = lsp::CompletionItemKind;
-// using InsertTextFormat = lsp::InsertTextFormat;
+// CompletionItemKind and InsertTextFormat — old enums deleted from protocol_objects.h.
+// Not aliased here because nothing in Genio references them by the unqualified name.
+// Use lsp::CompletionItemKind / lsp::InsertTextFormat directly where needed.
 
 // --- Phase: Diagnostics ---
 using DiagnosticRelatedInformation = lsp::DiagnosticRelatedInformation;
@@ -85,6 +85,4 @@ using ParameterInformation = lsp::ParameterInformation;
 // --- Phase: Document Symbols ---
 using DocumentSymbol = lsp::DocumentSymbol;
 using SymbolInformation = lsp::SymbolInformation;
-// SymbolKind NOT aliased yet — the old 1-based enum in protocol_objects.h is still
-// used by ClientCapabilities, TypeHierarchyItem, and FunctionsOutlineView (via BMessage int32).
-// It will be migrated together with ClientCapabilities in a later step.
+using SymbolKind = lsp::SymbolKind;

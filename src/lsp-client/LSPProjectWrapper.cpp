@@ -12,6 +12,116 @@
 #include "LSPTextDocument.h"
 #include "protocol.h"
 
+#include <lsp/messages.h>
+
+
+namespace {
+// Helper: build an lsp::DocumentUri from an LSPTextDocument's file URI.
+inline lsp::DocumentUri MakeDocUri(LSPTextDocument* td) {
+	return lsp::Uri::parse(td->GetFilenameURI().String());
+}
+
+// Build the lsp::ClientCapabilities struct with all features Genio advertises.
+// Clangd-specific extension fields are NOT set here — they are patched into the
+// serialized JSON in Initialize() since they have no lsp-framework equivalent.
+lsp::ClientCapabilities BuildClientCapabilities()
+{
+	lsp::ClientCapabilities caps;
+
+	// ---- textDocument ----
+	lsp::TextDocumentClientCapabilities textDoc;
+
+	// publishDiagnostics (standard fields only; clangd extensions patched later)
+	lsp::PublishDiagnosticsClientCapabilities pubDiag;
+	pubDiag.relatedInformation = true;
+	textDoc.publishDiagnostics = std::move(pubDiag);
+
+	// completion
+	lsp::CompletionClientCapabilities comp;
+	lsp::CompletionClientCapabilitiesCompletionItem compItem;
+	compItem.snippetSupport = true;
+	compItem.deprecatedSupport = true;
+	comp.completionItem = std::move(compItem);
+
+	lsp::CompletionClientCapabilitiesCompletionItemKind compItemKind;
+	lsp::Array<lsp::CompletionItemKindEnum> cikValues;
+	for (int i = 0; i < static_cast<int>(lsp::CompletionItemKind::MAX_VALUE); ++i)
+		cikValues.push_back(lsp::CompletionItemKindEnum(static_cast<lsp::CompletionItemKind>(i)));
+	compItemKind.valueSet = std::move(cikValues);
+	comp.completionItemKind = std::move(compItemKind);
+	textDoc.completion = std::move(comp);
+
+	// codeAction
+	lsp::CodeActionClientCapabilities codeAction;
+	lsp::CodeActionClientCapabilitiesCodeActionLiteralSupport litSupport;
+	lsp::CodeActionClientCapabilitiesCodeActionLiteralSupportCodeActionKind caKind;
+	caKind.valueSet.push_back(lsp::CodeActionKindEnum(lsp::CodeActionKind::QuickFix));
+	litSupport.codeActionKind = std::move(caKind);
+	codeAction.codeActionLiteralSupport = std::move(litSupport);
+
+	lsp::CodeActionClientCapabilitiesResolveSupport resolveSupport;
+	resolveSupport.properties.push_back("edit");
+	codeAction.resolveSupport = std::move(resolveSupport);
+	textDoc.codeAction = std::move(codeAction);
+
+	// documentSymbol
+	lsp::DocumentSymbolClientCapabilities docSym;
+	docSym.hierarchicalDocumentSymbolSupport = true;
+	textDoc.documentSymbol = std::move(docSym);
+
+	// hover
+	lsp::HoverClientCapabilities hover;
+	lsp::Array<lsp::MarkupKindEnum> hoverFormats;
+	hoverFormats.push_back(lsp::MarkupKindEnum(lsp::MarkupKind::PlainText));
+	hover.contentFormat = std::move(hoverFormats);
+	textDoc.hover = std::move(hover);
+
+	// signatureHelp
+	lsp::SignatureHelpClientCapabilities sigHelp;
+	lsp::SignatureHelpClientCapabilitiesSignatureInformation sigInfo;
+	lsp::SignatureHelpClientCapabilitiesSignatureInformationParameterInformation paramInfo;
+	paramInfo.labelOffsetSupport = true;
+	sigInfo.parameterInformation = std::move(paramInfo);
+	sigHelp.signatureInformation = std::move(sigInfo);
+	textDoc.signatureHelp = std::move(sigHelp);
+
+	caps.textDocument = std::move(textDoc);
+
+	// ---- workspace ----
+	lsp::WorkspaceClientCapabilities workspace;
+
+	lsp::WorkspaceSymbolClientCapabilities wsSym;
+	lsp::WorkspaceSymbolClientCapabilitiesSymbolKind wsSymKind;
+	lsp::Array<lsp::SymbolKindEnum> skValues;
+	for (int i = 0; i < static_cast<int>(lsp::SymbolKind::MAX_VALUE); ++i)
+		skValues.push_back(lsp::SymbolKindEnum(static_cast<lsp::SymbolKind>(i)));
+	wsSymKind.valueSet = std::move(skValues);
+	wsSym.symbolKind = std::move(wsSymKind);
+	workspace.symbol = std::move(wsSym);
+
+	workspace.applyEdit = false;
+	lsp::WorkspaceEditClientCapabilities wsEdit;
+	wsEdit.documentChanges = false;
+	workspace.workspaceEdit = std::move(wsEdit);
+
+	caps.workspace = std::move(workspace);
+
+	// ---- window ----
+	lsp::WindowClientCapabilities window;
+	window.workDoneProgress = true;
+	caps.window = std::move(window);
+
+	// ---- general ----
+	lsp::GeneralClientCapabilities general;
+	lsp::Array<lsp::PositionEncodingKindEnum> encodings;
+	encodings.push_back(lsp::PositionEncodingKindEnum(lsp::PositionEncodingKind::UTF8));
+	general.positionEncodings = std::move(encodings);
+	caps.general = std::move(general);
+
+	return caps;
+}
+} // anonymous namespace
+
 
 const int32 kLSPMessage = 'LSP!';
 
@@ -322,10 +432,33 @@ LSPProjectWrapper::onRequest(std::string method, value& params, value& ID)
 RequestID
 LSPProjectWrapper::Initialize(std::optional<DocumentUri> rootUri)
 {
-	InitializeParams params;
-	params.processId = fLSPPipeClient->GetChildPid();
-	params.rootUri = rootUri;
-	return SendRequest("client", "initialize", params);
+	lsp::InitializeParams params;
+	params.processId = static_cast<int>(fLSPPipeClient->GetChildPid());
+
+	if (rootUri.has_value())
+		params.rootUri = lsp::Uri::parse(rootUri->c_str());
+	else
+		params.rootUri = nullptr;
+
+	params.capabilities = BuildClientCapabilities();
+
+	// Serialize clangd-specific InitializationOptions via old struct, then
+	// inject as opaque LSPAny (the lsp-framework field is Opt<LSPAny>).
+	InitializationOptions initOpts;
+	initOpts.clangdFileStatus = true;
+	nlohmann::json jInitOpts = initOpts;
+	params.initializationOptions = LSPBridge::fromNlohmann<lsp::LSPAny>(jInitOpts);
+
+	// Serialize to nlohmann::json via bridge
+	nlohmann::json jParams = LSPBridge::toNlohmann(params);
+
+	// Patch clangd extension fields into capabilities (no lsp-framework model)
+	jParams["capabilities"]["textDocument"]["publishDiagnostics"]["categorySupport"] = true;
+	jParams["capabilities"]["textDocument"]["publishDiagnostics"]["codeActionsInline"] = true;
+	jParams["capabilities"]["textDocument"]["completion"]["editsNearCursor"] = true;
+	jParams["capabilities"]["window"]["implicitWorkDoneProgressCreate"] = true;
+
+	return SendRequest("client", "initialize", jParams);
 }
 
 
@@ -426,20 +559,21 @@ LSPProjectWrapper::RegisterCapability()
 void
 LSPProjectWrapper::DidOpen(LSPTextDocument* textDocument, string_ref text, string_ref languageId)
 {
-	DidOpenTextDocumentParams params;
-	params.textDocument.uri = std::move(textDocument->GetFilenameURI().String());
-	params.textDocument.text = text;
-	params.textDocument.languageId = languageId;
-	SendNotify("textDocument/didOpen", params);
+	lsp::DidOpenTextDocumentParams params;
+	params.textDocument.uri = MakeDocUri(textDocument);
+	params.textDocument.text = std::string(text);
+	params.textDocument.languageId = std::string(languageId);
+	params.textDocument.version = 0;
+	SendNotify("textDocument/didOpen", LSPBridge::toNlohmann(params));
 }
 
 
 void
 LSPProjectWrapper::DidClose(LSPTextDocument* textDocument)
 {
-	DidCloseTextDocumentParams params;
-	params.textDocument.uri = std::move(textDocument->GetFilenameURI().String());
-	SendNotify("textDocument/didClose", params);
+	lsp::DidCloseTextDocumentParams params;
+	params.textDocument.uri = MakeDocUri(textDocument);
+	SendNotify("textDocument/didClose", LSPBridge::toNlohmann(params));
 }
 
 
@@ -459,9 +593,9 @@ LSPProjectWrapper::DidChange(LSPTextDocument* textDocument,
 void
 LSPProjectWrapper::DidSave(LSPTextDocument* textDocument)
 {
-	DidSaveTextDocumentParams params;
-	params.textDocument.uri = std::move(textDocument->GetFilenameURI().String());
-	SendNotify("textDocument/didSave", params);
+	lsp::DidSaveTextDocumentParams params;
+	params.textDocument.uri = MakeDocUri(textDocument);
+	SendNotify("textDocument/didSave", LSPBridge::toNlohmann(params));
 }
 
 
@@ -471,40 +605,44 @@ LSPProjectWrapper::RangeFomatting(LSPTextDocument* textDocument, Range range)
 	if (!HasCapability(kLCapDocRangeFormatting))
 		return RequestID();
 
-	DocumentRangeFormattingParams params;
-	params.textDocument.uri = std::move(textDocument->GetFilenameURI().String());
+	lsp::DocumentRangeFormattingParams params;
+	params.textDocument.uri = MakeDocUri(textDocument);
 	params.range = range;
-	return SendRequest(X(textDocument), "textDocument/rangeFormatting", params);
+	params.options.tabSize = 4;
+	params.options.insertSpaces = false;
+	return SendRequest(X(textDocument), "textDocument/rangeFormatting", LSPBridge::toNlohmann(params));
 }
 
 
 RequestID
 LSPProjectWrapper::FoldingRange(LSPTextDocument* textDocument)
 {
-	FoldingRangeParams params;
-	params.textDocument.uri = std::move(textDocument->GetFilenameURI().String());
-	return SendRequest(X(textDocument), "textDocument/foldingRange", params);
+	lsp::FoldingRangeParams params;
+	params.textDocument.uri = MakeDocUri(textDocument);
+	return SendRequest(X(textDocument), "textDocument/foldingRange", LSPBridge::toNlohmann(params));
 }
 
 
 RequestID
 LSPProjectWrapper::SelectionRange(LSPTextDocument* textDocument, std::vector<Position>& positions)
 {
-	SelectionRangeParams params;
-	params.textDocument.uri = std::move(textDocument->GetFilenameURI().String());
+	lsp::SelectionRangeParams params;
+	params.textDocument.uri = MakeDocUri(textDocument);
 	params.positions = std::move(positions);
-	return SendRequest(X(textDocument), "textDocument/selectionRange", params);
+	return SendRequest(X(textDocument), "textDocument/selectionRange", LSPBridge::toNlohmann(params));
 }
 
 
 RequestID
 LSPProjectWrapper::OnTypeFormatting(LSPTextDocument* textDocument, Position position, string_ref ch)
 {
-	DocumentOnTypeFormattingParams params;
-	params.textDocument.uri = std::move(textDocument->GetFilenameURI().String());
+	lsp::DocumentOnTypeFormattingParams params;
+	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
-	params.ch = std::move(ch);
-	return SendRequest(X(textDocument), "textDocument/onTypeFormatting", std::move(params));
+	params.ch = std::string(ch);
+	params.options.tabSize = 4;
+	params.options.insertSpaces = false;
+	return SendRequest(X(textDocument), "textDocument/onTypeFormatting", LSPBridge::toNlohmann(std::move(params)));
 }
 
 
@@ -514,20 +652,22 @@ LSPProjectWrapper::Formatting(LSPTextDocument* textDocument)
 	if (!HasCapability(kLCapDocFormatting))
 		return RequestID();
 
-	DocumentFormattingParams params;
-	params.textDocument.uri = std::move(textDocument->GetFilenameURI().String());
-	return SendRequest(X(textDocument), "textDocument/formatting", std::move(params));
+	lsp::DocumentFormattingParams params;
+	params.textDocument.uri = MakeDocUri(textDocument);
+	params.options.tabSize = 4;
+	params.options.insertSpaces = false;
+	return SendRequest(X(textDocument), "textDocument/formatting", LSPBridge::toNlohmann(std::move(params)));
 }
 
 
 RequestID
-LSPProjectWrapper::CodeAction(LSPTextDocument* textDocument, Range range, CodeActionContext& context)
+LSPProjectWrapper::CodeAction(LSPTextDocument* textDocument, Range range, lsp::CodeActionContext& context)
 {
-	CodeActionParams params;
-	params.textDocument.uri = std::move(textDocument->GetFilenameURI().String());
+	lsp::CodeActionParams params;
+	params.textDocument.uri = MakeDocUri(textDocument);
 	params.range = range;
 	params.context = context;
-	return SendRequest(X(textDocument), "textDocument/codeAction", params);
+	return SendRequest(X(textDocument), "textDocument/codeAction", LSPBridge::toNlohmann(params));
 }
 
 
@@ -548,16 +688,16 @@ LSPProjectWrapper::CodeActionResolve(LSPTextDocument* textDocument, nlohmann::js
 
 RequestID
 LSPProjectWrapper::Completion(
-	LSPTextDocument* textDocument, Position position, CompletionContext& context)
+	LSPTextDocument* textDocument, Position position, lsp::CompletionContext& context)
 {
 	if (!HasCapability(kLCapCompletion))
 		return RequestID();
 
-	CompletionParams params;
-	params.textDocument.uri = std::move(textDocument->GetFilenameURI().String());
+	lsp::CompletionParams params;
+	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
-	params.context = std::optional<CompletionContext>(context);
-	return SendRequest(X(textDocument), "textDocument/completion", params);
+	params.context = context;
+	return SendRequest(X(textDocument), "textDocument/completion", LSPBridge::toNlohmann(params));
 }
 
 
@@ -567,10 +707,10 @@ LSPProjectWrapper::SignatureHelp(LSPTextDocument* textDocument, Position positio
 	if (!HasCapability(kLCapSignatureHelp))
 		return RequestID();
 
-	TextDocumentPositionParams params;
-	params.textDocument.uri = std::move(textDocument->GetFilenameURI().String());
+	lsp::TextDocumentPositionParams params;
+	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
-	return SendRequest(X(textDocument), "textDocument/signatureHelp", std::move(params));
+	return SendRequest(X(textDocument), "textDocument/signatureHelp", LSPBridge::toNlohmann(std::move(params)));
 }
 
 
@@ -580,10 +720,10 @@ LSPProjectWrapper::GoToDefinition(LSPTextDocument* textDocument, Position positi
 	if (!HasCapability(kLCapDefinition))
 		return RequestID();
 
-	TextDocumentPositionParams params;
-	params.textDocument.uri = std::move(textDocument->GetFilenameURI().String());
+	lsp::TextDocumentPositionParams params;
+	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
-	return SendRequest(X(textDocument), "textDocument/definition", std::move(params));
+	return SendRequest(X(textDocument), "textDocument/definition", LSPBridge::toNlohmann(std::move(params)));
 }
 
 
@@ -593,10 +733,10 @@ LSPProjectWrapper::GoToImplementation(LSPTextDocument* textDocument, Position po
 	if (!HasCapability(kLCapImplementation))
 		return RequestID();
 
-	TextDocumentPositionParams params;
-	params.textDocument.uri = std::move(textDocument->GetFilenameURI().String());
+	lsp::TextDocumentPositionParams params;
+	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
-	return SendRequest(X(textDocument), "textDocument/implementation", std::move(params));
+	return SendRequest(X(textDocument), "textDocument/implementation", LSPBridge::toNlohmann(std::move(params)));
 }
 
 
@@ -606,40 +746,41 @@ LSPProjectWrapper::GoToDeclaration(LSPTextDocument* textDocument, Position posit
 	if (!HasCapability(kLCapDeclaration))
 		return RequestID();
 
-	TextDocumentPositionParams params;
-	params.textDocument.uri = std::move(textDocument->GetFilenameURI().String());
+	lsp::TextDocumentPositionParams params;
+	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
-	return SendRequest(X(textDocument), "textDocument/declaration", std::move(params));
+	return SendRequest(X(textDocument), "textDocument/declaration", LSPBridge::toNlohmann(std::move(params)));
 }
 
 
 RequestID
 LSPProjectWrapper::References(LSPTextDocument* textDocument, Position position)
 {
-	ReferenceParams params;
-	params.textDocument.uri = std::move(textDocument->GetFilenameURI().String());
+	lsp::ReferenceParams params;
+	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
-	return SendRequest(X(textDocument), "textDocument/references", std::move(params));
+	params.context.includeDeclaration = true;
+	return SendRequest(X(textDocument), "textDocument/references", LSPBridge::toNlohmann(std::move(params)));
 }
 
 
 RequestID
 LSPProjectWrapper::SwitchSourceHeader(LSPTextDocument* textDocument)
 {
-	TextDocumentIdentifier params;
-	params.uri = std::move(textDocument->GetFilenameURI().String());
-	return SendRequest(X(textDocument), "textDocument/switchSourceHeader", std::move(params));
+	lsp::TextDocumentIdentifier params;
+	params.uri = MakeDocUri(textDocument);
+	return SendRequest(X(textDocument), "textDocument/switchSourceHeader", LSPBridge::toNlohmann(std::move(params)));
 }
 
 
 RequestID
 LSPProjectWrapper::Rename(LSPTextDocument* textDocument, Position position, string_ref newName)
 {
-	RenameParams params;
-	params.textDocument.uri = std::move(textDocument->GetFilenameURI().String());
+	lsp::RenameParams params;
+	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
-	params.newName = newName;
-	return SendRequest(X(textDocument), "textDocument/rename", std::move(params));
+	params.newName = std::string(newName);
+	return SendRequest(X(textDocument), "textDocument/rename", LSPBridge::toNlohmann(std::move(params)));
 }
 
 
@@ -649,10 +790,10 @@ LSPProjectWrapper::Hover(LSPTextDocument* textDocument, Position position)
 	if (!HasCapability(kLCapHover))
 		return RequestID();
 
-	TextDocumentPositionParams params;
-	params.textDocument.uri = std::move(textDocument->GetFilenameURI().String());
+	lsp::TextDocumentPositionParams params;
+	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
-	return SendRequest(X(textDocument), "textDocument/hover", std::move(params));
+	return SendRequest(X(textDocument), "textDocument/hover", LSPBridge::toNlohmann(std::move(params)));
 }
 
 
@@ -662,38 +803,38 @@ LSPProjectWrapper::DocumentSymbol(LSPTextDocument* textDocument)
 	if (!HasCapability(kLCapDocumentSymbols))
 		return RequestID();
 
-	DocumentSymbolParams params;
-	params.textDocument.uri = std::move(textDocument->GetFilenameURI().String());
-	return SendRequest(X(textDocument), "textDocument/documentSymbol", std::move(params));
+	lsp::DocumentSymbolParams params;
+	params.textDocument.uri = MakeDocUri(textDocument);
+	return SendRequest(X(textDocument), "textDocument/documentSymbol", LSPBridge::toNlohmann(std::move(params)));
 }
 
 
 RequestID
 LSPProjectWrapper::DocumentColor(LSPTextDocument* textDocument)
 {
-	DocumentSymbolParams params;
-	params.textDocument.uri = std::move(textDocument->GetFilenameURI().String());
-	return SendRequest(X(textDocument), "textDocument/documentColor", std::move(params));
+	lsp::DocumentColorParams params;
+	params.textDocument.uri = MakeDocUri(textDocument);
+	return SendRequest(X(textDocument), "textDocument/documentColor", LSPBridge::toNlohmann(std::move(params)));
 }
 
 
 RequestID
 LSPProjectWrapper::DocumentHighlight(LSPTextDocument* textDocument, Position position)
 {
-	TextDocumentPositionParams params;
-	params.textDocument.uri = std::move(textDocument->GetFilenameURI().String());
+	lsp::DocumentHighlightParams params;
+	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
-	return SendRequest(X(textDocument), "textDocument/documentHighlight", std::move(params));
+	return SendRequest(X(textDocument), "textDocument/documentHighlight", LSPBridge::toNlohmann(std::move(params)));
 }
 
 
 RequestID
 LSPProjectWrapper::SymbolInfo(LSPTextDocument* textDocument, Position position)
 {
-	TextDocumentPositionParams params;
-	params.textDocument.uri = std::move(textDocument->GetFilenameURI().String());
+	lsp::TextDocumentPositionParams params;
+	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
-	return SendRequest(X(textDocument), "textDocument/symbolInfo", std::move(params));
+	return SendRequest(X(textDocument), "textDocument/symbolInfo", LSPBridge::toNlohmann(std::move(params)));
 }
 
 
@@ -716,9 +857,9 @@ LSPProjectWrapper::DocumentLink(LSPTextDocument* textDocument)
 	if (!HasCapability(kLCapDocLink))
 		return RequestID();
 
-	DocumentLinkParams params;
-	params.textDocument.uri = std::move(textDocument->GetFilenameURI().String());
-	return SendRequest(X(textDocument), "textDocument/documentLink", std::move(params));
+	lsp::DocumentLinkParams params;
+	params.textDocument.uri = MakeDocUri(textDocument);
+	return SendRequest(X(textDocument), "textDocument/documentLink", LSPBridge::toNlohmann(std::move(params)));
 }
 
 
