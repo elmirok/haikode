@@ -83,6 +83,8 @@ using SignatureInformation = lsp::SignatureInformation;
 using ParameterInformation = lsp::ParameterInformation;
 
 // --- Phase: Document Symbols ---
-// using DocumentSymbol = lsp::DocumentSymbol;
-// using SymbolInformation = lsp::SymbolInformation;
-// using SymbolKind = lsp::SymbolKind;
+using DocumentSymbol = lsp::DocumentSymbol;
+using SymbolInformation = lsp::SymbolInformation;
+// SymbolKind NOT aliased yet — the old 1-based enum in protocol_objects.h is still
+// used by ClientCapabilities, TypeHierarchyItem, and FunctionsOutlineView (via BMessage int32).
+// It will be migrated together with ClientCapabilities in a later step.

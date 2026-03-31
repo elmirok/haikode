@@ -142,8 +142,8 @@ private:
 	void	_DoCodeActions(nlohmann::json& params);
 	void	_DoCodeActionResolve(nlohmann::json& params);
 
-	void	_DoRecursiveDocumentSymbol(std::vector<DocumentSymbol>& v, BMessage& msg);
-	void	_DoLinearSymbolInformation(std::vector<SymbolInformation>& v, BMessage& msg);
+	void	_DoRecursiveDocumentSymbol(lsp::Array<DocumentSymbol>& v, BMessage& msg);
+	void	_DoLinearSymbolInformation(lsp::Array<SymbolInformation>& v, BMessage& msg);
 private:
 	//utils
 	void 			FromSciPositionToLSPPosition(const Sci_Position &pos, Position *lsp_position);

@@ -732,12 +732,8 @@ namespace nlohmann {
 }
 
 
-//TODO Write Serialize for DocumentSymbol (one way only);
-JSON_SERIALIZE(DocumentSymbol, {/*NOT REQUIRED*/},{FROM_KEY(name);FROM_KEY(detail);FROM_KEY(kind);FROM_KEY(deprecated);
-                FROM_KEY(range);FROM_KEY(selectionRange);FROM_KEY(children);});
-
-//struct SymbolInformation
-JSON_SERIALIZE(SymbolInformation, MAP_JSON(MAP_KEY(name), MAP_KEY(kind), MAP_KEY(location), MAP_KEY(containerName)), {FROM_KEY(name);FROM_KEY(kind);FROM_KEY(location);FROM_KEY(containerName)});
+// DocumentSymbol and SymbolInformation — migrated to lsp-framework types.
+// Deserialized via LSPBridge::fromNlohmann<>() instead of nlohmann.
 
 //struct LogMessageParams (same as ShowMessageParams?)
 JSON_SERIALIZE(LogMessageParams, {}, {FROM_KEY(type); FROM_KEY(message)});

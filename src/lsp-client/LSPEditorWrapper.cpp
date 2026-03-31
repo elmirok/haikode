@@ -1022,10 +1022,10 @@ LSPEditorWrapper::_DoDocumentSymbol(nlohmann::json& params)
 	BMessage msg(EDITOR_UPDATE_SYMBOLS);
 	if (params.is_array() && params.size() > 0) {
 		if (params[0]["location"].is_null()) {
-			auto vect = params.get<std::vector<DocumentSymbol>>();
+			auto vect = LSPBridge::fromNlohmann<lsp::Array<lsp::DocumentSymbol>>(params);
 			_DoRecursiveDocumentSymbol(vect, msg);
 		} else {
-			auto vect = params.get<std::vector<SymbolInformation>>();
+			auto vect = LSPBridge::fromNlohmann<lsp::Array<lsp::SymbolInformation>>(params);
 			_DoLinearSymbolInformation(vect, msg);
 		}
 	}
@@ -1034,16 +1034,16 @@ LSPEditorWrapper::_DoDocumentSymbol(nlohmann::json& params)
 }
 
 void
-LSPEditorWrapper::_DoRecursiveDocumentSymbol(std::vector<DocumentSymbol>& vect, BMessage& msg)
+LSPEditorWrapper::_DoRecursiveDocumentSymbol(lsp::Array<DocumentSymbol>& vect, BMessage& msg)
 {
-	for (DocumentSymbol sym: vect) {
+	for (auto& sym: vect) {
 		BMessage symbol;
 		symbol.AddString("name", sym.name.c_str());
-		symbol.AddInt32("kind", (int32)sym.kind);
-		symbol.AddString("detail", sym.detail.c_str());
+		symbol.AddInt32("kind", static_cast<int32>(sym.kind.value()));
+		symbol.AddString("detail", sym.detail.value_or("").c_str());
 		BMessage child;
-		if (sym.children.size() > 0) {
-			_DoRecursiveDocumentSymbol(sym.children, child);
+		if (sym.children.has_value() && sym.children->size() > 0) {
+			_DoRecursiveDocumentSymbol(*sym.children, child);
 		}
 		symbol.AddMessage("children", &child);
 		Range& symbolRange = sym.selectionRange;
@@ -1057,12 +1057,12 @@ LSPEditorWrapper::_DoRecursiveDocumentSymbol(std::vector<DocumentSymbol>& vect, 
 }
 
 void
-LSPEditorWrapper::_DoLinearSymbolInformation(std::vector<SymbolInformation>& vect, BMessage& msg)
+LSPEditorWrapper::_DoLinearSymbolInformation(lsp::Array<SymbolInformation>& vect, BMessage& msg)
 {
-	for (SymbolInformation sym: vect) {
+	for (auto& sym: vect) {
 		BMessage symbol;
 		symbol.AddString("name", sym.name.c_str());
-		symbol.AddInt32("kind", (int32)sym.kind);
+		symbol.AddInt32("kind", static_cast<int32>(sym.kind.value()));
 		Range& symbolRange = sym.location.range;
 		symbol.AddInt32("start:line", symbolRange.start.line + 1);
 		symbol.AddInt32("start:character", symbolRange.start.character);

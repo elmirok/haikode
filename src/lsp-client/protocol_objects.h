@@ -86,6 +86,9 @@ enum class InsertTextFormat {
 // only used inside CodeAction serialization — removed with the migration.
 
 // enum class CompletionItemKind
+// SymbolKind enum kept here for ClientCapabilities (protocol.h) and
+// FunctionsOutlineView.cpp which exchange integer values via BMessage.
+// Will be removed in a later step when ClientCapabilities migrates.
 enum class SymbolKind {
     File = 1,
     Module = 2,
@@ -115,47 +118,8 @@ enum class SymbolKind {
     TypeParameter = 26
 };
 
-/// Represents programming constructs like variables, classes, interfaces etc.
-/// that appear in a document. Document symbols can be hierarchical and they
-/// have two ranges: one that encloses its definition and one that points to its
-/// most interesting range, e.g. the range of an identifier.
-struct DocumentSymbol {
-  /// The name of this symbol.
-  std::string name;
-
-  /// More detail for this symbol, e.g the signature of a function.
-  std::string detail;
-
-  /// The kind of this symbol.
-  SymbolKind kind;
-
-  /// Indicates if this symbol is deprecated.
-  bool deprecated = false;
-
-  /// The range enclosing this symbol not including leading/trailing whitespace
-  /// but everything else like comments. This information is typically used to
-  /// determine if the clients cursor is inside the symbol to reveal in the
-  /// symbol in the UI.
-  Range range;
-
-  /// The range that should be selected and revealed when this symbol is being
-  /// picked, e.g the name of a function. Must be contained by the `range`.
-  Range selectionRange;
-
-  /// Children of this symbol, e.g. properties of a class.
-  std::vector<DocumentSymbol> children;
-};
-
-struct SymbolInformation {
-    /// The name of this symbol.
-    std::string name;
-    /// The kind of this symbol.
-    SymbolKind kind = SymbolKind::Class;
-    /// The location of this symbol.
-    Location location;
-    /// The name of the symbol containing this symbol.
-    std::optional<std::string> containerName;
-};
+// DocumentSymbol and SymbolInformation — migrated to lsp-framework types.
+// See LSPCompat.h for the type aliases.
 
 
 // enum class CompletionItemKind
