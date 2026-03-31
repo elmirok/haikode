@@ -22,8 +22,7 @@
 
 #include <lsp/types.h>
 
-class  LSPTextDocument;
-struct ConfigurationSettings;
+class LSPTextDocument;
 class LSPPipeClient;
 class LSPServerConfigInterface;
 
