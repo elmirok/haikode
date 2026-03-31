@@ -343,23 +343,25 @@ LSPProjectWrapper::onNotify(std::string method, value& params)
 		return;
 
 	} else if (method.compare("window/logMessage") == 0) {
-		MessageType type = params["type"];
-		std::string message = params["message"].get<std::string>();
+		auto logParams = LSPBridge::fromNlohmann<lsp::LogMessageParams>(params);
+		lsp::MessageType type = static_cast<lsp::MessageType>(logParams.type);
 		switch(type) {
-			case MessageType::Error:
-				LogError("(Error) %s", message.c_str());
+			case lsp::MessageType::Error:
+				LogError("(Error) %s", logParams.message.c_str());
 				break;
-			case MessageType::Warning:
-				LogError("(Warning) %s",message.c_str());
+			case lsp::MessageType::Warning:
+				LogError("(Warning) %s", logParams.message.c_str());
 				break;
-			case MessageType::Info:
-				LogInfo("(Info) %s", message.c_str());
+			case lsp::MessageType::Info:
+				LogInfo("(Info) %s", logParams.message.c_str());
 				break;
-			case MessageType::Log:
-				LogInfo("(Log) %s", message.c_str());
+			case lsp::MessageType::Log:
+				LogInfo("(Log) %s", logParams.message.c_str());
 				break;
-			case MessageType::Debug:
-				LogDebug("(Debug) %s", message.c_str());
+			case lsp::MessageType::Debug:
+				LogDebug("(Debug) %s", logParams.message.c_str());
+				break;
+			default:
 				break;
 		};
 		return;
@@ -837,7 +839,6 @@ LSPProjectWrapper::SymbolInfo(LSPTextDocument* textDocument, Position position)
 	params.position = position;
 	return SendRequest(X(textDocument), "textDocument/symbolInfo", LSPBridge::toNlohmann(std::move(params)));
 }
-
 
 
 RequestID

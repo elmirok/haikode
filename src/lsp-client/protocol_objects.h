@@ -17,24 +17,6 @@
 #include "LSPCompat.h"
 
 // Most LSP types have been migrated to lsp-framework (see LSPCompat.h).
-// This file retains only MessageType and LogMessageParams.
-
-enum class MessageType {
-	Error = 1,
-	Warning = 2,
-	Info = 3,
-	Log = 4,
-	Debug = 5 /* since 3.18.0 (proposed)*/
-};
-
-struct LogMessageParams {
-
-	MessageType type;
-
-	/**
-	 * The actual message
-	 */
-	std::string message;
-};
+// MessageType and LogMessageParams are now lsp::MessageType and lsp::LogMessageParams.
 
 #endif // protocol_objects_H

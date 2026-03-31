@@ -302,13 +302,7 @@ JSON_SERIALIZE(InitializationOptions, MAP_JSON(
 // InitializeParams — migrated to lsp::InitializeParams.
 // Built in LSPProjectWrapper::Initialize() using lsp types + LSPBridge.
 
-struct ShowMessageParams {
-    /// The message type.
-    MessageType type = MessageType::Info;
-    /// The actual message.
-    std::string message;
-};
-JSON_SERIALIZE(ShowMessageParams, {}, {FROM_KEY(type); FROM_KEY(message)});
+// ShowMessageParams, LogMessageParams — migrated to lsp-framework types.
 
 struct Registration {
     /**
@@ -346,35 +340,7 @@ JSON_SERIALIZE(UnregistrationParams, MAP_JSON(MAP_KEY(unregisterations)), {});
 // Diagnostic, CodeActionContext, CodeActionParams, PublishDiagnosticsParams —
 // migrated to lsp-framework types. Deserialized via LSPBridge::fromNlohmann<>().
 // WorkspaceEdit, CodeAction — migrated to lsp-framework (see LSPCompat.h).
-
-// Bridge serializers for lsp::WorkspaceEdit and lsp::CodeAction
-// (used when nlohmann needs to serialize/deserialize these lsp types directly).
-namespace nlohmann {
-    template <>
-    struct adl_serializer<lsp::WorkspaceEdit> {
-        static void to_json(json& j, const lsp::WorkspaceEdit& value) {
-            lsp::WorkspaceEdit copy = value;
-            j = json::parse(lsp::json::stringify(lsp::toJson(std::move(copy))));
-        }
-        static void from_json(const json& j, lsp::WorkspaceEdit& value) {
-            lsp::fromJson(lsp::json::parse(j.dump()), value);
-        }
-    };
-
-    template <>
-    struct adl_serializer<lsp::CodeAction> {
-        static void to_json(json& j, const lsp::CodeAction& value) {
-            lsp::CodeAction copy = value;
-            j = json::parse(lsp::json::stringify(lsp::toJson(std::move(copy))));
-        }
-        static void from_json(const json& j, lsp::CodeAction& value) {
-            lsp::fromJson(lsp::json::parse(j.dump()), value);
-        }
-    };
-}
-
-
-JSON_SERIALIZE(LogMessageParams, {}, {FROM_KEY(type); FROM_KEY(message)});
+// LogMessageParams — migrated to lsp::LogMessageParams.
 
 
 
