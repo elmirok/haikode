@@ -16,32 +16,8 @@
 #include "uri.h"
 #include "LSPCompat.h"
 
-// TextDocumentContentChangeEvent — migrated to lsp-framework types.
-// (lsp::TextDocumentContentChangeEvent = OneOf<..._Range_Text, ..._Text>)
-
-// CompletionItemKind and InsertTextFormat — migrated to lsp-framework types.
-// See LSPCompat.h for the type aliases.
-
-// CompletionItem and CompletionList — migrated to lsp-framework types.
-// See LSPCompat.h for the type aliases.
-
-// SignatureHelp, SignatureInformation, ParameterInformation — migrated to lsp-framework types.
-// See LSPCompat.h for the type aliases.
-
-// Diagnostic and DiagnosticRelatedInformation — migrated to lsp-framework types.
-// See LSPCompat.h for the type aliases.
-// Clangd extension fields (category, codeActions) live in LSPDiagnostic (LSPEditorWrapper.h).
-
-// CodeAction, WorkspaceEdit — migrated to lsp-framework types.
-// See LSPCompat.h for the type aliases.
-// TweakArgs, ExecuteCommandParams, LspCommand were clangd-specific structs
-// only used inside CodeAction serialization — removed with the migration.
-
-// SymbolKind — migrated to lsp::SymbolKind.
-// See LSPCompat.h for the type alias (using SymbolKind = lsp::SymbolKind).
-
-// DocumentSymbol and SymbolInformation — migrated to lsp-framework types.
-// See LSPCompat.h for the type aliases.
+// Most LSP types have been migrated to lsp-framework (see LSPCompat.h).
+// This file retains only MessageType and LogMessageParams.
 
 enum class MessageType {
 	Error = 1,
