@@ -987,18 +987,18 @@ LSPEditorWrapper::_DoInitialize(nlohmann::json& params)
 void
 LSPEditorWrapper::_DoDocumentLink(nlohmann::json& result)
 {
-	auto links = result.get<std::vector<DocumentLink>>();
-
 	_RemoveAllDocumentLinks();
 
-	for (auto& l : links) {
+	for (auto& element : result) {
+		auto l = LSPBridge::fromNlohmann<lsp::DocumentLink>(element);
 		Range& r = l.range;
 		InfoRange ir;
 		ir.from = FromLSPPositionToSciPosition(&r.start);
 		ir.to = FromLSPPositionToSciPosition(&r.end);
-		ir.info = l.target;
+		if (l.target)
+			ir.info = l.target->toString();
 
-		LogTrace("DocumentLink [%ld->%ld] [%s]", ir.from, ir.to, l.target.c_str());
+		LogTrace("DocumentLink [%ld->%ld] [%s]", ir.from, ir.to, ir.info.c_str());
 		fEditor->SendMessage(SCI_INDICATORFILLRANGE, ir.from, ir.to - ir.from);
 		fLastDocumentLinks.push_back(ir);
 	}
