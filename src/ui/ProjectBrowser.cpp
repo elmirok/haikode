@@ -201,12 +201,12 @@ ProjectBrowser::_CreateItemForPath(BString pathToCreate)
 
 
 void
-ProjectBrowser::_RemoveItemForPath(BString spath)
+ProjectBrowser::_RemoveItemForPath(BString pathToRemove)
 {
-	LogDebug("path %s", spath.String());
-	ProjectItem *item = GetProjectItemByPath(spath);
+	LogDebug("path %s", pathToRemove.String());
+	ProjectItem *item = GetProjectItemByPath(pathToRemove);
 	if (!item) {
-		LogError("Can't find an item to remove [%s]", spath.String());
+		LogError("Can't find an item to remove [%s]", pathToRemove.String());
 		return;
 	}
 	if (item->GetSourceItem()->Type() == SourceItemType::ProjectFolderItem) {
@@ -862,12 +862,12 @@ ProjectBrowser::ProjectFolderDepopulate(ProjectFolder* project)
 
 
 void
-ProjectBrowser::ExpandProjectCollapseOther(const BString& project)
+ProjectBrowser::ExpandProjectCollapseOther(const BString& projectName)
 {
 	for (int32 i = 0; i < CountProjects(); i++) {
 		ProjectFolder* prj = ProjectAt(i);
 		ProjectItem* item = GetProjectItemForProject(prj);
-		if (prj->Name() == project)
+		if (prj->Name() == projectName)
 			fOutlineListView->Expand(item);
 		else
 			fOutlineListView->Collapse(item);
