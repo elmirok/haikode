@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, the Genio team
+ * Copyright 2024-2026, the Genio team
  * All rights reserved. Distributed under the terms of the MIT license.
  */
  
@@ -15,11 +15,11 @@ public:
 	
 	status_t SetTo(const char* path);
 	
-	void GetTargetName(BString &name) const;
-	void SetTargetName(const BString& name);
+	void GetTargetName(BString &outName) const;
+	void SetTargetName(const BString& inName);
 
-	void GetTargetDirectory(BString& dir) const;
-	void SetTargetDirectory(const BString& dir);
+	void GetTargetDirectory(BString& outDir) const;
+	void SetTargetDirectory(const BString& outDir);
 
 	void GetFullTargetName(BString& fullName) const;
 
