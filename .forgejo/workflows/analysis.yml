@@ -26,9 +26,13 @@ jobs:
                    --xml \
                    --xml-version=2 \
                    --suppress=missingIncludeSystem \
-                   --suppress=missingInclude . \
+                   --suppress=missingInclude \
+                   --suppress=unmatchedSuppression \
+                   --suppress=unusedFunction \
+                   --suppress=unusedStructMember \
                    -i data \
                    -i libs \
+                   . \
                    2> cppcheck-report.xml
 
       - name: Convert Cppcheck report to HTML
