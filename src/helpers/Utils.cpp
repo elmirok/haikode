@@ -300,7 +300,7 @@ public:
 		std::string prop_name_;
 	public:
 		iterator(BMessage* message, const std::string& prop_name, int index = 0)
-			: message_(message), prop_name_(prop_name), index_(index) {}
+			: index_(index), message_(message), prop_name_(prop_name) {}
 		bool operator==(iterator &rhs) {
 			return index_ == rhs.index_ &&
 				message_ == rhs.message_ &&
