@@ -92,16 +92,16 @@ ProjectMenuField::_HandleProjectListChanged(const BMessage* message)
 	BMenu* projectMenu = Menu();
 
 	BString selectedProject;
-	BMenuItem* item = projectMenu->FindMarked();
-	if (item != nullptr) {
-		selectedProject = item->Label();
+	BMenuItem* selectedItem = projectMenu->FindMarked();
+	if (selectedItem != nullptr) {
+		selectedProject = selectedItem->Label();
 	}
 
 	Window()->BeginViewTransaction();
 
 	MakeEmpty();
 
-	ProjectBrowser* projectBrowser = gMainWindow->GetProjectBrowser();
+	const ProjectBrowser* projectBrowser = gMainWindow->GetProjectBrowser();
 	for (int32 p = 0; p < projectBrowser->CountProjects(); p++) {
 		ProjectFolder* project = projectBrowser->ProjectAt(p);
 		if (project == nullptr)

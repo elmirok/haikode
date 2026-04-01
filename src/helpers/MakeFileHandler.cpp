@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, the Genio team
+ * Copyright 2024-2026, the Genio team
  * All rights reserved. Distributed under the terms of the MIT license.
  */
  
@@ -9,7 +9,6 @@
 #include "MakeFileHandler.h"
 
 #include <fstream>
-#include <iostream>
 
 #include "TextUtils.h"
 

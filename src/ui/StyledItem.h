@@ -38,10 +38,10 @@ protected:
 	// can be called by overridden DrawItem() to avoid duplication
 	virtual void	DrawItemPrepare(BView* owner, BRect bounds, bool complete);
 
-	virtual BRect	DrawIcon(BView* owner, const BRect& bounds,
+	virtual BRect	DrawIcon(BView* owner, const BRect& itemBounds,
 							const float& iconSize);
 	virtual void	DrawText(BView* owner, const char* text,
-						const char* extraText, const BPoint& textPoint);
+						const char* extraText, const BPoint& point);
 private:
 	uint16			fFontFace;
 	// TODO: Maybe allocate these dynamically since ExtraText

@@ -343,7 +343,7 @@ ConfigWindow::_PopulateListView()
 
 
 BView*
-ConfigWindow::MakeViewFor(const char* groupName, GMessage& list)
+ConfigWindow::MakeViewFor(const char* groupName, GMessage& config)
 {
 	// Create and add the setting views
 	BBox* box = new BBox(groupName);
@@ -355,7 +355,7 @@ ConfigWindow::MakeViewFor(const char* groupName, GMessage& list)
 
 	GMessage msg;
 	int32 i = 0;
-	while (list.FindMessage("config", i++, &msg) == B_OK)  {
+	while (config.FindMessage("config", i++, &msg) == B_OK)  {
 		BView *parameterView = MakeControlFor(msg);
 		if (parameterView == nullptr)
 			return nullptr;

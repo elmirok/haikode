@@ -5,16 +5,20 @@
 
 
 #include "ConsoleIOTab.h"
-#include "ConsoleIOThread.h"
+
 #include <Catalog.h>
 #include <Looper.h>
 #include <cstdio>
 
+#include "ConsoleIOThread.h"
+
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "ConsoleIOView"
 
-ConsoleIOTab::ConsoleIOTab(const char* name, BMessenger messenger, BString theme):
-	TerminalTab(), fMessenger(messenger)
+ConsoleIOTab::ConsoleIOTab(const char* name, BMessenger messenger, BString theme)
+	:
+	TerminalTab(),
+	fMessenger(messenger)
 {
 	SetName(name);
 	SetInitialCommand("/bin/sh -c \":\"");
@@ -30,7 +34,8 @@ ConsoleIOTab::Clear()
 		return;
 	BMessage msg('clea');
 	Looper()->PostMessage(&msg, target, this);
-};
+}
+
 
 void
 ConsoleIOTab::SetTheme(BString theme)
@@ -41,7 +46,7 @@ ConsoleIOTab::SetTheme(BString theme)
 	BMessage msg('teme');
 	msg.AddString("theme", theme);
 	Looper()->PostMessage(&msg, target, this);
-};
+}
 
 
 status_t
@@ -53,7 +58,7 @@ ConsoleIOTab::Stop()
 	stop.AddString("cmd", cmd);
 	stop.AddBool("internalStop", true);
 	return RunCommand(&stop, false, false);
-};
+}
 
 
 status_t
@@ -74,6 +79,7 @@ ConsoleIOTab::RunCommand(BMessage* message, bool clean, bool notifyMessage)
 	return _RunCommand(cmd.String(), clean);
 }
 
+
 BString
 ConsoleIOTab::_BannerCommand(BString claim, BString status, bool ending)
 {
@@ -90,12 +96,13 @@ ConsoleIOTab::_BannerCommand(BString claim, BString status, bool ending)
 	return banner;
 }
 
+
 void
 ConsoleIOTab::NotifyCommandQuit(bool exitNormal, int exitStatus)
 {
 	status_t status = exitNormal ? ( exitStatus == 0 ? B_OK : B_ERROR) : B_ERROR;
 
-	if(fContextMessage.IsEmpty() == false) {
+	if (!fContextMessage.IsEmpty()) {
 		BMessage notification = fContextMessage;
 		fContextMessage.MakeEmpty();
 
@@ -106,4 +113,3 @@ ConsoleIOTab::NotifyCommandQuit(bool exitNormal, int exitStatus)
 		fMessenger.SendMessage(&notification);
 	}
 }
-
