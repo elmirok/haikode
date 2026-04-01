@@ -172,31 +172,31 @@ Languages::_ApplyLanguage(Editor* editor, const char* lang, const BPath &path)
 	}
 	const YAML::Node language = YAML::LoadFile(std::string(p.Path()) + ".yaml");
 	std::string lexerName = language["lexer"].as<std::string>();
-	Scintilla::ILexer5* lexer;
+	Scintilla::ILexer5* lexer = nullptr;
 	// sLexerLibraries contains libraries in the following order:
 	// * system
 	// * user
 	// * non-packaged system
 	// * non-packaged user
 	// Going in reverse results in correct override hierarchy.
-	for(auto it = sLexerLibraries.rbegin(); it != sLexerLibraries.rend(); ++it) {
+	for (auto it = sLexerLibraries.rbegin(); it != sLexerLibraries.rend(); ++it) {
 		lexer = (*it)->CreateLexer(lexerName.c_str());
-		if(lexer != nullptr)
+		if (lexer != nullptr)
 			break;
 	}
 
-	if(lexer == nullptr)
+	if (lexer == nullptr)
 		return std::map<int, int>();
 
 	editor->SendMessage(SCI_SETILEXER, 0, reinterpret_cast<sptr_t>(lexer));
 
-	for(const auto& property : language["properties"]) {
+	for (const auto& property : language["properties"]) {
 		auto name = property.first.as<std::string>();
 		auto value = property.second.as<std::string>();
 		editor->SendMessage(SCI_SETPROPERTY, (uptr_t) name.c_str(), (sptr_t) value.c_str());
 	}
 
-	for(const auto& keyword : language["keywords"]) {
+	for (const auto& keyword : language["keywords"]) {
 		auto num = keyword.first.as<int>();
 		auto words = keyword.second.as<std::string>();
 		editor->SendMessage(SCI_SETKEYWORDS, num, (sptr_t) words.c_str());
@@ -204,9 +204,9 @@ Languages::_ApplyLanguage(Editor* editor, const char* lang, const BPath &path)
 
 	std::unordered_map<int, int> substyleStartMap;
 	const auto& identifiers = language["identifiers"];
-	if(identifiers && identifiers.IsMap()) {
-		for(const auto& id : identifiers) {
-			if(!id.second.IsSequence())
+	if (identifiers && identifiers.IsMap()) {
+		for (const auto& id : identifiers) {
+			if (!id.second.IsSequence())
 				continue;
 
 			const int substyleId = id.first.as<int>();
@@ -224,29 +224,29 @@ Languages::_ApplyLanguage(Editor* editor, const char* lang, const BPath &path)
 
 	const YAML::Node comments = language["comments"];
 
-	if(comments) {
+	if (comments) {
 		const YAML::Node line = comments["line"];
-		if(line)
+		if (line)
 			editor->SetCommentLineToken(line.as<std::string>());
 		const YAML::Node block = comments["block"];
-		if(block && block.IsSequence())
+		if (block && block.IsSequence())
 			editor->SetCommentBlockTokens(block[0].as<std::string>(),
 				block[1].as<std::string>());
 	}
 
 	std::map<int, int> styleMap;
 	const YAML::Node styles = language["styles"];
-	if(styles) {
+	if (styles) {
 		styleMap = styles.as<std::map<int, int>>();
 	}
 	const YAML::Node substyles = language["substyles"];
-	if(substyles && substyles.IsMap()) {
-		for(const auto& id : substyles) {
-			if(!id.second.IsSequence())
+	if (substyles && substyles.IsMap()) {
+		for (const auto& id : substyles) {
+			if (!id.second.IsSequence())
 				continue;
 
 			int i = 0;
-			for(const auto& styleId : id.second) {
+			for (const auto& styleId : id.second) {
 				const int substyleStart = substyleStartMap[id.first.as<int>()];
 				styleMap.emplace(substyleStart + i++, styleId.as<int>());
 			}
