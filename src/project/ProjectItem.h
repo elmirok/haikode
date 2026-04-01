@@ -14,7 +14,7 @@ class BTextControl;
 class SourceItem;
 class ProjectItem : public StyledItem {
 public:
-					ProjectItem(SourceItem *sourceFile);
+					ProjectItem(SourceItem *sourceItem);
 					virtual ~ProjectItem();
 
 	void 			DrawItem(BView* owner, BRect bounds, bool complete) override;
@@ -30,7 +30,7 @@ public:
 	void			CommitRename();
 
 protected:
-	BRect			DrawIcon(BView* owner, const BRect& bounds,
+	BRect			DrawIcon(BView* owner, const BRect& itemBounds,
 							const float& iconSize) override;
 
 private:
@@ -54,7 +54,7 @@ public:
 	void 			DrawItem(BView* owner, BRect bounds, bool complete) override;
 
 private:
-	BRect			DrawIcon(BView* owner, const BRect& bounds,
+	BRect			DrawIcon(BView* owner, const BRect& itemBounds,
 							const float& iconSize) override;
 
 	void			_DrawBuildIndicator(BView* owner, BRect bounds);
