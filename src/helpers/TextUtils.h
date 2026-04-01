@@ -16,7 +16,7 @@ bool Contains(std::string const &s, char ch) noexcept;
 
 bool IsASpace(int ch) noexcept;
 
-const BString EscapeQuotesWrap(const BString& string);
+const BString EscapeQuotesWrap(const BString& text);
 
 // trim from start (in place)
 void LeftTrim(std::string &s);
