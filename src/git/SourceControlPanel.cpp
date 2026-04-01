@@ -521,10 +521,10 @@ SourceControlPanel::MessageReceived(BMessage *message)
 					}
 					selectedProject->InitRepository(createInitialCommit);
 					SetChecked<BCheckBox>(fDoNotCreateInitialCommitCheckBox, false);
-					BMessage message(MsgChangeProject);
-					message.AddString("value", selectedProject->Path());
-					message.AddString("sender", kSenderInitializeRepositoryButton);
-					BMessenger(this).SendMessage(&message);
+					BMessage changeProjectMessage(MsgChangeProject);
+					changeProjectMessage.AddString("value", selectedProject->Path());
+					changeProjectMessage.AddString("sender", kSenderInitializeRepositoryButton);
+					BMessenger(this).SendMessage(&changeProjectMessage);
 				}
 				break;
 			}
@@ -724,9 +724,9 @@ SourceControlPanel::_UpdateBranchListMenu(bool invokeItemMessage)
 				fBranchMenu->MakeEmpty();
 				fBranchMenu->AddIterator(branches,
 					MsgSwitchBranch,
-					[](auto &item) { return item; },
+					[](const auto &item) { return item; },
 					invokeItemMessage,
-					[&currentBranch = fCurrentBranch](auto &item) { return (item == currentBranch);}
+					[&currentBranch = fCurrentBranch](const auto &item) { return (item == currentBranch);}
 				);
 			}
 		}
