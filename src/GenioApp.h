@@ -32,7 +32,7 @@ public:
 	virtual				~GenioApp();
 
 		void			AboutRequested() override;
-		void			ArgvReceived(int32 agrc, char** argv) override;
+		void			ArgvReceived(int32 argc, char** argv) override;
 		void			MessageReceived(BMessage* message) override;
 		bool			QuitRequested() override;
 		void			ReadyToRun() override;
