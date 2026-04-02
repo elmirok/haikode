@@ -16,7 +16,6 @@
 #include <Url.h>
 
 #include "LSPServersManager.h"
-#include "MessageHandler.h"
 #include "LSPCapabilities.h"
 #include "LSPCompat.h"
 
@@ -45,62 +44,62 @@ public:
 	bool	RegisterTextDocument(LSPTextDocument* fw);
 	void	UnregisterTextDocument(LSPTextDocument* fw);
 
-    void onNotify(std::string method, value &params);
-    void onResponse(RequestID ID, value &result);
-    void onError(RequestID ID, value &error);
-    void onRequest(std::string method, value &params, value &ID);
-
-
 	bool HasCapability(const LSPCapability flag);
 
 
 public:
-    RequestID Initialize(std::optional<std::string> rootUri = {});
-    RequestID Shutdown();
-    RequestID Sync();
+    void Initialize(std::optional<std::string> rootUri = {});
+    void Shutdown();
+    void Sync();
     void Exit();
     void Initialized(json& result);
 
-    RequestID RegisterCapability();
     void DidOpen(LSPTextDocument* textDocument, std::string_view text, std::string_view languageId);
     void DidClose(LSPTextDocument* textDocument);
     void DidChange(LSPTextDocument* textDocument, std::vector<lsp::TextDocumentContentChangeEvent> &changes,
                    std::optional<bool> wantDiagnostics = {});
     void DidSave(LSPTextDocument* textDocument);
-    RequestID RangeFomatting(LSPTextDocument* textDocument, Range range);
-    RequestID FoldingRange(LSPTextDocument* textDocument);
-    RequestID SelectionRange(LSPTextDocument* textDocument, std::vector<Position> &positions);
-    RequestID OnTypeFormatting(LSPTextDocument* textDocument, Position position, std::string_view ch);
-    RequestID Formatting(LSPTextDocument* textDocument);
-    RequestID CodeAction(LSPTextDocument* textDocument, Range range, lsp::CodeActionContext& context);
-	RequestID CodeActionResolve(LSPTextDocument* textDocument, lsp::CodeAction& data);
-	RequestID CodeActionResolve(LSPTextDocument* textDocument, value& data);
-    RequestID Completion(LSPTextDocument* textDocument, Position position, lsp::CompletionContext& context);
-    RequestID SignatureHelp(LSPTextDocument* textDocument, Position position);
-    RequestID GoToDefinition(LSPTextDocument* textDocument, Position position);
-    RequestID GoToImplementation(LSPTextDocument* textDocument, Position position);
-    RequestID GoToDeclaration(LSPTextDocument* textDocument, Position position);
-    RequestID References(LSPTextDocument* textDocument, Position position);
-    RequestID SwitchSourceHeader(LSPTextDocument* textDocument);
-    RequestID Rename(LSPTextDocument* textDocument, Position position, std::string_view newName);
-    RequestID Hover(LSPTextDocument* textDocument, Position position);
-    RequestID DocumentSymbol(LSPTextDocument* textDocument);
-    RequestID DocumentColor(LSPTextDocument* textDocument);
-    RequestID DocumentHighlight(LSPTextDocument* textDocument, Position position);
-    RequestID SymbolInfo(LSPTextDocument* textDocument, Position position);
-    RequestID DocumentLink(LSPTextDocument* textDocument);
-
-    RequestID 	SendRequest(RequestID id, std::string_view method, value params);
-    void 		SendNotify(std::string_view method, value params);
+    void RangeFomatting(LSPTextDocument* textDocument, Range range);
+    void FoldingRange(LSPTextDocument* textDocument);
+    void SelectionRange(LSPTextDocument* textDocument, std::vector<Position> &positions);
+    void OnTypeFormatting(LSPTextDocument* textDocument, Position position, std::string_view ch);
+    void Formatting(LSPTextDocument* textDocument);
+    void CodeAction(LSPTextDocument* textDocument, Range range, lsp::CodeActionContext& context);
+	void CodeActionResolve(LSPTextDocument* textDocument, lsp::CodeAction& data);
+	void CodeActionResolve(LSPTextDocument* textDocument, value& data);
+    void Completion(LSPTextDocument* textDocument, Position position, lsp::CompletionContext& context);
+    void SignatureHelp(LSPTextDocument* textDocument, Position position);
+    void GoToDefinition(LSPTextDocument* textDocument, Position position);
+    void GoToImplementation(LSPTextDocument* textDocument, Position position);
+    void GoToDeclaration(LSPTextDocument* textDocument, Position position);
+    void References(LSPTextDocument* textDocument, Position position);
+    void SwitchSourceHeader(LSPTextDocument* textDocument);
+    void Rename(LSPTextDocument* textDocument, Position position, std::string_view newName);
+    void Hover(LSPTextDocument* textDocument, Position position);
+    void DocumentSymbol(LSPTextDocument* textDocument);
+    void DocumentColor(LSPTextDocument* textDocument);
+    void DocumentHighlight(LSPTextDocument* textDocument, Position position);
+    void SymbolInfo(LSPTextDocument* textDocument, Position position);
+    void DocumentLink(LSPTextDocument* textDocument);
 
     std::string&	allCommitCharacters() { return fAllCommitCharacters; } //not yet used.
     std::string&	triggerCharacters() { return fTriggerCharacters; } //for completion
 
 private:
 	bool	_Create();
+	void	_RegisterHandlers();
+	void	_SendRequest(LSPTextDocument* textDocument, std::string_view method, value params);
+	void	_SendNotify(std::string_view method, value params);
+
 	LSPPipeClient*			fLSPPipeClient;
 	LSPTextDocument*	_DocumentByURI(const char* uri);
 	bool _CheckAndSetCapability(json& capas, const char* str, const LSPCapability flag);
+
+	// Notification/response dispatch helpers (called on UI thread)
+	void _OnNotify(std::string method, value& params);
+	void _OnResponse(const std::string& documentKey, std::string method, value& result);
+	void _OnError(const std::string& documentKey, std::string method, value& error);
+	void _OnRequest(std::string method, value& params, value& id);
 
 	typedef std::map<std::string, LSPTextDocument*> MapFile;
 
@@ -113,6 +112,7 @@ private:
 
 	BUrl fUrl;
 	BMessenger fMessenger;
+	BMessenger fHandlerMessenger;  // targets this BHandler (for LSP dispatch)
 	const LSPServerConfigInterface& fServerConfig;
 	uint32	fServerCapabilities;
 	BMessage	fWorkDone;

@@ -7,12 +7,13 @@
 #include "Log.h"
 #include "LSPJsonBridge.h"
 #include "LSPPipeClient.h"
-#include "LSPReaderThread.h"
 #include "LSPServersManager.h"
 #include "LSPTextDocument.h"
 
 #include <lsp/json/json.h>
 #include <lsp/messages.h>
+#include <Looper.h>
+#include <chrono>
 
 
 namespace {
@@ -123,7 +124,12 @@ lsp::ClientCapabilities BuildClientCapabilities()
 } // anonymous namespace
 
 
-const int32 kLSPMessage = 'LSP!';
+enum {
+	kLSPNotify   = 'LSn!',
+	kLSPResponse = 'LSr!',
+	kLSPError    = 'LSe!',
+};
+
 
 LSPProjectWrapper::LSPProjectWrapper(BPath rootPath, const BMessenger& msgr,
 		const LSPServerConfigInterface& serverConfig)
@@ -143,36 +149,59 @@ LSPProjectWrapper::LSPProjectWrapper(BPath rootPath, const BMessenger& msgr,
 void
 LSPProjectWrapper::MessageReceived(BMessage* msg)
 {
-	if (msg->what == kLSPMessage) {
-		const char* json;
-		if (msg->FindString("data", &json) == B_OK && fLSPPipeClient) {
-			try {
-				auto value = lsp::json::parse(json);
-				auto& obj = value.object();
-
-				if (obj.contains("id")) {
-					if (obj.contains("method")) {
-						auto& params = obj.get("params");
-						onRequest(obj.get("method").string(), params, obj.get("id"));
-					} else if (obj.contains("result")) {
-						auto& result = obj.get("result");
-						onResponse(obj.get("id").string(), result);
-					} else if (obj.contains("error")) {
-						auto& error = obj.get("error");
-						onError(obj.get("id").string(), error);
-					}
-				} else if (obj.contains("method")) {
-					if (obj.contains("params")) {
-						auto& params = obj.get("params");
-						onNotify(obj.get("method").string(), params);
-					}
+	switch (msg->what) {
+		case kLSPNotify:
+		{
+			const char* method;
+			const char* data;
+			if (msg->FindString("method", &method) == B_OK
+				&& msg->FindString("data", &data) == B_OK) {
+				try {
+					auto params = lsp::json::parse(data);
+					_OnNotify(method, params);
+				} catch (std::exception& e) {
+					LogTrace("LSPProjectWrapper notification exception: %s", e.what());
 				}
 			}
-			catch (std::exception& e) {
-				LogTrace("LSPProjectWrapper exception: %s", e.what());
-				return;
-			}
+			break;
 		}
+		case kLSPResponse:
+		{
+			const char* documentKey;
+			const char* method;
+			const char* data;
+			if (msg->FindString("documentKey", &documentKey) == B_OK
+				&& msg->FindString("method", &method) == B_OK
+				&& msg->FindString("data", &data) == B_OK) {
+				try {
+					auto result = lsp::json::parse(data);
+					_OnResponse(documentKey, method, result);
+				} catch (std::exception& e) {
+					LogTrace("LSPProjectWrapper response exception: %s", e.what());
+				}
+			}
+			break;
+		}
+		case kLSPError:
+		{
+			const char* documentKey;
+			const char* method;
+			const char* data;
+			if (msg->FindString("documentKey", &documentKey) == B_OK
+				&& msg->FindString("method", &method) == B_OK
+				&& msg->FindString("data", &data) == B_OK) {
+				try {
+					auto error = lsp::json::parse(data);
+					_OnError(documentKey, method, error);
+				} catch (std::exception& e) {
+					LogTrace("LSPProjectWrapper error exception: %s", e.what());
+				}
+			}
+			break;
+		}
+		default:
+			BHandler::MessageReceived(msg);
+			break;
 	}
 }
 
@@ -215,11 +244,11 @@ LSPProjectWrapper::_Create()
 		return false;
 
 	looper->AddHandler(this);
-	BMessenger thisProject = BMessenger(this, looper);
+	fHandlerMessenger = BMessenger(this, looper);
 
 	chdir(Name());
 
-	fLSPPipeClient = new LSPPipeClient(kLSPMessage, thisProject);
+	fLSPPipeClient = new LSPPipeClient();
 
 	status_t started = fLSPPipeClient->Start(
 											const_cast<const char**>(fServerConfig.Argv()),
@@ -234,6 +263,7 @@ LSPProjectWrapper::_Create()
 		return false;
 	}
 
+	_RegisterHandlers();
 	Initialize(std::string(fUrl.UrlString().String()));
 
 	return true;
@@ -246,10 +276,8 @@ LSPProjectWrapper::~LSPProjectWrapper()
 		Looper()->RemoveHandler(this);
 	}
 
-	if (!fInitialized) {
-		if (fLSPPipeClient) {
-			fLSPPipeClient->ForceQuit();
-		}
+	if (!fInitialized || !fLSPPipeClient) {
+		delete fLSPPipeClient;
 		return;
 	}
 
@@ -257,18 +285,24 @@ LSPProjectWrapper::~LSPProjectWrapper()
 		LogError("LSPProjectWrapper::Dispose() still textDocument registered! [%s]",
 			m.second->GetFilenameURI().String());
 
-	Shutdown();
-	Exit();
+	// Synchronous shutdown: send shutdown request and wait for response
+	if (fLSPPipeClient->IsRunning()) {
+		try {
+			auto resp = fLSPPipeClient->Handler().sendRequest("shutdown");
+			resp.result.wait_for(std::chrono::milliseconds(500));
+		} catch (...) {}
 
-	int i = 0;
-	while (fLSPPipeClient && !fLSPPipeClient->HasQuitBeenRequested() && i++ < 3) {
-		snooze(50000);
+		try {
+			fLSPPipeClient->Handler().sendNotification("exit");
+		} catch (...) {}
+
+		// Give server a moment to process exit
+		int i = 0;
+		while (fLSPPipeClient->IsRunning() && i++ < 3)
+			snooze(50000);
 	}
 
-	// let's force the thread to quit.
-	if (fLSPPipeClient) {
-		fLSPPipeClient->KillThread();
-	}
+	delete fLSPPipeClient;
 }
 
 
@@ -287,7 +321,7 @@ LSPProjectWrapper::_DocumentByURI(const char* uri)
 
 
 void
-LSPProjectWrapper::onNotify(std::string method, value& params)
+LSPProjectWrapper::_OnNotify(std::string method, value& params)
 {
 	if (method.compare("textDocument/publishDiagnostics") == 0
 		|| method.compare("textDocument/clangd.fileStatus") == 0) {
@@ -382,67 +416,53 @@ LSPProjectWrapper::onNotify(std::string method, value& params)
 
 
 void
-LSPProjectWrapper::onResponse(RequestID id, value& result)
+LSPProjectWrapper::_OnResponse(const std::string& documentKey, std::string method, value& result)
 {
-	std::size_t found = id.find('_');
-	std::string key;
-	if (found != std::string::npos) {
-		key = id.substr(0, found);
-		id = id.substr(found + 1);
-	}
-
-	if (id.compare("initialize") == 0) {
+	if (method.compare("initialize") == 0) {
 		fInitialized.store(true);
 		Initialized(result);
 		for(std::pair<std::string, LSPTextDocument*> doc : fTextDocs) {
-			doc.second->onResponse(id, result);
+			doc.second->onResponse(method, result);
 		}
 		return;
 	}
-	if (id.compare("shutdown") == 0) {
+	if (method.compare("shutdown") == 0) {
 		fprintf(stderr, "Shutdown received\n");
 		fInitialized.store(false);
 		return;
 	}
 
-	auto search = fTextDocs.find(key);
+	auto search = fTextDocs.find(documentKey);
 	if (search != fTextDocs.end()) {
-		search->second->onResponse(id, result);
+		search->second->onResponse(method, result);
 	} else {
-		LogError("LSPProjectWrapper::onResponse not handled! [%s][%s] for [%s]", key.c_str(),
-			id.c_str(), key.c_str());
+		LogError("LSPProjectWrapper::_OnResponse not handled! [%s] for [%s]", method.c_str(),
+			documentKey.c_str());
 	}
 }
 
 
 void
-LSPProjectWrapper::onError(RequestID id, value& error)
+LSPProjectWrapper::_OnError(const std::string& documentKey, std::string method, value& error)
 {
-	std::size_t found = id.find('_');
-	std::string key;
-	if (found != std::string::npos) {
-		key = id.substr(0, found);
-		id = id.substr(found + 1);
-	}
-
-	auto search = fTextDocs.find(key);
+	auto search = fTextDocs.find(documentKey);
 	if (search != fTextDocs.end())
-		search->second->onError(id, error);
+		search->second->onError(method, error);
 	else
-		LogError("LSPProjectWrapper::onError not handled! [%s][%s] for [%s]", key.c_str(),
-			id.c_str(), key.c_str());
+		LogError("LSPProjectWrapper::_OnError not handled! [%s] for [%s]", method.c_str(),
+			documentKey.c_str());
 }
 
 
 void
-LSPProjectWrapper::onRequest(std::string method, value& params, value& ID)
+LSPProjectWrapper::_OnRequest(std::string method, value& params, value& ID)
 {
-	LogError("LSPProjectWrapper::onRequest not implemented! [%s] [%s]", method.c_str(),
+	LogError("LSPProjectWrapper::_OnRequest not implemented! [%s] [%s]", method.c_str(),
 		lsp::json::stringify(ID).c_str());
 }
 
 
-RequestID
+void
 LSPProjectWrapper::Initialize(std::optional<std::string> rootUri)
 {
 	lsp::InitializeParams params;
@@ -472,28 +492,28 @@ LSPProjectWrapper::Initialize(std::optional<std::string> rootUri)
 	textDoc["completion"].object()["editsNearCursor"] = lsp::json::Value(true);
 	caps["window"].object()["implicitWorkDoneProgressCreate"] = lsp::json::Value(true);
 
-	return SendRequest("client", "initialize", std::move(jParams));
+	_SendRequest(nullptr, "initialize", std::move(jParams));
 }
 
 
-RequestID
+void
 LSPProjectWrapper::Shutdown()
 {
-	return SendRequest("client", "shutdown", json());
+	_SendRequest(nullptr, "shutdown", json());
 }
 
 
-RequestID
+void
 LSPProjectWrapper::Sync()
 {
-	return SendRequest("client", "sync", json());
+	_SendRequest(nullptr, "sync", json());
 }
 
 
 void
 LSPProjectWrapper::Exit()
 {
-	SendNotify("exit", json());
+	_SendNotify("exit", json());
 }
 
 
@@ -547,17 +567,9 @@ LSPProjectWrapper::Initialized(json& result)
 		_CheckAndSetCapability(*capas, "documentSymbolProvider", kLCapDocumentSymbols);
 	}
 
-	SendNotify("initialized", json());
+	_SendNotify("initialized", json());
 
 	fMessenger.SendMessage(kMsgCapabilitiesUpdated);
-}
-
-
-RequestID
-LSPProjectWrapper::RegisterCapability()
-{
-	//?
-	return SendRequest("client/registerCapability", "client/registerCapability", json());
 }
 
 
@@ -569,7 +581,7 @@ LSPProjectWrapper::DidOpen(LSPTextDocument* textDocument, std::string_view text,
 	params.textDocument.text = std::string(text);
 	params.textDocument.languageId = std::string(languageId);
 	params.textDocument.version = 0;
-	SendNotify("textDocument/didOpen", LSPBridge::toJson(params));
+	_SendNotify("textDocument/didOpen", LSPBridge::toJson(params));
 }
 
 
@@ -578,7 +590,7 @@ LSPProjectWrapper::DidClose(LSPTextDocument* textDocument)
 {
 	lsp::DidCloseTextDocumentParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
-	SendNotify("textDocument/didClose", LSPBridge::toJson(params));
+	_SendNotify("textDocument/didClose", LSPBridge::toJson(params));
 }
 
 
@@ -591,7 +603,7 @@ LSPProjectWrapper::DidChange(LSPTextDocument* textDocument,
 	params.textDocument.version = 0; // Genio does not track document versions yet
 	params.contentChanges = std::move(changes);
 	// wantDiagnostics is a clangd extension — not wired yet
-	SendNotify("textDocument/didChange", LSPBridge::toJson(params));
+	_SendNotify("textDocument/didChange", LSPBridge::toJson(params));
 }
 
 
@@ -601,45 +613,45 @@ LSPProjectWrapper::DidSave(LSPTextDocument* textDocument)
 {
 	lsp::DidSaveTextDocumentParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
-	SendNotify("textDocument/didSave", LSPBridge::toJson(params));
+	_SendNotify("textDocument/didSave", LSPBridge::toJson(params));
 }
 
 
-RequestID
+void
 LSPProjectWrapper::RangeFomatting(LSPTextDocument* textDocument, Range range)
 {
 	if (!HasCapability(kLCapDocRangeFormatting))
-		return RequestID();
+		return;
 
 	lsp::DocumentRangeFormattingParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.range = range;
 	params.options.tabSize = 4;
 	params.options.insertSpaces = false;
-	return SendRequest(X(textDocument), "textDocument/rangeFormatting", LSPBridge::toJson(params));
+	_SendRequest(textDocument, "textDocument/rangeFormatting", LSPBridge::toJson(params));
 }
 
 
-RequestID
+void
 LSPProjectWrapper::FoldingRange(LSPTextDocument* textDocument)
 {
 	lsp::FoldingRangeParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
-	return SendRequest(X(textDocument), "textDocument/foldingRange", LSPBridge::toJson(params));
+	_SendRequest(textDocument, "textDocument/foldingRange", LSPBridge::toJson(params));
 }
 
 
-RequestID
+void
 LSPProjectWrapper::SelectionRange(LSPTextDocument* textDocument, std::vector<Position>& positions)
 {
 	lsp::SelectionRangeParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.positions = std::move(positions);
-	return SendRequest(X(textDocument), "textDocument/selectionRange", LSPBridge::toJson(params));
+	_SendRequest(textDocument, "textDocument/selectionRange", LSPBridge::toJson(params));
 }
 
 
-RequestID
+void
 LSPProjectWrapper::OnTypeFormatting(LSPTextDocument* textDocument, Position position, std::string_view ch)
 {
 	lsp::DocumentOnTypeFormattingParams params;
@@ -648,225 +660,286 @@ LSPProjectWrapper::OnTypeFormatting(LSPTextDocument* textDocument, Position posi
 	params.ch = std::string(ch);
 	params.options.tabSize = 4;
 	params.options.insertSpaces = false;
-	return SendRequest(X(textDocument), "textDocument/onTypeFormatting", LSPBridge::toJson(std::move(params)));
+	_SendRequest(textDocument, "textDocument/onTypeFormatting", LSPBridge::toJson(std::move(params)));
 }
 
 
-RequestID
+void
 LSPProjectWrapper::Formatting(LSPTextDocument* textDocument)
 {
 	if (!HasCapability(kLCapDocFormatting))
-		return RequestID();
+		return;
 
 	lsp::DocumentFormattingParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.options.tabSize = 4;
 	params.options.insertSpaces = false;
-	return SendRequest(X(textDocument), "textDocument/formatting", LSPBridge::toJson(std::move(params)));
+	_SendRequest(textDocument, "textDocument/formatting", LSPBridge::toJson(std::move(params)));
 }
 
 
-RequestID
+void
 LSPProjectWrapper::CodeAction(LSPTextDocument* textDocument, Range range, lsp::CodeActionContext& context)
 {
 	lsp::CodeActionParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.range = range;
 	params.context = context;
-	return SendRequest(X(textDocument), "textDocument/codeAction", LSPBridge::toJson(params));
+	_SendRequest(textDocument, "textDocument/codeAction", LSPBridge::toJson(params));
 }
 
 
-RequestID
+void
 LSPProjectWrapper::CodeActionResolve(LSPTextDocument* textDocument, lsp::CodeAction& data)
 {
 	auto j = LSPBridge::toJson(data);
-	return SendRequest(X(textDocument), "codeAction/resolve", j);
+	_SendRequest(textDocument, "codeAction/resolve", j);
 }
 
 
-RequestID
+void
 LSPProjectWrapper::CodeActionResolve(LSPTextDocument* textDocument, value& data)
 {
-	return SendRequest(X(textDocument), "codeAction/resolve", data);
+	_SendRequest(textDocument, "codeAction/resolve", data);
 }
 
 
-RequestID
+void
 LSPProjectWrapper::Completion(
 	LSPTextDocument* textDocument, Position position, lsp::CompletionContext& context)
 {
 	if (!HasCapability(kLCapCompletion))
-		return RequestID();
+		return;
 
 	lsp::CompletionParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
 	params.context = context;
-	return SendRequest(X(textDocument), "textDocument/completion", LSPBridge::toJson(params));
+	_SendRequest(textDocument, "textDocument/completion", LSPBridge::toJson(params));
 }
 
 
-RequestID
+void
 LSPProjectWrapper::SignatureHelp(LSPTextDocument* textDocument, Position position)
 {
 	if (!HasCapability(kLCapSignatureHelp))
-		return RequestID();
+		return;
 
 	lsp::TextDocumentPositionParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
-	return SendRequest(X(textDocument), "textDocument/signatureHelp", LSPBridge::toJson(std::move(params)));
+	_SendRequest(textDocument, "textDocument/signatureHelp", LSPBridge::toJson(std::move(params)));
 }
 
 
-RequestID
+void
 LSPProjectWrapper::GoToDefinition(LSPTextDocument* textDocument, Position position)
 {
 	if (!HasCapability(kLCapDefinition))
-		return RequestID();
+		return;
 
 	lsp::TextDocumentPositionParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
-	return SendRequest(X(textDocument), "textDocument/definition", LSPBridge::toJson(std::move(params)));
+	_SendRequest(textDocument, "textDocument/definition", LSPBridge::toJson(std::move(params)));
 }
 
 
-RequestID
+void
 LSPProjectWrapper::GoToImplementation(LSPTextDocument* textDocument, Position position)
 {
 	if (!HasCapability(kLCapImplementation))
-		return RequestID();
+		return;
 
 	lsp::TextDocumentPositionParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
-	return SendRequest(X(textDocument), "textDocument/implementation", LSPBridge::toJson(std::move(params)));
+	_SendRequest(textDocument, "textDocument/implementation", LSPBridge::toJson(std::move(params)));
 }
 
 
-RequestID
+void
 LSPProjectWrapper::GoToDeclaration(LSPTextDocument* textDocument, Position position)
 {
 	if (!HasCapability(kLCapDeclaration))
-		return RequestID();
+		return;
 
 	lsp::TextDocumentPositionParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
-	return SendRequest(X(textDocument), "textDocument/declaration", LSPBridge::toJson(std::move(params)));
+	_SendRequest(textDocument, "textDocument/declaration", LSPBridge::toJson(std::move(params)));
 }
 
 
-RequestID
+void
 LSPProjectWrapper::References(LSPTextDocument* textDocument, Position position)
 {
 	lsp::ReferenceParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
 	params.context.includeDeclaration = true;
-	return SendRequest(X(textDocument), "textDocument/references", LSPBridge::toJson(std::move(params)));
+	_SendRequest(textDocument, "textDocument/references", LSPBridge::toJson(std::move(params)));
 }
 
 
-RequestID
+void
 LSPProjectWrapper::SwitchSourceHeader(LSPTextDocument* textDocument)
 {
 	lsp::TextDocumentIdentifier params;
 	params.uri = MakeDocUri(textDocument);
-	return SendRequest(X(textDocument), "textDocument/switchSourceHeader", LSPBridge::toJson(std::move(params)));
+	_SendRequest(textDocument, "textDocument/switchSourceHeader", LSPBridge::toJson(std::move(params)));
 }
 
 
-RequestID
+void
 LSPProjectWrapper::Rename(LSPTextDocument* textDocument, Position position, std::string_view newName)
 {
 	lsp::RenameParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
 	params.newName = std::string(newName);
-	return SendRequest(X(textDocument), "textDocument/rename", LSPBridge::toJson(std::move(params)));
+	_SendRequest(textDocument, "textDocument/rename", LSPBridge::toJson(std::move(params)));
 }
 
 
-RequestID
+void
 LSPProjectWrapper::Hover(LSPTextDocument* textDocument, Position position)
 {
 	if (!HasCapability(kLCapHover))
-		return RequestID();
+		return;
 
 	lsp::TextDocumentPositionParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
-	return SendRequest(X(textDocument), "textDocument/hover", LSPBridge::toJson(std::move(params)));
+	_SendRequest(textDocument, "textDocument/hover", LSPBridge::toJson(std::move(params)));
 }
 
 
-RequestID
+void
 LSPProjectWrapper::DocumentSymbol(LSPTextDocument* textDocument)
 {
 	if (!HasCapability(kLCapDocumentSymbols))
-		return RequestID();
+		return;
 
 	lsp::DocumentSymbolParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
-	return SendRequest(X(textDocument), "textDocument/documentSymbol", LSPBridge::toJson(std::move(params)));
+	_SendRequest(textDocument, "textDocument/documentSymbol", LSPBridge::toJson(std::move(params)));
 }
 
 
-RequestID
+void
 LSPProjectWrapper::DocumentColor(LSPTextDocument* textDocument)
 {
 	lsp::DocumentColorParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
-	return SendRequest(X(textDocument), "textDocument/documentColor", LSPBridge::toJson(std::move(params)));
+	_SendRequest(textDocument, "textDocument/documentColor", LSPBridge::toJson(std::move(params)));
 }
 
 
-RequestID
+void
 LSPProjectWrapper::DocumentHighlight(LSPTextDocument* textDocument, Position position)
 {
 	lsp::DocumentHighlightParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
-	return SendRequest(X(textDocument), "textDocument/documentHighlight", LSPBridge::toJson(std::move(params)));
+	_SendRequest(textDocument, "textDocument/documentHighlight", LSPBridge::toJson(std::move(params)));
 }
 
 
-RequestID
+void
 LSPProjectWrapper::SymbolInfo(LSPTextDocument* textDocument, Position position)
 {
 	lsp::TextDocumentPositionParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
-	return SendRequest(X(textDocument), "textDocument/symbolInfo", LSPBridge::toJson(std::move(params)));
-}
-
-
-RequestID
-LSPProjectWrapper::DocumentLink(LSPTextDocument* textDocument)
-{
-	if (!HasCapability(kLCapDocLink))
-		return RequestID();
-
-	lsp::DocumentLinkParams params;
-	params.textDocument.uri = MakeDocUri(textDocument);
-	return SendRequest(X(textDocument), "textDocument/documentLink", LSPBridge::toJson(std::move(params)));
-}
-
-
-RequestID
-LSPProjectWrapper::SendRequest(RequestID id, std::string_view method, value params)
-{
-	id.append("_").append(method);
-	fLSPPipeClient->request(method, params, id);
-	return id;
+	_SendRequest(textDocument, "textDocument/symbolInfo", LSPBridge::toJson(std::move(params)));
 }
 
 
 void
-LSPProjectWrapper::SendNotify(std::string_view method, value params)
+LSPProjectWrapper::DocumentLink(LSPTextDocument* textDocument)
 {
-	fLSPPipeClient->notify(method, params);
+	if (!HasCapability(kLCapDocLink))
+		return;
+
+	lsp::DocumentLinkParams params;
+	params.textDocument.uri = MakeDocUri(textDocument);
+	_SendRequest(textDocument, "textDocument/documentLink", LSPBridge::toJson(std::move(params)));
+}
+
+
+// --- Send helpers (via lsp::MessageHandler) ---
+
+
+void
+LSPProjectWrapper::_SendRequest(LSPTextDocument* textDocument, std::string_view method, value params)
+{
+	std::string docKey = textDocument ? X(textDocument) : "client";
+	std::string methodStr(method);
+
+	fLSPPipeClient->Handler().sendRequest(
+		methodStr,
+		std::move(params),
+		[this, docKey, methodStr](lsp::json::Value&& result) {
+			BMessage msg(kLSPResponse);
+			msg.AddString("documentKey", docKey.c_str());
+			msg.AddString("method", methodStr.c_str());
+			msg.AddString("data", lsp::json::stringify(result).c_str());
+			fHandlerMessenger.SendMessage(&msg);
+		},
+		[this, docKey, methodStr](const lsp::ResponseError& error) {
+			BMessage msg(kLSPError);
+			msg.AddString("documentKey", docKey.c_str());
+			msg.AddString("method", methodStr.c_str());
+			lsp::json::Object errObj;
+			errObj["code"] = error.code();
+			errObj["message"] = std::string(error.message());
+			msg.AddString("data", lsp::json::stringify(lsp::json::Value(std::move(errObj))).c_str());
+			fHandlerMessenger.SendMessage(&msg);
+		});
+}
+
+
+void
+LSPProjectWrapper::_SendNotify(std::string_view method, value params)
+{
+	fLSPPipeClient->Handler().sendNotification(method, std::optional<lsp::json::Value>(std::move(params)));
+}
+
+
+// --- Handler registration (callbacks fire on reader thread, marshal to UI) ---
+
+
+void
+LSPProjectWrapper::_RegisterHandlers()
+{
+	auto& handler = fLSPPipeClient->Handler();
+
+	// Helper: create a generic notification handler that marshals to the UI thread.
+	auto marshalNotify = [this](const char* methodName) {
+		std::string method(methodName);
+		return [this, method](lsp::json::Value&& params) -> lsp::json::Value {
+			BMessage msg(kLSPNotify);
+			msg.AddString("method", method.c_str());
+			msg.AddString("data", lsp::json::stringify(params).c_str());
+			fHandlerMessenger.SendMessage(&msg);
+			return lsp::json::Value{};
+		};
+	};
+
+	// Server → Client notifications
+	handler.add("textDocument/publishDiagnostics",
+		marshalNotify("textDocument/publishDiagnostics"));
+	handler.add("textDocument/clangd.fileStatus",
+		marshalNotify("textDocument/clangd.fileStatus"));
+	handler.add("$/progress",
+		marshalNotify("$/progress"));
+	handler.add("window/logMessage",
+		marshalNotify("window/logMessage"));
+
+	// Server → Client requests
+	handler.add("window/workDoneProgress/create",
+		[](lsp::json::Value&&) -> lsp::json::Value {
+			return lsp::json::Value{};  // accept
+		});
 }

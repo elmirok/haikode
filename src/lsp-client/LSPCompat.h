@@ -4,7 +4,12 @@
  */
 #pragma once
 
+#include <lsp/json/json.h>
 #include <lsp/types.h>
+
+// Type aliases formerly in MessageHandler.h, used throughout the LSP client.
+using value = lsp::json::Value;
+using RequestID = std::string;
 
 // Comparison operators not provided by lsp-framework.
 namespace lsp {

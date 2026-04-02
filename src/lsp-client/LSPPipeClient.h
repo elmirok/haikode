@@ -5,51 +5,38 @@
 
 #pragma once
 
-#include <unistd.h>
+#include <atomic>
+#include <thread>
 
 #include "PipeImage.h"
 #include "PipeStream.h"
-#include "MessageHandler.h"
-
-#include <Looper.h>
-#include <Messenger.h>
 
 #include <lsp/connection.h>
+#include <lsp/messagehandler.h>
 
-class LSPReaderThread;
-
-class LSPPipeClient : public BLooper {
+class LSPPipeClient {
 
 public:
 
-			 LSPPipeClient(uint32 what, BMessenger& msgr);
+			 LSPPipeClient();
 	virtual ~LSPPipeClient();
 
 	status_t Start(const char **argv, int32 argc);
 
 	void	Close();
 
-	void	notify(std::string_view method, value params);
-	void	request(std::string_view method, value params, RequestID &id);
-
-	bool	readStep();
+	lsp::MessageHandler& Handler() { return fHandler; }
 
 	pid_t	GetChildPid() const;
-
-	void	ForceQuit(); //quite the looper and the kill the thread
-	bool	HasQuitBeenRequested();
-	void	KillThread();
+	bool	IsRunning() const { return fRunning.load(); }
 
 private:
-  bool	_PostMessage(lsp::jsonrpc::Message&& msg);
-  void	MessageReceived(BMessage* msg) override;
-  void	Quit() override;
-  thread_id	Run() override;
+  void	_ReaderLoop();
 
-  uint32			fWhat;
-  BMessenger		fMessenger;
-  LSPReaderThread*	fReaderThread;
-  PipeImage			fPipeImage;
-  PipeStream		fPipeStream;
-  lsp::Connection	fConnection;
+  PipeImage				fPipeImage;
+  PipeStream			fPipeStream;
+  lsp::Connection		fConnection;
+  lsp::MessageHandler	fHandler;
+  std::thread			fReaderThread;
+  std::atomic<bool>		fRunning;
 };
