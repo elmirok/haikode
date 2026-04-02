@@ -41,12 +41,7 @@ public:
 	void	KillThread();
 
 private:
-  // Read path (hand-rolled Content-Length framing, kept for now)
-  bool	readMessage(std::string &json);
-  int 	ReadMessageHeader();
-  bool	ReadHeaderLine(char* header, size_t maxlen);
-  int 	Read(int length, std::string &out);
-
+  bool	_PostMessage(lsp::jsonrpc::Message&& msg);
   void	MessageReceived(BMessage* msg) override;
   void	Quit() override;
   thread_id	Run() override;

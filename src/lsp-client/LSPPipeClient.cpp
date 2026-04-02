@@ -57,90 +57,44 @@ LSPPipeClient::~LSPPipeClient()
 }
 
 
-// --- Read path (hand-rolled Content-Length framing, unchanged) ---
+// --- Read path (via lsp::Connection::readMessage) ---
 
 
 bool
-LSPPipeClient::ReadHeaderLine(char* header, size_t maxlen)
+LSPPipeClient::_PostMessage(lsp::jsonrpc::Message&& msg)
 {
-	ssize_t hasRead = 0;
-	size_t length = 0;
-	while ((hasRead = fPipeImage.Read(&header[length], 1)) != -1) {
-		if (hasRead == 0 || length >= maxlen - 1) // pipe eof or protection
-			return false;
-
-		if (header[length] == '\n') {
-			break;
-		}
-		length++;
-	}
-	return true;
-}
-
-
-int
-LSPPipeClient::ReadMessageHeader()
-{
-	char szReadBuffer[255];
-	int len = 0;
-	while (ReadHeaderLine(szReadBuffer, 255)) {
-		if (::strncmp(szReadBuffer, "Content-Length: ", 16) == 0) {
-			len = ::strtol(szReadBuffer + 16, nullptr, 10);
-		} else if (::strncmp(szReadBuffer, "\r\n", 2) == 0) {
-			break;
-		} else {
-			LogTrace("Unsuported LSP message header: %s", szReadBuffer);
-		}
-	}
-	return len;
-}
-
-
-int
-LSPPipeClient::Read(int length, std::string &out)
-{
-	int readSize = 0;
-	ssize_t hasRead;
-	out.resize(length);
-	while ((hasRead = fPipeImage.Read(&out[readSize], length)) != -1) {
-		if (hasRead == 0) // pipe eof
-			return 0;
-
-		readSize += hasRead;
-		if (readSize >= length) {
-			break;
-		}
-	}
-
-	return readSize;
-}
-
-
-bool
-LSPPipeClient::readMessage(std::string &json)
-{
-	json.clear();
-	int length = ReadMessageHeader();
-	if (length == 0)
-		return false;
-	if (Read(length, json) == 0)
-		return false;
-	LogTrace("Client - rcv %d:\n%s\n", length, json.c_str());
-	return true;
+	auto jsonObj = lsp::jsonrpc::messageToJson(std::move(msg));
+	std::string json = lsp::json::stringify(lsp::json::Value(std::move(jsonObj)));
+	LogTrace("Client - rcv %d:\n%s\n", (int)json.size(), json.c_str());
+	BMessage req(kReadResult);
+	req.AddString("data", json.c_str());
+	return BLooper::PostMessage(&req) == B_OK;
 }
 
 
 bool
 LSPPipeClient::readStep()
 {
-	std::string data;
-	bool result = readMessage(data);
-	if (result) {
-		BMessage req(kReadResult);
-		req.AddString("data", data.c_str());
-		return BLooper::PostMessage(&req) == B_OK;
+	try {
+		auto message = fConnection.readMessage();
+		//single message or batch?
+		if (auto* msg = std::get_if<lsp::jsonrpc::Message>(&message)) {
+			return _PostMessage(std::move(*msg));
+		}
+		if (auto* batch = std::get_if<lsp::jsonrpc::MessageBatch>(&message)) {
+			for (auto& msg : *batch) {
+				if (!_PostMessage(std::move(msg)))
+					return false;
+			}
+			return true;
+		}
+		return false;
+	} catch (const lsp::ConnectionError&) {
+		return false;
+	} catch (const std::exception& e) {
+		LogTrace("LSPPipeClient::readStep error: %s", e.what());
+		return false;
 	}
-	return result;
 }
 
 
