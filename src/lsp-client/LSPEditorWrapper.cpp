@@ -8,8 +8,8 @@
 #include <Application.h>
 #include <Path.h>
 #include <Catalog.h>
-#include <Window.h>
 
+#include <Window.h>
 #include <algorithm>
 #include <cstdio>
 #include <debugger.h>
@@ -827,11 +827,10 @@ LSPEditorWrapper::_RemoveAllDiagnostics()
 
 
 void
-LSPEditorWrapper::_DoDiagnostics(value& params)
+LSPEditorWrapper::_DoDiagnostics(lsp::PublishDiagnosticsParams&& params)
 {
-	auto* versionField = params.object().find("version");
-	if (versionField != nullptr && !versionField->isNull()) {
-		int32 serverVersion = static_cast<int32>(versionField->integer());
+	if (params.version.has_value()) {
+		int32 serverVersion = static_cast<int32>(params.version.value());
 		if (serverVersion < Version()) {
 			LogTrace("Discarding stale diagnostics: server=%ld local=%ld", serverVersion, Version());
 			return;
@@ -840,9 +839,7 @@ LSPEditorWrapper::_DoDiagnostics(value& params)
 
 	_RemoveAllDiagnostics();
 
-	for (auto& diagJson : params.object().get("diagnostics").array()) {
-		auto diag = LSPBridge::fromJson<lsp::Diagnostic>(diagJson);
-
+	for (auto& diag : params.diagnostics) {
 		LSPDiagnostic lspDiag;
 		lspDiag.diagnostic = std::move(diag);
 
@@ -852,24 +849,10 @@ LSPEditorWrapper::_DoDiagnostics(value& params)
 		ir.to = FromLSPPositionToSciPosition(&r.end);
 		ir.info = lspDiag.diagnostic.message;
 
-		// Extract clangd extension fields (not part of the LSP spec).
-		auto& diagObj = diagJson.object();
-		if (diagObj.contains("category"))
-			lspDiag.category = diagObj.get("category").string();
-		if (diagObj.contains("codeActions")) {
-			auto& codeActionsArr = diagObj.get("codeActions").array();
-			std::vector<CodeAction> actions;
-			for (auto& caJson : codeActionsArr)
-				actions.push_back(LSPBridge::fromJson<lsp::CodeAction>(caJson));
-			lspDiag.codeActions = std::move(actions);
-		}
-
 		LogTrace("Diagnostics [%ld->%ld] [%s][%s]\n", ir.from, ir.to, ir.info.c_str(),lspDiag.diagnostic.message.c_str());
 		fEditor->SendMessage(SCI_INDICATORFILLRANGE, ir.from, ir.to - ir.from);
 
-		if (!lspDiag.codeActions.has_value() || lspDiag.codeActions->empty()) {
-			RequestCodeActions(lspDiag.diagnostic);
-		}
+		RequestCodeActions(lspDiag.diagnostic);
 
 		fLastDiagnostics.push_back(lspDiag);
 	}
@@ -1099,7 +1082,6 @@ LSPEditorWrapper::IsStatusValid()
 void
 LSPEditorWrapper::onNotify(std::string id, value& result)
 {
-	IF_ID("textDocument/publishDiagnostics", _DoDiagnostics);
 	IF_ID("textDocument/clangd.fileStatus", _DoFileStatus);
 
 	LogError("LSPEditorWrapper::onNotify not handled! [%s]", id.c_str());

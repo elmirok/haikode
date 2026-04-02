@@ -931,8 +931,14 @@ LSPProjectWrapper::_RegisterHandlers()
 	};
 
 	// Server → Client notifications
-	handler.add("textDocument/publishDiagnostics",
-		marshalNotify("textDocument/publishDiagnostics"));
+	handler.add<lsp::notifications::TextDocument_PublishDiagnostics>(
+		[this](lsp::PublishDiagnosticsParams&& params) {
+			BAutolock lock(this->Looper());
+			std::string uri = params.uri.toString();
+			LSPTextDocument* doc = _DocumentByURI(uri.c_str());
+			if (doc)
+				static_cast<LSPEditorWrapper*>(doc)->_DoDiagnostics(std::move(params));
+		});
 	handler.add("textDocument/clangd.fileStatus",
 		marshalNotify("textDocument/clangd.fileStatus"));
 	handler.add("$/progress",

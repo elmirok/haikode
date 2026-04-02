@@ -134,7 +134,8 @@ private:
 	void	_DoSignatureHelp(value& params);
 	void	_DoSwitchSourceHeader(value& params);
 	void	_DoCompletion(value& params);
-	void	_DoDiagnostics(value& params);
+public:
+	void	_DoDiagnostics(lsp::PublishDiagnosticsParams&& params);
 	void	_DoDocumentLink(value& params);
 	void	_DoFileStatus(value& params);
 	void	_DoDocumentSymbol(value& params);
