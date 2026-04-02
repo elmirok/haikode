@@ -10,7 +10,10 @@
 #include <Path.h>
 #include <Locker.h>
 #include <atomic>
+#include <functional>
 #include <map>
+#include <mutex>
+#include <queue>
 #include <string_view>
 #include <MessageFilter.h>
 #include <Messenger.h>
@@ -30,6 +33,7 @@ class LSPServerConfigInterface;
 using json = lsp::json::Value;
 
 const int32 kLSPWorkProgress = 'lswp';
+const int32 kLSPTypedResponse = 'lstr';
 
 class LSPProjectWrapper : public BHandler {
 
@@ -105,6 +109,7 @@ private:
 	void _OnResponse(const std::string& documentKey, std::string method, value& result);
 	void _OnError(const std::string& documentKey, std::string method, value& error);
 	void _OnRequest(std::string method, value& params, value& id);
+	void _DrainResponseQueue();
 
 	typedef std::map<std::string, LSPTextDocument*> MapFile;
 
@@ -121,6 +126,9 @@ private:
 	const LSPServerConfigInterface& fServerConfig;
 	uint32	fServerCapabilities;
 	BMessage	fWorkDone;
+
+	std::mutex						fResponseQueueLock;
+	std::queue<std::function<void()>>	fResponseQueue;
 };
 
 
@@ -130,9 +138,15 @@ LSPProjectWrapper::_SendTypedRequest(typename M::Params&& params, F&& then)
 {
 	fLSPPipeClient->Handler().sendRequest<M>(
 		std::move(params),
-		[this, cb = std::forward<F>(then)](typename M::Result&& result) {
-			BAutolock lock(this->Looper());
-			cb(std::move(result));
+		[this, cb = std::forward<F>(then)](typename M::Result&& result) mutable {
+			{
+				std::lock_guard<std::mutex> guard(fResponseQueueLock);
+				fResponseQueue.push(
+					[cb = std::move(cb), r = std::move(result)]() mutable {
+						cb(std::move(r));
+					});
+			}
+			fHandlerMessenger.SendMessage(kLSPTypedResponse);
 		},
 		[](const lsp::ResponseError& error) {
 			LogError("LSP request error: %s", error.message());

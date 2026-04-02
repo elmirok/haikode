@@ -200,9 +200,33 @@ LSPProjectWrapper::MessageReceived(BMessage* msg)
 			}
 			break;
 		}
+		case kLSPTypedResponse:
+		{
+			_DrainResponseQueue();
+			break;
+		}
 		default:
 			BHandler::MessageReceived(msg);
 			break;
+	}
+}
+
+
+void
+LSPProjectWrapper::_DrainResponseQueue()
+{
+	std::queue<std::function<void()>> pending;
+	{
+		std::lock_guard<std::mutex> guard(fResponseQueueLock);
+		std::swap(pending, fResponseQueue);
+	}
+	while (!pending.empty()) {
+		try {
+			pending.front()();
+		} catch (std::exception& e) {
+			LogTrace("LSPProjectWrapper typed-response exception: %s", e.what());
+		}
+		pending.pop();
 	}
 }
 
@@ -303,7 +327,6 @@ LSPProjectWrapper::~LSPProjectWrapper()
 			snooze(50000);
 	}
 
-	BAutolock lock(Looper());
 	delete fLSPPipeClient;
 }
 
@@ -948,11 +971,17 @@ LSPProjectWrapper::_RegisterHandlers()
 	// Server → Client notifications
 	handler.add<lsp::notifications::TextDocument_PublishDiagnostics>(
 		[this](lsp::PublishDiagnosticsParams&& params) {
-			BAutolock lock(this->Looper());
-			std::string uri = params.uri.toString();
-			LSPTextDocument* doc = _DocumentByURI(uri.c_str());
-			if (doc)
-				static_cast<LSPEditorWrapper*>(doc)->_DoDiagnostics(std::move(params));
+			{
+				std::lock_guard<std::mutex> guard(fResponseQueueLock);
+				fResponseQueue.push(
+					[this, p = std::move(params)]() mutable {
+						std::string uri = p.uri.toString();
+						LSPTextDocument* doc = _DocumentByURI(uri.c_str());
+						if (doc)
+							static_cast<LSPEditorWrapper*>(doc)->_DoDiagnostics(std::move(p));
+					});
+			}
+			fHandlerMessenger.SendMessage(kLSPTypedResponse);
 		});
 	handler.add("textDocument/clangd.fileStatus",
 		marshalNotify("textDocument/clangd.fileStatus"));
