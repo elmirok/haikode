@@ -6,6 +6,7 @@
 #define _H_LSPProjectWrapper
 
 #include <Locker.h>
+#include <Autolock.h>
 #include <Path.h>
 #include <Locker.h>
 #include <atomic>
@@ -18,11 +19,12 @@
 #include "LSPServersManager.h"
 #include "LSPCapabilities.h"
 #include "LSPCompat.h"
+#include "Log.h"
+#include "LSPPipeClient.h"
 
 #include <lsp/types.h>
 
 class LSPTextDocument;
-class LSPPipeClient;
 class LSPServerConfigInterface;
 
 using json = lsp::json::Value;
@@ -91,6 +93,9 @@ private:
 	void	_SendRequest(LSPTextDocument* textDocument, std::string_view method, value params);
 	void	_SendNotify(std::string_view method, value params);
 
+	template<typename M, typename F>
+	void	_SendTypedRequest(typename M::Params&& params, F&& then);
+
 	LSPPipeClient*			fLSPPipeClient;
 	LSPTextDocument*	_DocumentByURI(const char* uri);
 	bool _CheckAndSetCapability(json& capas, const char* str, const LSPCapability flag);
@@ -99,6 +104,7 @@ private:
 	void _OnNotify(std::string method, value& params);
 	void _OnResponse(const std::string& documentKey, std::string method, value& result);
 	void _OnError(const std::string& documentKey, std::string method, value& error);
+	void _OnRequest(std::string method, value& params, value& id);
 
 	typedef std::map<std::string, LSPTextDocument*> MapFile;
 
@@ -116,5 +122,22 @@ private:
 	uint32	fServerCapabilities;
 	BMessage	fWorkDone;
 };
+
+
+template<typename M, typename F>
+void
+LSPProjectWrapper::_SendTypedRequest(typename M::Params&& params, F&& then)
+{
+	fLSPPipeClient->Handler().sendRequest<M>(
+		std::move(params),
+		[this, cb = std::forward<F>(then)](typename M::Result&& result) {
+			BAutolock lock(this->Looper());
+			cb(std::move(result));
+		},
+		[](const lsp::ResponseError& error) {
+			LogError("LSP request error: %s", error.message());
+		});
+}
+
 
 #endif // _H_LSPProjectWrapper

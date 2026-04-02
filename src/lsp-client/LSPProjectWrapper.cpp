@@ -303,6 +303,7 @@ LSPProjectWrapper::~LSPProjectWrapper()
 			snooze(50000);
 	}
 
+	BAutolock lock(Looper());
 	delete fLSPPipeClient;
 }
 
@@ -622,7 +623,13 @@ LSPProjectWrapper::RangeFomatting(LSPTextDocument* textDocument, Range range)
 	params.range = range;
 	params.options.tabSize = 4;
 	params.options.insertSpaces = false;
-	_SendRequest(textDocument, "textDocument/rangeFormatting", LSPBridge::toJson(params));
+
+	_SendTypedRequest<lsp::requests::TextDocument_RangeFormatting>(
+		std::move(params),
+		[textDocument](lsp::TextDocument_RangeFormattingResult&& result) {
+			if (!result.isNull())
+				static_cast<LSPEditorWrapper*>(textDocument)->_DoFormat(std::move(result.value()));
+		});
 }
 
 
@@ -668,7 +675,13 @@ LSPProjectWrapper::Formatting(LSPTextDocument* textDocument)
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.options.tabSize = 4;
 	params.options.insertSpaces = false;
-	_SendRequest(textDocument, "textDocument/formatting", LSPBridge::toJson(std::move(params)));
+
+	_SendTypedRequest<lsp::requests::TextDocument_Formatting>(
+		std::move(params),
+		[textDocument](lsp::TextDocument_FormattingResult&& result) {
+			if (!result.isNull())
+				static_cast<LSPEditorWrapper*>(textDocument)->_DoFormat(std::move(result.value()));
+		});
 }
 
 
@@ -792,7 +805,13 @@ LSPProjectWrapper::Rename(LSPTextDocument* textDocument, Position position, std:
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
 	params.newName = std::string(newName);
-	_SendRequest(textDocument, "textDocument/rename", LSPBridge::toJson(std::move(params)));
+
+	_SendTypedRequest<lsp::requests::TextDocument_Rename>(
+		std::move(params),
+		[textDocument](lsp::TextDocument_RenameResult&& result) {
+			if (!result.isNull())
+				static_cast<LSPEditorWrapper*>(textDocument)->_DoRename(std::move(result.value()));
+		});
 }
 
 
@@ -806,14 +825,10 @@ LSPProjectWrapper::Hover(LSPTextDocument* textDocument, Position position)
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
 
-	fLSPPipeClient->Handler().sendRequest<lsp::requests::TextDocument_Hover>(
+	_SendTypedRequest<lsp::requests::TextDocument_Hover>(
 		std::move(params),
-		[textDocument, this](lsp::TextDocument_HoverResult&& result) {
-			BAutolock give_me_a_name(this->Looper());
+		[textDocument](lsp::TextDocument_HoverResult&& result) {
 			static_cast<LSPEditorWrapper*>(textDocument)->_DoHover(std::move(result));
-		},
-		[](const lsp::ResponseError& error) {
-			//LogError("Hover error: %s", error.message().c_str());
 		});
 }
 

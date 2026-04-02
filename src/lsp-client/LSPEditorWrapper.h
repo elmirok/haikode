@@ -126,7 +126,10 @@ private:
 private:
 	//callbacks:
 	void	_DoFormat(value& params);
-	void	_DoRename(value& params);
+public:
+	void	_DoFormat(lsp::Array<TextEdit>&& edits);
+	void	_DoRename(lsp::WorkspaceEdit&& edit);
+private:
 public:
 	void	_DoHover(lsp::TextDocument_HoverResult&& result);
 private:

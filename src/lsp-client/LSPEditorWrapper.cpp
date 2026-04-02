@@ -8,8 +8,8 @@
 #include <Application.h>
 #include <Path.h>
 #include <Catalog.h>
-
 #include <Window.h>
+
 #include <algorithm>
 #include <cstdio>
 #include <debugger.h>
@@ -249,20 +249,33 @@ LSPEditorWrapper::_DoFormat(value& params)
 
 
 void
-LSPEditorWrapper::_DoRename(value& params)
+LSPEditorWrapper::_DoFormat(lsp::Array<TextEdit>&& edits)
 {
-	BMessage bjson;
-	auto* changes = params.object().find("changes");
-	if (changes && !changes->isNull()) {
-		for (auto& [uri, edits] : changes->object().keyValueMap()) {
-			OpenFileURI(uri, -1, -1, lsp::json::stringify(edits).c_str());
+	fEditor->SendMessage(SCI_BEGINUNDOACTION, 0, 0);
+	for (auto it = edits.rbegin(); it != edits.rend(); ++it) {
+		ApplyTextEdit(*it);
+	}
+	fEditor->SendMessage(SCI_ENDUNDOACTION, 0, 0);
+
+	_RemoveAllDiagnostics();
+	_RemoveAllDocumentLinks();
+}
+
+
+void
+LSPEditorWrapper::_DoRename(lsp::WorkspaceEdit&& edit)
+{
+	if (edit.changes.has_value()) {
+		for (auto& [uri, edits] : edit.changes.value()) {
+			OpenFileURI(uri.toString(), -1, -1, lsp::json::stringify(lsp::toJson(std::move(edits))).c_str());
 		}
-	} else {
-		auto* docChanges = params.object().find("documentChanges");
-		if (docChanges && docChanges->isArray()) {
-			for (auto& block : docChanges->array()) {
-				std::string uri = block.object().get("textDocument").object().get("uri").string();
-				OpenFileURI(uri, -1, -1, lsp::json::stringify(block.object().get("edits")).c_str());
+	} else if (edit.documentChanges.has_value()) {
+		for (auto& change : edit.documentChanges.value()) {
+			auto* textDocEdit = std::get_if<lsp::TextDocumentEdit>(&change);
+			if (textDocEdit) {
+				std::string uri = textDocEdit->textDocument.uri.toString();
+				auto editsJson = lsp::toJson(std::move(textDocEdit->edits));
+				OpenFileURI(uri, -1, -1, lsp::json::stringify(editsJson).c_str());
 			}
 		}
 	}
@@ -1091,9 +1104,7 @@ LSPEditorWrapper::onNotify(std::string id, value& result)
 void
 LSPEditorWrapper::onResponse(RequestID id, value& result)
 {
-	IF_ID("textDocument/rangeFormatting", _DoFormat);
-	IF_ID("textDocument/formatting", _DoFormat);
-	IF_ID("textDocument/rename", _DoRename);
+
 	IF_ID("textDocument/definition", _DoGoTo);
 	IF_ID("textDocument/declaration", _DoGoTo);
 	IF_ID("textDocument/implementation", _DoGoTo);

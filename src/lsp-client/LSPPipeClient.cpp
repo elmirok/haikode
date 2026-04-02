@@ -46,6 +46,7 @@ LSPPipeClient::Close()
 LSPPipeClient::~LSPPipeClient()
 {
 	Close();
+	//sleep(1);
 	if (fReaderThread.joinable())
 		fReaderThread.join();
 }
