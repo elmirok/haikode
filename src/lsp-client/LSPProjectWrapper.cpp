@@ -572,7 +572,8 @@ LSPProjectWrapper::DidOpen(LSPTextDocument* textDocument, std::string_view text,
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.textDocument.text = std::string(text);
 	params.textDocument.languageId = std::string(languageId);
-	params.textDocument.version = 0;
+	textDocument->ResetVersion();
+	params.textDocument.version = textDocument->NextVersion();
 	_SendNotify("textDocument/didOpen", LSPBridge::toJson(params));
 }
 
@@ -592,7 +593,7 @@ LSPProjectWrapper::DidChange(LSPTextDocument* textDocument,
 {
 	lsp::DidChangeTextDocumentParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
-	params.textDocument.version = 0; // Genio does not track document versions yet
+	params.textDocument.version = textDocument->NextVersion();
 	params.contentChanges = std::move(changes);
 	// wantDiagnostics is a clangd extension — not wired yet
 	_SendNotify("textDocument/didChange", LSPBridge::toJson(params));
