@@ -830,6 +830,15 @@ LSPEditorWrapper::_RemoveAllDiagnostics()
 void
 LSPEditorWrapper::_DoDiagnostics(value& params)
 {
+	auto* versionField = params.object().find("version");
+	if (versionField != nullptr && !versionField->isNull()) {
+		int32 serverVersion = static_cast<int32>(versionField->integer());
+		if (serverVersion < Version()) {
+			LogTrace("Discarding stale diagnostics: server=%ld local=%ld", serverVersion, Version());
+			return;
+		}
+	}
+
 	_RemoveAllDiagnostics();
 
 	for (auto& diagJson : params.object().get("diagnostics").array()) {
