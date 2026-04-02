@@ -5,6 +5,7 @@
 #include "LSPProjectWrapper.h"
 
 #include "Log.h"
+#include "LSPEditorWrapper.h"
 #include "LSPJsonBridge.h"
 #include "LSPPipeClient.h"
 #include "LSPServersManager.h"
@@ -801,10 +802,19 @@ LSPProjectWrapper::Hover(LSPTextDocument* textDocument, Position position)
 	if (!HasCapability(kLCapHover))
 		return;
 
-	lsp::TextDocumentPositionParams params;
+	lsp::HoverParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
-	_SendRequest(textDocument, "textDocument/hover", LSPBridge::toJson(std::move(params)));
+
+	fLSPPipeClient->Handler().sendRequest<lsp::requests::TextDocument_Hover>(
+		std::move(params),
+		[textDocument, this](lsp::TextDocument_HoverResult&& result) {
+			BAutolock give_me_a_name(this->Looper());
+			static_cast<LSPEditorWrapper*>(textDocument)->_DoHover(std::move(result));
+		},
+		[](const lsp::ResponseError& error) {
+			//LogError("Hover error: %s", error.message().c_str());
+		});
 }
 
 

@@ -680,7 +680,7 @@ _ExtractHoverText(const lsp::Hover& hover)
 
 
 void
-LSPEditorWrapper::_DoHover(value& result)
+LSPEditorWrapper::_DoHover(lsp::TextDocument_HoverResult&& result)
 {
 	if (fEditor == nullptr || !fEditor->Window()->IsActive())
 		return;
@@ -690,8 +690,7 @@ LSPEditorWrapper::_DoHover(value& result)
 		return;
 	}
 
-	auto hover = LSPBridge::fromJson<lsp::Hover>(result);
-	std::string tip = _ExtractHoverText(hover);
+	std::string tip = _ExtractHoverText(result.value());
 
 	if (tip.empty()) {
 		EndHover();
@@ -1110,7 +1109,6 @@ LSPEditorWrapper::onNotify(std::string id, value& result)
 void
 LSPEditorWrapper::onResponse(RequestID id, value& result)
 {
-	IF_ID("textDocument/hover", _DoHover);
 	IF_ID("textDocument/rangeFormatting", _DoFormat);
 	IF_ID("textDocument/formatting", _DoFormat);
 	IF_ID("textDocument/rename", _DoRename);
@@ -1136,6 +1134,43 @@ LSPEditorWrapper::onError(RequestID id, value& error)
 	LogError("onError [%s] [%s]", GetFileStatus().String(), lsp::json::stringify(error).c_str());
 }
 
+/*
+void
+LSPEditorWrapper::onRequest(std::string method, value& params, value& ID)
+{
+	// LogError("onRequest not implemented! [%s] [%s] [%s]", method.c_str(), params.dump().c_str(),
+	// ID.dump().c_str());
+}
+*/
+/*
+void
+LSPEditorWrapper::OnHover(lsp::TextDocument_HoverResult& hover_res)
+{
+	if (fEditor == nullptr) {
+		return;
+	}
+
+	BAutolock lock(fEditor->Window());
+	if (!fEditor->Window()->IsActive()) {
+		return;
+	}
+
+	if (hover_res.isNull()){
+		EndHover();
+		return;
+	}
+
+	std::string tip = _ExtractHoverText(hover_res.value());
+
+	if (tip.empty()) {
+		EndHover();
+		return;
+	}
+
+	_ShowToolTip(tip.c_str());
+ }
+
+*/
 
 // utility
 void

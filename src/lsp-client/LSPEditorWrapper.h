@@ -127,7 +127,9 @@ private:
 	//callbacks:
 	void	_DoFormat(value& params);
 	void	_DoRename(value& params);
-	void	_DoHover(value& params);
+public:
+	void	_DoHover(lsp::TextDocument_HoverResult&& result);
+private:
 	void	_DoGoTo(value& params);
 	void	_DoSignatureHelp(value& params);
 	void	_DoSwitchSourceHeader(value& params);
