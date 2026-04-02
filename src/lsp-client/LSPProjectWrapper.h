@@ -99,7 +99,6 @@ private:
 	void _OnNotify(std::string method, value& params);
 	void _OnResponse(const std::string& documentKey, std::string method, value& result);
 	void _OnError(const std::string& documentKey, std::string method, value& error);
-	void _OnRequest(std::string method, value& params, value& id);
 
 	typedef std::map<std::string, LSPTextDocument*> MapFile;
 

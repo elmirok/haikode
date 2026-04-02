@@ -95,12 +95,10 @@ public:
 		void	MouseMoved(BMessage*);
 
 public:
-	//still experimental
-	//std::string		fID;
+
 	void onNotify(std::string method, value &params) override;
 	void onResponse(RequestID ID, value &result) override;
 	void onError(RequestID ID, value &error) override;
-	void onRequest(std::string method, value &params, value &ID) override;
 
 	int32 DiagnosticFromPosition(Sci_Position p, LSPDiagnostic& dia);
 	int32 DiagnosticFromRange(Range& range, LSPDiagnostic& dia);

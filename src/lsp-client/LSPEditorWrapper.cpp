@@ -1128,14 +1128,6 @@ LSPEditorWrapper::onError(RequestID id, value& error)
 }
 
 
-void
-LSPEditorWrapper::onRequest(std::string method, value& params, value& ID)
-{
-	// LogError("onRequest not implemented! [%s] [%s] [%s]", method.c_str(), params.dump().c_str(),
-	// ID.dump().c_str());
-}
-
-
 // utility
 void
 LSPEditorWrapper::FromSciPositionToLSPPosition(const Sci_Position& pos, Position* lsp_position)

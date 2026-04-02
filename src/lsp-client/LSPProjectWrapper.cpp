@@ -455,14 +455,6 @@ LSPProjectWrapper::_OnError(const std::string& documentKey, std::string method, 
 
 
 void
-LSPProjectWrapper::_OnRequest(std::string method, value& params, value& ID)
-{
-	LogError("LSPProjectWrapper::_OnRequest not implemented! [%s] [%s]", method.c_str(),
-		lsp::json::stringify(ID).c_str());
-}
-
-
-void
 LSPProjectWrapper::Initialize(std::optional<std::string> rootUri)
 {
 	lsp::InitializeParams params;
