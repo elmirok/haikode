@@ -1,7 +1,8 @@
-1	Norwegian	application/x-vnd.Genio	1484233109
+1	Norwegian	application/x-vnd.Genio	2515569603
 {0, plural,one{# element found}other{# elements found}}	Editor		{0, plural,one{# element funnet}other{# elementer funnet}}
 {0, plural,one{# element replaced}other{# elements replaced}}	Editor		{0, plural,one{# element erstattet}other{# elementer erstattet}}
 1 element replaced	Editor		1 element erstattet
+Bookmark	Editor		Bookmark
 Cancel	Editor		Avbryt
 Do you want to set a starting index?	Editor		Vil du sette en start-indeks?
 Don't save	Editor		Ikke lagre
@@ -93,13 +94,13 @@ New file	GenioWindow		Ny fil
 New folder	GenioWindow		Ny mappe
 Next	GenioWindow	Bookmark menu	Neste
 Open in Terminal	GenioWindow		Åpne i Terminal
-Open project	GenioWindow		Open project
+Open project	GenioWindow		Åpne prosjekt
 Open project…	GenioWindow		Åpne prosjekt…
 Open recent…	GenioWindow		Åpne nylig…
 Open remote project…	GenioWindow		Åpne eksternt prosjekt…
 Open…	GenioWindow		Åpne…
 Overwrite	GenioWindow		Overskriv
-Panels	GenioWindow		Panels
+Panels	GenioWindow		Paneler
 Paste	GenioWindow		Lim inn
 Previous	GenioWindow	Bookmark menu	Forrige
 Project	GenioWindow		Prosjekt
@@ -160,7 +161,7 @@ Toggle	GenioWindow	Bookmark menu	Veksle
 Tools	GenioWindow		Verktøy
 Trim trailing whitespace	GenioWindow		Trim etterfølgende mellomrom
 Undo	GenioWindow		Angre
-Use smaller icons in statusbar	GenioWindow		Use smaller icons in statusbar
+Use smaller icons in statusbar	GenioWindow		Bruk mindre ikoner i statusbar
 View	GenioWindow		Vis
 Whole word	GenioWindow	Short as possible.	Hele ord
 Window	GenioWindow		Vindu
@@ -231,7 +232,7 @@ Drop folder here	ProjectsFolderBrowser		Slipp mappe her
 New	ProjectsFolderBrowser		Ny
 OK	ProjectsFolderBrowser		OK
 Open file	ProjectsFolderBrowser		Åpne fil
-Open file with default application	ProjectsFolderBrowser		Open file with default application
+Open file with default application	ProjectsFolderBrowser		Åpne fil med standardprogram
 Path	ProjectsFolderBrowser		Sti
 Project	ProjectsFolderBrowser		Prosjekt
 Project settings…	ProjectsFolderBrowser		Prosjektinnstillinger…
@@ -253,7 +254,7 @@ Default size	SettingsWindow		Standardstørrelse
 Editor	SettingsWindow		Editor
 Editor style:	SettingsWindow		Editor-stil:
 Editor zoom:	SettingsWindow		Editor-zoom:
-Enable auto-indent	SettingsWindow		Enable auto-indent
+Enable auto-indent	SettingsWindow		Aktiver automatisk innrykk
 Enable brace matching	SettingsWindow		Aktiver parentesmatching
 Enable syntax highlighting	SettingsWindow		Aktiver syntaksutheving
 Exclude folders:	SettingsWindow		Ekskluder mapper:
@@ -262,13 +263,14 @@ Font size:	SettingsWindow		Skriftstørrelse:
 Font:	SettingsWindow		Skrifttype:
 Force showing Build log panel when building	SettingsWindow		Tving visning av byggelogg under bygging
 General	SettingsWindow		Generelt
+Highlight matching words	SettingsWindow		Highlight matching words
 Ignore .editorconfig	SettingsWindow		Ignorer .editorconfig
 Log destination:	SettingsWindow		Loggdestinasjon:
 Log level:	SettingsWindow		Loggnivå:
 Log size:	SettingsWindow		Loggstørrelse:
 Mark caret line	SettingsWindow		Merk caret-linjen
 Match case	SettingsWindow	Short as possible.	Samsv. store/små bokstaver
-Open non-text files externally	SettingsWindow		Open non-text files externally
+Open non-text files externally	SettingsWindow		Åpne ikke-tekstfiler eksternt
 Projects folder:	SettingsWindow		Prosjektmappe:
 Reload files	SettingsWindow		Last filer på nytt
 Reload projects	SettingsWindow		Last prosjekt på nytt
@@ -276,14 +278,14 @@ Save caret position	SettingsWindow		Lagre caret-posisjon
 Scheme:	SettingsWindow	Name identically to Terminal's color setting	Scheme:
 Set ruler to column:	SettingsWindow		Sett linjal til kolonne:
 Show bottom pane	SettingsWindow		Vis bunn-panel
-Show branch name in window title	SettingsWindow		Show branch name in window title
+Show branch name in window title	SettingsWindow		Vis grennavn i vindustittelen
 Show comment margin	SettingsWindow		Vis kommentarmargin
 Show folding margin	SettingsWindow		Vis brette-marg
 Show full path in window title	SettingsWindow		Vis hele stien i vindustittelen
 Show left pane	SettingsWindow		Vis venstre panel
 Show line endings	SettingsWindow		Vis linjeendelser
 Show line numbers	SettingsWindow		Vis linjenummer
-Show project name in window title	SettingsWindow		Show project name in window title
+Show project name in window title	SettingsWindow		Vis prosjektnavn i vindustittelen
 Show repository outline	SettingsWindow		Vis omriss av kolleksjon
 Show right pane	SettingsWindow		Vis høyre panel
 Show statusbar	SettingsWindow		Vis statusbar
@@ -292,7 +294,7 @@ Show vertical ruler	SettingsWindow		Vis vertikal linjal
 Show whitespace	SettingsWindow		Vis mellomrom
 Source control	SettingsWindow		Kildekontroll
 Startup	SettingsWindow		Oppstart
-Tab width from label	SettingsWindow		Tab width from label
+Tab width from label	SettingsWindow		Tab-bredde fra etikett
 Tab width:	SettingsWindow		Tabbredde:
 These are only applied if no .editorconfig is used:	SettingsWindow	The translation shouldn't be much longer than the English original	Brukes bare hvis .editorconfig mangler:
 This setting will be updated on restart.	SettingsWindow		Denne innstillingen vil bli oppdatert ved omstart.
@@ -380,20 +382,20 @@ Password:	GitCredentialsWindow		Passord:
 Username:	GitCredentialsWindow		Brukernavn:
 Cancel	GTextAlert		Avbryt
 OK	GTextAlert		OK
-Caret position	Scrollbar Overlay		Caret position
+Caret position	Scrollbar Overlay		Markørposisjon
 Category	ProblemsPanel		Kategori
 Line	ProblemsPanel		Linje
 Message	ProblemsPanel		Melding
 No fix available	ProblemsPanel		Ingen løsning tilgjengelig
 Problems	ProblemsPanel		Problemer
 Source	ProblemsPanel		Kilde
-Choose project…	ProjectMenuField		Choose project…
-Project:	ProjectMenuField		Project:
+Choose project…	ProjectMenuField		Velg prosjekt…
+Project:	ProjectMenuField		Prosjekt:
 Clear	ConsoleIOView		Tøm
 Stop	ConsoleIOView		Stopp
 Contributors:	GenioApp		Bidragsytere:
 Genio is a fork of Ideam and available under the MIT license.	GenioApp		Genio er en forgrening av Ideam og tilgjengelig under MIT-lisensen.
-Genio uses:\nScintilla lib\nCopyright 1998-2003 by Neil Hodgson \n\nScintilla for Haiku\nCopyright 2011 by Andrea Anzani \nCopyright 2014-2015 by Kacper Kasper \n\n	GenioApp		Genio uses:\nScintilla lib\nCopyright 1998-2003 by Neil Hodgson \n\nScintilla for Haiku\nCopyright 2011 by Andrea Anzani \nCopyright 2014-2015 by Kacper Kasper \n\n
+Genio uses:\nScintilla lib\nCopyright 1998-2003 by Neil Hodgson \n\nScintilla for Haiku\nCopyright 2011 by Andrea Anzani \nCopyright 2014-2015 by Kacper Kasper \n\n	GenioApp		Genio bruker:\nScintilla lib\nCopyright 1998-2003 av Neil Hodgson \n\nScintilla for Haiku\nCopyright 2011 av Andrea Anzani \nCopyright 2014-2015 av Kacper Kasper \n\n
 Made with love in Italy	GenioApp		Laget med kjærlighet i Italia
 See credits for a complete list.\n\n	GenioApp		Se kreditt for en fullstendig liste.\n\n
 Defaults	ConfigWindow		Standardinnstillinger
@@ -416,4 +418,4 @@ Location	SearchResultPanel		Plassering
 Search results	SearchResultPanel		Søkeresultater
 New folder	TemplateManager		Ny mappe
 OK	GitAlert		OK
-Unable to load image	ImageEditor		Unable to load image
+Unable to load image	ImageEditor		Kunne ikke laste bildet

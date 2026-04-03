@@ -1,7 +1,8 @@
-1	Italian	application/x-vnd.Genio	1484233109
+1	Italian	application/x-vnd.Genio	2515569603
 {0, plural,one{# element found}other{# elements found}}	Editor		{0, plural,one{# corrispondenze}other{# corrispondenze}}
 {0, plural,one{# element replaced}other{# elements replaced}}	Editor		{0, plural,one{# elementi sostituiti}other{# elementi sostituiti}}
 1 element replaced	Editor		1 elemento sostituito
+Bookmark	Editor		Segnalibro
 Cancel	Editor		Annulla
 Do you want to set a starting index?	Editor		Vuoi impostare un indice iniziale?
 Don't save	Editor		Non salvare
@@ -262,6 +263,7 @@ Font size:	SettingsWindow		Dimensione carattere:
 Font:	SettingsWindow		Carattere:
 Force showing Build log panel when building	SettingsWindow		Mostra pannello Build log durante la compilazione
 General	SettingsWindow		Generale
+Highlight matching words	SettingsWindow		Evidenzia parole corrispondenti
 Ignore .editorconfig	SettingsWindow		Ignora .editorconfig
 Log destination:	SettingsWindow		Destinazione dei log:
 Log level:	SettingsWindow		Livello dei log:

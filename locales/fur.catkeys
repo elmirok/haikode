@@ -1,7 +1,8 @@
-1	Friulian	application/x-vnd.Genio	1484233109
+1	Friulian	application/x-vnd.Genio	2515569603
 {0, plural,one{# element found}other{# elements found}}	Editor		{0, plural,one{cjatât # element}other{cjatâts # elements}}
 {0, plural,one{# element replaced}other{# elements replaced}}	Editor		{0, plural,one{sostituît # element}other{sostituîts # elements}}
 1 element replaced	Editor		1 element sostituît
+Bookmark	Editor		Segnelibri
 Cancel	Editor		Anule
 Do you want to set a starting index?	Editor		Desideristu stabilî un indiç di inizi?
 Don't save	Editor		No sta salvâ
@@ -93,7 +94,7 @@ New file	GenioWindow		Gnûf file
 New folder	GenioWindow		Gnove cartele
 Next	GenioWindow	Bookmark menu	Sucessîf
 Open in Terminal	GenioWindow		Vierç tal Terminâl
-Open project	GenioWindow		Open project
+Open project	GenioWindow		Vierç progjet
 Open project…	GenioWindow		Vierç progjet…
 Open recent…	GenioWindow		Vierç resint…
 Open remote project…	GenioWindow		Vierç progjet lontan…
@@ -231,7 +232,7 @@ Drop folder here	ProjectsFolderBrowser		Mole la cartele achì
 New	ProjectsFolderBrowser		Gnûf
 OK	ProjectsFolderBrowser		Va ben
 Open file	ProjectsFolderBrowser		Vierç file
-Open file with default application	ProjectsFolderBrowser		Open file with default application
+Open file with default application	ProjectsFolderBrowser		Vierç file cu la aplicazion predefinide
 Path	ProjectsFolderBrowser		Percors
 Project	ProjectsFolderBrowser		Progjet
 Project settings…	ProjectsFolderBrowser		Impostazions progjet…
@@ -253,7 +254,7 @@ Default size	SettingsWindow		Dimension predefinide
 Editor	SettingsWindow		Editôr
 Editor style:	SettingsWindow		Stîl editôr:
 Editor zoom:	SettingsWindow		Zoom editôr:
-Enable auto-indent	SettingsWindow		Enable auto-indent
+Enable auto-indent	SettingsWindow		Abilite indentazion automatiche
 Enable brace matching	SettingsWindow		Abilite corispondence parentesis a grafis
 Enable syntax highlighting	SettingsWindow		Abilite evidenziazion sintassi
 Exclude folders:	SettingsWindow		Cartelis di escludi:
@@ -262,13 +263,14 @@ Font size:	SettingsWindow		Dimension caratar:
 Font:	SettingsWindow		Caratar:
 Force showing Build log panel when building	SettingsWindow		Intant de compilazion, sfuarce la visualizazion dal panel cul regjistri de compilazion
 General	SettingsWindow		Gjenerâl
+Highlight matching words	SettingsWindow		Evidenzie peraulis che a corispuindin
 Ignore .editorconfig	SettingsWindow		Ignore .editorconfig
 Log destination:	SettingsWindow		Destinazion regjistri:
 Log level:	SettingsWindow		Nivel dal regjistri:
 Log size:	SettingsWindow		Dimension regjistri:
 Mark caret line	SettingsWindow		Segne linie dal cursôr
 Match case	SettingsWindow	Short as possible.	Maiusculis/Minusculis
-Open non-text files externally	SettingsWindow		Open non-text files externally
+Open non-text files externally	SettingsWindow		Vierç difûr i files che no son testuâi
 Projects folder:	SettingsWindow		Cartele progjets:
 Reload files	SettingsWindow		Torne cjame i files
 Reload projects	SettingsWindow		Torne cjame i progjets
@@ -292,7 +294,7 @@ Show vertical ruler	SettingsWindow		Mostre rie verticâl
 Show whitespace	SettingsWindow		Mostre spazis
 Source control	SettingsWindow		Control sorzint
 Startup	SettingsWindow		Inviament
-Tab width from label	SettingsWindow		Tab width from label
+Tab width from label	SettingsWindow		Largjece schede in base ae etichete
 Tab width:	SettingsWindow		Largjece tabulazion:
 These are only applied if no .editorconfig is used:	SettingsWindow	The translation shouldn't be much longer than the English original	Aplicâts dome se nol ven doprât .editorconfig:
 This setting will be updated on restart.	SettingsWindow		Cheste impostazion e vignarà inzornade al prossim inviament.
@@ -380,7 +382,7 @@ Password:	GitCredentialsWindow		Password:
 Username:	GitCredentialsWindow		Non utent:
 Cancel	GTextAlert		Anule
 OK	GTextAlert		Va ben
-Caret position	Scrollbar Overlay		Caret position
+Caret position	Scrollbar Overlay		Posizion cursôr
 Category	ProblemsPanel		Categorie
 Line	ProblemsPanel		Rie
 Message	ProblemsPanel		Messaç
@@ -416,4 +418,4 @@ Location	SearchResultPanel		Posizion
 Search results	SearchResultPanel		Risultâts de ricercje
 New folder	TemplateManager		Gnove cartele
 OK	GitAlert		Va ben
-Unable to load image	ImageEditor		Unable to load image
+Unable to load image	ImageEditor		Impussibil cjariâ la imagjin

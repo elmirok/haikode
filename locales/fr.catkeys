@@ -1,7 +1,8 @@
-1	French	application/x-vnd.Genio	1484233109
+1	French	application/x-vnd.Genio	2515569603
 {0, plural,one{# element found}other{# elements found}}	Editor		{0, plural,one{# élément trouvé}other{# éléments trouvés}}
 {0, plural,one{# element replaced}other{# elements replaced}}	Editor		{0, plural,one{# élément remplacé}other{# éléments remplacés}}
 1 element replaced	Editor		1 élément remplacé
+Bookmark	Editor		Bookmark
 Cancel	Editor		Annuler
 Do you want to set a starting index?	Editor		Voulez-vous définir un index de départ ?
 Don't save	Editor		Ne pas sauvegarder
@@ -262,6 +263,7 @@ Font size:	SettingsWindow		Taille de la police :
 Font:	SettingsWindow		Police :
 Force showing Build log panel when building	SettingsWindow		Forcer l'affichage du panneau du journal de construction lors de la construction
 General	SettingsWindow		Général
+Highlight matching words	SettingsWindow		Highlight matching words
 Ignore .editorconfig	SettingsWindow		Ignorer .editorconfig
 Log destination:	SettingsWindow		Destination des journaux :
 Log level:	SettingsWindow		Niveau de journalisation :
@@ -292,7 +294,7 @@ Show vertical ruler	SettingsWindow		Afficher la règle verticale
 Show whitespace	SettingsWindow		Afficher les espaces
 Source control	SettingsWindow		Contrôle de source
 Startup	SettingsWindow		Démarrage
-Tab width from label	SettingsWindow		Tab width from label
+Tab width from label	SettingsWindow		Largeur de tabulation depuis le label
 Tab width:	SettingsWindow		Largeur de tabulation :
 These are only applied if no .editorconfig is used:	SettingsWindow	The translation shouldn't be much longer than the English original	Appliqués seulement si .editorconfig est utilisé :
 This setting will be updated on restart.	SettingsWindow		Ce paramètre sera pris en compte après redémarrage.
@@ -380,7 +382,7 @@ Password:	GitCredentialsWindow		Mot de passe :
 Username:	GitCredentialsWindow		Nom d'utilisateur :
 Cancel	GTextAlert		Annuler
 OK	GTextAlert		D'accord
-Caret position	Scrollbar Overlay		Caret position
+Caret position	Scrollbar Overlay		Position du caret
 Category	ProblemsPanel		Catégorie
 Line	ProblemsPanel		Ligne
 Message	ProblemsPanel		Message
