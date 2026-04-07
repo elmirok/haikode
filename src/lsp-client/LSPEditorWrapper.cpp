@@ -114,8 +114,7 @@ LSPEditorWrapper::ApplyFix(BMessage* info)
 			fLastDiagnostics.at(diaIndex).codeActions.value()[actIndex].edit.value().changes.value();
 		for (auto& [uri, edits] : changes) {
 			if (GetFilenameURI().ICompare(uri.toString().c_str()) == 0) {
-				auto j = LSPBridge::toJson(edits);
-				_DoFormat(j);
+				_DoFormat(std::move(edits));
 			}
 		}
 	}
@@ -128,8 +127,8 @@ LSPEditorWrapper::ApplyEdit(std::string info)
 	if (!HasLSPServer())
 		return;
 
-	auto items = lsp::json::parse(info);
-	_DoFormat(items);
+	auto edits = LSPBridge::fromJson<ArrayTextEdit>(lsp::json::parse(info));
+	_DoFormat(std::move(edits));
 }
 
 
@@ -167,7 +166,7 @@ LSPEditorWrapper::didOpen()
 	const char* text = reinterpret_cast<const char*>(fEditor->SendMessage(SCI_GETCHARACTERPOINTER));
 
 	fLSPProjectWrapper->DidOpen(this, text, FileType().String());
-	// fLSPProjectWrapper->Sync();
+
 }
 
 
@@ -229,7 +228,7 @@ LSPEditorWrapper::flushChanges()
 	}
 }
 
-
+/*
 void
 LSPEditorWrapper::_DoFormat(value& params)
 {
@@ -246,10 +245,10 @@ LSPEditorWrapper::_DoFormat(value& params)
 	_RemoveAllDiagnostics();
 	_RemoveAllDocumentLinks();
 }
-
+*/
 
 void
-LSPEditorWrapper::_DoFormat(lsp::Array<TextEdit>&& edits)
+LSPEditorWrapper::_DoFormat(ArrayTextEdit&& edits)
 {
 	fEditor->SendMessage(SCI_BEGINUNDOACTION, 0, 0);
 	for (auto it = edits.rbegin(); it != edits.rend(); ++it) {
@@ -267,15 +266,14 @@ LSPEditorWrapper::_DoRename(lsp::WorkspaceEdit&& edit)
 {
 	if (edit.changes.has_value()) {
 		for (auto& [uri, edits] : edit.changes.value()) {
-			OpenFileURI(uri.toString(), -1, -1, lsp::json::stringify(lsp::toJson(std::move(edits))).c_str());
+			OpenFileURI(uri.toString(), -1, -1, std::move(edits));
 		}
 	} else if (edit.documentChanges.has_value()) {
 		for (auto& change : edit.documentChanges.value()) {
 			auto* textDocEdit = std::get_if<lsp::TextDocumentEdit>(&change);
 			if (textDocEdit) {
 				std::string uri = textDocEdit->textDocument.uri.toString();
-				auto editsJson = lsp::toJson(std::move(textDocEdit->edits));
-				OpenFileURI(uri, -1, -1, lsp::json::stringify(editsJson).c_str());
+				OpenFileURI(uri, -1, -1, (ArrayTextEdit&&)(std::move(textDocEdit->edits)));
 			}
 		}
 	}
@@ -434,15 +432,6 @@ LSPEditorWrapper::EndHover()
 	if (l.IsLocked()) {
 		fEditor->HideToolTip();
 	}
-}
-
-
-void
-LSPEditorWrapper::SwitchSourceHeader()
-{
-	if (!IsInitialized() || !IsStatusValid())
-		return;
-	fLSPProjectWrapper->SwitchSourceHeader(this);
 }
 
 
@@ -714,6 +703,44 @@ LSPEditorWrapper::_DoHover(lsp::TextDocument_HoverResult&& result)
 
 
 void
+LSPEditorWrapper::_DoGoTo(lsp::TextDocument_DefinitionResult&& result)
+{
+	// NullOrOneOf<Definition, Array<DefinitionLink>>;
+	if (result.isNull())
+		return;
+
+	// OneOf<Definition, Array<DefinitionLink>>
+	auto* definition = std::get_if<lsp::Definition>(&result.value());
+	if (definition) {
+		//using Definition = OneOf<Location, Array<Location>>;
+		lsp::Location* location = std::get_if<lsp::Location>(definition);
+		if (location) {
+		} else {
+			auto* array = std::get_if<lsp::Array<lsp::Location>>(definition);
+			location = &(*array)[0];
+		}
+
+		if (location) {
+			std::string uri = location->uri.toString();
+			lsp::Position pos = location->range.start;
+
+			OpenFileURI(uri, pos.line + 1, pos.character);
+		}
+	} else {
+		//Array<DefinitionLink>
+		auto* array = std::get_if<lsp::Array<lsp::DefinitionLink>>(&result.value());
+		if (array) {
+			lsp::LocationLink& location = (*array)[0];
+
+			std::string uri = location.targetUri.toString();
+			lsp::Position pos = location.targetRange.start;
+
+			OpenFileURI(uri, pos.line + 1, pos.character);
+		}
+	}
+}
+
+void
 LSPEditorWrapper::_DoGoTo(value& items)
 {
 	if (items.isNull())
@@ -740,33 +767,37 @@ LSPEditorWrapper::_DoGoTo(value& items)
 
 
 void
-LSPEditorWrapper::_DoSignatureHelp(value& result)
+LSPEditorWrapper::_DoSignatureHelp(lsp::SignatureHelp&& signatureHelp)
 {
-	auto signatureHelp = LSPBridge::fromJson<lsp::SignatureHelp>(result);
 	fCallTip.UpdateSignatures(signatureHelp.signatures);
 	fCallTip.ShowCallTip();
 }
 
 
 void
-LSPEditorWrapper::_DoSwitchSourceHeader(value& result)
+LSPEditorWrapper::_DoCompletion(lsp::TextDocument_CompletionResult&& result)
 {
-	std::string url = result.string();
-	OpenFileURI(url);
-}
+	if (result.isNull())
+		return;
 
 
-void
-LSPEditorWrapper::_DoCompletion(value& params)
-{
+	lsp::Array<lsp::CompletionItem>* items = nullptr;
+
+	auto* allItems = std::get_if<lsp::CompletionList>(&result.value());
+	if (allItems)
+		items = &allItems->items;
+	else
+		items = std::get_if<lsp::Array<lsp::CompletionItem>>(&result.value());
+
+	if (items == nullptr)
+		return;
+
 	std::string line;
 	Position position;
 	bool positionResolved = false;
 
-	auto allItems = LSPBridge::fromJson<lsp::CompletionList>(params);
-	auto& items = allItems.items;
 	std::string list;
-	for (auto& item : items) {
+	for (auto& item : *items) {
 		std::string label = item.label;
 		LeftTrim(label);
 		if (list.length() > 0)
@@ -810,7 +841,7 @@ LSPEditorWrapper::_DoCompletion(value& params)
 	}
 
 	if (list.length() > 0) {
-		fCurrentCompletion = allItems;
+		fCurrentCompletion = *allItems; //uhm not sure here
 		fEditor->SendMessage(SCI_AUTOCSETSEPARATOR, (int) '\n', 0);
 		fEditor->SendMessage(SCI_AUTOCSETIGNORECASE, true);
 		fEditor->SendMessage(SCI_AUTOCGETCANCELATSTART, false);
@@ -827,6 +858,7 @@ LSPEditorWrapper::_DoCompletion(value& params)
 		}
 	}
 }
+
 
 
 void
@@ -895,17 +927,46 @@ LSPEditorWrapper::RequestCodeActions(Diagnostic& diagnostic)
 
 
 void
-LSPEditorWrapper::CodeActionResolve(value &params)
+LSPEditorWrapper::CodeActionResolve(lsp::CodeAction& params)
 {
 	fLSPProjectWrapper->CodeActionResolve(this, params);
 }
 
+void
+LSPEditorWrapper::_DoCodeActions(lsp::TextDocument_CodeActionResult&& codeAction)
+{
+	for (auto& act : codeAction.value()) {
+		CodeAction* action = std::get_if<lsp::CodeAction>(&act);
+		if (action && action->diagnostics.has_value()) {
+			for (auto& dia: action->diagnostics.value()) {
+				Range& range = dia.range;
 
+				for (auto& d: fLastDiagnostics) {
+
+					if (d.diagnostic.range == range) {
+						if (!d.codeActions)
+							d.codeActions.emplace();
+						d.codeActions->push_back(*action);
+						if (!action->diagnostics)
+							action->diagnostics.emplace();
+						action->diagnostics->push_back(d.diagnostic);
+
+						if (action->edit.has_value() == false)
+							CodeActionResolve(*action);;
+					}
+				}
+			}
+		}
+	}
+}/*
 void
 LSPEditorWrapper::_DoCodeActions(value& params)
 {
+	printf("DOCODEACTION %s\n", lsp::json::stringify(params).c_str());
 	for (auto& v : params.array()) {
 		auto action = LSPBridge::fromJson<lsp::CodeAction>(v);
+
+		debugger("old code action");
 
 		// Extract range from clangd-specific data field
 		auto& dataObj = action.data.value().object();
@@ -931,37 +992,29 @@ LSPEditorWrapper::_DoCodeActions(value& params)
 				auto* editField = v.object().find("edit");
 				if (!editField || editField->isNull())
 					CodeActionResolve(v);
+
 			}
 		}
 	}
-}
+}*/
 
 
 void
-LSPEditorWrapper::_DoCodeActionResolve(value& params)
+LSPEditorWrapper::_DoCodeActionResolve(CodeAction&& action)
 {
-	auto action = LSPBridge::fromJson<lsp::CodeAction>(params);
-
 	// Extract range from clangd-specific data field
-	auto& dataObj = action.data.value().object();
-	auto& rangeObj = dataObj.get("Range").object();
-	auto& startObj = rangeObj.get("Start").object();
-	auto& endObj = rangeObj.get("End").object();
+	for (auto& dia: action.diagnostics.value()) {
+		Range& range = dia.range;
 
-	Range range;
-	range.start.character = static_cast<unsigned int>(startObj.get("Character").integer());
-	range.start.line = static_cast<unsigned int>(startObj.get("Line").integer());
-	range.end.character = static_cast<unsigned int>(endObj.get("Character").integer());
-	range.end.line = static_cast<unsigned int>(endObj.get("Line").integer());
-
-	for (auto& d: fLastDiagnostics) {
-		if (d.diagnostic.range == range) {
-			if (d.codeActions.has_value()) {
-				for (auto& ca: d.codeActions.value()) {
-					auto& caIdentifier = ca.data.value().object().get("Identifier").string();
-					auto& actionIdentifier = action.data.value().object().get("Identifier").string();
-					if (caIdentifier == actionIdentifier) {
-						ca.edit = action.edit;
+		for (auto& d: fLastDiagnostics) {
+			if (d.diagnostic.range == range) {
+				if (d.codeActions.has_value()) {
+					for (auto& ca: d.codeActions.value()) {
+						auto& caIdentifier = ca.data.value().object().get("Identifier").string();
+						auto& actionIdentifier = action.data.value().object().get("Identifier").string();
+						if (caIdentifier == actionIdentifier) {
+							ca.edit = action.edit;
+						}
 					}
 				}
 			}
@@ -989,9 +1042,38 @@ LSPEditorWrapper::_DoInitialize(value& params)
 		fEditor->SetDocumentSymbols(&symbols, IEditor::STATUS_REQUESTED);
 	else
 		fEditor->SetDocumentSymbols(&symbols, IEditor::STATUS_NO_CAPABILITY);
+
+	RequestDocumentSymbols();
+}
+
+void
+LSPEditorWrapper::_DoDocumentLink(lsp::TextDocument_DocumentLinkResult&& links)
+{
+	//FIXME? Check on Editor?
+
+	_RemoveAllDocumentLinks();
+
+	if (links.isNull())
+		return;
+
+
+	for (auto& l : links.value()) {
+
+		Range& r = l.range;
+		InfoRange ir;
+		ir.from = FromLSPPositionToSciPosition(&r.start);
+		ir.to = FromLSPPositionToSciPosition(&r.end);
+		if (l.target)
+			ir.info = l.target->toString();
+
+		LogTrace("DocumentLink [%ld->%ld] [%s]", ir.from, ir.to, ir.info.c_str());
+		fEditor->SendMessage(SCI_INDICATORFILLRANGE, ir.from, ir.to - ir.from);
+		fLastDocumentLinks.push_back(ir);
+	}
 }
 
 
+/*
 void
 LSPEditorWrapper::_DoDocumentLink(value& result)
 {
@@ -1010,7 +1092,7 @@ LSPEditorWrapper::_DoDocumentLink(value& result)
 		fEditor->SendMessage(SCI_INDICATORFILLRANGE, ir.from, ir.to - ir.from);
 		fLastDocumentLinks.push_back(ir);
 	}
-}
+}*/
 
 
 void
@@ -1025,23 +1107,28 @@ LSPEditorWrapper::_DoFileStatus(value& params)
 	}
 }
 
+
 void
-LSPEditorWrapper::_DoDocumentSymbol(value& params)
+LSPEditorWrapper::_DoDocumentSymbol(lsp::TextDocument_DocumentSymbolResult&& result)
 {
+	if (result.isNull())
+		return;
+
 	BMessage msg(EDITOR_UPDATE_SYMBOLS);
-	if (params.isArray() && !params.array().empty()) {
-		auto* loc = params.array()[0].object().find("location");
-		if (!loc || loc->isNull()) {
-			auto vect = LSPBridge::fromJson<lsp::Array<lsp::DocumentSymbol>>(params);
-			_DoRecursiveDocumentSymbol(vect, msg);
-		} else {
-			auto vect = LSPBridge::fromJson<lsp::Array<lsp::SymbolInformation>>(params);
-			_DoLinearSymbolInformation(vect, msg);
-		}
+	auto* symbolArray = std::get_if<lsp::Array<lsp::DocumentSymbol>>(&result.value());
+	if (symbolArray) {
+		_DoRecursiveDocumentSymbol(*symbolArray, msg);
+	} else {
+		auto* infoArray = std::get_if<lsp::Array<lsp::SymbolInformation>>(&result.value());
+		if (infoArray)
+			_DoLinearSymbolInformation(*infoArray, msg);
 	}
+
 	if (fEditor != nullptr)
 		fEditor->SetDocumentSymbols(&msg, IEditor::STATUS_HAS_SYMBOLS);
+
 }
+
 
 void
 LSPEditorWrapper::_DoRecursiveDocumentSymbol(lsp::Array<DocumentSymbol>& vect, BMessage& msg)
@@ -1104,19 +1191,6 @@ LSPEditorWrapper::onNotify(std::string id, value& result)
 void
 LSPEditorWrapper::onResponse(RequestID id, value& result)
 {
-
-	IF_ID("textDocument/definition", _DoGoTo);
-	IF_ID("textDocument/declaration", _DoGoTo);
-	IF_ID("textDocument/implementation", _DoGoTo);
-	IF_ID("textDocument/signatureHelp", _DoSignatureHelp);
-	IF_ID("textDocument/switchSourceHeader", _DoSwitchSourceHeader);
-	IF_ID("textDocument/completion", _DoCompletion);
-	IF_ID("textDocument/documentLink", _DoDocumentLink);
-	IF_ID("textDocument/documentSymbol", _DoDocumentSymbol);
-	IF_ID("initialize", _DoInitialize);
-	IF_ID("textDocument/codeAction", _DoCodeActions);
-	IF_ID("codeAction/resolve", _DoCodeActionResolve);
-
 	LogError("LSPEditorWrapper::onResponse not handled! [%s]", id.c_str());
 }
 
@@ -1228,7 +1302,8 @@ LSPEditorWrapper::ApplyTextEdit(TextEdit &textEdit)
 
 
 void
-LSPEditorWrapper::OpenFileURI(std::string uri, int32 line, int32 character, BString edits)
+LSPEditorWrapper::OpenFileURI(std::string uri, int32 line, int32 character,
+					ArrayTextEdit&& edits)
 {
 	BUrl url = uri.c_str();
 	if (url.IsValid() && url.HasPath()) {
@@ -1243,8 +1318,9 @@ LSPEditorWrapper::OpenFileURI(std::string uri, int32 line, int32 character, BStr
 					if (character != -1)
 						refs.AddInt32("start:character", character);
 				}
-				if (!edits.IsEmpty())
-					refs.AddString("edit", edits);
+				if (edits.empty() == false) {
+					refs.AddString("edit",  lsp::json::stringify(lsp::toJson(std::move(edits))).c_str());
+				}
 
 				JumpNavigator::getInstance()->JumpToFile(&refs, fEditor->FileRef());
 			}

@@ -72,20 +72,15 @@ public:
     void Formatting(LSPTextDocument* textDocument);
     void CodeAction(LSPTextDocument* textDocument, Range range, lsp::CodeActionContext& context);
 	void CodeActionResolve(LSPTextDocument* textDocument, lsp::CodeAction& data);
-	void CodeActionResolve(LSPTextDocument* textDocument, value& data);
     void Completion(LSPTextDocument* textDocument, Position position, lsp::CompletionContext& context);
     void SignatureHelp(LSPTextDocument* textDocument, Position position);
     void GoToDefinition(LSPTextDocument* textDocument, Position position);
     void GoToImplementation(LSPTextDocument* textDocument, Position position);
     void GoToDeclaration(LSPTextDocument* textDocument, Position position);
     void References(LSPTextDocument* textDocument, Position position);
-    void SwitchSourceHeader(LSPTextDocument* textDocument);
     void Rename(LSPTextDocument* textDocument, Position position, std::string_view newName);
     void Hover(LSPTextDocument* textDocument, Position position);
     void DocumentSymbol(LSPTextDocument* textDocument);
-    void DocumentColor(LSPTextDocument* textDocument);
-    void DocumentHighlight(LSPTextDocument* textDocument, Position position);
-    void SymbolInfo(LSPTextDocument* textDocument, Position position);
     void DocumentLink(LSPTextDocument* textDocument);
 
     std::string&	allCommitCharacters() { return fAllCommitCharacters; } //not yet used.
@@ -99,6 +94,9 @@ private:
 
 	template<typename M, typename F>
 	void	_SendTypedRequest(typename M::Params&& params, F&& then);
+
+	template<typename F>
+	void	_SendJsonRequest(std::string_view method, value params, F&& then);
 
 	LSPPipeClient*			fLSPPipeClient;
 	LSPTextDocument*	_DocumentByURI(const char* uri);
@@ -139,11 +137,42 @@ LSPProjectWrapper::_SendTypedRequest(typename M::Params&& params, F&& then)
 	fLSPPipeClient->Handler().sendRequest<M>(
 		std::move(params),
 		[this, cb = std::forward<F>(then)](typename M::Result&& result) mutable {
+
+			{ //mutex context
+
+				// Lock the queue
+				std::lock_guard<std::mutex> guard(fResponseQueueLock);
+
+				// push the callaback with the parameters in the queue
+				fResponseQueue.push(
+					[cb = std::move(cb), r = std::move(result)]() mutable {
+						//execute the callback!
+						cb(std::move(r));
+					});
+			}
+
+			//New message in the queue notification.. (done async in the looper thread!)
+			fHandlerMessenger.SendMessage(kLSPTypedResponse);
+		},
+		[](const lsp::ResponseError& error) {
+			LogError("LSP request error: %s", error.message());
+		});
+}
+
+
+template<typename F>
+void
+LSPProjectWrapper::_SendJsonRequest(std::string_view method, value params, F&& then)
+{
+	fLSPPipeClient->Handler().sendRequest(
+		method,
+		std::optional<lsp::json::Value>(std::move(params)),
+		[this, cb = std::forward<F>(then)](lsp::json::Value&& result) mutable {
 			{
 				std::lock_guard<std::mutex> guard(fResponseQueueLock);
 				fResponseQueue.push(
 					[cb = std::move(cb), r = std::move(result)]() mutable {
-						cb(std::move(r));
+						cb(r);
 					});
 			}
 			fHandlerMessenger.SendMessage(kLSPTypedResponse);

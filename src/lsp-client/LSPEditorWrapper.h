@@ -45,6 +45,8 @@ struct LSPDiagnostic {
 class Editor;
 class LSPProjectWrapper;
 
+using ArrayTextEdit = lsp::Array<lsp::TextEdit>;
+
 class LSPEditorWrapper : public LSPTextDocument {
 public:
 	enum GoToType {
@@ -76,16 +78,16 @@ public:
 		void	SelectedCompletion(const char* text);
 		void	Format();
 		void	Rename(std::string newName);
-		void	SwitchSourceHeader();
 		void	StartHover(Sci_Position sci_position);
 		void	EndHover();
 		void	GetDiagnostics(std::vector<LSPDiagnostic>& diagnostics) { diagnostics = fLastDiagnostics; }
 		void	RequestCodeActions(Diagnostic& diagnostic);
-		void	CodeActionResolve(value &params);
+		void	CodeActionResolve(lsp::CodeAction &params);
 
 		void	IndicatorClick(Sci_Position position);
-
+private:
 		void	RequestDocumentSymbols();
+public:
 		void	CharAdded(const char ch /*utf-8?*/);
 
 		void	NextCallTip();
@@ -125,30 +127,31 @@ private:
 
 private:
 	//callbacks:
-	void	_DoFormat(value& params);
+	//void	_DoFormat(value& params);
 public:
-	void	_DoFormat(lsp::Array<TextEdit>&& edits);
-	void	_DoRename(lsp::WorkspaceEdit&& edit);
-private:
-public:
+	void	_DoFormat(ArrayTextEdit&& edits);
+	void	_DoRename(lsp::WorkspaceEdit&& edit); //use the result?
 	void	_DoHover(lsp::TextDocument_HoverResult&& result);
-private:
 	void	_DoGoTo(value& params);
-	void	_DoSignatureHelp(value& params);
-	void	_DoSwitchSourceHeader(value& params);
-	void	_DoCompletion(value& params);
-public:
+	void	_DoGoTo(lsp::TextDocument_DefinitionResult&& result);
+
+	void	_DoSignatureHelp(lsp::SignatureHelp&& signatureHelp); //use the result?
+
+	void	_DoCompletion(lsp::TextDocument_CompletionResult&& result);
 	void	_DoDiagnostics(lsp::PublishDiagnosticsParams&& params);
-	void	_DoDocumentLink(value& params);
+	void	_DoDocumentLink(lsp::TextDocument_DocumentLinkResult&& links);
 	void	_DoFileStatus(value& params);
-	void	_DoDocumentSymbol(value& params);
+	void	_DoDocumentSymbol(lsp::TextDocument_DocumentSymbolResult&& result);
 	void	_DoInitialize(value& params);
-	void	_DoCodeActions(value& params);
-	void	_DoCodeActionResolve(value& params);
+	void	_DoCodeActions(lsp::TextDocument_CodeActionResult&& codeAction);
+	void	_DoCodeActionResolve(value& params); //to be deprecated.
+	void	_DoCodeActionResolve(CodeAction&& params);
+
+private:
 
 	void	_DoRecursiveDocumentSymbol(lsp::Array<DocumentSymbol>& v, BMessage& msg);
 	void	_DoLinearSymbolInformation(lsp::Array<SymbolInformation>& v, BMessage& msg);
-private:
+
 	//utils
 	void 			FromSciPositionToLSPPosition(const Sci_Position &pos, Position *lsp_position);
 	Sci_Position 	FromLSPPositionToSciPosition(const Position* lsp_position);
@@ -157,7 +160,7 @@ private:
 	Sci_Position 	ApplyTextEdit(value &textEdit);
 	Sci_Position 	ApplyTextEdit(TextEdit &textEdit);
 	void			OpenFileURI(std::string uri, int32 line = -1, int32 character = -1,
-						BString edits = "");
+								ArrayTextEdit&& edits = {});
 	std::string 	GetCurrentLine();
 	bool			IsStatusValid();
 	std::vector<lsp::TextDocumentContentChangeEvent> fChanges;

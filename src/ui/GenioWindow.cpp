@@ -2007,8 +2007,7 @@ GenioWindow::_PostFileLoad(IEditor* editor)
 		}
 	}
 	editor->ApplySettings();
-	if (editor->GetLSPEditorWrapper() != nullptr)
-		editor->GetLSPEditorWrapper()->RequestDocumentSymbols();
+
 	BMessage noticeMessage(MSG_NOTIFY_EDITOR_FILE_OPENED);
 	noticeMessage.AddString("file_name", editor->FilePath());
 	SendNotices(MSG_NOTIFY_EDITOR_FILE_OPENED, &noticeMessage);
