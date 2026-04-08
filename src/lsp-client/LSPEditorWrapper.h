@@ -98,10 +98,6 @@ public:
 
 public:
 
-	void onNotify(std::string method, value &params) override;
-	void onResponse(RequestID ID, value &result) override;
-	void onError(RequestID ID, value &error) override;
-
 	int32 DiagnosticFromPosition(Sci_Position p, LSPDiagnostic& dia);
 	int32 DiagnosticFromRange(Range& range, LSPDiagnostic& dia);
 

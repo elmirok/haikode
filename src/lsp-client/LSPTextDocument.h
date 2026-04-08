@@ -33,10 +33,6 @@ public:
 			int32	NextVersion() { return ++fVersion; }
 			int32	Version() const { return fVersion; }
 
-    virtual void onNotify(std::string method, value &params) {}
-    virtual void onResponse(RequestID ID, value &result) {}
-    virtual void onError(RequestID ID, value &error) {}
-
 private:
 	BUrl 	fFilenameURI;
 	BString	fFileStatus;

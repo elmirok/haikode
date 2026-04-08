@@ -100,8 +100,9 @@ private:
 	void _OnNotify(std::string method, value& params);
 	void _OnResponse(const std::string& documentKey, std::string method, value& result);
 	void _OnError(const std::string& documentKey, std::string method, value& error);
-	void _OnRequest(std::string method, value& params, value& id);
 	void _DrainResponseQueue();
+
+	void	_LogMessage(lsp::LogMessageParams&& params);
 
 	typedef std::map<std::string, LSPTextDocument*> MapFile;
 
@@ -139,7 +140,7 @@ private:
 
 template<typename F>
 void
-LSPProjectWrapper::_enqueueOnUIThread(F&& fn) //NEW
+LSPProjectWrapper::_enqueueOnUIThread(F&& fn)
 {
 	{
 		std::lock_guard<std::mutex> guard(fResponseQueueLock);
@@ -151,7 +152,7 @@ LSPProjectWrapper::_enqueueOnUIThread(F&& fn) //NEW
 
 template<typename M, typename F>
 auto
-LSPProjectWrapper::_addFunctionToQueue(F&& then) //NEW
+LSPProjectWrapper::_addFunctionToQueue(F&& then)
 {
 	return [this, cb = std::forward<F>(then)](typename M::Result&& result) mutable {
 		_enqueueOnUIThread([cb = std::move(cb), r = std::move(result)]() mutable {
@@ -163,7 +164,7 @@ LSPProjectWrapper::_addFunctionToQueue(F&& then) //NEW
 
 template<typename M, typename F>
 void
-LSPProjectWrapper::_SendTypedRequest(typename M::Params&& params, F&& then) //UPDATED
+LSPProjectWrapper::_SendTypedRequest(typename M::Params&& params, F&& then)
 {
 	fLSPPipeClient->Handler().sendRequest<M>(
 		std::move(params),
@@ -176,7 +177,7 @@ LSPProjectWrapper::_SendTypedRequest(typename M::Params&& params, F&& then) //UP
 
 template<typename F>
 void
-LSPProjectWrapper::_SendJsonRequest(std::string_view method, value params, F&& then) //UPDATED
+LSPProjectWrapper::_SendJsonRequest(std::string_view method, value params, F&& then)
 {
 	fLSPPipeClient->Handler().sendRequest(
 		method,

@@ -245,7 +245,7 @@ LSPProjectWrapper::RegisterTextDocument(LSPTextDocument* textDocument)
 
 	if (fInitialized) {
 		value emptyParam;
-		textDocument->onResponse("initialize", emptyParam);
+		static_cast<LSPEditorWrapper*>(textDocument)->_DoInitialize(emptyParam);
 	}
 
 	return true;
@@ -348,20 +348,7 @@ LSPProjectWrapper::_DocumentByURI(const char* uri)
 void
 LSPProjectWrapper::_OnNotify(std::string method, value& params)
 {
-	if (method.compare("textDocument/publishDiagnostics") == 0
-		|| method.compare("textDocument/clangd.fileStatus") == 0) {
-		auto uri = params.object().get("uri").string();
-
-		LSPTextDocument* doc = _DocumentByURI(uri.c_str());
-		if (doc) {
-			doc->onNotify(method, params);
-		} else {
-			LogError(
-				"Can't deliver a notify from LSP to %s\n%s\n", uri.c_str(),
-				lsp::json::stringify(params).c_str());
-		}
-		return;
-	} else if (method.compare("$/progress") == 0) {
+	if (method.compare("$/progress") == 0) {
 /*
  {"token":"backgroundIndexProgress","value":{"kind":"begin","percentage":0,"title":"indexing"}}
  {"token":"backgroundIndexProgress","value":{"kind":"report","message":"0/1","percentage":0}}
@@ -412,31 +399,34 @@ LSPProjectWrapper::_OnNotify(std::string method, value& params)
 
 		return;
 
-	} else if (method.compare("window/logMessage") == 0) {
-		auto logParams = LSPBridge::fromJson<lsp::LogMessageParams>(params);
-		lsp::MessageType type = static_cast<lsp::MessageType>(logParams.type);
-		switch(type) {
-			case lsp::MessageType::Error:
-				LogError("(Error) %s", logParams.message.c_str());
-				break;
-			case lsp::MessageType::Warning:
-				LogError("(Warning) %s", logParams.message.c_str());
-				break;
-			case lsp::MessageType::Info:
-				LogInfo("(Info) %s", logParams.message.c_str());
-				break;
-			case lsp::MessageType::Log:
-				LogInfo("(Log) %s", logParams.message.c_str());
-				break;
-			case lsp::MessageType::Debug:
-				LogDebug("(Debug) %s", logParams.message.c_str());
-				break;
-			default:
-				break;
-		};
-		return;
 	}
 	LogError("LSPProjectWrapper::onNotify not implemented! [%s]", method.c_str());
+}
+
+
+void
+LSPProjectWrapper::_LogMessage(lsp::LogMessageParams&& logParams)
+{
+	lsp::MessageType type = static_cast<lsp::MessageType>(logParams.type);
+	switch(type) {
+		case lsp::MessageType::Error:
+			LogError("(Error) %s", logParams.message.c_str());
+			break;
+		case lsp::MessageType::Warning:
+			LogError("(Warning) %s", logParams.message.c_str());
+			break;
+		case lsp::MessageType::Info:
+			LogInfo("(Info) %s", logParams.message.c_str());
+			break;
+		case lsp::MessageType::Log:
+			LogInfo("(Log) %s", logParams.message.c_str());
+			break;
+		case lsp::MessageType::Debug:
+			LogDebug("(Debug) %s", logParams.message.c_str());
+			break;
+		default:
+			break;
+	};
 }
 
 
@@ -447,11 +437,6 @@ LSPProjectWrapper::_OnResponse(const std::string& documentKey, std::string metho
 		fprintf(stderr, "Shutdown received\n");
 		fInitialized.store(false);
 		return;
-	}
-
-	auto search = fTextDocs.find(documentKey);
-	if (search != fTextDocs.end()) {
-		search->second->onResponse(method, result);
 	} else {
 		LogError("LSPProjectWrapper::_OnResponse not handled! [%s] for [%s]", method.c_str(),
 			documentKey.c_str());
@@ -464,7 +449,7 @@ LSPProjectWrapper::_OnError(const std::string& documentKey, std::string method, 
 {
 	auto search = fTextDocs.find(documentKey);
 	if (search != fTextDocs.end())
-		search->second->onError(method, error);
+		LogError("onError [%s] [%s]", search->second->GetFileStatus().String(), lsp::json::stringify(error).c_str());
 	else
 		LogError("LSPProjectWrapper::_OnError not handled! [%s] for [%s]", method.c_str(),
 			documentKey.c_str());
@@ -978,24 +963,36 @@ LSPProjectWrapper::_RegisterHandlers()
 		};
 	};
 
-	// Server -> Client notifications
 	handler.add<lsp::notifications::TextDocument_PublishDiagnostics>(
 		[this](lsp::PublishDiagnosticsParams&& params) {
-			{
-				std::lock_guard<std::mutex> guard(fResponseQueueLock);
-				fResponseQueue.push(
-					[this, p = std::move(params)]() mutable {
-						std::string uri = p.uri.toString();
-						LSPTextDocument* doc = _DocumentByURI(uri.c_str());
-						if (doc)
-							static_cast<LSPEditorWrapper*>(doc)->_DoDiagnostics(std::move(p));
-					});
-			}
-			fHandlerMessenger.SendMessage(kLSPTypedResponse);
+			_enqueueOnUIThread([this, p = std::move(params)]() mutable {
+				std::string uri = p.uri.toString();
+				LSPTextDocument* doc = _DocumentByURI(uri.c_str());
+				if (doc)
+					static_cast<LSPEditorWrapper*>(doc)->_DoDiagnostics(std::move(p));
+			});
 		});
-	handler.add("textDocument/clangd.fileStatus", marshalNotify("textDocument/clangd.fileStatus"));
+
+	handler.add("textDocument/clangd.fileStatus",
+		[this](lsp::json::Value&& params) -> lsp::json::Value {
+			_enqueueOnUIThread([this, p = std::move(params)]() mutable {
+				auto uri = p.object().get("uri").string();
+				LSPTextDocument* doc = _DocumentByURI(uri.c_str());
+				if (doc)
+					static_cast<LSPEditorWrapper*>(doc)->_DoFileStatus(p);
+			});
+			return lsp::json::Value{};
+		});
+
+	handler.add<lsp::notifications::Window_LogMessage>(
+		[this](lsp::LogMessageParams&& params) {
+			_enqueueOnUIThread([this, p = std::move(params)]() mutable {
+				_LogMessage(std::move(p));
+			});
+		});
+
+	//FIXME TODO: Migrate to typed version.
 	handler.add("$/progress",  marshalNotify("$/progress"));
-	handler.add("window/logMessage",  marshalNotify("window/logMessage"));
 
 	// Server -> Client requests
 	handler.add("window/workDoneProgress/create",

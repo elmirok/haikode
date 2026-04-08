@@ -1094,29 +1094,6 @@ LSPEditorWrapper::IsStatusValid()
 }
 
 
-void
-LSPEditorWrapper::onNotify(std::string id, value& result)
-{
-	IF_ID("textDocument/clangd.fileStatus", _DoFileStatus);
-
-	LogError("LSPEditorWrapper::onNotify not handled! [%s]", id.c_str());
-}
-
-
-void
-LSPEditorWrapper::onResponse(RequestID id, value& result)
-{
-	LogError("LSPEditorWrapper::onResponse not handled! [%s]", id.c_str());
-}
-
-
-void
-LSPEditorWrapper::onError(RequestID id, value& error)
-{
-	LogError("onError [%s] [%s]", GetFileStatus().String(), lsp::json::stringify(error).c_str());
-}
-
-
 // utility
 void
 LSPEditorWrapper::FromSciPositionToLSPPosition(const Sci_Position& pos, Position* lsp_position)
