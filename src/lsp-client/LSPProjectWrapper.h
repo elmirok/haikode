@@ -92,12 +92,6 @@ private:
 	void	_SendRequest(LSPTextDocument* textDocument, std::string_view method, value params);
 	void	_SendNotify(std::string_view method, value params);
 
-	template<typename M, typename F>
-	void	_SendTypedRequest(typename M::Params&& params, F&& then);
-
-	template<typename F>
-	void	_SendJsonRequest(std::string_view method, value params, F&& then);
-
 	LSPPipeClient*			fLSPPipeClient;
 	LSPTextDocument*	_DocumentByURI(const char* uri);
 	bool _CheckAndSetCapability(json& capas, const char* str, const LSPCapability flag);
@@ -127,58 +121,73 @@ private:
 
 	std::mutex						fResponseQueueLock;
 	std::queue<std::function<void()>>	fResponseQueue;
+
+	// magic starts here!
+	template<typename M, typename F>
+	void	_SendTypedRequest(typename M::Params&& params, F&& then);
+
+	template<typename M, typename F>
+	auto	_addFunctionToQueue(F&& then);
+
+	template<typename F>
+	void	_enqueueOnUIThread(F&& fn);
+
+	template<typename F>
+	void	_SendJsonRequest(std::string_view method, value params, F&& then);
 };
+
+
+template<typename F>
+void
+LSPProjectWrapper::_enqueueOnUIThread(F&& fn) //NEW
+{
+	{
+		std::lock_guard<std::mutex> guard(fResponseQueueLock);
+		fResponseQueue.push(std::forward<F>(fn));
+	}
+	fHandlerMessenger.SendMessage(kLSPTypedResponse);
+}
+
+
+template<typename M, typename F>
+auto
+LSPProjectWrapper::_addFunctionToQueue(F&& then) //NEW
+{
+	return [this, cb = std::forward<F>(then)](typename M::Result&& result) mutable {
+		_enqueueOnUIThread([cb = std::move(cb), r = std::move(result)]() mutable {
+			cb(std::move(r));
+		});
+	};
+}
 
 
 template<typename M, typename F>
 void
-LSPProjectWrapper::_SendTypedRequest(typename M::Params&& params, F&& then)
+LSPProjectWrapper::_SendTypedRequest(typename M::Params&& params, F&& then) //UPDATED
 {
 	fLSPPipeClient->Handler().sendRequest<M>(
 		std::move(params),
-		[this, cb = std::forward<F>(then)](typename M::Result&& result) mutable {
-
-			{ //mutex context
-
-				// Lock the queue
-				std::lock_guard<std::mutex> guard(fResponseQueueLock);
-
-				// push the callaback with the parameters in the queue
-				fResponseQueue.push(
-					[cb = std::move(cb), r = std::move(result)]() mutable {
-						//execute the callback!
-						cb(std::move(r));
-					});
-			}
-
-			//New message in the queue notification.. (done async in the looper thread!)
-			fHandlerMessenger.SendMessage(kLSPTypedResponse);
-		},
+		_addFunctionToQueue<M>(std::forward<F>(then)),
 		[](const lsp::ResponseError& error) {
-			LogError("LSP request error: %s", error.message());
+			LogError("LSP request [%s] - error: %s", M::Method.data(), error.message());
 		});
 }
 
 
 template<typename F>
 void
-LSPProjectWrapper::_SendJsonRequest(std::string_view method, value params, F&& then)
+LSPProjectWrapper::_SendJsonRequest(std::string_view method, value params, F&& then) //UPDATED
 {
 	fLSPPipeClient->Handler().sendRequest(
 		method,
 		std::optional<lsp::json::Value>(std::move(params)),
 		[this, cb = std::forward<F>(then)](lsp::json::Value&& result) mutable {
-			{
-				std::lock_guard<std::mutex> guard(fResponseQueueLock);
-				fResponseQueue.push(
-					[cb = std::move(cb), r = std::move(result)]() mutable {
-						cb(r);
-					});
-			}
-			fHandlerMessenger.SendMessage(kLSPTypedResponse);
+			_enqueueOnUIThread([cb = std::move(cb), r = std::move(result)]() mutable {
+				cb(r);
+			});
 		},
-		[](const lsp::ResponseError& error) {
-			LogError("LSP request error: %s", error.message());
+		[method](const lsp::ResponseError& error) {
+			LogError("LSP json request [%s] - error: %s", method.data(), error.message());
 		});
 }
 

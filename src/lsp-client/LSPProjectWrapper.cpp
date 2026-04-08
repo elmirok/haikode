@@ -656,7 +656,7 @@ LSPProjectWrapper::RangeFomatting(LSPTextDocument* textDocument, Range range)
 
 
 void
-LSPProjectWrapper::FoldingRange(LSPTextDocument* textDocument)
+LSPProjectWrapper::FoldingRange(LSPTextDocument* textDocument) //NOT USED
 {
 	lsp::FoldingRangeParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
@@ -902,35 +902,6 @@ LSPProjectWrapper::DocumentSymbol(LSPTextDocument* textDocument)
 		});
 }
 
-/*
-void
-LSPProjectWrapper::DocumentColor(LSPTextDocument* textDocument)
-{
-	lsp::DocumentColorParams params;
-	params.textDocument.uri = MakeDocUri(textDocument);
-	_SendRequest(textDocument, "textDocument/documentColor", LSPBridge::toJson(std::move(params)));
-}
-
-
-void
-LSPProjectWrapper::DocumentHighlight(LSPTextDocument* textDocument, Position position)
-{
-	lsp::DocumentHighlightParams params;
-	params.textDocument.uri = MakeDocUri(textDocument);
-	params.position = position;
-	_SendRequest(textDocument, "textDocument/documentHighlight", LSPBridge::toJson(std::move(params)));
-}
-*/
-/*
-void
-LSPProjectWrapper::SymbolInfo(LSPTextDocument* textDocument, Position position)
-{
-	lsp::TextDocumentPositionParams params;
-	params.textDocument.uri = MakeDocUri(textDocument);
-	params.position = position;
-	_SendRequest(textDocument, "textDocument/symbolInfo", LSPBridge::toJson(std::move(params)));
-}
-*/
 
 void
 LSPProjectWrapper::DocumentLink(LSPTextDocument* textDocument)
@@ -1007,7 +978,7 @@ LSPProjectWrapper::_RegisterHandlers()
 		};
 	};
 
-	// Server → Client notifications
+	// Server -> Client notifications
 	handler.add<lsp::notifications::TextDocument_PublishDiagnostics>(
 		[this](lsp::PublishDiagnosticsParams&& params) {
 			{
@@ -1022,14 +993,11 @@ LSPProjectWrapper::_RegisterHandlers()
 			}
 			fHandlerMessenger.SendMessage(kLSPTypedResponse);
 		});
-	handler.add("textDocument/clangd.fileStatus",
-		marshalNotify("textDocument/clangd.fileStatus"));
-	handler.add("$/progress",
-		marshalNotify("$/progress"));
-	handler.add("window/logMessage",
-		marshalNotify("window/logMessage"));
+	handler.add("textDocument/clangd.fileStatus", marshalNotify("textDocument/clangd.fileStatus"));
+	handler.add("$/progress",  marshalNotify("$/progress"));
+	handler.add("window/logMessage",  marshalNotify("window/logMessage"));
 
-	// Server → Client requests
+	// Server -> Client requests
 	handler.add("window/workDoneProgress/create",
 		[](lsp::json::Value&&) -> lsp::json::Value {
 			return lsp::json::Value{};  // accept
