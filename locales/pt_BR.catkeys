@@ -1,7 +1,8 @@
-1	Portuguese (Brazil)	application/x-vnd.Genio	1484233109
+1	Portuguese (Brazil)	application/x-vnd.Genio	2515569603
 {0, plural,one{# element found}other{# elements found}}	Editor		{0, plural,one{# element found}other{# elements found}}
 {0, plural,one{# element replaced}other{# elements replaced}}	Editor		{0, plural,one{# element replaced}other{# elements replaced}}
 1 element replaced	Editor		1 element replaced
+Bookmark	Editor		Bookmark
 Cancel	Editor		Cancelar
 Do you want to set a starting index?	Editor		Do you want to set a starting index?
 Don't save	Editor		Não salvar
@@ -262,6 +263,7 @@ Font size:	SettingsWindow		Font size:
 Font:	SettingsWindow		Font:
 Force showing Build log panel when building	SettingsWindow		Force showing Build log panel when building
 General	SettingsWindow		General
+Highlight matching words	SettingsWindow		Highlight matching words
 Ignore .editorconfig	SettingsWindow		Ignore .editorconfig
 Log destination:	SettingsWindow		Log destination:
 Log level:	SettingsWindow		Log level:

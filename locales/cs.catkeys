@@ -1,7 +1,8 @@
-1	Czech	application/x-vnd.Genio	1484233109
+1	Czech	application/x-vnd.Genio	2515569603
 {0, plural,one{# element found}other{# elements found}}	Editor		{0, plural,one{# element nalezen}other{# elementů nalezeno}}
 {0, plural,one{# element replaced}other{# elements replaced}}	Editor		{0, plural,one{# element nahrazen}other{# elementů nahrazeno}}
 1 element replaced	Editor		1 element nahrazen
+Bookmark	Editor		Bookmark
 Cancel	Editor		Zrušit
 Do you want to set a starting index?	Editor		Chcete nastavit počáteční index?
 Don't save	Editor		Neukládat
@@ -231,7 +232,7 @@ Drop folder here	ProjectsFolderBrowser		Sem přetáhněte složku\n
 New	ProjectsFolderBrowser		Nový
 OK	ProjectsFolderBrowser		OK
 Open file	ProjectsFolderBrowser		Otevřít soubor\n
-Open file with default application	ProjectsFolderBrowser		Open file with default application
+Open file with default application	ProjectsFolderBrowser		Otevřít soubor s výchozí aplikací
 Path	ProjectsFolderBrowser		Cesta\n
 Project	ProjectsFolderBrowser		Projekt
 Project settings…	ProjectsFolderBrowser		Nastavení projektu…\n
@@ -253,7 +254,7 @@ Default size	SettingsWindow		Výchozí velikost\n
 Editor	SettingsWindow		Editor
 Editor style:	SettingsWindow		Styl editoru:\n
 Editor zoom:	SettingsWindow		Přiblížení editoru:\n
-Enable auto-indent	SettingsWindow		Enable auto-indent
+Enable auto-indent	SettingsWindow		Povolit automatické odsazování
 Enable brace matching	SettingsWindow		Povolit párování složených závorek\n
 Enable syntax highlighting	SettingsWindow		Povolit zvýraznění syntaxe\n
 Exclude folders:	SettingsWindow		Vyloučit složky:\n
@@ -262,13 +263,14 @@ Font size:	SettingsWindow		Velikost písma:\n
 Font:	SettingsWindow		Písmo:
 Force showing Build log panel when building	SettingsWindow		Vynutit zobrazení panelu protokolu sestavení při sestavení
 General	SettingsWindow		Obecná nastavení
+Highlight matching words	SettingsWindow		Highlight matching words
 Ignore .editorconfig	SettingsWindow		Ignorujte .editorconfig\n
 Log destination:	SettingsWindow		Cíl protokolu:\n
 Log level:	SettingsWindow		Úroveň protokolu:\n
 Log size:	SettingsWindow		Velikost protokolu:\n
 Mark caret line	SettingsWindow		Označte stříšku\n
 Match case	SettingsWindow	Short as possible.	Shoda
-Open non-text files externally	SettingsWindow		Open non-text files externally
+Open non-text files externally	SettingsWindow		Otevírání netextových souborů externě
 Projects folder:	SettingsWindow		Složka projektů:\n
 Reload files	SettingsWindow		\nZnovu načtěte soubory
 Reload projects	SettingsWindow		Znovu načíst projekty\n
@@ -292,7 +294,7 @@ Show vertical ruler	SettingsWindow		Zobrazit svislé pravítko\n
 Show whitespace	SettingsWindow		Zobrazit mezery\n
 Source control	SettingsWindow		Ovládání zdroje\n
 Startup	SettingsWindow		Spuštění\n
-Tab width from label	SettingsWindow		Tab width from label
+Tab width from label	SettingsWindow		Šířka karty od štítku
 Tab width:	SettingsWindow		Šířka karty:\n
 These are only applied if no .editorconfig is used:	SettingsWindow	The translation shouldn't be much longer than the English original	Ty se použijí pouze v případě, že není použit žádný .editorconfig:\n
 This setting will be updated on restart.	SettingsWindow		Toto nastavení bude aktualizováno při restartu.\n
@@ -380,7 +382,7 @@ Password:	GitCredentialsWindow		Heslo:
 Username:	GitCredentialsWindow		Uživatelské jméno:
 Cancel	GTextAlert		Zrušit
 OK	GTextAlert		OK
-Caret position	Scrollbar Overlay		Caret position
+Caret position	Scrollbar Overlay		Pozice posuvníku
 Category	ProblemsPanel		Kategorie\n
 Line	ProblemsPanel		Řádek
 Message	ProblemsPanel		Zpráva\n
@@ -416,4 +418,4 @@ Location	SearchResultPanel		Umístění
 Search results	SearchResultPanel		Výsledky vyhledávání\n
 New folder	TemplateManager		Nová složka
 OK	GitAlert		OK
-Unable to load image	ImageEditor		Unable to load image
+Unable to load image	ImageEditor		Nelze načíst obrázek

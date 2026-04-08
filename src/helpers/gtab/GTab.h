@@ -86,7 +86,7 @@ public:
 
 			void 				Draw(BRect updateRect) override;
 
-	virtual void				DrawTab(BView* owener, BRect updateRect);
+	virtual void				DrawTab(BView* owner, BRect updateRect);
 	virtual	void				DrawBackground(BView* owner, BRect frame,
 									const BRect& updateRect, bool isFront);
 	virtual	void				DrawContents(BView* owner, BRect frame,
@@ -143,7 +143,7 @@ virtual		void		CloseButtonClicked();
 
 
 private:
-			void		DrawCloseButton(BView* owner, BRect butFrame, const BRect& updateRect,
+			void		DrawCloseButton(BView* owner, BRect buttonRect, const BRect& updateRect,
 										bool isFront);
 
 			BRect		RectCloseButton();

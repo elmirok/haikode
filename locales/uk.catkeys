@@ -1,7 +1,8 @@
-1	Ukrainian	application/x-vnd.Genio	1484233109
+1	Ukrainian	application/x-vnd.Genio	2515569603
 {0, plural,one{# element found}other{# elements found}}	Editor		{0, plural,one{# елемент знайдено}other{# елементи/ів знайдено}}
 {0, plural,one{# element replaced}other{# elements replaced}}	Editor		{0, plural,one{# елемент замінено}other{# елементи/ів замінено}}
 1 element replaced	Editor		1 елемент замінено
+Bookmark	Editor		Bookmark
 Cancel	Editor		Відміна
 Do you want to set a starting index?	Editor		Ви хочете встановити початковий індекс?
 Don't save	Editor		Не зберігати
@@ -262,6 +263,7 @@ Font size:	SettingsWindow		Розмір шрифту:
 Font:	SettingsWindow		Шрифт:
 Force showing Build log panel when building	SettingsWindow		Примусове відображення панелі журналу збірки при збірці
 General	SettingsWindow		Загальне
+Highlight matching words	SettingsWindow		Highlight matching words
 Ignore .editorconfig	SettingsWindow		Ігнорувати .editorconfig
 Log destination:	SettingsWindow		Призначення журналу:
 Log level:	SettingsWindow		Рівень журналу:

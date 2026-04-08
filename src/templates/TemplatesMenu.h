@@ -26,7 +26,7 @@ public:
 	};
 
 							TemplatesMenu(BHandler *target, const char* label,
-											BMessage *message, BMessage *show_template_message,
+											BMessage *message, BMessage *showTemplateMessage,
 											const BString& defaultDirectory,
 											const BString& userDirectory,
 											ViewMode mode = FILE_VIEW_MODE,

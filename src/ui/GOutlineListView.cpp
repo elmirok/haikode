@@ -25,7 +25,7 @@ GOutlineListView::MouseMoved(BPoint point, uint32 transit, const BMessage* messa
 		const auto index = IndexOf(point);
 		if (index >= 0) {
 			BString toolTipText;
-			StyledItem *item = dynamic_cast<StyledItem*>(ItemAt(index));
+			const StyledItem *item = dynamic_cast<StyledItem*>(ItemAt(index));
 			if (item != nullptr && item->HasToolTip()) {
 				toolTipText = item->GetToolTipText();
 			}

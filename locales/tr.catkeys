@@ -1,7 +1,8 @@
-1	Turkish	application/x-vnd.Genio	1484233109
+1	Turkish	application/x-vnd.Genio	2515569603
 {0, plural,one{# element found}other{# elements found}}	Editor		{0, plural,one{# öge bulundu}other{# öge bulundu}}
 {0, plural,one{# element replaced}other{# elements replaced}}	Editor		{0, plural,one{# öge değiştirildi}other{# öge değiştirildi}}
 1 element replaced	Editor		1 öge değiştirildi
+Bookmark	Editor		Yer imi koy
 Cancel	Editor		Vazgeç
 Do you want to set a starting index?	Editor		Bir başlangıç indeksi ayarlamak istiyor musunuz?
 Don't save	Editor		Kaydetme
@@ -262,6 +263,7 @@ Font size:	SettingsWindow		Yazıtipi boyutu:
 Font:	SettingsWindow		Yazıtipi:
 Force showing Build log panel when building	SettingsWindow		Yapım sırasında yapı günlüğü panelini göstermeyi zorla
 General	SettingsWindow		Genel
+Highlight matching words	SettingsWindow		Eşleşen sözcükleri vurgula
 Ignore .editorconfig	SettingsWindow		.editorconfig dosyasını yok say
 Log destination:	SettingsWindow		Günlük konumu:
 Log level:	SettingsWindow		Günlük düzeyi:
@@ -380,7 +382,7 @@ Password:	GitCredentialsWindow		Parola:
 Username:	GitCredentialsWindow		Kullanıcı adı:
 Cancel	GTextAlert		Vazgeç
 OK	GTextAlert		Tamam
-Caret position	Scrollbar Overlay		Caret position
+Caret position	Scrollbar Overlay		Metin imleci konumu
 Category	ProblemsPanel		Kategori
 Line	ProblemsPanel		Satır
 Message	ProblemsPanel		İleti

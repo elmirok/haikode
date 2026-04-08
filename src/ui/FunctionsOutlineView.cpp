@@ -282,7 +282,7 @@ protected:
 	void ExpandOrCollapse(BListItem* superItem, bool expand) override
 	{
 		GOutlineListView::ExpandOrCollapse(superItem, expand);
-		SymbolListItem* item = dynamic_cast<SymbolListItem*>(superItem);
+		const SymbolListItem* item = dynamic_cast<SymbolListItem*>(superItem);
 		if (item != nullptr) {
 			BMessage message = item->Details();
 			message.what = MSG_COLLAPSE_SYMBOL_NODE;
@@ -296,7 +296,7 @@ private:
 	{
 		auto index = IndexOf(where);
 		if (index >= 0) {
-			auto item = dynamic_cast<SymbolListItem*>(ItemAt(index));
+			const auto item = dynamic_cast<SymbolListItem*>(ItemAt(index));
 			if (item == nullptr)
 				return;
 
@@ -555,7 +555,7 @@ FunctionsOutlineView::_UpdateDocumentSymbols(const BMessage& msg, const entry_re
 	}
 
 	// Save selected item
-	SymbolListItem* selected = dynamic_cast<SymbolListItem*>(fListView->ItemAt(fListView->CurrentSelection()));
+	const SymbolListItem* selected = dynamic_cast<SymbolListItem*>(fListView->ItemAt(fListView->CurrentSelection()));
 	if (selected != nullptr && sameDocument) {
 		fSelectedSymbol.name = selected->Details().GetString("name");
 		fSelectedSymbol.kind = selected->Details().GetInt32("kind", -1);
@@ -639,7 +639,7 @@ FunctionsOutlineView::_GoToSymbol(BMessage *msg)
 	status_t status = B_ERROR;
 	const int32 index = msg->GetInt32("index", -1);
 	if (index > -1) {
-		SymbolListItem* sym = dynamic_cast<SymbolListItem*>(fListView->ItemAt(index));
+		const SymbolListItem* sym = dynamic_cast<SymbolListItem*>(fListView->ItemAt(index));
 		if (sym != nullptr) {
 			BMessage go = sym->Details();
 			go.what = B_REFS_RECEIVED;

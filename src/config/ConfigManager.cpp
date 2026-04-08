@@ -108,18 +108,19 @@ ConfigManager::LoadFromFile(std::array<BPath, kStorageTypeCountNb> paths)
 
 	status_t status = B_OK;
 	GMessage msg;
-	int32 i = 0;
-	while (fConfiguration.FindMessage("config", i++, &msg) == B_OK) {
+	int32 index = 0;
+	while (fConfiguration.FindMessage("config", index++, &msg) == B_OK) {
 		const char* key = msg["key"];
 		StorageType storageType = (StorageType)((int32)msg["storage_type"]);
-		LogDebug("Loading key [%s] from configuration setting (%d/%d) for provider %d", key,i,countFound, storageType);
+		LogDebug("Loading key [%s] from configuration setting (%d/%d) for provider %d",
+			key, index, countFound, storageType);
 		PermanentStorageProvider* provider = fPSPList[storageType];
 		if (provider == nullptr) {
 			LogErrorF("Invalid  PermanentStorageProvider (%d)", storageType);
 			return B_ERROR;
 		}
 
-		if (countFound == i)
+		if (countFound == index)
 			fNoticeMessage.ReplaceString(kContext, "load_from_file_end");
 
 		status = provider->LoadKey(*this, key, fStorage, msg);
@@ -154,8 +155,8 @@ ConfigManager::SaveToFile(std::array<BPath, kStorageTypeCountNb> paths)
 
 	status_t status = B_OK;
 	GMessage msg;
-	int32 i = 0;
-	while (fConfiguration.FindMessage("config", i++, &msg) == B_OK) {
+	int32 index = 0;
+	while (fConfiguration.FindMessage("config", index++, &msg) == B_OK) {
 		const char* key = msg["key"];
 		StorageType storageType = (StorageType)((int32)msg["storage_type"]);
 		PermanentStorageProvider* provider = fPSPList[storageType];

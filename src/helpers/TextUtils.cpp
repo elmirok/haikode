@@ -20,9 +20,9 @@ bool IsASpace(int ch) noexcept {
 	return (ch == ' ') || ((ch >= 0x09) && (ch <= 0x0d));
 }
 
-const BString EscapeQuotesWrap(const BString& path) {
+const BString EscapeQuotesWrap(const BString& text) {
 	BString s = "\"";
-	s += path;
+	s += text;
 	s += "\"";
 	return s;
 }

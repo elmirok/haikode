@@ -1,0 +1,54 @@
+name: Cppcheck Static Analysis
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+jobs:
+  cppcheck:
+    runs-on: ubuntu-act-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install cppcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cppcheck
+
+      - name: Run Cppcheck
+        run: |
+          cppcheck --enable=all \
+                   --inconclusive \
+                   --std=c++17 \
+                   --xml \
+                   --xml-version=2 \
+                   --suppress=missingIncludeSystem \
+                   --suppress=missingInclude \
+                   --suppress=unmatchedSuppression \
+                   --suppress=unusedFunction \
+                   --suppress=unusedStructMember \
+                   -i data \
+                   -i libs \
+                   . \
+                   2> cppcheck-report.xml
+
+      - name: Convert Cppcheck report to HTML
+        run: |
+          cppcheck-htmlreport \
+                   --file=cppcheck-report.xml \
+                   --report-dir=cppcheck_html_report \
+                   --source-dir=.
+
+      - name: Upload Cppcheck HTML report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: cppcheck-report
+          path: cppcheck_html_report
+
+      - name: Display results
+        if: always()
+        run: cat cppcheck-report.xml

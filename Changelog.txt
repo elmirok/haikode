@@ -3,7 +3,7 @@ v5.0
 	- Added the ability to close any tab to further customize the workspace.
 	- Replaced the homegrown TermView (used for build logs and console I/O) with the Haiku Terminal.
 	- Added a Terminal tab.
-	- Genio now highlights error positions in a scrollbar overlay.
+	- Added a scrollbar overlay showing error positions, bookmarks and highlighted words.
 	- Changed the settings format to YAML so it's human-readable and writable.
 	- Improved project loading and made it asynchronous.
 	- Made retrieving Git information asynchronous.
@@ -19,6 +19,7 @@ v5.0
 	- Mark the active project instead of disabling the menu item in the project menu.
 	- Greatly improved the code that handles project activation, making it less crash-prone.
 	- Made the code more robust by checking for NULL pointers in more places (mostly identified with Codacy).
+	- Updated documentation (Humdinger).
 	- Fixed a couple of dangerous casts and use C++ casts where possible (mostly found with Codacy).
 	- Fixed possible layout settings corruption.
 	- Fixed incorrect project colors in tabs in certain cases.

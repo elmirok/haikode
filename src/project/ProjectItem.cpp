@@ -266,7 +266,7 @@ ProjectTitleItem::DrawItem(BView* owner, BRect bounds, bool complete)
 	const float iconSize = be_control_look->ComposeIconSize(B_MINI_ICON).Height();
 	BRect iconRect = DrawIcon(owner, bounds, iconSize);
 
-	ProjectFolder *projectFolder = GetSourceItem()->GetProjectFolder();
+	const ProjectFolder *projectFolder = GetSourceItem()->GetProjectFolder();
 	if (projectFolder == nullptr) {
 		LogError("ProjectTitleItem: ProjectFolder is NULL!");
 		return;

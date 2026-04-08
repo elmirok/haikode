@@ -93,10 +93,11 @@ TerminalTab::SetInitialCommand(const char* command)
 	fCommand = command;
 }
 
+
 void
-TerminalTab::SetInitialTheme(const char* theme)
+TerminalTab::SetInitialTheme(const char* themeName)
 {
-	fThemeName = theme;
+	fThemeName = themeName;
 }
 
 
@@ -104,7 +105,7 @@ status_t
 TerminalTab::_RunCommand(const char* cmd, bool clean)
 {
 	//temporary big hack!
-	BView*	target = _FindTarget();
+	BView* target = _FindTarget();
 	if (target == nullptr)
 		return B_ERROR;
 

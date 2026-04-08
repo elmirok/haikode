@@ -300,13 +300,13 @@ public:
 		std::string prop_name_;
 	public:
 		iterator(BMessage* message, const std::string& prop_name, int index = 0)
-			: message_(message), prop_name_(prop_name), index_(index) {}
-		bool operator==(iterator &rhs) {
+			: index_(index), message_(message), prop_name_(prop_name) {}
+		bool operator==(const iterator &rhs) {
 			return index_ == rhs.index_ &&
 				message_ == rhs.message_ &&
 				prop_name_ == rhs.prop_name_;
 		}
-		bool operator!=(iterator &rhs) { return !(*this == rhs); }
+		bool operator!=(const iterator &rhs) { return !(*this == rhs); }
 		iterator &operator++() { ++index_; return *this; }
 		iterator operator++(int) {
 			iterator clone(*this);
