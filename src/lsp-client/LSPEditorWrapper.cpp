@@ -740,30 +740,6 @@ LSPEditorWrapper::_DoGoTo(lsp::TextDocument_DefinitionResult&& result)
 	}
 }
 
-void
-LSPEditorWrapper::_DoGoTo(value& items)
-{
-	if (items.isNull())
-		return;
-
-	Location location;
-
-	// TODO if more than one match??
-	// clangd sends an array of Locations while OmniSharp seems to conform to the standard
-	// and sends just one.
-	if (items.isArray()) {
-		if (items.array().empty())
-			return;
-		lsp::fromJson(lsp::json::Value(items.array()[0]), location);
-	} else {
-		lsp::fromJson(lsp::json::Value(items), location);
-	}
-
-	std::string uri = location.uri.toString();
-	Position pos = location.range.start;
-
-	OpenFileURI(uri, pos.line + 1, pos.character);
-}
 
 
 void
@@ -958,45 +934,7 @@ LSPEditorWrapper::_DoCodeActions(lsp::TextDocument_CodeActionResult&& codeAction
 			}
 		}
 	}
-}/*
-void
-LSPEditorWrapper::_DoCodeActions(value& params)
-{
-	printf("DOCODEACTION %s\n", lsp::json::stringify(params).c_str());
-	for (auto& v : params.array()) {
-		auto action = LSPBridge::fromJson<lsp::CodeAction>(v);
-
-		debugger("old code action");
-
-		// Extract range from clangd-specific data field
-		auto& dataObj = action.data.value().object();
-		auto& rangeObj = dataObj.get("Range").object();
-		auto& startObj = rangeObj.get("Start").object();
-		auto& endObj = rangeObj.get("End").object();
-
-		Range range;
-		range.start.character = static_cast<unsigned int>(startObj.get("Character").integer());
-		range.start.line = static_cast<unsigned int>(startObj.get("Line").integer());
-		range.end.character = static_cast<unsigned int>(endObj.get("Character").integer());
-		range.end.line = static_cast<unsigned int>(endObj.get("Line").integer());
-
-		for (auto& d: fLastDiagnostics) {
-			if (d.diagnostic.range == range) {
-				if (!d.codeActions)
-					d.codeActions.emplace();
-				d.codeActions->push_back(action);
-				if (!action.diagnostics)
-					action.diagnostics.emplace();
-				action.diagnostics->push_back(d.diagnostic);
-
-				auto* editField = v.object().find("edit");
-				if (!editField || editField->isNull())
-					CodeActionResolve(v);
-
-			}
-		}
-	}
-}*/
+}
 
 
 void
@@ -1071,29 +1009,6 @@ LSPEditorWrapper::_DoDocumentLink(lsp::TextDocument_DocumentLinkResult&& links)
 		fLastDocumentLinks.push_back(ir);
 	}
 }
-
-
-/*
-void
-LSPEditorWrapper::_DoDocumentLink(value& result)
-{
-	_RemoveAllDocumentLinks();
-
-	for (auto& element : result.array()) {
-		auto l = LSPBridge::fromJson<lsp::DocumentLink>(element);
-		Range& r = l.range;
-		InfoRange ir;
-		ir.from = FromLSPPositionToSciPosition(&r.start);
-		ir.to = FromLSPPositionToSciPosition(&r.end);
-		if (l.target)
-			ir.info = l.target->toString();
-
-		LogTrace("DocumentLink [%ld->%ld] [%s]", ir.from, ir.to, ir.info.c_str());
-		fEditor->SendMessage(SCI_INDICATORFILLRANGE, ir.from, ir.to - ir.from);
-		fLastDocumentLinks.push_back(ir);
-	}
-}*/
-
 
 void
 LSPEditorWrapper::_DoFileStatus(value& params)
@@ -1201,43 +1116,6 @@ LSPEditorWrapper::onError(RequestID id, value& error)
 	LogError("onError [%s] [%s]", GetFileStatus().String(), lsp::json::stringify(error).c_str());
 }
 
-/*
-void
-LSPEditorWrapper::onRequest(std::string method, value& params, value& ID)
-{
-	// LogError("onRequest not implemented! [%s] [%s] [%s]", method.c_str(), params.dump().c_str(),
-	// ID.dump().c_str());
-}
-*/
-/*
-void
-LSPEditorWrapper::OnHover(lsp::TextDocument_HoverResult& hover_res)
-{
-	if (fEditor == nullptr) {
-		return;
-	}
-
-	BAutolock lock(fEditor->Window());
-	if (!fEditor->Window()->IsActive()) {
-		return;
-	}
-
-	if (hover_res.isNull()){
-		EndHover();
-		return;
-	}
-
-	std::string tip = _ExtractHoverText(hover_res.value());
-
-	if (tip.empty()) {
-		EndHover();
-		return;
-	}
-
-	_ShowToolTip(tip.c_str());
- }
-
-*/
 
 // utility
 void

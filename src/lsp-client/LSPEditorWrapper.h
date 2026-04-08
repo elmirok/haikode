@@ -125,27 +125,23 @@ private:
 	void				_RemoveAllDiagnostics();
 	void				_RemoveAllDocumentLinks();
 
-private:
-	//callbacks:
-	//void	_DoFormat(value& params);
 public:
+			//FIXME: rename
 	void	_DoFormat(ArrayTextEdit&& edits);
 	void	_DoRename(lsp::WorkspaceEdit&& edit); //use the result?
 	void	_DoHover(lsp::TextDocument_HoverResult&& result);
-	void	_DoGoTo(value& params);
 	void	_DoGoTo(lsp::TextDocument_DefinitionResult&& result);
-
 	void	_DoSignatureHelp(lsp::SignatureHelp&& signatureHelp); //use the result?
-
 	void	_DoCompletion(lsp::TextDocument_CompletionResult&& result);
 	void	_DoDiagnostics(lsp::PublishDiagnosticsParams&& params);
 	void	_DoDocumentLink(lsp::TextDocument_DocumentLinkResult&& links);
-	void	_DoFileStatus(value& params);
 	void	_DoDocumentSymbol(lsp::TextDocument_DocumentSymbolResult&& result);
-	void	_DoInitialize(value& params);
 	void	_DoCodeActions(lsp::TextDocument_CodeActionResult&& codeAction);
-	void	_DoCodeActionResolve(value& params); //to be deprecated.
 	void	_DoCodeActionResolve(CodeAction&& params);
+
+	//Still generic methods
+	void	_DoFileStatus(value& params);
+	void	_DoInitialize(value& params);
 
 private:
 
