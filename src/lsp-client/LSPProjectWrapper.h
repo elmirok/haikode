@@ -88,7 +88,6 @@ public:
 private:
 	bool	_Create();
 	void	_RegisterHandlers();
-	void	_SendRequest(LSPTextDocument* textDocument, std::string_view method, lsp::json::Value params);
 	void	_SendNotify(std::string_view method, lsp::json::Value params);
 
 	LSPPipeClient*			fLSPPipeClient;
@@ -97,7 +96,6 @@ private:
 
 	// Notification/response dispatch helpers (called on UI thread)
 	void _OnNotify(std::string method, lsp::json::Value& params);
-	void _OnResponse(const std::string& documentKey, std::string method, lsp::json::Value& result);
 	void _DrainResponseQueue();
 
 	void	_LogMessage(lsp::LogMessageParams&& params);

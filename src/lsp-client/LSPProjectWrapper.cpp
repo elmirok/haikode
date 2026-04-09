@@ -127,7 +127,6 @@ lsp::ClientCapabilities BuildClientCapabilities()
 
 enum {
 	kLSPNotify   = 'LSn!',
-	kLSPResponse = 'LSr!',
 };
 
 
@@ -161,23 +160,6 @@ LSPProjectWrapper::MessageReceived(BMessage* msg)
 					_OnNotify(method, params);
 				} catch (std::exception& e) {
 					LogTrace("LSPProjectWrapper notification exception: %s", e.what());
-				}
-			}
-			break;
-		}
-		case kLSPResponse: //json response (deprecated)
-		{
-			const char* documentKey;
-			const char* method;
-			const char* data;
-			if (msg->FindString("documentKey", &documentKey) == B_OK
-				&& msg->FindString("method", &method) == B_OK
-				&& msg->FindString("data", &data) == B_OK) {
-				try {
-					auto result = lsp::json::parse(data);
-					_OnResponse(documentKey, method, result);
-				} catch (std::exception& e) {
-					LogTrace("LSPProjectWrapper response exception: %s", e.what());
 				}
 			}
 			break;
@@ -300,6 +282,8 @@ LSPProjectWrapper::~LSPProjectWrapper()
 			resp.result.wait_for(std::chrono::milliseconds(500));
 		} catch (...) {}
 
+		fInitialized.store(false);
+
 		try {
 			fLSPPipeClient->Handler().sendNotification("exit");
 		} catch (...) {}
@@ -408,20 +392,6 @@ LSPProjectWrapper::_LogMessage(lsp::LogMessageParams&& logParams)
 	};
 }
 
-
-void
-LSPProjectWrapper::_OnResponse(const std::string& documentKey, std::string method, lsp::json::Value& result)
-{
-	if (method.compare("shutdown") == 0) {
-		debugger("HERE\n");
-		fprintf(stderr, "Shutdown received\n");
-		fInitialized.store(false);
-		return;
-	} else {
-		LogError("LSPProjectWrapper::_OnResponse not handled! [%s] for [%s]", method.c_str(),
-			documentKey.c_str());
-	}
-}
 
 void
 LSPProjectWrapper::Initialize(std::optional<std::string> rootUri)
@@ -596,7 +566,7 @@ LSPProjectWrapper::FoldingRange(LSPTextDocument* textDocument) //NOT USED
 {
 	lsp::FoldingRangeParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
-	_SendRequest(textDocument, "textDocument/foldingRange", LSPBridge::toJson(params));
+	// TODO: Use SendTypedRequest
 }
 
 /* not used */
@@ -606,7 +576,7 @@ LSPProjectWrapper::SelectionRange(LSPTextDocument* textDocument, std::vector<lsp
 	lsp::SelectionRangeParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.positions = std::move(positions);
-	_SendRequest(textDocument, "textDocument/selectionRange", LSPBridge::toJson(params));
+	// TODO: Use SendTypedRequest
 }
 
 /* not used */
@@ -619,7 +589,7 @@ LSPProjectWrapper::OnTypeFormatting(LSPTextDocument* textDocument, lsp::Position
 	params.ch = std::string(ch);
 	params.options.tabSize = 4;
 	params.options.insertSpaces = false;
-	_SendRequest(textDocument, "textDocument/onTypeFormatting", LSPBridge::toJson(std::move(params)));
+	// TODO: Use SendTypedRequest
 }
 
 
@@ -821,7 +791,7 @@ LSPProjectWrapper::References(LSPTextDocument* textDocument, lsp::Position posit
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
 	params.context.includeDeclaration = true;
-	_SendRequest(textDocument, "textDocument/references", LSPBridge::toJson(std::move(params)));
+	// TODO: Use SendTypedRequest
 }
 
 
@@ -909,31 +879,6 @@ LSPProjectWrapper::DocumentLink(LSPTextDocument* textDocument)
 			if (!doc)
 				return;
 			doc->OnDocumentLink(std::move(result.value()));
-		});
-}
-
-
-// --- Send helpers (via lsp::MessageHandler) ---
-
-
-void
-LSPProjectWrapper::_SendRequest(LSPTextDocument* textDocument, std::string_view method, lsp::json::Value params)
-{
-	std::string docKey = textDocument ? X(textDocument) : "client";
-	std::string methodStr(method);
-
-	fLSPPipeClient->Handler().sendRequest(
-		methodStr,
-		std::move(params),
-		[this, docKey, methodStr](lsp::json::Value&& result) {
-			BMessage msg(kLSPResponse);
-			msg.AddString("documentKey", docKey.c_str());
-			msg.AddString("method", methodStr.c_str());
-			msg.AddString("data", lsp::json::stringify(result).c_str());
-			fHandlerMessenger.SendMessage(&msg);
-		},
-		[methodStr](const lsp::ResponseError& error) {
-			LogError("LSP json request [%s] - error: %s", methodStr.c_str(), error.message());
 		});
 }
 
