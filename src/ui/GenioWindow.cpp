@@ -1016,6 +1016,7 @@ GenioWindow::MessageReceived(BMessage* message)
 					LogError("Selecting editor but it's null! (index %d)", index);
 					break;
 				}
+				printf("SELECT %s\n", editor->FilePath().String());
 				const int32 be_line   = message->GetInt32("start:line", -1);
 				const int32 lsp_char  = message->GetInt32("start:character", -1);
 
@@ -1086,6 +1087,7 @@ GenioWindow::MessageReceived(BMessage* message)
 					if (message->GetBool("caret_position", false) == true) {
 						editor->SetSavedCaretPosition();
 					}
+					printf("NEWTAB %s\n", editor->FilePath().String());
 					ProjectFolder* project = editor->GetProjectFolder();
 					if (project != nullptr) {
 						fTabManager->SetTabColor(editor, project->Color());
@@ -1710,7 +1712,7 @@ GenioWindow::_FileOpenAtStartup(BMessage* msg)
 	entry_ref ref;
 	int32 refsCount = 0;
 	while (msg->FindRef("refs", refsCount++, &ref) == B_OK) {
-		_FileOpenWithPosition(&ref, false, -1,-1);
+		_FileOpenWithPosition(&ref, false, -1,-1, false);
 	}
 	if (fTabManager->CountTabs() > opened_index) {
 		fTabManager->SelectTab(opened_index);
@@ -1825,7 +1827,7 @@ GenioWindow::_HandleEditorZoom(int32 value)
 
 status_t
 GenioWindow::_FileOpenWithPosition(entry_ref* ref, bool openWithPreferred,
-	int32 be_line, int32 lsp_char)
+	int32 be_line, int32 lsp_char, bool select)
 {
 	if (!BEntry(ref).Exists())
 		return B_ERROR;
@@ -1856,7 +1858,9 @@ GenioWindow::_FileOpenWithPosition(entry_ref* ref, bool openWithPreferred,
 	be_roster->AddToRecentDocuments(ref, GenioNames::kApplicationSignature);
 
 	// Select the newly added tab
-	fTabManager->SelectTab(editor->FileRef(), &selectTabInfo);
+	if (select) {
+		fTabManager->SelectTab(editor->FileRef(), &selectTabInfo);
+	}
 
 	// TODO: Move some other stuff into _PostFileLoad()
 	_PostFileLoad(editor);
