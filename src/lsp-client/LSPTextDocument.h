@@ -32,7 +32,6 @@ public:
 			int32	Version() const { return fVersion; }
 			bool 	IsStaleResponse(int32 requestVersion) const {
 						if (Version() != requestVersion) {
-							debugger("IsStale!");
 							LogTrace("[%s] Discarding stale response (req=%ld, cur=%ld)",
 								GetFilenameURI().String(), requestVersion, Version());
 							return true;

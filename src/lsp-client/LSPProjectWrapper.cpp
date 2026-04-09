@@ -336,7 +336,7 @@ LSPProjectWrapper::_DocumentByURI(const char* uri)
 {
 	LSPTextDocument* doc = nullptr;
 	if (fTextDocs.find(uri) != fTextDocs.end())
-		fTextDocs[uri];
+		doc = fTextDocs[uri];
 	return doc;
 }
 
@@ -631,9 +631,12 @@ LSPProjectWrapper::RangeFomatting(LSPTextDocument* textDocument, Range range)
 	_SendTypedRequest<lsp::requests::TextDocument_RangeFormatting>(
 		textDocument,
 		std::move(params),
-		[textDocument](lsp::TextDocument_RangeFormattingResult&& result, int32 reqVersion) {
+		[this, uri = std::string(X(textDocument))](lsp::TextDocument_RangeFormattingResult&& result, int32 reqVersion) {
+			auto* doc = static_cast<LSPEditorWrapper*>(_DocumentByURI(uri.c_str()));
+			if (!doc)
+				return;
 			if (!result.isNull())
-				static_cast<LSPEditorWrapper*>(textDocument)->_DoFormat(std::move(result.value()));
+				doc->_DoFormat(std::move(result.value()));
 		});
 }
 
@@ -684,11 +687,14 @@ LSPProjectWrapper::Formatting(LSPTextDocument* textDocument)
 	_SendTypedRequest<lsp::requests::TextDocument_Formatting>(
 		textDocument,
 		std::move(params),
-		[textDocument](lsp::TextDocument_FormattingResult&& result, int32 reqVersion) {
-            if (textDocument->IsStaleResponse(reqVersion))
-                return;
+		[this, uri = std::string(X(textDocument))](lsp::TextDocument_FormattingResult&& result, int32 reqVersion) {
+			auto* doc = static_cast<LSPEditorWrapper*>(_DocumentByURI(uri.c_str()));
+			if (!doc)
+				return;
+			if (doc->IsStaleResponse(reqVersion))
+				return;
 			if (!result.isNull())
-				static_cast<LSPEditorWrapper*>(textDocument)->_DoFormat(std::move(result.value()));
+				doc->_DoFormat(std::move(result.value()));
 		});
 }
 
@@ -704,11 +710,14 @@ LSPProjectWrapper::CodeAction(LSPTextDocument* textDocument, Range range, lsp::C
 	_SendTypedRequest<lsp::requests::TextDocument_CodeAction>(
 		textDocument,
 		std::move(params),
-		[textDocument](lsp::TextDocument_CodeActionResult&& result, int32 reqVersion) {
-            if (textDocument->IsStaleResponse(reqVersion))
-                return;
+		[this, uri = std::string(X(textDocument))](lsp::TextDocument_CodeActionResult&& result, int32 reqVersion) {
+			auto* doc = static_cast<LSPEditorWrapper*>(_DocumentByURI(uri.c_str()));
+			if (!doc)
+				return;
+			if (doc->IsStaleResponse(reqVersion))
+				return;
 			if (!result.isNull())
-				static_cast<LSPEditorWrapper*>(textDocument)->_DoCodeActions(std::move(result.value()));
+				doc->_DoCodeActions(std::move(result.value()));
 		});
 }
 
@@ -719,10 +728,13 @@ LSPProjectWrapper::CodeActionResolve(LSPTextDocument* textDocument, lsp::CodeAct
 	_SendTypedRequest<lsp::requests::CodeAction_Resolve>(
 		textDocument,
 		std::move(params),
-		[textDocument](lsp::CodeAction&& result, int32 reqVersion) {
-            if (textDocument->IsStaleResponse(reqVersion))
-                return;
-			static_cast<LSPEditorWrapper*>(textDocument)->_DoCodeActionResolve(std::move(result));
+		[this, uri = std::string(X(textDocument))](lsp::CodeAction&& result, int32 reqVersion) {
+			auto* doc = static_cast<LSPEditorWrapper*>(_DocumentByURI(uri.c_str()));
+			if (!doc)
+				return;
+			if (doc->IsStaleResponse(reqVersion))
+				return;
+			doc->_DoCodeActionResolve(std::move(result));
 		});
 }
 
@@ -742,10 +754,13 @@ LSPProjectWrapper::Completion(
 	_SendTypedRequest<lsp::requests::TextDocument_Completion>(
 		textDocument,
 		std::move(params),
-		[textDocument](lsp::TextDocument_CompletionResult&& result, int32 reqVersion) {
-            if (textDocument->IsStaleResponse(reqVersion))
-                return;
-			static_cast<LSPEditorWrapper*>(textDocument)->_DoCompletion(std::move(result.value()));
+		[this, uri = std::string(X(textDocument))](lsp::TextDocument_CompletionResult&& result, int32 reqVersion) {
+			auto* doc = static_cast<LSPEditorWrapper*>(_DocumentByURI(uri.c_str()));
+			if (!doc)
+				return;
+			if (doc->IsStaleResponse(reqVersion))
+				return;
+			doc->_DoCompletion(std::move(result.value()));
 		});
 }
 
@@ -763,9 +778,12 @@ LSPProjectWrapper::SignatureHelp(LSPTextDocument* textDocument, Position positio
 	_SendTypedRequest<lsp::requests::TextDocument_SignatureHelp>(
 		textDocument,
 		std::move(params),
-		[textDocument](lsp::TextDocument_SignatureHelpResult&& result, int32 reqVersion) {
+		[this, uri = std::string(X(textDocument))](lsp::TextDocument_SignatureHelpResult&& result, int32 reqVersion) {
+			auto* doc = static_cast<LSPEditorWrapper*>(_DocumentByURI(uri.c_str()));
+			if (!doc)
+				return;
 			if (!result.isNull())
-				static_cast<LSPEditorWrapper*>(textDocument)->_DoSignatureHelp(std::move(result.value()));
+				doc->_DoSignatureHelp(std::move(result.value()));
 		});
 
 }
@@ -783,9 +801,12 @@ LSPProjectWrapper::GoToDefinition(LSPTextDocument* textDocument, Position positi
 	_SendTypedRequest<lsp::requests::TextDocument_Definition>(
 		textDocument,
 		std::move(params),
-		[textDocument](lsp::TextDocument_DefinitionResult&& result, int32 reqVersion) {
+		[this, uri = std::string(X(textDocument))](lsp::TextDocument_DefinitionResult&& result, int32 reqVersion) {
+			auto* doc = static_cast<LSPEditorWrapper*>(_DocumentByURI(uri.c_str()));
+			if (!doc)
+				return;
 			if (!result.isNull()) {
-				static_cast<LSPEditorWrapper*>(textDocument)->_DoGoTo(std::move(result.value()));
+				doc->_DoGoTo(std::move(result.value()));
 			}
 		});
 }
@@ -803,10 +824,13 @@ LSPProjectWrapper::GoToImplementation(LSPTextDocument* textDocument, Position po
 	_SendTypedRequest<lsp::requests::TextDocument_Implementation>(
 		textDocument,
 		std::move(params),
-		[textDocument](lsp::TextDocument_ImplementationResult&& result, int32 reqVersion) {
+		[this, uri = std::string(X(textDocument))](lsp::TextDocument_ImplementationResult&& result, int32 reqVersion) {
+			auto* doc = static_cast<LSPEditorWrapper*>(_DocumentByURI(uri.c_str()));
+			if (!doc)
+				return;
 			lsp::TextDocument_DefinitionResult&& impl = (lsp::TextDocument_DefinitionResult&&)result;
 			if (!result.isNull()) {
-				static_cast<LSPEditorWrapper*>(textDocument)->_DoGoTo(std::move(impl.value()));
+				doc->_DoGoTo(std::move(impl.value()));
 			}
 		});
 }
@@ -828,10 +852,13 @@ LSPProjectWrapper::GoToDeclaration(LSPTextDocument* textDocument, Position posit
 	_SendTypedRequest<lsp::requests::TextDocument_Declaration>(
 		textDocument,
 		std::move(params),
-		[textDocument](lsp::TextDocument_DeclarationResult&& result, int32 reqVersion) {
+		[this, uri = std::string(X(textDocument))](lsp::TextDocument_DeclarationResult&& result, int32 reqVersion) {
+			auto* doc = static_cast<LSPEditorWrapper*>(_DocumentByURI(uri.c_str()));
+			if (!doc)
+				return;
 			lsp::TextDocument_DefinitionResult&& impl = (lsp::TextDocument_DefinitionResult&&)result;
 			if (!result.isNull()) {
-				static_cast<LSPEditorWrapper*>(textDocument)->_DoGoTo(std::move(impl.value()));
+				doc->_DoGoTo(std::move(impl.value()));
 			}
 		});
 }
@@ -861,11 +888,14 @@ LSPProjectWrapper::Rename(LSPTextDocument* textDocument, Position position, std:
 	_SendTypedRequest<lsp::requests::TextDocument_Rename>(
 		textDocument,
 		std::move(params),
-		[textDocument](lsp::TextDocument_RenameResult&& result, int32 reqVersion) {
-            if (textDocument->IsStaleResponse(reqVersion))
-                return;
+		[this, uri = std::string(X(textDocument))](lsp::TextDocument_RenameResult&& result, int32 reqVersion) {
+			auto* doc = static_cast<LSPEditorWrapper*>(_DocumentByURI(uri.c_str()));
+			if (!doc)
+				return;
+			if (doc->IsStaleResponse(reqVersion))
+				return;
 			if (!result.isNull())
-				static_cast<LSPEditorWrapper*>(textDocument)->_DoRename(std::move(result.value()));
+				doc->_DoRename(std::move(result.value()));
 		});
 }
 
@@ -883,8 +913,11 @@ LSPProjectWrapper::Hover(LSPTextDocument* textDocument, Position position)
 	_SendTypedRequest<lsp::requests::TextDocument_Hover>(
 		textDocument,
 		std::move(params),
-		[textDocument](lsp::TextDocument_HoverResult&& result, int32 reqVersion) {
-			static_cast<LSPEditorWrapper*>(textDocument)->_DoHover(std::move(result));
+		[this, uri = std::string(X(textDocument))](lsp::TextDocument_HoverResult&& result, int32 reqVersion) {
+			auto* doc = static_cast<LSPEditorWrapper*>(_DocumentByURI(uri.c_str()));
+			if (!doc)
+				return;
+			doc->_DoHover(std::move(result));
 		});
 }
 
@@ -901,8 +934,11 @@ LSPProjectWrapper::DocumentSymbol(LSPTextDocument* textDocument)
 	_SendTypedRequest<lsp::requests::TextDocument_DocumentSymbol>(
 		textDocument,
 		std::move(params),
-		[textDocument](lsp::TextDocument_DocumentSymbolResult&& result, int32 reqVersion) {
-			static_cast<LSPEditorWrapper*>(textDocument)->_DoDocumentSymbol(std::move(result));
+		[this, uri = std::string(X(textDocument))](lsp::TextDocument_DocumentSymbolResult&& result, int32 reqVersion) {
+			auto* doc = static_cast<LSPEditorWrapper*>(_DocumentByURI(uri.c_str()));
+			if (!doc)
+				return;
+			doc->_DoDocumentSymbol(std::move(result));
 		});
 }
 
@@ -918,8 +954,11 @@ LSPProjectWrapper::DocumentLink(LSPTextDocument* textDocument)
 	_SendTypedRequest<lsp::requests::TextDocument_DocumentLink>(
 		textDocument,
 		std::move(params),
-		[textDocument](lsp::TextDocument_DocumentLinkResult&& result, int32 reqVersion) {
-			static_cast<LSPEditorWrapper*>(textDocument)->_DoDocumentLink(std::move(result.value()));
+		[this, uri = std::string(X(textDocument))](lsp::TextDocument_DocumentLinkResult&& result, int32 reqVersion) {
+			auto* doc = static_cast<LSPEditorWrapper*>(_DocumentByURI(uri.c_str()));
+			if (!doc)
+				return;
+			doc->_DoDocumentLink(std::move(result.value()));
 		});
 }
 
