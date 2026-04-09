@@ -30,10 +30,13 @@ public:
 	static thread_id		OpenCredentialsWindow(const char* title, BString& username);
 	static thread_id		OpenCredentialsWindow(const char* title, BString& username,
 													BString& password);
-	static int 				authentication_callback(git_cred** out, const char* url,
+
+	static int 				authentication_callback(git_credential** out, const char* url,
 													const char* username_from_url,
 													unsigned int allowed_types,
 													void* payload);
+	static int				certificate_check_callback(git_cert *cert, int valid,
+													const char *host, void *payload);
 private:
 	/**
 	 * The text control for username.
@@ -46,4 +49,6 @@ private:
 
 	BString*				fUsernameString;
 	BString*				fPasswordString;
+
+	static			int32	sAuthenticationAttempts;
 };

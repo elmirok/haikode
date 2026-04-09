@@ -63,6 +63,11 @@ void OKAlert(const char* title, const char* message,
 
 BString	ReadFileContent(const char* filename, off_t maxSize);
 
+// Encoding/Decoding
+std::string Base64Encode(const std::string& string);
+void Base64Decode(const std::string& string, unsigned char*& outDecoded, size_t& outLength);
+std::string SHA256Hash(unsigned char* buffer, size_t length);
+
 // Other
 void	FakeMouseMovement(BView* view);
 

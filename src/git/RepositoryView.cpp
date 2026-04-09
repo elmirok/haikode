@@ -11,25 +11,19 @@
 #include <Looper.h>
 
 #include <filesystem>
-#include <git2/types.h>
 
 #include "BranchItem.h"
 #include "ConfigManager.h"
 #include "GenioApp.h"
-#include "GenioWindow.h"
 #include "GitRepository.h"
 #include "GMessage.h"
 #include "ProjectFolder.h"
 #include "SourceControlPanel.h"
 #include "StringFormatter.h"
-#include "Task.h"
-#include "Utils.h"
 
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "SourceControlPanel"
 
-
-using Genio::Task::Task;
 
 RepositoryView::RepositoryView()
 	:
@@ -87,13 +81,14 @@ RepositoryView::MessageReceived(BMessage* message)
 			auto item = dynamic_cast<BranchItem*>(ItemAt(CurrentSelection()));
 			if (item == nullptr)
 				break;
-			if (item->BranchName() == fCurrentBranch)
+			if (item->IsCurrentBranch())
 				break;
 
 			GMessage switchMessage = {
 				{"what", MsgSwitchBranch},
 				{"value", item->BranchName()},
-				{"type", (item->BranchType() == kLocalBranch) ? GIT_BRANCH_LOCAL : GIT_BRANCH_REMOTE },
+				{"type", (item->BranchType() == kLocalBranch) ?
+					GitRepository::BRANCH_LOCAL : GitRepository::BRANCH_REMOTE },
 				{"sender", kSenderRepositoryPopupMenu}
 			};
 			BMessenger messenger(Target());
@@ -115,114 +110,14 @@ RepositoryView::SelectionChanged()
 
 
 void
-RepositoryView::UpdateRepository(const ProjectFolder *project, const BString &branch)
-{
-	ASSERT(project != nullptr);
-	ASSERT(project->GetRepository());
-	ASSERT(!branch.IsEmpty());
-
-	LogInfo("UpdateRepository(project: %s, branch: %s)",
-		project->Name().String(), branch.String());
-
-	// TODO: we call this method also when current branch changes, and we rebuild
-	// the whole listview. Maybe we could avoid that
-	BString taskName;
-	taskName << "UpdateRepository-" << project->Name() << "-" << branch;
-	Task<status_t> task
-	(
-		taskName,
-		BMessenger(this),
-		std::bind
-		(
-			&RepositoryView::_UpdateRepositoryTask,
-			this,
-			project->GetRepository(),
-			branch
-		)
-	);
-
-	task.Run();
-}
-
-
-void
-RepositoryView::_UpdateRepositoryTask(const GitRepository* repo, const BString& branch)
-{
-	auto const NullLambda = [](const auto& val){ return false; };
-
-	// Used to show the current branch in RepositoryView
-	fCurrentBranch = branch;
-	try {
-		// Retrieve branches
-		auto localBranches = repo->GetBranches(GIT_BRANCH_LOCAL);
-		std::sort(localBranches.begin(), localBranches.end());
-		int32 numLocalBranches = localBranches.size();
-
-		LogInfo("%ld local branches", numLocalBranches);
-
-		auto remoteBranches = repo->GetBranches(GIT_BRANCH_REMOTE);
-		std::sort(remoteBranches.begin(), remoteBranches.end());
-		int32 numRemoteBranches = remoteBranches.size();
-
-		LogInfo("%ld remote branches", numRemoteBranches);
-
-		auto allTags = repo->GetTags();
-		std::sort(allTags.begin(), allTags.end());
-		int32 numTags = allTags.size();
-
-		LogInfo("%ld tags", numTags);
-
-		// populate Listview
-		// TODO: Try to do more fine-grained locking
-		if (LockLooper()) {
-			MakeEmpty();
-			// local branches
-			_InitEmptySuperItem(B_TRANSLATE("Local branches"));
-			for (auto &branch : localBranches) {
-				_BuildBranchTree(branch, kLocalBranch,
-					[&](const auto &branchname) {
-						return (branchname == fCurrentBranch);
-					});
-			}
-
-			// remote branches
-			_InitEmptySuperItem(B_TRANSLATE("Remote branches"));
-			for (auto &branch : remoteBranches) {
-				_BuildBranchTree(branch, kRemoteBranch, NullLambda);
-			}
-
-			// tags
-			_InitEmptySuperItem(B_TRANSLATE("Tags"));
-			for (auto &tag : allTags) {
-				_BuildBranchTree(tag, kTag, NullLambda);
-			}
-
-			UnlockLooper();
-		}
-	} catch (const GException &ex) {
-		if (Looper()->IsLocked())
-			UnlockLooper();
-		OKAlert("Git", ex.Message(), B_INFO_ALERT);
-
-		if (LockLooper()) {
-			MakeEmpty();
-			_InitEmptySuperItem(B_TRANSLATE("Local branches"));
-			_InitEmptySuperItem(B_TRANSLATE("Remote branches"));
-			_InitEmptySuperItem(B_TRANSLATE("Tags"));
-			UnlockLooper();
-		}
-	}
-}
-
-
-void
-RepositoryView::_BuildBranchTree(const BString &branch, uint32 branchType, const auto& checker)
+RepositoryView::BuildBranchTree(const BString &branch, uint32 branchType, const bool &current)
 {
 	// Do not show an outline
 	if (!gCFG["repository_outline"]) {
-		StyledItem* item = new BranchItem(branch.String(), branch.String(), branchType, 1);
-		if (checker(branch))
-			item->SetTextFontFace(B_UNDERSCORE_FACE);
+		BranchItem* item = new BranchItem(branch.String(), branch.String(), branchType, 1);
+		if (current) {
+			item->SetCurrentBranch(true);
+		}
 		AddItem(item);
 		return;
 	}
@@ -254,8 +149,9 @@ RepositoryView::_BuildBranchTree(const BString &branch, uint32 branchType, const
 
 	BString partName = parts.at(i).c_str();
 	auto newItem = new BranchItem(branch.String(), partName, branchType, i + 1);
-	if (checker(branch))
-		newItem->SetTextFontFace(B_UNDERSCORE_FACE);
+	if (current) {
+		newItem->SetCurrentBranch(true);
+	}
 	AddItem(newItem);
 }
 
@@ -268,7 +164,7 @@ RepositoryView::ShowPopupMenu(BPoint where)
 	if (index < 0)
 		return;
 
-	auto item = dynamic_cast<BranchItem*>(ItemAt(index));
+	const auto item = dynamic_cast<BranchItem*>(ItemAt(index));
 	if (item == nullptr)
 		return;
 
@@ -284,14 +180,14 @@ RepositoryView::ShowPopupMenu(BPoint where)
 	switch (itemType) {
 		case kLocalBranch:
 		{
-			if (selectedBranch != fCurrentBranch) {
+			if (!item->IsCurrentBranch()) {
 				optionsMenu->AddItem(
 					new BMenuItem(
 						fmt << B_TRANSLATE("Switch to \"%selected_branch%\""),
 						new GMessage{
 							{"what", MsgSwitchBranch},
 							{"value", selectedBranch},
-							{"type", GIT_BRANCH_LOCAL},
+							{"type", GitRepository::BRANCH_LOCAL},
 							{"sender", kSenderRepositoryPopupMenu}}));
 			}
 
@@ -301,7 +197,7 @@ RepositoryView::ShowPopupMenu(BPoint where)
 					new GMessage{
 						{"what", MsgRenameBranch},
 						{"value", selectedBranch},
-						{"type", GIT_BRANCH_LOCAL}}));
+						{"type", GitRepository::BRANCH_LOCAL}}));
 
 			optionsMenu->AddItem(
 				new BMenuItem(
@@ -309,7 +205,7 @@ RepositoryView::ShowPopupMenu(BPoint where)
 					new GMessage{
 						{"what", MsgDeleteBranch},
 						{"value", selectedBranch},
-						{"type", GIT_BRANCH_LOCAL}}));
+						{"type", GitRepository::BRANCH_LOCAL}}));
 
 			optionsMenu->AddSeparatorItem();
 
@@ -319,7 +215,7 @@ RepositoryView::ShowPopupMenu(BPoint where)
 					new GMessage{
 						{"what", MsgNewBranch},
 						{"value", selectedBranch},
-						{"type", GIT_BRANCH_LOCAL}}));
+						{"type", GitRepository::BRANCH_LOCAL}}));
 
 			// optionsMenu->AddItem(
 				// new BMenuItem(
@@ -332,16 +228,16 @@ RepositoryView::ShowPopupMenu(BPoint where)
 		}
 		case kRemoteBranch:
 		{
-			fmt.Substitutions["%current_branch%"] = fCurrentBranch;
+			/*fmt.Substitutions["%current_branch%"] = fCurrentBranch;
 			LogInfo("fmt.Substitutions[%current_branch%] = %s", fCurrentBranch.String());
-
+*/
 			optionsMenu->AddItem(
 				new BMenuItem(
 					fmt << B_TRANSLATE("Switch to \"%selected_branch%\""),
 					new GMessage{
 						{"what", MsgSwitchBranch},
 						{"value", selectedBranch},
-						{"type", GIT_BRANCH_REMOTE},
+						{"type", GitRepository::BRANCH_REMOTE},
 						{"sender", kSenderRepositoryPopupMenu}}));
 
 			// Deleting a remote branch is disabled for now
@@ -354,7 +250,7 @@ RepositoryView::ShowPopupMenu(BPoint where)
 					// new GMessage{
 						// {"what", MsgDeleteBranch},
 						// {"value", selected_branch},
-						// {"type", GIT_BRANCH_REMOTE}}));
+						// {"type", GitRepository::BRANCH_REMOTE}}));
 
 
 			optionsMenu->AddSeparatorItem();
@@ -377,7 +273,7 @@ RepositoryView::ShowPopupMenu(BPoint where)
 					new GMessage{
 						{"what", MsgNewBranch},
 						{"value", selectedBranch},
-						{"type", GIT_BRANCH_REMOTE}}));
+						{"type", GitRepository::BRANCH_REMOTE}}));
 
 			// optionsMenu->AddItem(
 				// new BMenuItem(
@@ -413,7 +309,7 @@ RepositoryView::ShowPopupMenu(BPoint where)
 
 
 BranchItem*
-RepositoryView::_InitEmptySuperItem(const BString &label)
+RepositoryView::InitEmptySuperItem(const BString &label)
 {
 	auto item = new BranchItem(label, label, kHeader);
 	item->SetTextFontFace(B_BOLD_FACE);

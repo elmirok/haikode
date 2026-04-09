@@ -10,17 +10,19 @@
 #pragma once
 
 
-#include <git2.h>
-
 #include <functional>
 #include <vector>
 
 #include "GException.h"
 #include "Log.h"
-
+#include "Messenger.h"
 
 class BLooper;
 class BPath;
+
+
+// TODO: copied from libgit2's types.h. Remove
+typedef struct git_repository git_repository;
 
 namespace Genio::Git {
 
@@ -32,6 +34,11 @@ namespace Genio::Git {
 		UpToDate,
 		FastForwarded,
 		Merged
+	};
+
+	struct callback_data {
+		BMessenger messenger;
+		uint32 what;
 	};
 
 	// Git exceptions
@@ -74,18 +81,18 @@ namespace Genio::Git {
 	public:
 		typedef std::vector<std::pair<BString, BString>> RepoFiles;
 
-		// Payload to search for merge branch.
-		struct fetch_payload {
-			char branch[100];
-			git_oid branch_oid;
+		enum branch_type {
+			BRANCH_LOCAL = 1,
+			BRANCH_REMOTE = 2,
+			BRANCH_ALL = BRANCH_LOCAL | BRANCH_REMOTE
 		};
+
 
 										GitRepository(const BString path);
 										~GitRepository();
 
 		static BPath					Clone(const BString url, const BPath localPath,
-												git_indexer_progress_cb progress_callback,
-												git_credential_acquire_cb authentication_callback);
+												callback_data* progressData);
 
 		static bool						IsValid(const BString path);
 		bool							IsInitialized();
@@ -93,22 +100,20 @@ namespace Genio::Git {
 
 		std::vector<BString>			GetTags(size_t maxTags = MAX_ELEMENTS) const;
 
-		std::vector<BString>			GetBranches(git_branch_t type = GIT_BRANCH_LOCAL, size_t maxBranches = MAX_ELEMENTS) const;
+		std::vector<BString>			GetBranches(branch_type type = BRANCH_LOCAL, size_t maxBranches = MAX_ELEMENTS) const;
 		int								SwitchBranch(const BString branch);
 		BString							GetCurrentBranch() const;
-		void							DeleteBranch(const BString branch, git_branch_t type);
+		void							DeleteBranch(const BString branch, branch_type type);
 		void							RenameBranch(const BString oldName, const BString newName,
-											git_branch_t type);
+											branch_type type);
 		void							CreateBranch(const BString existingBranchName,
-											git_branch_t type, const BString newBranchName);
+											branch_type type, const BString newBranchName);
 
 		void							Fetch(bool prune = false);
 		void							Merge(const BString source, const BString dest);
 		PullResult						Pull(const BString branchName);
 		void 							PullRebase();
 		void 							Push();
-
-		git_signature*					_GetSignature() const;
 
 		void 							StashSave(const BString message);
 		void 							StashPop();
@@ -118,6 +123,10 @@ namespace Genio::Git {
 
 		static BLooper*					Looper();
 
+		static int 						check(int status,
+											std::function<void(void)> execute_on_fail = nullptr,
+											std::function<bool(const int)> custom_checker = nullptr);
+
 	private:
 		git_repository 					*fRepository;
 		BString							fRepositoryPath;
@@ -126,17 +135,6 @@ namespace Genio::Git {
 
 		void							_Open();
 
-		BString							_ConfigGet(git_config *cfg,
-											const char *key) const;
-		void							_ConfigSet(git_config *cfg,
-											const char *key, const char* value);
-
-		static int 						check(int status,
-											std::function<void(void)> execute_on_fail = nullptr,
-											std::function<bool(const int)> custom_checker = nullptr);
-
-		int 							_FastForward(const git_oid *target_oid, int is_unborn);
-		int								_CreateCommit(git_index* index, const char* message);
 		void							_CreateInitialCommit();
 
 		void							_NotifyBranchChanged() const;

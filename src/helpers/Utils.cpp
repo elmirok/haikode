@@ -23,6 +23,10 @@
 #include <SystemCatalog.h>
 #include <WindowScreen.h>
 
+#include <openssl/bio.h>
+#include <openssl/buffer.h>
+#include <openssl/evp.h>
+
 #include <algorithm>
 #include <string>
 
@@ -565,4 +569,72 @@ GetVersion()
 	}
 
 	return NULL;
+}
+
+
+std::string
+Base64Encode(const std::string& string)
+{
+	BIO* b64f = BIO_new(BIO_f_base64());
+	if (b64f == NULL)
+		throw std::bad_alloc();
+
+	BIO* buffer = BIO_new(BIO_s_mem());
+	if (buffer == NULL)
+		throw std::bad_alloc();
+
+	buffer = BIO_push(b64f, buffer);
+
+	BIO_set_flags(buffer, BIO_FLAGS_BASE64_NO_NL);
+	(void)BIO_set_close(buffer, BIO_CLOSE);
+	BIO_write(buffer, string.c_str(), string.length());
+	(void)BIO_flush(buffer);
+
+	BUF_MEM *pointer;
+	BIO_get_mem_ptr(buffer, &pointer);
+
+	size_t encodedSize = pointer->length;
+	std::string encoded(encodedSize + 1, '\0');
+	if (encodedSize > 0 && encodedSize < PTRDIFF_MAX)
+		::memcpy(&encoded[0], pointer->data, encodedSize);
+	encoded.resize(encodedSize);
+
+	BIO_free_all(buffer);
+
+	return encoded;
+}
+
+
+void
+Base64Decode(const std::string& string, unsigned char*& outDecoded, size_t& outLength)
+{
+	BIO *bio = BIO_new_mem_buf(string.c_str(), string.length());
+	BIO *b64 = BIO_new(BIO_f_base64());
+	BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
+	bio = BIO_push(b64, bio);
+
+	size_t decodedLen = (string.length() * 3) / 4 + 1;
+	outDecoded = new unsigned char[decodedLen];
+	int actualDecodedLength = BIO_read(bio, outDecoded, decodedLen);
+	BIO_free_all(bio);
+
+	outLength = actualDecodedLength;
+}
+
+
+std::string
+SHA256Hash(unsigned char* buffer, size_t length)
+{
+	// Calculate sha256 
+	unsigned char hash[EVP_MAX_MD_SIZE];
+	unsigned int hashLen;
+	EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
+	EVP_DigestInit_ex(mdctx, EVP_sha256(), nullptr);
+	EVP_DigestUpdate(mdctx, buffer, length);
+	EVP_DigestFinal_ex(mdctx, hash, &hashLen);
+	EVP_MD_CTX_free(mdctx);
+
+	std::string hashString(hashLen + 1, '\0');
+	::memcpy(&hashString[0], hash, hashLen);
+	return hashString;
 }

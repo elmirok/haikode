@@ -4,20 +4,31 @@
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
-#include <cstdio>
 #include <cstring>
+
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <string>
 
 #include <Button.h>
 #include <Catalog.h>
+#include <FindDirectory.h>
 #include <LayoutBuilder.h>
+#include <Path.h>
 #include <TextControl.h>
 
 #include "GitCredentialsWindow.h"
 #include "GitRepository.h"
+#include "Utils.h"
 
 
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "GitCredentialsWindow"
+
+
+#define MAX_AUTHENTICATION_ATTEMPTS 16
+int32 GitCredentialsWindow::sAuthenticationAttempts = 0;
 
 
 GitCredentialsWindow::GitCredentialsWindow(const char* title, bool user, bool password)
@@ -115,26 +126,34 @@ GitCredentialsWindow::OpenCredentialsWindow(const char* title, BString& username
 
 
 int
-GitCredentialsWindow::authentication_callback(git_cred** out, const char* url,
+GitCredentialsWindow::authentication_callback(git_credential** out, const char* url,
 									const char* username_from_url,
 									unsigned int allowed_types,
 									void* payload)
 {
-	if (Logger::IsDebugEnabled()) {
+	// Protect from infinite loop which libgit does by design
+	if (++sAuthenticationAttempts > MAX_AUTHENTICATION_ATTEMPTS) {
+		sAuthenticationAttempts = 0;
+		LogTrace("GitCredentialsWindow: authentication attempts limits reached!");
+		return Genio::Git::CANCEL_CREDENTIALS;
+	}
+
+	if (Logger::IsTraceEnabled()) {
+		LogTrace("authentication_callback: allowed types (%x): ", allowed_types);
 		if (allowed_types & GIT_CREDENTIAL_USERPASS_PLAINTEXT)
-			printf("allowed_types: GIT_CREDENTIAL_USERPASS_PLAINTEXT\n");
+			LogTrace("\tGIT_CREDENTIAL_USERPASS_PLAINTEXT");
 		if (allowed_types & GIT_CREDENTIAL_SSH_KEY)
-			printf("allowed_types: GIT_CREDENTIAL_SSH_KEY\n");
+			LogTrace("\tGIT_CREDENTIAL_SSH_KEY");
 		if (allowed_types & GIT_CREDENTIAL_SSH_CUSTOM)
-			printf("allowed_types: GIT_CREDENTIAL_SSH_CUSTOM\n");
+			LogTrace("\tGIT_CREDENTIAL_SSH_CUSTOM");
 		if (allowed_types & GIT_CREDENTIAL_DEFAULT)
-			printf("allowed_types: GIT_CREDENTIAL_DEFAULT\n");
+			LogTrace("\tGIT_CREDENTIAL_DEFAULT");
 		if (allowed_types & GIT_CREDENTIAL_SSH_INTERACTIVE)
-			printf("allowed_types: GIT_CREDENTIAL_SSH_INTERACTIVE\n");
+			LogTrace("\tGIT_CREDENTIAL_SSH_INTERACTIVE");
 		if (allowed_types & GIT_CREDENTIAL_USERNAME)
-			printf("allowed_types: GIT_CREDENTIAL_USERNAME\n");
+			LogTrace("\tGIT_CREDENTIAL_USERNAME");
 		if (allowed_types & GIT_CREDENTIAL_SSH_MEMORY)
-			printf("allowed_types: GIT_CREDENTIAL_SSH_MEMORY\n");
+			LogTrace("\tGIT_CREDENTIAL_SSH_MEMORY");
 	}
 
 	BString username;
@@ -145,14 +164,23 @@ GitCredentialsWindow::authentication_callback(git_cred** out, const char* url,
 		wait_for_thread(thread, &winStatus);
 		if (!username.IsEmpty())
 			return git_credential_username_new(out, username);
-		return Genio::Git::CANCEL_CREDENTIALS;;
+		return Genio::Git::CANCEL_CREDENTIALS;
 	}
 	// TODO: this only works when using an ssh_agent.
-	// TODO: if there's no key, this keeps looping
 	// Allow user to specify the ssh key and eventually the ssh key passkey
 	if (allowed_types & GIT_CREDENTIAL_SSH_KEY) {
-		if (!BString(username_from_url).IsEmpty())
-			return git_credential_ssh_key_from_agent(out, username_from_url);
+		username = username_from_url;
+		if (username.IsEmpty()) {
+			// If no user specified, use "git"
+			username = "git";
+		}
+		int gitStatus = git_credential_ssh_key_from_agent(out, username);
+		if (gitStatus == GIT_OK) {
+			// It seems libgit2 always returns GIT_OK here...
+			return GIT_OK;
+		}
+
+		// TODO: ask user for ssh key instead
 	}
 
 	BString password;
@@ -174,4 +202,124 @@ GitCredentialsWindow::authentication_callback(git_cred** out, const char* url,
 		return Genio::Git::CANCEL_CREDENTIALS;
 
 	return error;
+}
+
+
+static bool
+verify_host_key(const char *host, git_cert_hostkey* sshKeyCert)
+{
+	BPath knownHostsPath;
+	if (find_directory(B_USER_SETTINGS_DIRECTORY, &knownHostsPath) != B_OK)
+		return false;
+
+	knownHostsPath.Append("ssh/known_hosts");
+	if (!BEntry(knownHostsPath.Path()).Exists())
+		return false;
+
+	std::ifstream knownHostsFile(knownHostsPath.Path());
+	std::string line;
+	while (std::getline(knownHostsFile, line)) {
+		// Skip comments and empty lines
+		if (line.empty() || line[0] == '#')
+			continue;
+
+		std::istringstream iss(line);
+		std::string hostname;
+		std::string keytype;
+		std::string publicKeyBase64;
+		if (!(iss >> hostname >> keytype >> publicKeyBase64))
+			continue;
+
+		if (hostname != host)
+			continue;
+
+		// Compare with existing key
+		if (keytype == "ecdsa-sha2-nistp256" || keytype == "ssh-rsa" || keytype == "ssh-ed25519") {
+			unsigned char* decoded = nullptr;
+			size_t decodedLength = 0;
+			Base64Decode(publicKeyBase64, decoded, decodedLength);
+
+			// TODO: check against sha1 or md5 (deprecated) if we only have those
+			std::string hash = SHA256Hash(decoded, decodedLength);
+			// Compare with received host sha256
+			if (memcmp(hash.c_str(), sshKeyCert->hash_sha256, 32) == 0) {
+				delete[] decoded;
+				return true;
+			}
+			delete[] decoded;
+		}
+	}
+
+	return false;
+}
+
+
+/* static */
+int
+GitCredentialsWindow::certificate_check_callback(git_cert *cert, int valid,
+	const char *host, void *payload)
+{
+	// Only handle HOSTKEYS
+	if (valid || cert->cert_type != GIT_CERT_HOSTKEY_LIBSSH2) {
+		// Let the library handle this
+		return 1;
+	}
+
+	git_cert_hostkey* sshKeyCert = reinterpret_cast<git_cert_hostkey*>(cert);
+
+	// Check the known_hosts
+	if (verify_host_key(host, sshKeyCert))
+		return 1;
+
+	BString message = B_TRANSLATE("Accept ssh host key from \%host\% ?");
+	message.Append("\n");
+	if (sshKeyCert->type & GIT_CERT_SSH_MD5) {
+		BString hashMD5;
+		for (size_t i = 0; i < 16; i++) {
+			char hex[3];
+			sprintf(hex, "%02x", sshKeyCert->hash_md5[i]);
+			hashMD5.Append(hex);
+		}
+		message.Append("\nMD5: ");
+		message.Append(hashMD5);
+		LogTrace("md5: %s\n", hashMD5.String());
+	}
+	if (sshKeyCert->type & GIT_CERT_SSH_SHA1) {
+		BString hashSHA1;
+		for (size_t i = 0; i < 20; i++) {
+			char hex[3];
+			sprintf(hex, "%02x", sshKeyCert->hash_sha1[i]);
+			hashSHA1.Append(hex);
+		}
+		message.Append("\nSHA1: ");
+		message.Append(hashSHA1);
+		LogTrace("sha1: %s\n", hashSHA1.String());
+	}
+	if (sshKeyCert->type & GIT_CERT_SSH_SHA256) {
+		BString hashSHA256;
+		for (size_t i = 0; i < 32; i++) {
+			char hex[3];
+			sprintf(hex, "%02x", sshKeyCert->hash_sha256[i]);
+			hashSHA256.Append(hex);
+		}
+		message.Append("\nSHA256: ");
+		message.Append(hashSHA256);
+		LogTrace("sha256: %s\n", hashSHA256.String());
+	}
+	if (sshKeyCert->type & GIT_CERT_SSH_RAW) {
+		BString hashRAW;
+		//printf("GIT_CERT_SSH_RAW: len %lu\n", sshKeyCert->hostkey_len);
+	}
+
+	message.ReplaceAll("\%host\%", host);
+	BAlert* alert = new BAlert("", message.String(),
+		B_TRANSLATE("Yes"), B_TRANSLATE("No"), nullptr,
+		B_WIDTH_AS_USUAL, B_WARNING_ALERT);
+	alert->TextView()->SetWordWrap(false);
+	int result = alert->Go();
+	// TODO: Cache the result by adding the key to known_hosts ?
+	if (result == 0)
+		return 0;
+
+	return -1;
 }

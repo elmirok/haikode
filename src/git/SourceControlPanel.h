@@ -79,6 +79,7 @@ private:
 
 	void					_UpdateProjectMenu();
 	void					_UpdateBranchListMenu(bool invokeItemMessage = true);
+	void					_UpdateRepositoryTask(const Genio::Git::GitRepository* repo, const BString& branch);
 
 	void					_InitToolBar();
 	void					_InitRepositoryView();

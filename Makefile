@@ -48,6 +48,7 @@ LIBS += columnlistview
 LIBS += editorconfig
 LIBS += git2
 LIBS += libs/scintilla/bin/libscintilla.a
+LIBS += crypto
 LIBS += yaml-cpp
 
 SYSTEM_INCLUDE_PATHS  = $(shell findpaths -e B_FIND_PATH_HEADERS_DIRECTORY private/interface)

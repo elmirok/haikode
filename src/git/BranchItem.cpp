@@ -6,6 +6,8 @@
 
 #include "BranchItem.h"
 
+#include <Font.h>
+
 BranchItem::BranchItem(const char* branchName,
 						const char* text,
 						uint32 branchType,
@@ -36,5 +38,19 @@ const char*
 BranchItem::BranchName() const
 {
 	return fBranchName.String();
+}
+
+
+void
+BranchItem::SetCurrentBranch(bool selected)
+{
+	SetTextFontFace(selected ? B_UNDERSCORE_FACE : B_REGULAR_FACE);
+}
+
+
+bool
+BranchItem::IsCurrentBranch() const
+{
+	return TextFontFace() == B_UNDERSCORE_FACE;
 }
 

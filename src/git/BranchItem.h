@@ -6,6 +6,8 @@
 
 #include "StyledItem.h"
 
+// TODO: Once GitRepository is decoupled from libgit, include
+// it and use GitRepository::branch_type definitions from there
 
 class BranchItem : public StyledItem {
 public:
@@ -17,6 +19,10 @@ public:
 	virtual 	~BranchItem();
 	uint32 		BranchType() const;
 	const char*	BranchName() const;
+
+	void		SetCurrentBranch(bool selected);
+	bool		IsCurrentBranch() const;
+
 private:
 	uint32 		fBranchType;
 	BString 	fBranchName;

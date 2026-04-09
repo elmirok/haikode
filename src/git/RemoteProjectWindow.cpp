@@ -9,8 +9,6 @@
 #include <functional>
 #include <regex>
 
-#include <git2.h>
-
 #include <BarberPole.h>
 #include <Button.h>
 #include <Catalog.h>
@@ -106,7 +104,7 @@ RemoteProjectWindow::RemoteProjectWindow(BString repo, BString dirPath, const BM
 
 #if 0
 	// test
-	fURL->SetText("https://github.com/Genio-The-Haiku-IDE/Genio");
+	fURL->SetText("git@codeberg.org:Genio/Genio.git");
 #endif
 
 	fURL->SetTarget(this);
@@ -202,28 +200,12 @@ RemoteProjectWindow::MessageReceived(BMessage* msg)
 			fPathBox->SetEnabled(false);
 			fURL->SetEnabled(false);
 
-			auto progressCallback = [](const git_transfer_progress *stats, void *payload) -> int {
-				int currentProgress = stats->total_objects > 0 ?
-					(100 * stats->received_objects) /
-					stats->total_objects :
-					0;
-				int kbytes = stats->received_bytes / 1024;
-
-				BString progressString;
-				progressString << "Cloning "
-					<< stats->received_objects << "/"
-					<< stats->total_objects << " objects"
-					<< " (" << kbytes << " kb)";
-
-				BMessage msg(kProgress);
-				msg.AddString("progress_text", progressString);
-				msg.AddFloat("progress_value", currentProgress);
-				BMessenger(this_handler).SendMessage(&msg);
-				return 0;
-			};
-
 			BPath fullPath(fPathBox->Text());
 			fullPath.Append(fDestDir->Text());
+
+			Genio::Git::callback_data* progressData = new Genio::Git::callback_data;
+			progressData->messenger = BMessenger(this);
+			progressData->what = kProgress;
 			fCurrentTask = make_shared<Task<BPath>>
 			(
 				"GitClone",
@@ -233,8 +215,7 @@ RemoteProjectWindow::MessageReceived(BMessage* msg)
 					&Genio::Git::GitRepository::Clone,
 					fURL->Text(),
 					fullPath,
-					progressCallback,
-					&GitCredentialsWindow::authentication_callback
+					progressData
 				)
 			);
 
