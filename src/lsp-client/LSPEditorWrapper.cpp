@@ -224,29 +224,10 @@ void
 LSPEditorWrapper::flushChanges()
 {
 	if (fChanges.size() > 0) {
-		fLSPProjectWrapper->DidChange(this, fChanges, false);
+		fLSPProjectWrapper->DidChange(this, fChanges);
 		fChanges.clear();
 	}
 }
-
-/*
-void
-LSPEditorWrapper::_DoFormat(value& params)
-{
-	fEditor->SendMessage(SCI_BEGINUNDOACTION, 0, 0);
-	auto& items = params.array();
-	for (auto it = items.rbegin(); it != items.rend(); ++it) {
-		ApplyTextEdit((*it));
-	}
-	fEditor->SendMessage(SCI_ENDUNDOACTION, 0, 0);
-
-	// Invalidate the current diagnostics and links to avoid any race-condition
-	// between the list of fixes and the updated document.
-	// a new list will arrive from LSP in few instants!
-	_RemoveAllDiagnostics();
-	_RemoveAllDocumentLinks();
-}
-*/
 
 void
 LSPEditorWrapper::_DoFormat(ArrayTextEdit&& edits)

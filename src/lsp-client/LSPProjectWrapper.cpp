@@ -529,7 +529,6 @@ LSPProjectWrapper::DidOpen(LSPTextDocument* textDocument, std::string_view text,
 	params.textDocument.version = textDocument->Version();
 
 	fLSPPipeClient->Handler().sendNotification<lsp::notifications::TextDocument_DidOpen>(std::move(params));
-	printf("DidOpen for %s\n", textDocument->GetFilenameURI().String());
 }
 
 
@@ -540,13 +539,11 @@ LSPProjectWrapper::DidClose(LSPTextDocument* textDocument)
 	params.textDocument.uri = MakeDocUri(textDocument);
 
 	fLSPPipeClient->Handler().sendNotification<lsp::notifications::TextDocument_DidClose>(std::move(params));
-	printf("DidClose for %s\n", textDocument->GetFilenameURI().String());
 }
 
 
 void
-LSPProjectWrapper::DidChange(LSPTextDocument* textDocument,
-	std::vector<lsp::TextDocumentContentChangeEvent>& changes, std::optional<bool> wantDiagnostics)
+LSPProjectWrapper::DidChange(LSPTextDocument* textDocument, std::vector<lsp::TextDocumentContentChangeEvent>& changes)
 {
 	lsp::DidChangeTextDocumentParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
@@ -972,10 +969,8 @@ LSPProjectWrapper::_RegisterHandlers()
 			_enqueueOnUIThread([this, p = std::move(params)]() mutable {
 				std::string uri = p.uri.toString();
 				LSPTextDocument* doc = _DocumentByURI(uri.c_str());
-				printf("Diagnostic for: %s -> %p\n", uri.c_str(), doc);
 				if (doc) {
 					static_cast<LSPEditorWrapper*>(doc)->_DoDiagnostics(std::move(p));
-					printf("DONE - Diagnostic for: %s -> %p\n", uri.c_str(), doc);
 				}
 			});
 		});
