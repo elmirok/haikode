@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #include "CallTipContext.h"
@@ -202,7 +202,7 @@ CallTipAction CallTipContext::_FindFunction()
 
 
 void
-CallTipContext::UpdateSignatures(lsp::Array<SignatureInformation>& signatures)
+CallTipContext::UpdateSignatures(lsp::Array<lsp::SignatureInformation>& signatures)
 {
 	fCurrentFunction = -1;
 	fSignatures = signatures;
@@ -233,7 +233,7 @@ CallTipContext::ShowCallTip()
 		}
 	}
 
-	SignatureInformation& info = fSignatures[fCurrentFunction];
+	lsp::SignatureInformation& info = fSignatures[fCurrentFunction];
 	BString callTipText;
 	if (fSignatures.size() > 1) {
 		callTipText << "\001 " << fCurrentFunction + 1 << " / " << fSignatures.size() << " \002";

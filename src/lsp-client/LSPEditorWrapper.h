@@ -14,7 +14,7 @@
 #include "LSPCapabilities.h"
 #include "LSPProjectWrapper.h"
 #include "LSPTextDocument.h"
-#include "LSPCompat.h"
+#include <lsp/types.h>
 #include "Sci_Position.h"
 
 enum IndicatorIndex {
@@ -34,12 +34,12 @@ struct InfoRange {
 
 struct LSPDiagnostic {
 	InfoRange range;
-	Diagnostic diagnostic;
+	lsp::Diagnostic diagnostic;
 	std::string fixTitle;
 
 	// Clangd extension fields (not part of the LSP spec, not in lsp::Diagnostic).
 	std::optional<std::string> category;
-	std::optional<std::vector<CodeAction>> codeActions;
+	std::optional<std::vector<lsp::CodeAction>> codeActions;
 };
 
 class Editor;
@@ -81,7 +81,7 @@ public:
 		void	StartHover(Sci_Position sci_position);
 		void	EndHover();
 		void	GetDiagnostics(std::vector<LSPDiagnostic>& diagnostics) { diagnostics = fLastDiagnostics; }
-		void	RequestCodeActions(Diagnostic& diagnostic);
+		void	RequestCodeActions(lsp::Diagnostic& diagnostic);
 		void	CodeActionResolve(lsp::CodeAction &params);
 
 		void	IndicatorClick(Sci_Position position);
@@ -108,16 +108,16 @@ public:
 		void	OnDocumentLink(lsp::TextDocument_DocumentLinkResult&& links);
 		void	OnDocumentSymbol(lsp::TextDocument_DocumentSymbolResult&& result);
 		void	OnCodeActions(lsp::TextDocument_CodeActionResult&& codeAction);
-		void	OnCodeActionResolve(CodeAction&& params);
+		void	OnCodeActionResolve(lsp::CodeAction&& params);
 
 		//	Still generic methods using json buffers..
-		void	OnFileStatus(value& params);
-		void	OnInitialize(value& params);
+		void	OnFileStatus(lsp::json::Value& params);
+		void	OnInitialize(lsp::json::Value& params);
 
 public:
 
 		int32	DiagnosticFromPosition(Sci_Position p, LSPDiagnostic& dia);
-		int32	DiagnosticFromRange(Range& range, LSPDiagnostic& dia);
+		int32	DiagnosticFromRange(lsp::Range& range, LSPDiagnostic& dia);
 
 private:
 		bool	IsInitialized();
@@ -126,16 +126,16 @@ private:
 		void	_ShowToolTip(const char* text);
 		void	_RemoveAllDiagnostics();
 		void	_RemoveAllDocumentLinks();
-		void	_DoRecursiveDocumentSymbol(lsp::Array<DocumentSymbol>& v, BMessage& msg);
-		void	_DoLinearSymbolInformation(lsp::Array<SymbolInformation>& v, BMessage& msg);
+		void	_DoRecursiveDocumentSymbol(lsp::Array<lsp::DocumentSymbol>& v, BMessage& msg);
+		void	_DoLinearSymbolInformation(lsp::Array<lsp::SymbolInformation>& v, BMessage& msg);
 
 		//utils
-		void			FromSciPositionToLSPPosition(const Sci_Position &pos, Position *lsp_position);
-		Sci_Position 	FromLSPPositionToSciPosition(const Position* lsp_position);
-		void 			GetCurrentLSPPosition(Position *lsp_position);
-		void 			FromSciPositionToRange(Sci_Position s_start, Sci_Position s_end, Range *range);
-		Sci_Position 	ApplyTextEdit(value &textEdit);
-		Sci_Position 	ApplyTextEdit(TextEdit &textEdit);
+		void			FromSciPositionToLSPPosition(const Sci_Position &pos, lsp::Position *lsp_position);
+		Sci_Position 	FromLSPPositionToSciPosition(const lsp::Position* lsp_position);
+		void 			GetCurrentLSPPosition(lsp::Position *lsp_position);
+		void 			FromSciPositionToRange(Sci_Position s_start, Sci_Position s_end, lsp::Range *range);
+		Sci_Position 	ApplyTextEdit(lsp::json::Value& textEdit);
+		Sci_Position 	ApplyTextEdit(lsp::TextEdit &textEdit);
 		void			OpenFileURI(std::string uri, int32 line = -1, int32 character = -1,
 									ArrayTextEdit&& edits = {});
 		std::string 	GetCurrentLine();
@@ -143,7 +143,7 @@ private:
 
 
 		Editor*				fEditor;
-		CompletionList		fCurrentCompletion;
+		lsp::CompletionList		fCurrentCompletion;
 		Sci_Position		fCompletionPosition;
 		BTextToolTip* 		fToolTip;
 		LSPProjectWrapper*	fLSPProjectWrapper;

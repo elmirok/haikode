@@ -14,7 +14,7 @@
 #include <cstdio>
 #include <debugger.h>
 #include <unistd.h>
-
+#include "LSPCompat.h"
 #include "Editor.h"
 #include "EditorStatusView.h"
 #include "Log.h"
@@ -167,7 +167,7 @@ LSPEditorWrapper::didOpen()
 
 	fLSPProjectWrapper->DidOpen(this, text, FileType().String());
 
-	//printf("DIDOPEN %s\n", GetFilenameURI().String());
+	printf("DIDOPEN %s\n", GetFilenameURI().String());
 
 }
 
@@ -211,7 +211,7 @@ LSPEditorWrapper::didChange(
 	Sci_Position end_pos = fEditor->SendMessage(SCI_POSITIONRELATIVE, start_pos, poslength);
 
 	lsp::TextDocumentContentChangeEvent_Range_Text event;
-	Range range;
+	lsp::Range range;
 	FromSciPositionToLSPPosition(start_pos, &range.start);
 	FromSciPositionToLSPPosition(end_pos, &range.end);
 
@@ -277,7 +277,7 @@ LSPEditorWrapper::Format()
 	Sci_Position s_end = fEditor->SendMessage(SCI_GETSELECTIONEND, 0, 0);
 
 	if (s_start < s_end) {
-		Range range;
+		lsp::Range range;
 		FromSciPositionToRange(s_start, s_end, &range);
 		fLSPProjectWrapper->RangeFomatting(this, range);
 	} else {
@@ -294,7 +294,7 @@ LSPEditorWrapper::GoTo(LSPEditorWrapper::GoToType type)
 
 	flushChanges();
 
-	Position position;
+	lsp::Position position;
 	GetCurrentLSPPosition(&position);
 
 	switch (type) {
@@ -319,7 +319,7 @@ LSPEditorWrapper::Rename(std::string newName)
 
 	flushChanges();
 
-	Position position;
+	lsp::Position position;
 	GetCurrentLSPPosition(&position);
 	fLSPProjectWrapper->Rename(this, position, newName);
 }
@@ -338,7 +338,7 @@ LSPEditorWrapper::StartHover(Sci_Position sci_position)
 		return;
 	}
 
-	Position position;
+	lsp::Position position;
 	FromSciPositionToLSPPosition(sci_position, &position);
 	fLSPProjectWrapper->Hover(this, position);
 }
@@ -392,7 +392,7 @@ LSPEditorWrapper::DiagnosticFromPosition(Sci_Position sci_position, LSPDiagnosti
 
 
 int32
-LSPEditorWrapper::DiagnosticFromRange(Range& range, LSPDiagnostic& dia)
+LSPEditorWrapper::DiagnosticFromRange(lsp::Range& range, LSPDiagnostic& dia)
 {
 	int32 index = -1;
 	for (auto& ir : fLastDiagnostics) {
@@ -490,7 +490,7 @@ LSPEditorWrapper::SelectedCompletion(const char* text)
 		}
 	}
 	fEditor->SendMessage(SCI_AUTOCCANCEL, 0, 0);
-	fCurrentCompletion = CompletionList{};
+	fCurrentCompletion = lsp::CompletionList{};
 }
 
 
@@ -511,10 +511,10 @@ LSPEditorWrapper::StartCompletion()
 		// --> TODO: cancel previous clangd request!
 
 		// let's clean-up current request details:
-		this->fCurrentCompletion = CompletionList{};
+		this->fCurrentCompletion = lsp::CompletionList{};
 	}
 
-	Position position;
+	lsp::Position position;
 	GetCurrentLSPPosition(&position);
 	lsp::CompletionContext context;
 	context.triggerKind = lsp::CompletionTriggerKind::Invoked;
@@ -584,7 +584,7 @@ LSPEditorWrapper::CharAdded(const char ch /*utf-8?*/)
 		if (action == CALLTIP_NEWDATA) {
 
 			flushChanges();
-			Position lsp_position;
+			lsp::Position lsp_position;
 			FromSciPositionToLSPPosition(fCallTip.Position(), &lsp_position);
 			fLSPProjectWrapper->SignatureHelp(this, lsp_position);
 
@@ -604,7 +604,7 @@ LSPEditorWrapper::IndicatorClick(Sci_Position sci_position)
 		return;
 
 	if (fEditor->SendMessage(SCI_INDICATORVALUEAT, IND_OVER, sci_position) == 1) {
-		Position position;
+		lsp::Position position;
 		FromSciPositionToLSPPosition(sci_position, &position);
 		fLSPProjectWrapper->GoToDefinition(this, position);
 	}
@@ -753,7 +753,7 @@ LSPEditorWrapper::OnCompletion(lsp::TextDocument_CompletionResult&& result)
 		return;
 
 	std::string line;
-	Position position;
+	lsp::Position position;
 	bool positionResolved = false;
 
 	std::string list;
@@ -773,7 +773,7 @@ LSPEditorWrapper::OnCompletion(lsp::TextDocument_CompletionResult&& result)
 			lsp::TextEdit newTe;
 			newTe.newText = insertText;
 
-			Position pos;
+			lsp::Position pos;
 			FromSciPositionToLSPPosition(fCompletionPosition, &pos);
 			newTe.range.end = pos;
 
@@ -848,7 +848,7 @@ LSPEditorWrapper::OnDiagnostics(lsp::PublishDiagnosticsParams&& params)
 		LSPDiagnostic lspDiag;
 		lspDiag.diagnostic = std::move(diag);
 
-		Range& r = lspDiag.diagnostic.range;
+		lsp::Range& r = lspDiag.diagnostic.range;
 		InfoRange& ir = lspDiag.range;
 		ir.from = FromLSPPositionToSciPosition(&r.start);
 		ir.to = FromLSPPositionToSciPosition(&r.end);
@@ -878,7 +878,7 @@ LSPEditorWrapper::OnDiagnostics(lsp::PublishDiagnosticsParams&& params)
 
 
 void
-LSPEditorWrapper::RequestCodeActions(Diagnostic& diagnostic)
+LSPEditorWrapper::RequestCodeActions(lsp::Diagnostic& diagnostic)
 {
 	lsp::CodeActionContext context;
 	context.diagnostics.push_back(diagnostic);
@@ -896,10 +896,10 @@ void
 LSPEditorWrapper::OnCodeActions(lsp::TextDocument_CodeActionResult&& codeAction)
 {
 	for (auto& act : codeAction.value()) {
-		CodeAction* action = std::get_if<lsp::CodeAction>(&act);
+		lsp::CodeAction* action = std::get_if<lsp::CodeAction>(&act);
 		if (action && action->diagnostics.has_value()) {
 			for (auto& dia: action->diagnostics.value()) {
-				Range& range = dia.range;
+				lsp::Range& range = dia.range;
 
 				for (auto& d: fLastDiagnostics) {
 
@@ -922,11 +922,11 @@ LSPEditorWrapper::OnCodeActions(lsp::TextDocument_CodeActionResult&& codeAction)
 
 
 void
-LSPEditorWrapper::OnCodeActionResolve(CodeAction&& action)
+LSPEditorWrapper::OnCodeActionResolve(lsp::CodeAction&& action)
 {
 	// Extract range from clangd-specific data field
 	for (auto& dia: action.diagnostics.value()) {
-		Range& range = dia.range;
+		lsp::Range& range = dia.range;
 
 		for (auto& d: fLastDiagnostics) {
 			if (d.diagnostic.range == range) {
@@ -955,7 +955,7 @@ LSPEditorWrapper::_RemoveAllDocumentLinks()
 }
 
 void
-LSPEditorWrapper::OnInitialize(value& params)
+LSPEditorWrapper::OnInitialize(lsp::json::Value& params)
 {
 	fInitialized = true;
 	didOpen();
@@ -981,7 +981,7 @@ LSPEditorWrapper::OnDocumentLink(lsp::TextDocument_DocumentLinkResult&& links)
 
 	for (auto& l : links.value()) {
 
-		Range& r = l.range;
+		lsp::Range& r = l.range;
 		InfoRange ir;
 		ir.from = FromLSPPositionToSciPosition(&r.start);
 		ir.to = FromLSPPositionToSciPosition(&r.end);
@@ -995,7 +995,7 @@ LSPEditorWrapper::OnDocumentLink(lsp::TextDocument_DocumentLinkResult&& links)
 }
 
 void
-LSPEditorWrapper::OnFileStatus(value& params)
+LSPEditorWrapper::OnFileStatus(lsp::json::Value& params)
 {
 	auto state = params.object().get("state").string();
 	LogInfo("FileStatus [%s] -> [%s]", GetFileStatus().String(), state.c_str());
@@ -1030,7 +1030,7 @@ LSPEditorWrapper::OnDocumentSymbol(lsp::TextDocument_DocumentSymbolResult&& resu
 
 
 void
-LSPEditorWrapper::_DoRecursiveDocumentSymbol(lsp::Array<DocumentSymbol>& vect, BMessage& msg)
+LSPEditorWrapper::_DoRecursiveDocumentSymbol(lsp::Array<lsp::DocumentSymbol>& vect, BMessage& msg)
 {
 	for (auto& sym: vect) {
 		BMessage symbol;
@@ -1042,10 +1042,10 @@ LSPEditorWrapper::_DoRecursiveDocumentSymbol(lsp::Array<DocumentSymbol>& vect, B
 			_DoRecursiveDocumentSymbol(*sym.children, child);
 		}
 		symbol.AddMessage("children", &child);
-		Range& symbolRange = sym.selectionRange;
+		lsp::Range& symbolRange = sym.selectionRange;
 		symbol.AddInt32("start:line", symbolRange.start.line + 1);
 		symbol.AddInt32("start:character", symbolRange.start.character);
-		Range& range = sym.range;
+		lsp::Range& range = sym.range;
 		symbol.AddInt32("range:start:line", range.start.line + 1);
 		symbol.AddInt32("range:end:line", 	range.end.line + 1);
 		msg.AddMessage("symbol", &symbol);
@@ -1053,13 +1053,13 @@ LSPEditorWrapper::_DoRecursiveDocumentSymbol(lsp::Array<DocumentSymbol>& vect, B
 }
 
 void
-LSPEditorWrapper::_DoLinearSymbolInformation(lsp::Array<SymbolInformation>& vect, BMessage& msg)
+LSPEditorWrapper::_DoLinearSymbolInformation(lsp::Array<lsp::SymbolInformation>& vect, BMessage& msg)
 {
 	for (auto& sym: vect) {
 		BMessage symbol;
 		symbol.AddString("name", sym.name.c_str());
 		symbol.AddInt32("kind", static_cast<int32>(sym.kind.value()));
-		Range& symbolRange = sym.location.range;
+		lsp::Range& symbolRange = sym.location.range;
 		symbol.AddInt32("start:line", symbolRange.start.line + 1);
 		symbol.AddInt32("start:character", symbolRange.start.character);
 		msg.AddMessage("symbol", &symbol);
@@ -1080,7 +1080,7 @@ LSPEditorWrapper::IsStatusValid()
 
 // utility
 void
-LSPEditorWrapper::FromSciPositionToLSPPosition(const Sci_Position& pos, Position* lsp_position)
+LSPEditorWrapper::FromSciPositionToLSPPosition(const Sci_Position& pos, lsp::Position* lsp_position)
 {
 	lsp_position->line = static_cast<unsigned int>(fEditor->SendMessage(SCI_LINEFROMPOSITION, pos, 0));
 	Sci_Position end_pos = fEditor->SendMessage(SCI_POSITIONFROMLINE, lsp_position->line, 0);
@@ -1089,7 +1089,7 @@ LSPEditorWrapper::FromSciPositionToLSPPosition(const Sci_Position& pos, Position
 
 
 Sci_Position
-LSPEditorWrapper::FromLSPPositionToSciPosition(const Position* lsp_position)
+LSPEditorWrapper::FromLSPPositionToSciPosition(const lsp::Position* lsp_position)
 {
 	Sci_Position sci_position;
 	sci_position = fEditor->SendMessage(SCI_POSITIONFROMLINE, lsp_position->line, 0);
@@ -1100,7 +1100,7 @@ LSPEditorWrapper::FromLSPPositionToSciPosition(const Position* lsp_position)
 
 
 void
-LSPEditorWrapper::GetCurrentLSPPosition(Position* lsp_position)
+LSPEditorWrapper::GetCurrentLSPPosition(lsp::Position* lsp_position)
 {
 	const Sci_Position pos = fEditor->SendMessage(SCI_GETSELECTIONSTART, 0, 0);
 	FromSciPositionToLSPPosition(pos, lsp_position);
@@ -1108,7 +1108,7 @@ LSPEditorWrapper::GetCurrentLSPPosition(Position* lsp_position)
 
 
 void
-LSPEditorWrapper::FromSciPositionToRange(Sci_Position s_start, Sci_Position s_end, Range* range)
+LSPEditorWrapper::FromSciPositionToRange(Sci_Position s_start, Sci_Position s_end, lsp::Range* range)
 {
 	FromSciPositionToLSPPosition(s_start, &range->start);
 	FromSciPositionToLSPPosition(s_end, &range->end);
@@ -1116,18 +1116,18 @@ LSPEditorWrapper::FromSciPositionToRange(Sci_Position s_start, Sci_Position s_en
 
 
 Sci_Position
-LSPEditorWrapper::ApplyTextEdit(value& textEditJson)
+LSPEditorWrapper::ApplyTextEdit(lsp::json::Value& textEditJson)
 {
-	TextEdit textEdit;
+	lsp::TextEdit textEdit;
 	lsp::fromJson(lsp::json::Value(textEditJson), textEdit);
 	return ApplyTextEdit(textEdit);
 }
 
 
 Sci_Position
-LSPEditorWrapper::ApplyTextEdit(TextEdit &textEdit)
+LSPEditorWrapper::ApplyTextEdit(lsp::TextEdit &textEdit)
 {
-	Range range = textEdit.range;
+	lsp::Range range = textEdit.range;
 	Sci_Position s_pos = FromLSPPositionToSciPosition(&range.start);
 	Sci_Position e_pos = FromLSPPositionToSciPosition(&range.end);
 

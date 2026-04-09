@@ -21,7 +21,7 @@
 
 #include "LSPServersManager.h"
 #include "LSPCapabilities.h"
-#include "LSPCompat.h"
+#include <lsp/types.h>
 #include "Log.h"
 #include "LSPPipeClient.h"
 
@@ -63,24 +63,24 @@ public:
     void DidSave(LSPTextDocument* textDocument);
 
 
-	void RangeFomatting(LSPTextDocument* textDocument, Range range);
+	void RangeFomatting(LSPTextDocument* textDocument, lsp::Range range);
 	void Formatting(LSPTextDocument* textDocument);
-    void CodeAction(LSPTextDocument* textDocument, Range range, lsp::CodeActionContext& context);
+    void CodeAction(LSPTextDocument* textDocument, lsp::Range range, lsp::CodeActionContext& context);
 	void CodeActionResolve(LSPTextDocument* textDocument, lsp::CodeAction& data);
-    void Completion(LSPTextDocument* textDocument, Position position, lsp::CompletionContext& context);
-    void SignatureHelp(LSPTextDocument* textDocument, Position position);
-    void GoToDefinition(LSPTextDocument* textDocument, Position position);
-    void GoToImplementation(LSPTextDocument* textDocument, Position position);
-    void GoToDeclaration(LSPTextDocument* textDocument, Position position);
-    void Rename(LSPTextDocument* textDocument, Position position, std::string_view newName);
-    void Hover(LSPTextDocument* textDocument, Position position);
+    void Completion(LSPTextDocument* textDocument, lsp::Position position, lsp::CompletionContext& context);
+    void SignatureHelp(LSPTextDocument* textDocument, lsp::Position position);
+    void GoToDefinition(LSPTextDocument* textDocument, lsp::Position position);
+    void GoToImplementation(LSPTextDocument* textDocument, lsp::Position position);
+    void GoToDeclaration(LSPTextDocument* textDocument, lsp::Position position);
+    void Rename(LSPTextDocument* textDocument, lsp::Position position, std::string_view newName);
+    void Hover(LSPTextDocument* textDocument, lsp::Position position);
     void DocumentSymbol(LSPTextDocument* textDocument);
     void DocumentLink(LSPTextDocument* textDocument);
 
 	/* not used */ void FoldingRange(LSPTextDocument* textDocument);
-    /* not used */ void SelectionRange(LSPTextDocument* textDocument, std::vector<Position> &positions);
-    /* not used */ void OnTypeFormatting(LSPTextDocument* textDocument, Position position, std::string_view ch);
-    /* not used */ void References(LSPTextDocument* textDocument, Position position);
+    /* not used */ void SelectionRange(LSPTextDocument* textDocument, std::vector<lsp::Position> &positions);
+    /* not used */ void OnTypeFormatting(LSPTextDocument* textDocument, lsp::Position position, std::string_view ch);
+    /* not used */ void References(LSPTextDocument* textDocument, lsp::Position position);
 
     std::string&	allCommitCharacters() { return fAllCommitCharacters; } //not yet used.
     std::string&	triggerCharacters() { return fTriggerCharacters; } //for completion
@@ -88,16 +88,16 @@ public:
 private:
 	bool	_Create();
 	void	_RegisterHandlers();
-	void	_SendRequest(LSPTextDocument* textDocument, std::string_view method, value params);
-	void	_SendNotify(std::string_view method, value params);
+	void	_SendRequest(LSPTextDocument* textDocument, std::string_view method, lsp::json::Value params);
+	void	_SendNotify(std::string_view method, lsp::json::Value params);
 
 	LSPPipeClient*			fLSPPipeClient;
 	LSPTextDocument*	_DocumentByURI(const char* uri);
 	bool _CheckAndSetCapability(json& capas, const char* str, const LSPCapability flag);
 
 	// Notification/response dispatch helpers (called on UI thread)
-	void _OnNotify(std::string method, value& params);
-	void _OnResponse(const std::string& documentKey, std::string method, value& result);
+	void _OnNotify(std::string method, lsp::json::Value& params);
+	void _OnResponse(const std::string& documentKey, std::string method, lsp::json::Value& result);
 	void _DrainResponseQueue();
 
 	void	_LogMessage(lsp::LogMessageParams&& params);
@@ -132,7 +132,7 @@ private:
 	void	_enqueueOnUIThread(F&& fn);
 
 	template<typename F>
-	void	_SendJsonRequest(std::string_view method, value params, F&& then);
+	void	_SendJsonRequest(std::string_view method, lsp::json::Value params, F&& then);
 };
 
 
@@ -182,7 +182,7 @@ LSPProjectWrapper::_SendTypedRequest(LSPTextDocument* textDocument, typename M::
 
 template<typename F>
 void
-LSPProjectWrapper::_SendJsonRequest(std::string_view method, value params, F&& then)
+LSPProjectWrapper::_SendJsonRequest(std::string_view method, lsp::json::Value params, F&& then)
 {
 	fLSPPipeClient->Handler().sendRequest(
 		method,

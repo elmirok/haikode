@@ -1,16 +1,14 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #pragma once
 
 #include "Editor.h"
-
+#include <lsp/types.h>
 #include <cstdio>
 #include <cstring>
-#include <vector>
 
-#include "LSPCompat.h"
 
 enum CallTipAction {
 	CALLTIP_NOTHING = 0, //nothing to do
@@ -32,7 +30,7 @@ public:
 	void HideCallTip();
 	void ShowCallTip();
 
-	void UpdateSignatures(lsp::Array<SignatureInformation>& funcs);
+	void UpdateSignatures(lsp::Array<lsp::SignatureInformation>& funcs);
 
 	int32 Position() const { return fPosition; };
 
@@ -48,5 +46,5 @@ private:
 	size_t 	fCurrentParam;
 
 	// LSP signatures
-	lsp::Array<SignatureInformation> fSignatures;
+	lsp::Array<lsp::SignatureInformation> fSignatures;
 };

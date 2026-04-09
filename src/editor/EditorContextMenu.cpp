@@ -65,7 +65,7 @@ EditorContextMenu::_PopulateFixMenu(BPopUpMenu* fixMenu, LSPEditorWrapper* lsp,
 								Editor* editor, LSPDiagnostic& dia, int32 index)
 {
 	fixMenu->RemoveItems(0, fixMenu->CountItems(), true);
-	std::vector<CodeAction> actions = dia.codeActions.value();
+	std::vector<lsp::CodeAction> actions = dia.codeActions.value();
 	for (int i = 0; i < static_cast<int>(actions.size()); i++) {
 		auto item = new BMenuItem(actions[i].title.c_str(),
 			new GMessage({{"what", kApplyFix},

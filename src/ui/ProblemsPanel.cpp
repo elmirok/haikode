@@ -42,8 +42,8 @@ public:
 	{
 	}
 
-	IEditor*	editor;
-	Range 		range;
+	IEditor*		editor;
+	lsp::Range 		range;
 };
 
 #define ProblemLabel B_TRANSLATE("Problems")
@@ -115,7 +115,7 @@ ProblemsPanel::MessageReceived(BMessage* msg)
 					fPopUpMenu = new BPopUpMenu("_popup");
 					fPopUpMenu->SetRadioMode(false);
 					if (index > -1 && dia.codeActions.has_value() && dia.codeActions->size() > 0) {
-						std::vector<CodeAction> actions = dia.codeActions.value();
+						std::vector<lsp::CodeAction> actions = dia.codeActions.value();
 						for (int i = 0; i < static_cast<int>(actions.size()); i++) {
 							auto item = new BMenuItem(actions[i].title.c_str(),
 								new GMessage({{"what", kApplyFix}, {"index", index}, {"action", i},

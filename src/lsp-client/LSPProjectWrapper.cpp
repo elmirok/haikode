@@ -227,7 +227,7 @@ LSPProjectWrapper::RegisterTextDocument(LSPTextDocument* textDocument)
 	fTextDocs[X(textDocument)] = textDocument;
 
 	if (fInitialized) {
-		value emptyParam;
+		lsp::json::Value emptyParam;
 		static_cast<LSPEditorWrapper*>(textDocument)->OnInitialize(emptyParam);
 	}
 
@@ -325,7 +325,7 @@ LSPProjectWrapper::_DocumentByURI(const char* uri)
 
 
 void
-LSPProjectWrapper::_OnNotify(std::string method, value& params)
+LSPProjectWrapper::_OnNotify(std::string method, lsp::json::Value& params)
 {
 	if (method.compare("$/progress") == 0) {
 /*
@@ -410,9 +410,10 @@ LSPProjectWrapper::_LogMessage(lsp::LogMessageParams&& logParams)
 
 
 void
-LSPProjectWrapper::_OnResponse(const std::string& documentKey, std::string method, value& result)
+LSPProjectWrapper::_OnResponse(const std::string& documentKey, std::string method, lsp::json::Value& result)
 {
 	if (method.compare("shutdown") == 0) {
+		debugger("HERE\n");
 		fprintf(stderr, "Shutdown received\n");
 		fInitialized.store(false);
 		return;
@@ -453,7 +454,7 @@ LSPProjectWrapper::Initialize(std::optional<std::string> rootUri)
 	caps["window"].object()["implicitWorkDoneProgressCreate"] = lsp::json::Value(true);
 
 	_SendJsonRequest("initialize", std::move(jParams),
-		[this](value& result) {
+		[this](lsp::json::Value& result) {
 			fInitialized.store(true);
 			Initialized(result);
 			for (auto& doc : fTextDocs)
@@ -564,7 +565,7 @@ LSPProjectWrapper::DidSave(LSPTextDocument* textDocument)
 
 
 void
-LSPProjectWrapper::RangeFomatting(LSPTextDocument* textDocument, Range range)
+LSPProjectWrapper::RangeFomatting(LSPTextDocument* textDocument, lsp::Range range)
 {
 	if (!HasCapability(kLCapDocRangeFormatting))
 		return;
@@ -600,7 +601,7 @@ LSPProjectWrapper::FoldingRange(LSPTextDocument* textDocument) //NOT USED
 
 /* not used */
 void
-LSPProjectWrapper::SelectionRange(LSPTextDocument* textDocument, std::vector<Position>& positions)
+LSPProjectWrapper::SelectionRange(LSPTextDocument* textDocument, std::vector<lsp::Position>& positions)
 {
 	lsp::SelectionRangeParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
@@ -610,7 +611,7 @@ LSPProjectWrapper::SelectionRange(LSPTextDocument* textDocument, std::vector<Pos
 
 /* not used */
 void
-LSPProjectWrapper::OnTypeFormatting(LSPTextDocument* textDocument, Position position, std::string_view ch)
+LSPProjectWrapper::OnTypeFormatting(LSPTextDocument* textDocument, lsp::Position position, std::string_view ch)
 {
 	lsp::DocumentOnTypeFormattingParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
@@ -649,7 +650,7 @@ LSPProjectWrapper::Formatting(LSPTextDocument* textDocument)
 
 
 void
-LSPProjectWrapper::CodeAction(LSPTextDocument* textDocument, Range range, lsp::CodeActionContext& context)
+LSPProjectWrapper::CodeAction(LSPTextDocument* textDocument, lsp::Range range, lsp::CodeActionContext& context)
 {
 	lsp::CodeActionParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
@@ -690,7 +691,7 @@ LSPProjectWrapper::CodeActionResolve(LSPTextDocument* textDocument, lsp::CodeAct
 
 void
 LSPProjectWrapper::Completion(
-	LSPTextDocument* textDocument, Position position, lsp::CompletionContext& context)
+	LSPTextDocument* textDocument, lsp::Position position, lsp::CompletionContext& context)
 {
 	if (!HasCapability(kLCapCompletion))
 		return;
@@ -715,7 +716,7 @@ LSPProjectWrapper::Completion(
 
 
 void
-LSPProjectWrapper::SignatureHelp(LSPTextDocument* textDocument, Position position)
+LSPProjectWrapper::SignatureHelp(LSPTextDocument* textDocument, lsp::Position position)
 {
 	if (!HasCapability(kLCapSignatureHelp))
 		return;
@@ -739,7 +740,7 @@ LSPProjectWrapper::SignatureHelp(LSPTextDocument* textDocument, Position positio
 
 
 void
-LSPProjectWrapper::GoToDefinition(LSPTextDocument* textDocument, Position position)
+LSPProjectWrapper::GoToDefinition(LSPTextDocument* textDocument, lsp::Position position)
 {
 	if (!HasCapability(kLCapDefinition))
 		return;
@@ -762,7 +763,7 @@ LSPProjectWrapper::GoToDefinition(LSPTextDocument* textDocument, Position positi
 
 
 void
-LSPProjectWrapper::GoToImplementation(LSPTextDocument* textDocument, Position position)
+LSPProjectWrapper::GoToImplementation(LSPTextDocument* textDocument, lsp::Position position)
 {
 	if (!HasCapability(kLCapImplementation))
 		return;
@@ -786,7 +787,7 @@ LSPProjectWrapper::GoToImplementation(LSPTextDocument* textDocument, Position po
 
 
 void
-LSPProjectWrapper::GoToDeclaration(LSPTextDocument* textDocument, Position position)
+LSPProjectWrapper::GoToDeclaration(LSPTextDocument* textDocument, lsp::Position position)
 {
 	if (!HasCapability(kLCapDeclaration))
 		return;
@@ -814,7 +815,7 @@ LSPProjectWrapper::GoToDeclaration(LSPTextDocument* textDocument, Position posit
 
  /* not used */
 void
-LSPProjectWrapper::References(LSPTextDocument* textDocument, Position position)
+LSPProjectWrapper::References(LSPTextDocument* textDocument, lsp::Position position)
 {
 	lsp::ReferenceParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
@@ -827,7 +828,7 @@ LSPProjectWrapper::References(LSPTextDocument* textDocument, Position position)
 
 
 void
-LSPProjectWrapper::Rename(LSPTextDocument* textDocument, Position position, std::string_view newName)
+LSPProjectWrapper::Rename(LSPTextDocument* textDocument, lsp::Position position, std::string_view newName)
 {
 	lsp::RenameParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
@@ -850,7 +851,7 @@ LSPProjectWrapper::Rename(LSPTextDocument* textDocument, Position position, std:
 
 
 void
-LSPProjectWrapper::Hover(LSPTextDocument* textDocument, Position position)
+LSPProjectWrapper::Hover(LSPTextDocument* textDocument, lsp::Position position)
 {
 	if (!HasCapability(kLCapHover))
 		return;
@@ -916,7 +917,7 @@ LSPProjectWrapper::DocumentLink(LSPTextDocument* textDocument)
 
 
 void
-LSPProjectWrapper::_SendRequest(LSPTextDocument* textDocument, std::string_view method, value params)
+LSPProjectWrapper::_SendRequest(LSPTextDocument* textDocument, std::string_view method, lsp::json::Value params)
 {
 	std::string docKey = textDocument ? X(textDocument) : "client";
 	std::string methodStr(method);
@@ -938,7 +939,7 @@ LSPProjectWrapper::_SendRequest(LSPTextDocument* textDocument, std::string_view 
 
 
 void
-LSPProjectWrapper::_SendNotify(std::string_view method, value params)
+LSPProjectWrapper::_SendNotify(std::string_view method, lsp::json::Value params)
 {
 	fLSPPipeClient->Handler().sendNotification(method, std::optional<lsp::json::Value>(std::move(params)));
 }
