@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, Andrea Anzani
+ * Copyright 2023-2026, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #ifndef LSPEditorWrapper_H
@@ -49,11 +49,11 @@ using ArrayTextEdit = lsp::Array<lsp::TextEdit>;
 
 class LSPEditorWrapper : public LSPTextDocument {
 public:
-	enum GoToType {
-		GOTO_DEFINITION,
-		GOTO_DECLARATION,
-		GOTO_IMPLEMENTATION
-	};
+		enum GoToType {
+			GOTO_DEFINITION,
+			GOTO_DECLARATION,
+			GOTO_IMPLEMENTATION
+		};
 
 				LSPEditorWrapper(BPath filenamePath, Editor* fEditor);
 		virtual	~LSPEditorWrapper() {};
@@ -98,64 +98,64 @@ public:
 
 public:
 
-	int32 DiagnosticFromPosition(Sci_Position p, LSPDiagnostic& dia);
-	int32 DiagnosticFromRange(Range& range, LSPDiagnostic& dia);
+		void	OnFormat(ArrayTextEdit&& edits);
+		void	OnRename(lsp::WorkspaceEdit&& edit); //use the result?
+		void	OnHover(lsp::TextDocument_HoverResult&& result);
+		void	OnGoTo(lsp::TextDocument_DefinitionResult&& result);
+		void	OnSignatureHelp(lsp::SignatureHelp&& signatureHelp); //use the result?
+		void	OnCompletion(lsp::TextDocument_CompletionResult&& result);
+		void	OnDiagnostics(lsp::PublishDiagnosticsParams&& params);
+		void	OnDocumentLink(lsp::TextDocument_DocumentLinkResult&& links);
+		void	OnDocumentSymbol(lsp::TextDocument_DocumentSymbolResult&& result);
+		void	OnCodeActions(lsp::TextDocument_CodeActionResult&& codeAction);
+		void	OnCodeActionResolve(CodeAction&& params);
 
-	Editor*				fEditor;
-	CompletionList		fCurrentCompletion;
-	Sci_Position		fCompletionPosition;
-	BTextToolTip* 		fToolTip;
-	LSPProjectWrapper*	fLSPProjectWrapper;
-	BString				fFileStatus;
-	CallTipContext		fCallTip;
-	bool				fInitialized;
-	Sci_Position		fLastWordStartPosition;
-	Sci_Position		fLastWordEndPosition;
-
-private:
-	bool	IsInitialized();
-	std::vector<LSPDiagnostic>	fLastDiagnostics;
-	std::vector<InfoRange>		fLastDocumentLinks;
-
-	void				_ShowToolTip(const char* text);
-	void				_RemoveAllDiagnostics();
-	void				_RemoveAllDocumentLinks();
+		//	Still generic methods using json buffers..
+		void	OnFileStatus(value& params);
+		void	OnInitialize(value& params);
 
 public:
-			//FIXME: rename
-	void	_DoFormat(ArrayTextEdit&& edits);
-	void	_DoRename(lsp::WorkspaceEdit&& edit); //use the result?
-	void	_DoHover(lsp::TextDocument_HoverResult&& result);
-	void	_DoGoTo(lsp::TextDocument_DefinitionResult&& result);
-	void	_DoSignatureHelp(lsp::SignatureHelp&& signatureHelp); //use the result?
-	void	_DoCompletion(lsp::TextDocument_CompletionResult&& result);
-	void	_DoDiagnostics(lsp::PublishDiagnosticsParams&& params);
-	void	_DoDocumentLink(lsp::TextDocument_DocumentLinkResult&& links);
-	void	_DoDocumentSymbol(lsp::TextDocument_DocumentSymbolResult&& result);
-	void	_DoCodeActions(lsp::TextDocument_CodeActionResult&& codeAction);
-	void	_DoCodeActionResolve(CodeAction&& params);
 
-	//Still generic methods
-	void	_DoFileStatus(value& params);
-	void	_DoInitialize(value& params);
+		int32	DiagnosticFromPosition(Sci_Position p, LSPDiagnostic& dia);
+		int32	DiagnosticFromRange(Range& range, LSPDiagnostic& dia);
 
 private:
+		bool	IsInitialized();
 
-	void	_DoRecursiveDocumentSymbol(lsp::Array<DocumentSymbol>& v, BMessage& msg);
-	void	_DoLinearSymbolInformation(lsp::Array<SymbolInformation>& v, BMessage& msg);
 
-	//utils
-	void 			FromSciPositionToLSPPosition(const Sci_Position &pos, Position *lsp_position);
-	Sci_Position 	FromLSPPositionToSciPosition(const Position* lsp_position);
-	void 			GetCurrentLSPPosition(Position *lsp_position);
-	void 			FromSciPositionToRange(Sci_Position s_start, Sci_Position s_end, Range *range);
-	Sci_Position 	ApplyTextEdit(value &textEdit);
-	Sci_Position 	ApplyTextEdit(TextEdit &textEdit);
-	void			OpenFileURI(std::string uri, int32 line = -1, int32 character = -1,
-								ArrayTextEdit&& edits = {});
-	std::string 	GetCurrentLine();
-	bool			IsStatusValid();
-	std::vector<lsp::TextDocumentContentChangeEvent> fChanges;
+		void	_ShowToolTip(const char* text);
+		void	_RemoveAllDiagnostics();
+		void	_RemoveAllDocumentLinks();
+		void	_DoRecursiveDocumentSymbol(lsp::Array<DocumentSymbol>& v, BMessage& msg);
+		void	_DoLinearSymbolInformation(lsp::Array<SymbolInformation>& v, BMessage& msg);
+
+		//utils
+		void			FromSciPositionToLSPPosition(const Sci_Position &pos, Position *lsp_position);
+		Sci_Position 	FromLSPPositionToSciPosition(const Position* lsp_position);
+		void 			GetCurrentLSPPosition(Position *lsp_position);
+		void 			FromSciPositionToRange(Sci_Position s_start, Sci_Position s_end, Range *range);
+		Sci_Position 	ApplyTextEdit(value &textEdit);
+		Sci_Position 	ApplyTextEdit(TextEdit &textEdit);
+		void			OpenFileURI(std::string uri, int32 line = -1, int32 character = -1,
+									ArrayTextEdit&& edits = {});
+		std::string 	GetCurrentLine();
+		bool			IsStatusValid();
+
+
+		Editor*				fEditor;
+		CompletionList		fCurrentCompletion;
+		Sci_Position		fCompletionPosition;
+		BTextToolTip* 		fToolTip;
+		LSPProjectWrapper*	fLSPProjectWrapper;
+		BString				fFileStatus;
+		CallTipContext		fCallTip;
+		bool				fInitialized;
+		Sci_Position		fLastWordStartPosition;
+		Sci_Position		fLastWordEndPosition;
+
+		std::vector<LSPDiagnostic>	fLastDiagnostics;
+		std::vector<InfoRange>		fLastDocumentLinks;
+		std::vector<lsp::TextDocumentContentChangeEvent> fChanges;
 };
 
 #endif // LSPEditorWrapper_H

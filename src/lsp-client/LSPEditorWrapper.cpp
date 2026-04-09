@@ -114,7 +114,7 @@ LSPEditorWrapper::ApplyFix(BMessage* info)
 			fLastDiagnostics.at(diaIndex).codeActions.value()[actIndex].edit.value().changes.value();
 		for (auto& [uri, edits] : changes) {
 			if (GetFilenameURI().ICompare(uri.toString().c_str()) == 0) {
-				_DoFormat(std::move(edits));
+				OnFormat(std::move(edits));
 			}
 		}
 	}
@@ -128,7 +128,7 @@ LSPEditorWrapper::ApplyEdit(std::string info)
 		return;
 
 	auto edits = LSPBridge::fromJson<ArrayTextEdit>(lsp::json::parse(info));
-	_DoFormat(std::move(edits));
+	OnFormat(std::move(edits));
 }
 
 
@@ -166,6 +166,8 @@ LSPEditorWrapper::didOpen()
 	const char* text = reinterpret_cast<const char*>(fEditor->SendMessage(SCI_GETCHARACTERPOINTER));
 
 	fLSPProjectWrapper->DidOpen(this, text, FileType().String());
+
+	//printf("DIDOPEN %s\n", GetFilenameURI().String());
 
 }
 
@@ -230,7 +232,7 @@ LSPEditorWrapper::flushChanges()
 }
 
 void
-LSPEditorWrapper::_DoFormat(ArrayTextEdit&& edits)
+LSPEditorWrapper::OnFormat(ArrayTextEdit&& edits)
 {
 	fEditor->SendMessage(SCI_BEGINUNDOACTION, 0, 0);
 	for (auto it = edits.rbegin(); it != edits.rend(); ++it) {
@@ -244,7 +246,7 @@ LSPEditorWrapper::_DoFormat(ArrayTextEdit&& edits)
 
 
 void
-LSPEditorWrapper::_DoRename(lsp::WorkspaceEdit&& edit)
+LSPEditorWrapper::OnRename(lsp::WorkspaceEdit&& edit)
 {
 	if (edit.changes.has_value()) {
 		for (auto& [uri, edits] : edit.changes.value()) {
@@ -664,7 +666,7 @@ _ExtractHoverText(const lsp::Hover& hover)
 
 
 void
-LSPEditorWrapper::_DoHover(lsp::TextDocument_HoverResult&& result)
+LSPEditorWrapper::OnHover(lsp::TextDocument_HoverResult&& result)
 {
 	if (fEditor == nullptr || !fEditor->Window()->IsActive())
 		return;
@@ -685,7 +687,7 @@ LSPEditorWrapper::_DoHover(lsp::TextDocument_HoverResult&& result)
 
 
 void
-LSPEditorWrapper::_DoGoTo(lsp::TextDocument_DefinitionResult&& result)
+LSPEditorWrapper::OnGoTo(lsp::TextDocument_DefinitionResult&& result)
 {
 	// NullOrOneOf<Definition, Array<DefinitionLink>>;
 	if (result.isNull())
@@ -725,7 +727,7 @@ LSPEditorWrapper::_DoGoTo(lsp::TextDocument_DefinitionResult&& result)
 
 
 void
-LSPEditorWrapper::_DoSignatureHelp(lsp::SignatureHelp&& signatureHelp)
+LSPEditorWrapper::OnSignatureHelp(lsp::SignatureHelp&& signatureHelp)
 {
 	fCallTip.UpdateSignatures(signatureHelp.signatures);
 	fCallTip.ShowCallTip();
@@ -733,7 +735,7 @@ LSPEditorWrapper::_DoSignatureHelp(lsp::SignatureHelp&& signatureHelp)
 
 
 void
-LSPEditorWrapper::_DoCompletion(lsp::TextDocument_CompletionResult&& result)
+LSPEditorWrapper::OnCompletion(lsp::TextDocument_CompletionResult&& result)
 {
 	if (result.isNull())
 		return;
@@ -830,7 +832,7 @@ LSPEditorWrapper::_RemoveAllDiagnostics()
 
 
 void
-LSPEditorWrapper::_DoDiagnostics(lsp::PublishDiagnosticsParams&& params)
+LSPEditorWrapper::OnDiagnostics(lsp::PublishDiagnosticsParams&& params)
 {
 	if (params.version.has_value()) {
 		int32 serverVersion = static_cast<int32>(params.version.value());
@@ -891,7 +893,7 @@ LSPEditorWrapper::CodeActionResolve(lsp::CodeAction& params)
 }
 
 void
-LSPEditorWrapper::_DoCodeActions(lsp::TextDocument_CodeActionResult&& codeAction)
+LSPEditorWrapper::OnCodeActions(lsp::TextDocument_CodeActionResult&& codeAction)
 {
 	for (auto& act : codeAction.value()) {
 		CodeAction* action = std::get_if<lsp::CodeAction>(&act);
@@ -920,7 +922,7 @@ LSPEditorWrapper::_DoCodeActions(lsp::TextDocument_CodeActionResult&& codeAction
 
 
 void
-LSPEditorWrapper::_DoCodeActionResolve(CodeAction&& action)
+LSPEditorWrapper::OnCodeActionResolve(CodeAction&& action)
 {
 	// Extract range from clangd-specific data field
 	for (auto& dia: action.diagnostics.value()) {
@@ -953,7 +955,7 @@ LSPEditorWrapper::_RemoveAllDocumentLinks()
 }
 
 void
-LSPEditorWrapper::_DoInitialize(value& params)
+LSPEditorWrapper::OnInitialize(value& params)
 {
 	fInitialized = true;
 	didOpen();
@@ -967,7 +969,7 @@ LSPEditorWrapper::_DoInitialize(value& params)
 }
 
 void
-LSPEditorWrapper::_DoDocumentLink(lsp::TextDocument_DocumentLinkResult&& links)
+LSPEditorWrapper::OnDocumentLink(lsp::TextDocument_DocumentLinkResult&& links)
 {
 	//FIXME? Check on Editor?
 
@@ -993,7 +995,7 @@ LSPEditorWrapper::_DoDocumentLink(lsp::TextDocument_DocumentLinkResult&& links)
 }
 
 void
-LSPEditorWrapper::_DoFileStatus(value& params)
+LSPEditorWrapper::OnFileStatus(value& params)
 {
 	auto state = params.object().get("state").string();
 	LogInfo("FileStatus [%s] -> [%s]", GetFileStatus().String(), state.c_str());
@@ -1006,7 +1008,7 @@ LSPEditorWrapper::_DoFileStatus(value& params)
 
 
 void
-LSPEditorWrapper::_DoDocumentSymbol(lsp::TextDocument_DocumentSymbolResult&& result)
+LSPEditorWrapper::OnDocumentSymbol(lsp::TextDocument_DocumentSymbolResult&& result)
 {
 	if (result.isNull())
 		return;

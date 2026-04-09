@@ -228,7 +228,7 @@ LSPProjectWrapper::RegisterTextDocument(LSPTextDocument* textDocument)
 
 	if (fInitialized) {
 		value emptyParam;
-		static_cast<LSPEditorWrapper*>(textDocument)->_DoInitialize(emptyParam);
+		static_cast<LSPEditorWrapper*>(textDocument)->OnInitialize(emptyParam);
 	}
 
 	return true;
@@ -457,7 +457,7 @@ LSPProjectWrapper::Initialize(std::optional<std::string> rootUri)
 			fInitialized.store(true);
 			Initialized(result);
 			for (auto& doc : fTextDocs)
-				static_cast<LSPEditorWrapper*>(doc.second)->_DoInitialize(result);
+				static_cast<LSPEditorWrapper*>(doc.second)->OnInitialize(result);
 		});
 }
 
@@ -585,7 +585,7 @@ LSPProjectWrapper::RangeFomatting(LSPTextDocument* textDocument, Range range)
 			if (doc->IsStaleResponse(reqVersion))
 				return;
 			if (!result.isNull())
-				doc->_DoFormat(std::move(result.value()));
+				doc->OnFormat(std::move(result.value()));
 		});
 }
 
@@ -643,7 +643,7 @@ LSPProjectWrapper::Formatting(LSPTextDocument* textDocument)
 			if (doc->IsStaleResponse(reqVersion))
 				return;
 			if (!result.isNull())
-				doc->_DoFormat(std::move(result.value()));
+				doc->OnFormat(std::move(result.value()));
 		});
 }
 
@@ -666,7 +666,7 @@ LSPProjectWrapper::CodeAction(LSPTextDocument* textDocument, Range range, lsp::C
 			if (doc->IsStaleResponse(reqVersion))
 				return;
 			if (!result.isNull())
-				doc->_DoCodeActions(std::move(result.value()));
+				doc->OnCodeActions(std::move(result.value()));
 		});
 }
 
@@ -683,7 +683,7 @@ LSPProjectWrapper::CodeActionResolve(LSPTextDocument* textDocument, lsp::CodeAct
 				return;
 			if (doc->IsStaleResponse(reqVersion))
 				return;
-			doc->_DoCodeActionResolve(std::move(result));
+			doc->OnCodeActionResolve(std::move(result));
 		});
 }
 
@@ -709,7 +709,7 @@ LSPProjectWrapper::Completion(
 				return;
 			if (doc->IsStaleResponse(reqVersion))
 				return;
-			doc->_DoCompletion(std::move(result.value()));
+			doc->OnCompletion(std::move(result.value()));
 		});
 }
 
@@ -732,7 +732,7 @@ LSPProjectWrapper::SignatureHelp(LSPTextDocument* textDocument, Position positio
 			if (!doc)
 				return;
 			if (!result.isNull())
-				doc->_DoSignatureHelp(std::move(result.value()));
+				doc->OnSignatureHelp(std::move(result.value()));
 		});
 
 }
@@ -755,7 +755,7 @@ LSPProjectWrapper::GoToDefinition(LSPTextDocument* textDocument, Position positi
 			if (!doc)
 				return;
 			if (!result.isNull()) {
-				doc->_DoGoTo(std::move(result.value()));
+				doc->OnGoTo(std::move(result.value()));
 			}
 		});
 }
@@ -779,7 +779,7 @@ LSPProjectWrapper::GoToImplementation(LSPTextDocument* textDocument, Position po
 				return;
 			lsp::TextDocument_DefinitionResult&& impl = (lsp::TextDocument_DefinitionResult&&)result;
 			if (!result.isNull()) {
-				doc->_DoGoTo(std::move(impl.value()));
+				doc->OnGoTo(std::move(impl.value()));
 			}
 		});
 }
@@ -807,7 +807,7 @@ LSPProjectWrapper::GoToDeclaration(LSPTextDocument* textDocument, Position posit
 				return;
 			lsp::TextDocument_DefinitionResult&& impl = (lsp::TextDocument_DefinitionResult&&)result;
 			if (!result.isNull()) {
-				doc->_DoGoTo(std::move(impl.value()));
+				doc->OnGoTo(std::move(impl.value()));
 			}
 		});
 }
@@ -844,7 +844,7 @@ LSPProjectWrapper::Rename(LSPTextDocument* textDocument, Position position, std:
 			if (doc->IsStaleResponse(reqVersion))
 				return;
 			if (!result.isNull())
-				doc->_DoRename(std::move(result.value()));
+				doc->OnRename(std::move(result.value()));
 		});
 }
 
@@ -866,7 +866,7 @@ LSPProjectWrapper::Hover(LSPTextDocument* textDocument, Position position)
 			auto* doc = static_cast<LSPEditorWrapper*>(_DocumentByURI(uri.c_str()));
 			if (!doc)
 				return;
-			doc->_DoHover(std::move(result));
+			doc->OnHover(std::move(result));
 		});
 }
 
@@ -887,7 +887,7 @@ LSPProjectWrapper::DocumentSymbol(LSPTextDocument* textDocument)
 			auto* doc = static_cast<LSPEditorWrapper*>(_DocumentByURI(uri.c_str()));
 			if (!doc)
 				return;
-			doc->_DoDocumentSymbol(std::move(result));
+			doc->OnDocumentSymbol(std::move(result));
 		});
 }
 
@@ -907,7 +907,7 @@ LSPProjectWrapper::DocumentLink(LSPTextDocument* textDocument)
 			auto* doc = static_cast<LSPEditorWrapper*>(_DocumentByURI(uri.c_str()));
 			if (!doc)
 				return;
-			doc->_DoDocumentLink(std::move(result.value()));
+			doc->OnDocumentLink(std::move(result.value()));
 		});
 }
 
@@ -970,7 +970,7 @@ LSPProjectWrapper::_RegisterHandlers()
 				std::string uri = p.uri.toString();
 				LSPTextDocument* doc = _DocumentByURI(uri.c_str());
 				if (doc) {
-					static_cast<LSPEditorWrapper*>(doc)->_DoDiagnostics(std::move(p));
+					static_cast<LSPEditorWrapper*>(doc)->OnDiagnostics(std::move(p));
 				}
 			});
 		});
@@ -981,7 +981,7 @@ LSPProjectWrapper::_RegisterHandlers()
 				auto uri = p.object().get("uri").string();
 				LSPTextDocument* doc = _DocumentByURI(uri.c_str());
 				if (doc)
-					static_cast<LSPEditorWrapper*>(doc)->_DoFileStatus(p);
+					static_cast<LSPEditorWrapper*>(doc)->OnFileStatus(p);
 			});
 			return lsp::json::Value{};
 		});
