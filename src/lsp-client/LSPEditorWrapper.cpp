@@ -77,9 +77,9 @@ LSPEditorWrapper::UnsetLSPServer()
 	if (fLSPProjectWrapper == nullptr)
 		return;
 
+	fLSPProjectWrapper->UnregisterTextDocument(this);
 	didClose();
 	fFileStatus = "";
-	fLSPProjectWrapper->UnregisterTextDocument(this);
 	fLSPProjectWrapper = nullptr;
 }
 
@@ -176,14 +176,13 @@ LSPEditorWrapper::didClose()
 	if (!IsInitialized())
 		return;
 
-	flushChanges();
+	ResetVersion();
+	fLSPProjectWrapper->DidClose(this);
 
 	if (fEditor) {
 		_RemoveAllDiagnostics();
 		_RemoveAllDocumentLinks();
 	}
-
-	fLSPProjectWrapper->DidClose(this);
 }
 
 
@@ -204,6 +203,8 @@ LSPEditorWrapper::didChange(
 {
 	if (!IsInitialized() || fEditor == nullptr)
 		return;
+
+	NextVersion();
 
 	Sci_Position end_pos = fEditor->SendMessage(SCI_POSITIONRELATIVE, start_pos, poslength);
 

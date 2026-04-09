@@ -26,8 +26,8 @@
 #include "LSPPipeClient.h"
 
 #include <lsp/types.h>
+#include "LSPTextDocument.h"
 
-class LSPTextDocument;
 class LSPServerConfigInterface;
 
 using json = lsp::json::Value;
@@ -125,10 +125,10 @@ private:
 
 	// magic starts here!
 	template<typename M, typename F>
-	void	_SendTypedRequest(typename M::Params&& params, F&& then);
+	void	_SendTypedRequest(LSPTextDocument* textDocument, typename M::Params&& params, F&& then);
 
 	template<typename M, typename F>
-	auto	_addFunctionToQueue(F&& then);
+	auto	_addFunctionToQueue(F&& then, int32 version = -1);
 
 	template<typename F>
 	void	_enqueueOnUIThread(F&& fn);
@@ -152,11 +152,14 @@ LSPProjectWrapper::_enqueueOnUIThread(F&& fn)
 
 template<typename M, typename F>
 auto
-LSPProjectWrapper::_addFunctionToQueue(F&& then)
+LSPProjectWrapper::_addFunctionToQueue(F&& then, int32 requestVersion)
 {
-	return [this, cb = std::forward<F>(then)](typename M::Result&& result) mutable {
-		_enqueueOnUIThread([cb = std::move(cb), r = std::move(result)]() mutable {
-			cb(std::move(r));
+	return [this, cb = std::forward<F>(then), requestVersion](typename M::Result&& result) mutable {
+		_enqueueOnUIThread([cb = std::move(cb), r = std::move(result), requestVersion]() mutable {
+			//if (requestVersion > -1)
+				cb(std::move(r), requestVersion);
+			/*else
+				cb(std::move(r));*/
 		});
 	};
 }
@@ -164,16 +167,20 @@ LSPProjectWrapper::_addFunctionToQueue(F&& then)
 
 template<typename M, typename F>
 void
-LSPProjectWrapper::_SendTypedRequest(typename M::Params&& params, F&& then)
+LSPProjectWrapper::_SendTypedRequest(LSPTextDocument* textDocument, typename M::Params&& params, F&& then)
 {
+	int32 requestVersion = textDocument ? textDocument->Version() : -1;
+
 	fLSPPipeClient->Handler().sendRequest<M>(
 		std::move(params),
-		_addFunctionToQueue<M>(std::forward<F>(then)),
+		_addFunctionToQueue<M>(std::forward<F>(then), requestVersion),
 		[](const lsp::ResponseError& error) {
 			LogError("LSP request [%s] - error: %s", M::Method.data(), error.message());
 		});
 }
 
+// Used only for sending the "initialize" request (customized for clangd)
+// need to be review.
 
 template<typename F>
 void

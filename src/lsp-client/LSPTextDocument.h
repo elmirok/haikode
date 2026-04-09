@@ -5,9 +5,9 @@
 
 #pragma once
 
-#include "LSPCompat.h"
-
+#include "Log.h"
 #include <Url.h>
+
 
 class LSPTextDocument {
 public:
@@ -29,9 +29,22 @@ public:
 
 	const BString& FileType() const { return fFileType; }
 
+			int32	Version() const { return fVersion; }
+			bool 	IsStaleResponse(int32 requestVersion) const {
+						if (Version() != requestVersion) {
+							debugger("IsStale!");
+							LogTrace("[%s] Discarding stale response (req=%ld, cur=%ld)",
+								GetFilenameURI().String(), requestVersion, Version());
+							return true;
+					}
+    return false;
+}
+
+
+protected:
 			void	ResetVersion() { fVersion = 0; }
 			int32	NextVersion() { return ++fVersion; }
-			int32	Version() const { return fVersion; }
+
 
 private:
 	BUrl 	fFilenameURI;
