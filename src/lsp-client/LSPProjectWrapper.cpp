@@ -635,6 +635,8 @@ LSPProjectWrapper::RangeFomatting(LSPTextDocument* textDocument, Range range)
 			auto* doc = static_cast<LSPEditorWrapper*>(_DocumentByURI(uri.c_str()));
 			if (!doc)
 				return;
+			if (doc->IsStaleResponse(reqVersion))
+				return;
 			if (!result.isNull())
 				doc->_DoFormat(std::move(result.value()));
 		});
