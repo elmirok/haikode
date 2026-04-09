@@ -128,7 +128,6 @@ lsp::ClientCapabilities BuildClientCapabilities()
 enum {
 	kLSPNotify   = 'LSn!',
 	kLSPResponse = 'LSr!',
-	kLSPError    = 'LSe!',
 };
 
 
@@ -166,7 +165,7 @@ LSPProjectWrapper::MessageReceived(BMessage* msg)
 			}
 			break;
 		}
-		case kLSPResponse:
+		case kLSPResponse: //json response (deprecated)
 		{
 			const char* documentKey;
 			const char* method;
@@ -183,24 +182,7 @@ LSPProjectWrapper::MessageReceived(BMessage* msg)
 			}
 			break;
 		}
-		case kLSPError:
-		{
-			const char* documentKey;
-			const char* method;
-			const char* data;
-			if (msg->FindString("documentKey", &documentKey) == B_OK
-				&& msg->FindString("method", &method) == B_OK
-				&& msg->FindString("data", &data) == B_OK) {
-				try {
-					auto error = lsp::json::parse(data);
-					_OnError(documentKey, method, error);
-				} catch (std::exception& e) {
-					LogTrace("LSPProjectWrapper error exception: %s", e.what());
-				}
-			}
-			break;
-		}
-		case kLSPTypedResponse:
+		case kLSPTypedResponse: //typed response
 		{
 			_DrainResponseQueue();
 			break;
@@ -257,6 +239,7 @@ void
 LSPProjectWrapper::UnregisterTextDocument(LSPTextDocument* textDocument)
 {
 	fTextDocs[X(textDocument)] = nullptr;
+	fTextDocs.erase(X(textDocument));
 }
 
 
@@ -439,19 +422,6 @@ LSPProjectWrapper::_OnResponse(const std::string& documentKey, std::string metho
 	}
 }
 
-
-void
-LSPProjectWrapper::_OnError(const std::string& documentKey, std::string method, value& error)
-{
-	auto search = fTextDocs.find(documentKey);
-	if (search != fTextDocs.end())
-		LogError("onError [%s] [%s]", search->second->GetFileStatus().String(), lsp::json::stringify(error).c_str());
-	else
-		LogError("LSPProjectWrapper::_OnError not handled! [%s] for [%s]", method.c_str(),
-			documentKey.c_str());
-}
-
-
 void
 LSPProjectWrapper::Initialize(std::optional<std::string> rootUri)
 {
@@ -491,26 +461,6 @@ LSPProjectWrapper::Initialize(std::optional<std::string> rootUri)
 		});
 }
 
-
-void
-LSPProjectWrapper::Shutdown()
-{
-	_SendRequest(nullptr, "shutdown", json());
-}
-
-
-void
-LSPProjectWrapper::Sync()
-{
-	_SendRequest(nullptr, "sync", json());
-}
-
-
-void
-LSPProjectWrapper::Exit()
-{
-	_SendNotify("exit", json());
-}
 
 
 bool
@@ -642,7 +592,7 @@ LSPProjectWrapper::RangeFomatting(LSPTextDocument* textDocument, Range range)
 		});
 }
 
-
+/* not used */
 void
 LSPProjectWrapper::FoldingRange(LSPTextDocument* textDocument) //NOT USED
 {
@@ -651,7 +601,7 @@ LSPProjectWrapper::FoldingRange(LSPTextDocument* textDocument) //NOT USED
 	_SendRequest(textDocument, "textDocument/foldingRange", LSPBridge::toJson(params));
 }
 
-
+/* not used */
 void
 LSPProjectWrapper::SelectionRange(LSPTextDocument* textDocument, std::vector<Position>& positions)
 {
@@ -661,7 +611,7 @@ LSPProjectWrapper::SelectionRange(LSPTextDocument* textDocument, std::vector<Pos
 	_SendRequest(textDocument, "textDocument/selectionRange", LSPBridge::toJson(params));
 }
 
-
+/* not used */
 void
 LSPProjectWrapper::OnTypeFormatting(LSPTextDocument* textDocument, Position position, std::string_view ch)
 {
@@ -865,7 +815,7 @@ LSPProjectWrapper::GoToDeclaration(LSPTextDocument* textDocument, Position posit
 		});
 }
 
-
+ /* not used */
 void
 LSPProjectWrapper::References(LSPTextDocument* textDocument, Position position)
 {
@@ -984,15 +934,8 @@ LSPProjectWrapper::_SendRequest(LSPTextDocument* textDocument, std::string_view 
 			msg.AddString("data", lsp::json::stringify(result).c_str());
 			fHandlerMessenger.SendMessage(&msg);
 		},
-		[this, docKey, methodStr](const lsp::ResponseError& error) {
-			BMessage msg(kLSPError);
-			msg.AddString("documentKey", docKey.c_str());
-			msg.AddString("method", methodStr.c_str());
-			lsp::json::Object errObj;
-			errObj["code"] = error.code();
-			errObj["message"] = std::string(error.message());
-			msg.AddString("data", lsp::json::stringify(lsp::json::Value(std::move(errObj))).c_str());
-			fHandlerMessenger.SendMessage(&msg);
+		[methodStr](const lsp::ResponseError& error) {
+			LogError("LSP json request [%s] - error: %s", methodStr.c_str(), error.message());
 		});
 }
 

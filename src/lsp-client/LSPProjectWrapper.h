@@ -55,9 +55,8 @@ public:
 
 public:
     void Initialize(std::optional<std::string> rootUri = {});
-    void Shutdown();
-    void Sync();
-    void Exit();
+
+public:
     void Initialized(json& result);
 
     void DidOpen(LSPTextDocument* textDocument, std::string_view text, std::string_view languageId);
@@ -66,9 +65,10 @@ public:
                    std::optional<bool> wantDiagnostics = {});
     void DidSave(LSPTextDocument* textDocument);
     void RangeFomatting(LSPTextDocument* textDocument, Range range);
-    void FoldingRange(LSPTextDocument* textDocument);
-    void SelectionRange(LSPTextDocument* textDocument, std::vector<Position> &positions);
-    void OnTypeFormatting(LSPTextDocument* textDocument, Position position, std::string_view ch);
+
+    /* not used */ void FoldingRange(LSPTextDocument* textDocument);
+    /* not used */ void SelectionRange(LSPTextDocument* textDocument, std::vector<Position> &positions);
+    /* not used */ void OnTypeFormatting(LSPTextDocument* textDocument, Position position, std::string_view ch);
     void Formatting(LSPTextDocument* textDocument);
     void CodeAction(LSPTextDocument* textDocument, Range range, lsp::CodeActionContext& context);
 	void CodeActionResolve(LSPTextDocument* textDocument, lsp::CodeAction& data);
@@ -77,7 +77,7 @@ public:
     void GoToDefinition(LSPTextDocument* textDocument, Position position);
     void GoToImplementation(LSPTextDocument* textDocument, Position position);
     void GoToDeclaration(LSPTextDocument* textDocument, Position position);
-    void References(LSPTextDocument* textDocument, Position position);
+     /* not used */ void References(LSPTextDocument* textDocument, Position position);
     void Rename(LSPTextDocument* textDocument, Position position, std::string_view newName);
     void Hover(LSPTextDocument* textDocument, Position position);
     void DocumentSymbol(LSPTextDocument* textDocument);
@@ -99,7 +99,6 @@ private:
 	// Notification/response dispatch helpers (called on UI thread)
 	void _OnNotify(std::string method, value& params);
 	void _OnResponse(const std::string& documentKey, std::string method, value& result);
-	void _OnError(const std::string& documentKey, std::string method, value& error);
 	void _DrainResponseQueue();
 
 	void	_LogMessage(lsp::LogMessageParams&& params);
