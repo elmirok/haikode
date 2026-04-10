@@ -114,10 +114,12 @@ ProblemsPanel::MessageReceived(BMessage* msg)
 					int32 index = lsp->DiagnosticFromRange(row->range, dia);
 					fPopUpMenu = new BPopUpMenu("_popup");
 					fPopUpMenu->SetRadioMode(false);
-					if (index > -1 && dia.codeActions.has_value() && dia.codeActions->size() > 0) {
-						std::vector<lsp::CodeAction> actions = dia.codeActions.value();
-						for (int i = 0; i < static_cast<int>(actions.size()); i++) {
-							auto item = new BMenuItem(actions[i].title.c_str(),
+					if (index > -1 && dia.codeActions.has_value()
+						&& dia.codeActions->isArray() && !dia.codeActions->array().empty()) {
+						auto& actionsArray = dia.codeActions->array();
+						for (int i = 0; i < static_cast<int>(actionsArray.size()); i++) {
+							std::string title = actionsArray[i].object().get("title").string();
+							auto item = new BMenuItem(title.c_str(),
 								new GMessage({{"what", kApplyFix}, {"index", index}, {"action", i},
 								{"quickFix", true}}));
 							fPopUpMenu->AddItem(item);

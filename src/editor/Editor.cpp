@@ -243,6 +243,9 @@ Editor::PerformEditorAction(BMessage* message)
 		case MSG_GOTOIMPLEMENTATION:
 			GoToImplementation();
 			break;
+		case MSG_FIND_REFERENCES:
+			FindReferences();
+			break;
 		case MSG_RENAME:
 			Rename();
 			break;
@@ -2026,6 +2029,11 @@ Editor::GoToImplementation()
 	fLSPEditorWrapper->GoTo(LSPEditorWrapper::GOTO_IMPLEMENTATION);
 }
 
+void
+Editor::FindReferences()
+{
+	fLSPEditorWrapper->FindReferences();
+}
 
 void
 Editor::Rename()

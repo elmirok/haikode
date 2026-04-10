@@ -520,6 +520,7 @@ GenioWindow::MessageReceived(BMessage* message)
 		case MSG_GOTODEFINITION:
 		case MSG_GOTODECLARATION:
 		case MSG_GOTOIMPLEMENTATION:
+		case MSG_FIND_REFERENCES:
 		case MSG_RENAME:
 		case MSG_SWITCHSOURCE:
 		case MSG_TEXT_OVERWRITE:
@@ -2705,6 +2706,9 @@ GenioWindow::_InitActions()
 	ActionManager::RegisterAction(MSG_GOTOIMPLEMENTATION,
 									B_TRANSLATE("Go to implementation"));
 
+	ActionManager::RegisterAction(MSG_FIND_REFERENCES,
+									B_TRANSLATE("Find references" B_UTF8_ELLIPSIS));
+
 	ActionManager::RegisterAction(MSG_RENAME,
 									B_TRANSLATE("Rename symbol" B_UTF8_ELLIPSIS));
 
@@ -3065,6 +3069,7 @@ GenioWindow::_InitMenu()
 	ActionManager::AddItem(MSG_GOTODEFINITION, searchMenu);
 	ActionManager::AddItem(MSG_GOTODECLARATION, searchMenu);
 	ActionManager::AddItem(MSG_GOTOIMPLEMENTATION, searchMenu);
+	ActionManager::AddItem(MSG_FIND_REFERENCES, searchMenu);
 
 	searchMenu->AddSeparatorItem();
 
@@ -3074,6 +3079,7 @@ GenioWindow::_InitMenu()
 	ActionManager::SetEnabled(MSG_GOTODEFINITION, false);
 	ActionManager::SetEnabled(MSG_GOTODECLARATION, false);
 	ActionManager::SetEnabled(MSG_GOTOIMPLEMENTATION, false);
+	ActionManager::SetEnabled(MSG_FIND_REFERENCES, false);
 	ActionManager::SetEnabled(MSG_FIND_IN_BROWSER, false);
 	fMenuBar->AddItem(searchMenu);
 
@@ -4376,6 +4382,7 @@ GenioWindow::_UpdateTabChange(IEditor* editor, const BString& caller)
 		ActionManager::SetEnabled(MSG_GOTODEFINITION, false);
 		ActionManager::SetEnabled(MSG_GOTODECLARATION, false);
 		ActionManager::SetEnabled(MSG_GOTOIMPLEMENTATION, false);
+		ActionManager::SetEnabled(MSG_FIND_REFERENCES, false);
 		ActionManager::SetEnabled(MSG_FIND_IN_BROWSER, false);
 		ActionManager::SetEnabled(MSG_SWITCHSOURCE, false);
 
@@ -4460,6 +4467,7 @@ GenioWindow::_UpdateTabChange(IEditor* editor, const BString& caller)
 	ActionManager::SetEnabled(MSG_GOTODEFINITION, editor->HasLSPCapability(kLCapDefinition));
 	ActionManager::SetEnabled(MSG_GOTODECLARATION, editor->HasLSPCapability(kLCapDeclaration));
 	ActionManager::SetEnabled(MSG_GOTOIMPLEMENTATION, editor->HasLSPCapability(kLCapImplementation));
+	ActionManager::SetEnabled(MSG_FIND_REFERENCES, editor->HasLSPCapability(kLCapReferences));
 	ActionManager::SetEnabled(MSG_RENAME, editor->HasLSPCapability(kLCapRename));
 	ActionManager::SetEnabled(MSG_FIND_IN_BROWSER, editor->GetProjectFolder() != nullptr);
 	ActionManager::SetEnabled(MSG_SWITCHSOURCE, (editor->FileType().compare("cpp") == 0));

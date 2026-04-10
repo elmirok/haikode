@@ -5,6 +5,7 @@
 
 #include "LSPEditorWrapper.h"
 
+#include <Alert.h>
 #include <Application.h>
 #include <Path.h>
 #include <Catalog.h>
@@ -110,9 +111,19 @@ LSPEditorWrapper::ApplyFix(BMessage* info)
 	int32 diaIndex = info->GetInt32("index", -1);
 	int32 actIndex = info->GetInt32("action", -1);
 	if (diaIndex >= 0 && fLastDiagnostics.size() > (size_t)diaIndex) {
-		auto& changes =
-			fLastDiagnostics.at(diaIndex).codeActions.value()[actIndex].edit.value().changes.value();
-		for (auto& [uri, edits] : changes) {
+		auto& diag = fLastDiagnostics.at(diaIndex);
+		if (!diag.codeActions.has_value() || !diag.codeActions->isArray())
+			return;
+
+		auto& actionsArray = diag.codeActions->array();
+		if (actIndex < 0 || (size_t)actIndex >= actionsArray.size())
+			return;
+
+		auto action = LSPBridge::fromJson<lsp::CodeAction>(actionsArray[actIndex]);
+		if (!action.edit.has_value() || !action.edit->changes.has_value())
+			return;
+
+		for (auto& [uri, edits] : action.edit->changes.value()) {
 			if (GetFilenameURI().ICompare(uri.toString().c_str()) == 0) {
 				OnFormat(std::move(edits));
 			}
@@ -725,6 +736,52 @@ LSPEditorWrapper::OnGoTo(lsp::TextDocument_DefinitionResult&& result)
 }
 
 
+void
+LSPEditorWrapper::OnFindReferences(lsp::TextDocument_ReferencesResult&& result)
+{
+	if (result.isNull()) {
+		//FIXME, TODO:
+		auto alert = new BAlert("NoReferencesFound",
+			B_TRANSLATE("No references found!"),
+			B_TRANSLATE("OK"), NULL, NULL,
+			B_WIDTH_AS_USUAL, B_OFFSET_SPACING, B_WARNING_ALERT);
+		alert->Go();
+		return;
+	}
+	BMessage references;
+	std::string currentFileName;
+	std::string nextFileName;
+	BMessage currentMessage;
+
+	for (lsp::Location& location : result.value()) {
+		//we should prepare some answers..
+		printf("Reference: %s - %d\n", location.uri.path().data(), location.range.start.line);
+//
+//		nextFileName = location.uri.path().data();
+/*
+		if (currentFileName.compare(nextFileName) != 0) {
+			//fTarget.SendMessage(&fCurrentMessage); // FLUSH
+
+			::strlcpy(currentFileName, nextFileName, B_PATH_NAME_LENGTH);
+			BEntry entry(nextFileName);
+			entry.GetRef(&fCurrentRef);
+
+			fCurrentMessage.MakeEmpty();
+			fCurrentMessage.what = MSG_REPORT_RESULT;
+			fCurrentMessage.AddString("filename", fCurrentFileName);
+		}
+
+		char* text = &fLine[::strlen(fNextFileName) + 1];
+		BMessage lineMessage;
+		lineMessage.what = B_REFS_RECEIVED;
+		lineMessage.AddString("text", text);
+		lineMessage.AddRef("refs", &fCurrentRef);
+		lineMessage.AddInt32("start:line", lineNumber);
+		fCurrentMessage.AddMessage("line", &lineMessage);*/
+
+	}
+}
+
 
 void
 LSPEditorWrapper::OnSignatureHelp(lsp::SignatureHelp&& signatureHelp)
@@ -832,10 +889,11 @@ LSPEditorWrapper::_RemoveAllDiagnostics()
 
 
 void
-LSPEditorWrapper::OnDiagnostics(lsp::PublishDiagnosticsParams&& params)
+LSPEditorWrapper::OnDiagnostics(lsp::json::Value&& params)
 {
-	if (params.version.has_value()) {
-		int32 serverVersion = static_cast<int32>(params.version.value());
+	auto* versionField = params.object().find("version");
+	if (versionField && !versionField->isNull()) {
+		int32 serverVersion = static_cast<int32>(versionField->integer());
 		if (serverVersion < Version()) {
 			LogTrace("Discarding stale diagnostics: server=%ld local=%ld", serverVersion, Version());
 			return;
@@ -844,9 +902,15 @@ LSPEditorWrapper::OnDiagnostics(lsp::PublishDiagnosticsParams&& params)
 
 	_RemoveAllDiagnostics();
 
-	for (auto& diag : params.diagnostics) {
+	auto* diagnosticsArray = params.object().find("diagnostics");
+	if (!diagnosticsArray || diagnosticsArray->isNull())
+		return;
+
+	for (auto& diagJson : diagnosticsArray->array()) {
 		LSPDiagnostic lspDiag;
-		lspDiag.diagnostic = std::move(diag);
+
+		// Parse the standard diagnostic fields
+		lsp::fromJson(lsp::json::Value(diagJson), lspDiag.diagnostic);
 
 		lsp::Range& r = lspDiag.diagnostic.range;
 		InfoRange& ir = lspDiag.range;
@@ -854,12 +918,21 @@ LSPEditorWrapper::OnDiagnostics(lsp::PublishDiagnosticsParams&& params)
 		ir.to = FromLSPPositionToSciPosition(&r.end);
 		ir.info = lspDiag.diagnostic.message;
 
-		LogTrace("Diagnostics [%ld->%ld] [%s][%s]\n", ir.from, ir.to, ir.info.c_str(),lspDiag.diagnostic.message.c_str());
+		// Extract clangd extension: category
+		auto* category = diagJson.object().find("category");
+		if (category && !category->isNull())
+			lspDiag.category = category->string();
+
+		// Extract clangd extension: inline code actions
+		auto* codeActions = diagJson.object().find("codeActions");
+		if (codeActions && codeActions->isArray() && !codeActions->array().empty())
+			lspDiag.codeActions = lsp::json::Value(*codeActions);
+
+		LogTrace("Diagnostics [%ld->%ld] [%s][%s]\n", ir.from, ir.to, ir.info.c_str(),
+			lspDiag.diagnostic.message.c_str());
 		fEditor->SendMessage(SCI_INDICATORFILLRANGE, ir.from, ir.to - ir.from);
 
-		RequestCodeActions(lspDiag.diagnostic);
-
-		fLastDiagnostics.push_back(lspDiag);
+		fLastDiagnostics.push_back(std::move(lspDiag));
 	}
 
 
@@ -878,66 +951,44 @@ LSPEditorWrapper::OnDiagnostics(lsp::PublishDiagnosticsParams&& params)
 
 
 void
-LSPEditorWrapper::RequestCodeActions(lsp::Diagnostic& diagnostic)
+LSPEditorWrapper::FindReferences()
 {
-	lsp::CodeActionContext context;
-	context.diagnostics.push_back(diagnostic);
-	fLSPProjectWrapper->CodeAction(this, diagnostic.range, context);
-}
+	if (!IsInitialized() || !fEditor)
+		return;
 
+	lsp::Position position;
+	GetCurrentLSPPosition(&position);
 
-void
-LSPEditorWrapper::CodeActionResolve(lsp::CodeAction& params)
-{
-	fLSPProjectWrapper->CodeActionResolve(this, params);
+	fLSPProjectWrapper->References(this, position);
 }
 
 void
-LSPEditorWrapper::OnCodeActions(lsp::TextDocument_CodeActionResult&& codeAction)
+LSPEditorWrapper::OnCodeActions(lsp::json::Value&& codeActionsJson)
 {
-	for (auto& act : codeAction.value()) {
-		lsp::CodeAction* action = std::get_if<lsp::CodeAction>(&act);
-		if (action && action->diagnostics.has_value()) {
-			for (auto& dia: action->diagnostics.value()) {
-				lsp::Range& range = dia.range;
+	if (!codeActionsJson.isArray())
+		return;
 
-				for (auto& d: fLastDiagnostics) {
+	for (auto& actJson : codeActionsJson.array()) {
+		if (!actJson.isObject())
+			continue;
 
-					if (d.diagnostic.range == range) {
-						if (!d.codeActions)
-							d.codeActions.emplace();
-						d.codeActions->push_back(*action);
-						if (!action->diagnostics)
-							action->diagnostics.emplace();
-						action->diagnostics->push_back(d.diagnostic);
+		// Match code actions to diagnostics by range
+		auto* diagnosticsField = actJson.object().find("diagnostics");
+		if (!diagnosticsField || !diagnosticsField->isArray())
+			continue;
 
-						if (action->edit.has_value() == false)
-							CodeActionResolve(*action);;
-					}
-				}
-			}
-		}
-	}
-}
+		for (auto& diagJson : diagnosticsField->array()) {
+			lsp::Range range;
+			auto* rangeField = diagJson.object().find("range");
+			if (!rangeField)
+				continue;
+			lsp::fromJson(lsp::json::Value(*rangeField), range);
 
-
-void
-LSPEditorWrapper::OnCodeActionResolve(lsp::CodeAction&& action)
-{
-	// Extract range from clangd-specific data field
-	for (auto& dia: action.diagnostics.value()) {
-		lsp::Range& range = dia.range;
-
-		for (auto& d: fLastDiagnostics) {
-			if (d.diagnostic.range == range) {
-				if (d.codeActions.has_value()) {
-					for (auto& ca: d.codeActions.value()) {
-						auto& caIdentifier = ca.data.value().object().get("Identifier").string();
-						auto& actionIdentifier = action.data.value().object().get("Identifier").string();
-						if (caIdentifier == actionIdentifier) {
-							ca.edit = action.edit;
-						}
-					}
+			for (auto& d : fLastDiagnostics) {
+				if (d.diagnostic.range == range) {
+					if (!d.codeActions.has_value())
+						d.codeActions = lsp::json::Value(lsp::json::Array{});
+					d.codeActions->array().push_back(lsp::json::Value(actJson));
 				}
 			}
 		}

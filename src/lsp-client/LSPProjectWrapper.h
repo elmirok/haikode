@@ -66,21 +66,21 @@ public:
 	void RangeFomatting(LSPTextDocument* textDocument, lsp::Range range);
 	void Formatting(LSPTextDocument* textDocument);
     void CodeAction(LSPTextDocument* textDocument, lsp::Range range, lsp::CodeActionContext& context);
-	void CodeActionResolve(LSPTextDocument* textDocument, lsp::CodeAction& data);
     void Completion(LSPTextDocument* textDocument, lsp::Position position, lsp::CompletionContext& context);
     void SignatureHelp(LSPTextDocument* textDocument, lsp::Position position);
     void GoToDefinition(LSPTextDocument* textDocument, lsp::Position position);
     void GoToImplementation(LSPTextDocument* textDocument, lsp::Position position);
     void GoToDeclaration(LSPTextDocument* textDocument, lsp::Position position);
     void Rename(LSPTextDocument* textDocument, lsp::Position position, std::string_view newName);
-    void Hover(LSPTextDocument* textDocument, lsp::Position position);
+	void Hover(LSPTextDocument* textDocument, lsp::Position position);
     void DocumentSymbol(LSPTextDocument* textDocument);
     void DocumentLink(LSPTextDocument* textDocument);
 
 	/* not used */ void FoldingRange(LSPTextDocument* textDocument);
     /* not used */ void SelectionRange(LSPTextDocument* textDocument, std::vector<lsp::Position> &positions);
     /* not used */ void OnTypeFormatting(LSPTextDocument* textDocument, lsp::Position position, std::string_view ch);
-    /* not used */ void References(LSPTextDocument* textDocument, lsp::Position position);
+
+	void References(LSPTextDocument* textDocument, lsp::Position position);
 
     std::string&	allCommitCharacters() { return fAllCommitCharacters; } //not yet used.
     std::string&	triggerCharacters() { return fTriggerCharacters; } //for completion

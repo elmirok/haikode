@@ -199,6 +199,7 @@ private:
 			void				GoToDefinition();
 			void				GoToDeclaration();
 			void				GoToImplementation();
+			void				FindReferences();
 			void				Rename();
 			void				SwitchSourceHeader();
 			void				UncommentSelection();

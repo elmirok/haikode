@@ -39,7 +39,7 @@ struct LSPDiagnostic {
 
 	// Clangd extension fields (not part of the LSP spec, not in lsp::Diagnostic).
 	std::optional<std::string> category;
-	std::optional<std::vector<lsp::CodeAction>> codeActions;
+	std::optional<lsp::json::Value> codeActions; // JSON array of code actions
 };
 
 class Editor;
@@ -81,8 +81,7 @@ public:
 		void	StartHover(Sci_Position sci_position);
 		void	EndHover();
 		void	GetDiagnostics(std::vector<LSPDiagnostic>& diagnostics) { diagnostics = fLastDiagnostics; }
-		void	RequestCodeActions(lsp::Diagnostic& diagnostic);
-		void	CodeActionResolve(lsp::CodeAction &params);
+		void	FindReferences();
 
 		void	IndicatorClick(Sci_Position position);
 private:
@@ -102,13 +101,13 @@ public:
 		void	OnRename(lsp::WorkspaceEdit&& edit); //use the result?
 		void	OnHover(lsp::TextDocument_HoverResult&& result);
 		void	OnGoTo(lsp::TextDocument_DefinitionResult&& result);
+		void	OnFindReferences(lsp::TextDocument_ReferencesResult&& result);
 		void	OnSignatureHelp(lsp::SignatureHelp&& signatureHelp); //use the result?
 		void	OnCompletion(lsp::TextDocument_CompletionResult&& result);
-		void	OnDiagnostics(lsp::PublishDiagnosticsParams&& params);
+		void	OnDiagnostics(lsp::json::Value&& params);
 		void	OnDocumentLink(lsp::TextDocument_DocumentLinkResult&& links);
 		void	OnDocumentSymbol(lsp::TextDocument_DocumentSymbolResult&& result);
-		void	OnCodeActions(lsp::TextDocument_CodeActionResult&& codeAction);
-		void	OnCodeActionResolve(lsp::CodeAction&& params);
+		void	OnCodeActions(lsp::json::Value&& codeActionsJson);
 
 		//	Still generic methods using json buffers..
 		void	OnFileStatus(lsp::json::Value& params);

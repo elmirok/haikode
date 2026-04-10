@@ -482,6 +482,7 @@ LSPProjectWrapper::Initialized(json& result)
 		_CheckAndSetCapability(*capas, "signatureHelpProvider", kLCapSignatureHelp);
 		_CheckAndSetCapability(*capas, "renameProvider", kLCapRename);
 		_CheckAndSetCapability(*capas, "documentSymbolProvider", kLCapDocumentSymbols);
+		_CheckAndSetCapability(*capas, "referencesProvider", kLCapReferences);
 	}
 
 	_SendNotify("initialized", json());
@@ -627,34 +628,14 @@ LSPProjectWrapper::CodeAction(LSPTextDocument* textDocument, lsp::Range range, l
 	params.range = range;
 	params.context = context;
 
-	_SendTypedRequest<lsp::requests::TextDocument_CodeAction>(
-		textDocument,
-		std::move(params),
-		[this, uri = std::string(X(textDocument))](lsp::TextDocument_CodeActionResult&& result, int32 reqVersion) {
+	auto jP = lsp::toJson(std::move(params));
+
+	_SendJsonRequest(lsp::requests::TextDocument_CodeAction::Method, std::move(jP),
+		[this, uri = std::string(X(textDocument))](lsp::json::Value& result) {
 			auto* doc = static_cast<LSPEditorWrapper*>(_DocumentByURI(uri.c_str()));
 			if (!doc)
 				return;
-			if (doc->IsStaleResponse(reqVersion))
-				return;
-			if (!result.isNull())
-				doc->OnCodeActions(std::move(result.value()));
-		});
-}
-
-
-void
-LSPProjectWrapper::CodeActionResolve(LSPTextDocument* textDocument, lsp::CodeAction& params)
-{
-	_SendTypedRequest<lsp::requests::CodeAction_Resolve>(
-		textDocument,
-		std::move(params),
-		[this, uri = std::string(X(textDocument))](lsp::CodeAction&& result, int32 reqVersion) {
-			auto* doc = static_cast<LSPEditorWrapper*>(_DocumentByURI(uri.c_str()));
-			if (!doc)
-				return;
-			if (doc->IsStaleResponse(reqVersion))
-				return;
-			doc->OnCodeActionResolve(std::move(result));
+			doc->OnCodeActions(std::move(result));
 		});
 }
 
@@ -783,7 +764,7 @@ LSPProjectWrapper::GoToDeclaration(LSPTextDocument* textDocument, lsp::Position 
 		});
 }
 
- /* not used */
+
 void
 LSPProjectWrapper::References(LSPTextDocument* textDocument, lsp::Position position)
 {
@@ -791,10 +772,20 @@ LSPProjectWrapper::References(LSPTextDocument* textDocument, lsp::Position posit
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
 	params.context.includeDeclaration = true;
-	// TODO: Use SendTypedRequest
+
+	_SendTypedRequest<lsp::requests::TextDocument_References>(
+		textDocument,
+		std::move(params),
+		[this, uri = std::string(X(textDocument))](lsp::TextDocument_ReferencesResult&& result, int32 reqVersion) {
+			auto* doc = static_cast<LSPEditorWrapper*>(_DocumentByURI(uri.c_str()));
+			if (!doc)
+				return;
+
+			if (!result.isNull()) {
+				doc->OnFindReferences(std::move(result));
+			}
+		});
 }
-
-
 
 
 void
@@ -910,17 +901,31 @@ LSPProjectWrapper::_RegisterHandlers()
 		};
 	};
 
-	handler.add<lsp::notifications::TextDocument_PublishDiagnostics>(
-		[this](lsp::PublishDiagnosticsParams&& params) {
+	handler.add("textDocument/publishDiagnostics",
+		[this](lsp::json::Value&& params) -> lsp::json::Value {
 			_enqueueOnUIThread([this, p = std::move(params)]() mutable {
-				std::string uri = p.uri.toString();
+				auto uri = p.object().get("uri").string();
 				LSPTextDocument* doc = _DocumentByURI(uri.c_str());
 				if (doc) {
 					static_cast<LSPEditorWrapper*>(doc)->OnDiagnostics(std::move(p));
 				}
 			});
+			return lsp::json::Value{};
 		});
-
+/*
+	handler.add("textDocument/publishDiagnostics",
+		[this](lsp::json::Value&& params) -> lsp::json::Value {
+			_enqueueOnUIThread([this, p = std::move(params)]() mutable {
+				auto uri = p.object().get("uri").string();
+				LSPTextDocument* doc = _DocumentByURI(uri.c_str());
+				if (doc) {
+					printf("DIA: %s\n", lsp::json::stringify(p, true).c_str());
+					//static_cast<LSPEditorWrapper*>(doc)->OnFileStatus(p);
+				}
+			});
+			return lsp::json::Value{};
+		});
+*/
 	handler.add("textDocument/clangd.fileStatus",
 		[this](lsp::json::Value&& params) -> lsp::json::Value {
 			_enqueueOnUIThread([this, p = std::move(params)]() mutable {
