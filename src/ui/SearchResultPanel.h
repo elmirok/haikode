@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #ifndef SearchResultPanel_H
@@ -18,6 +18,8 @@ public:
 		SearchResultPanel(PanelTabManager*, tab_id id);
 
 		void StartSearch(BString command, BString projectPath);
+
+		void	SetSearchResult(BMessage* results);
 
 		virtual void	MessageReceived(BMessage* msg);
 		virtual void	AttachedToWindow();

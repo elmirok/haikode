@@ -15,6 +15,7 @@
 #include <cstdio>
 #include <debugger.h>
 #include <unistd.h>
+#include "EditorMessages.h"
 #include "LSPCompat.h"
 #include "Editor.h"
 #include "EditorStatusView.h"
@@ -748,38 +749,51 @@ LSPEditorWrapper::OnFindReferences(lsp::TextDocument_ReferencesResult&& result)
 		alert->Go();
 		return;
 	}
-	BMessage references;
-	std::string currentFileName;
-	std::string nextFileName;
+	BMessage references(kReferences);
+	std::string currentFileName = "";
+	std::string nextFileName = "null";
 	BMessage currentMessage;
+	entry_ref currentRef;
+
+
+
 
 	for (lsp::Location& location : result.value()) {
-		//we should prepare some answers..
+		// we should prepare some answers..
 		printf("Reference: %s - %d\n", location.uri.path().data(), location.range.start.line);
-//
-//		nextFileName = location.uri.path().data();
-/*
+
+		nextFileName = location.uri.path().data();
+
 		if (currentFileName.compare(nextFileName) != 0) {
-			//fTarget.SendMessage(&fCurrentMessage); // FLUSH
 
-			::strlcpy(currentFileName, nextFileName, B_PATH_NAME_LENGTH);
-			BEntry entry(nextFileName);
-			entry.GetRef(&fCurrentRef);
+			if (currentFileName.empty() != true)
+				references.AddMessage("file", &currentMessage);
 
-			fCurrentMessage.MakeEmpty();
-			fCurrentMessage.what = MSG_REPORT_RESULT;
-			fCurrentMessage.AddString("filename", fCurrentFileName);
+			currentFileName = nextFileName;
+
+			printf("New current file: %s\n", currentFileName.c_str());
+
+			BEntry entry(nextFileName.c_str());
+
+			entry.GetRef(&currentRef);
+
+			currentMessage.MakeEmpty();
+			currentMessage.what = 'mrre'; //FIXME
+			currentMessage.AddString("filename", currentFileName.c_str());
 		}
 
-		char* text = &fLine[::strlen(fNextFileName) + 1];
+		printf("lineMessage\n");
 		BMessage lineMessage;
 		lineMessage.what = B_REFS_RECEIVED;
-		lineMessage.AddString("text", text);
-		lineMessage.AddRef("refs", &fCurrentRef);
-		lineMessage.AddInt32("start:line", lineNumber);
-		fCurrentMessage.AddMessage("line", &lineMessage);*/
-
+		lineMessage.AddString("text", "Reference (fixme)");
+		lineMessage.AddRef("refs", &currentRef);
+		lineMessage.AddInt32("start:line", location.range.start.line + 1);
+		currentMessage.AddMessage("line", &lineMessage);
 	}
+
+	references.AddMessage("file", &currentMessage);
+	references.PrintToStream();
+	fEditor->SetReferences(&references);
 }
 
 

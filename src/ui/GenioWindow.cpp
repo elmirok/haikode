@@ -1124,6 +1124,11 @@ GenioWindow::MessageReceived(BMessage* message)
 		case MSG_JUMP_GO_FORWARD:
 			JumpNavigator::getInstance()->JumpToNext();
 			break;
+		case kReferences:
+		{
+			fSearchResultTab->SetReferencesResult(message);
+			break;
+		}
 		default:
 			BWindow::MessageReceived(message);
 			break;

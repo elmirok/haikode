@@ -114,6 +114,28 @@ SearchResultPanel::StartSearch(BString command, BString projectPath)
 
 
 void
+SearchResultPanel::SetSearchResult(BMessage* results)
+{
+	if (fGrepThread) {
+		fGrepThread->InterruptExternal();
+		delete fGrepThread;
+		fGrepThread = nullptr;
+	}
+
+	fProjectPath = ""; //FIXME TODO ?
+	int32 index = 0;
+	BMessage file;
+	while(results->FindMessage("file", index++ , &file) == B_OK) {
+		printf("Found\n");
+		UpdateSearch(&file);
+	}
+	if (index > 0) {
+		_UpdateTabLabel("References"); //TODO FIXME : translate? count?
+	}
+}
+
+
+void
 SearchResultPanel::AttachedToWindow()
 {
 	BColumnListView::AttachedToWindow();

@@ -2534,6 +2534,11 @@ Editor::GetDocumentSymbols(BMessage* symbols) const
 	}
 }
 
+void
+Editor::SetReferences(BMessage* references)
+{
+	Looper()->PostMessage(references);
+}
 
 void
 Editor::SetCommentBlockTokens(const std::string& startBlock, const std::string& endBlock)
