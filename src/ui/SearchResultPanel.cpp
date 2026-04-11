@@ -114,7 +114,7 @@ SearchResultPanel::StartSearch(BString command, BString projectPath)
 
 
 void
-SearchResultPanel::SetSearchResult(BMessage* results)
+SearchResultPanel::SetSearchResult(BMessage* results, BString projectPath)
 {
 	if (fGrepThread) {
 		fGrepThread->InterruptExternal();
@@ -122,15 +122,20 @@ SearchResultPanel::SetSearchResult(BMessage* results)
 		fGrepThread = nullptr;
 	}
 
-	fProjectPath = ""; //FIXME TODO ?
+	ClearSearch();
+
+	fProjectPath = projectPath;
 	int32 index = 0;
+	int32 count = 0;
 	BMessage file;
 	while(results->FindMessage("file", index++ , &file) == B_OK) {
-		printf("Found\n");
 		UpdateSearch(&file);
+		count++;
 	}
 	if (index > 0) {
-		_UpdateTabLabel("References"); //TODO FIXME : translate? count?
+		BString refCount = B_TRANSLATE("References - %COUNT%");
+		refCount.ReplaceAll("%COUNT%", std::to_string(count).c_str());
+		_UpdateTabLabel(refCount.String());
 	}
 }
 

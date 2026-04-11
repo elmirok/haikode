@@ -141,9 +141,9 @@ SearchResultTab::SetAndStartSearch(BString text, bool wholeWord,
 
 
 void
-SearchResultTab::SetReferencesResult(BMessage* message)
+SearchResultTab::SetReferencesResult(BMessage* message, const BString& projectPath)
 {
-	fSearchResultPanel->SetSearchResult(message);
+	fSearchResultPanel->SetSearchResult(message, projectPath);
 }
 
 

@@ -1126,7 +1126,8 @@ GenioWindow::MessageReceived(BMessage* message)
 			break;
 		case kReferences:
 		{
-			fSearchResultTab->SetReferencesResult(message);
+			fSearchResultTab->SetReferencesResult(message, GetActiveProject()->Path());
+			_ShowOutputTab(kTabSearchResult);
 			break;
 		}
 		default:

@@ -26,7 +26,7 @@ public:
 			void	AttachedToWindow() override;
 			void	MessageReceived(BMessage *message) override;
 
-			void	SetReferencesResult(BMessage* message);
+			void	SetReferencesResult(BMessage* message, const BString& projectPath);
 
 private:
 	void 	_StartSearch(BString text, bool wholeWord,

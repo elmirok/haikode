@@ -19,7 +19,7 @@ public:
 
 		void StartSearch(BString command, BString projectPath);
 
-		void	SetSearchResult(BMessage* results);
+		void	SetSearchResult(BMessage* results, BString projectPath);
 
 		virtual void	MessageReceived(BMessage* msg);
 		virtual void	AttachedToWindow();

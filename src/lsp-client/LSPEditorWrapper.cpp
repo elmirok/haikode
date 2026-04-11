@@ -755,12 +755,8 @@ LSPEditorWrapper::OnFindReferences(lsp::TextDocument_ReferencesResult&& result)
 	BMessage currentMessage;
 	entry_ref currentRef;
 
-
-
-
 	for (lsp::Location& location : result.value()) {
-		// we should prepare some answers..
-		printf("Reference: %s - %d\n", location.uri.path().data(), location.range.start.line);
+		// printf("Reference: %s - %d\n", location.uri.path().data(), location.range.start.line);
 
 		nextFileName = location.uri.path().data();
 
@@ -770,19 +766,14 @@ LSPEditorWrapper::OnFindReferences(lsp::TextDocument_ReferencesResult&& result)
 				references.AddMessage("file", &currentMessage);
 
 			currentFileName = nextFileName;
-
-			printf("New current file: %s\n", currentFileName.c_str());
-
 			BEntry entry(nextFileName.c_str());
-
 			entry.GetRef(&currentRef);
 
 			currentMessage.MakeEmpty();
-			currentMessage.what = 'mrre'; //FIXME
+			currentMessage.what = 'mrre'; //FIXME (const defined in SearchResultPanel)
 			currentMessage.AddString("filename", currentFileName.c_str());
 		}
 
-		printf("lineMessage\n");
 		BMessage lineMessage;
 		lineMessage.what = B_REFS_RECEIVED;
 		lineMessage.AddString("text", "Reference (fixme)");
@@ -792,7 +783,6 @@ LSPEditorWrapper::OnFindReferences(lsp::TextDocument_ReferencesResult&& result)
 	}
 
 	references.AddMessage("file", &currentMessage);
-	references.PrintToStream();
 	fEditor->SetReferences(&references);
 }
 
