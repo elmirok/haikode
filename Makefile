@@ -49,7 +49,7 @@ LIBS += editorconfig
 LIBS += git2
 LIBS += libs/scintilla/bin/libscintilla.a
 LIBS += yaml-cpp
-LIBS += libs/lsp-framework/build/liblsp.a
+LIBS += lsp
 
 SYSTEM_INCLUDE_PATHS  = $(shell findpaths -e B_FIND_PATH_HEADERS_DIRECTORY private/interface)
 SYSTEM_INCLUDE_PATHS += $(shell findpaths -e B_FIND_PATH_HEADERS_DIRECTORY private/shared)
@@ -58,12 +58,11 @@ SYSTEM_INCLUDE_PATHS += $(shell findpaths -e B_FIND_PATH_HEADERS_DIRECTORY priva
 SYSTEM_INCLUDE_PATHS += $(shell findpaths -e B_FIND_PATH_HEADERS_DIRECTORY private/tracker)
 SYSTEM_INCLUDE_PATHS += $(shell findpaths -e B_FIND_PATH_HEADERS_DIRECTORY private/locale)
 SYSTEM_INCLUDE_PATHS += $(shell findpaths -a $(platform) -e B_FIND_PATH_HEADERS_DIRECTORY lexilla)
+SYSTEM_INCLUDE_PATHS += $(shell findpaths -e B_FIND_PATH_HEADERS_DIRECTORY lsp)
 SYSTEM_INCLUDE_PATHS += libs
 SYSTEM_INCLUDE_PATHS += libs/json
 SYSTEM_INCLUDE_PATHS += libs/scintilla/haiku
 SYSTEM_INCLUDE_PATHS += libs/scintilla/include
-SYSTEM_INCLUDE_PATHS += libs/lsp-framework/
-SYSTEM_INCLUDE_PATHS += libs/lsp-framework/build/generated/
 
 
 ## clang build flag ############################################################
