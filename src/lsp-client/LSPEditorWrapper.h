@@ -144,7 +144,6 @@ private:
 									ArrayTextEdit&& edits = {});
 
 		std::string 	GetCurrentLine();
-		bool			IsStatusValid();
 
 
 		Editor*				fEditor;

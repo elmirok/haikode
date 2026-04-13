@@ -302,7 +302,7 @@ LSPEditorWrapper::Format()
 void
 LSPEditorWrapper::GoTo(LSPEditorWrapper::GoToType type)
 {
-	if (!IsInitialized()|| !fEditor || !IsStatusValid())
+	if (!IsInitialized()|| !fEditor)
 		return;
 
 	flushChanges();
@@ -327,7 +327,7 @@ LSPEditorWrapper::GoTo(LSPEditorWrapper::GoToType type)
 void
 LSPEditorWrapper::Rename(std::string newName)
 {
-	if (!IsInitialized()|| !fEditor || !IsStatusValid())
+	if (!IsInitialized()|| !fEditor)
 		return;
 
 	flushChanges();
@@ -341,7 +341,7 @@ LSPEditorWrapper::Rename(std::string newName)
 void
 LSPEditorWrapper::StartHover(Sci_Position sci_position)
 {
-	if (!IsInitialized() || sci_position < 0 || !IsStatusValid()) {
+	if (!IsInitialized() || sci_position < 0) {
 		return;
 	}
 
@@ -511,7 +511,7 @@ void
 LSPEditorWrapper::StartCompletion()
 {
 
-	if (!IsInitialized() || !fEditor || !IsStatusValid())
+	if (!IsInitialized() || !fEditor)
 		return;
 
 	flushChanges();
@@ -696,6 +696,7 @@ LSPEditorWrapper::OnHover(lsp::TextDocument_HoverResult&& result)
 		return;
 	}
 	_ShowToolTip(tip.c_str());
+
 }
 
 
@@ -1140,16 +1141,6 @@ LSPEditorWrapper::_DoLinearSymbolInformation(lsp::Array<lsp::SymbolInformation>&
 	}
 }
 
-bool
-LSPEditorWrapper::IsStatusValid()
-{
-	BString status = GetFileStatus();
-	bool value = status.IsEmpty() || (status.Compare("idle") == 0);
-	if (!value)
-		LogDebugF("Invalid status (%d) for [%s] (%s)", value, GetFilenameURI().String(),
-			GetFileStatus().String());
-	return value;
-}
 
 
 // utility
