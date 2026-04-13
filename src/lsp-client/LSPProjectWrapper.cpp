@@ -764,7 +764,7 @@ LSPProjectWrapper::GoToDeclaration(LSPTextDocument* textDocument, lsp::Position 
 		});
 }
 
-
+/*
 void
 LSPProjectWrapper::References(LSPTextDocument* textDocument, lsp::Position position)
 {
@@ -785,7 +785,54 @@ LSPProjectWrapper::References(LSPTextDocument* textDocument, lsp::Position posit
 				doc->OnFindReferences(std::move(result));
 			}
 		});
+}*/
+
+void
+LSPProjectWrapper::References(LSPTextDocument* textDocument, lsp::Position position)
+{
+	if (!HasCapability(kLCapReferences) || !HasCapability(kLCapDefinition))
+		return;
+
+	lsp::DefinitionParams params;
+	params.textDocument.uri = MakeDocUri(textDocument);
+	params.position = position;
+
+
+	_SendTypedRequest<lsp::requests::TextDocument_Definition>(
+		textDocument,
+		std::move(params),
+		[this, position, uri = std::string(X(textDocument))](lsp::TextDocument_DefinitionResult&& result, int32 reqVersion) {
+			auto* doc = static_cast<LSPEditorWrapper*>(_DocumentByURI(uri.c_str()));
+			if (!doc)
+				return;
+			if (!result.isNull()) {
+					lsp::Location location;
+					if (doc->LocationFromDefinition(std::move(result), location) == false)
+						return;
+
+					std::string symbolName = doc->ExtractSymbolFromFile(location);
+
+					lsp::ReferenceParams params;
+					params.textDocument.uri = MakeDocUri(doc);
+					params.position = position;
+					params.context.includeDeclaration = true;
+
+					_SendTypedRequest<lsp::requests::TextDocument_References>(
+						doc,
+						std::move(params),
+						[this, symbolName, uri = std::string(X(doc))](lsp::TextDocument_ReferencesResult&& result, int32 reqVersion) {
+							auto* doc2 = static_cast<LSPEditorWrapper*>(_DocumentByURI(uri.c_str()));
+							if (!doc2)
+								return;
+
+							if (!result.isNull()) {
+								doc2->OnFindReferences(std::move(result), symbolName);
+							}
+					});
+			}
+	});
 }
+
 
 
 void

@@ -24,6 +24,8 @@
 #include "LSPProjectWrapper.h"
 #include "JumpNavigator.h"
 #include "TextUtils.h"
+#include <fstream>
+#include "GrepThread.h" // MSG_REPORT_RESULT definition
 
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "Editor"
@@ -262,14 +264,13 @@ LSPEditorWrapper::OnRename(lsp::WorkspaceEdit&& edit)
 {
 	if (edit.changes.has_value()) {
 		for (auto& [uri, edits] : edit.changes.value()) {
-			OpenFileURI(uri.toString(), -1, -1, std::move(edits));
+			OpenFileURI(uri, -1, -1, std::move(edits));
 		}
 	} else if (edit.documentChanges.has_value()) {
 		for (auto& change : edit.documentChanges.value()) {
 			auto* textDocEdit = std::get_if<lsp::TextDocumentEdit>(&change);
 			if (textDocEdit) {
-				std::string uri = textDocEdit->textDocument.uri.toString();
-				OpenFileURI(uri, -1, -1, (ArrayTextEdit&&)(std::move(textDocEdit->edits)));
+				OpenFileURI(textDocEdit->textDocument.uri, -1, -1, (ArrayTextEdit&&)(std::move(textDocEdit->edits)));
 			}
 		}
 	}
@@ -701,9 +702,21 @@ LSPEditorWrapper::OnHover(lsp::TextDocument_HoverResult&& result)
 void
 LSPEditorWrapper::OnGoTo(lsp::TextDocument_DefinitionResult&& result)
 {
+	lsp::Location location;
+	if (LocationFromDefinition(std::move(result), location) == false)
+		return;
+
+	lsp::Position& pos = location.range.start;
+	OpenFileURI(location.uri, pos.line + 1, pos.character);
+}
+
+
+bool
+LSPEditorWrapper::LocationFromDefinition(lsp::TextDocument_DefinitionResult&& result, lsp::Location& retLoc)
+{
 	// NullOrOneOf<Definition, Array<DefinitionLink>>;
 	if (result.isNull())
-		return;
+		return false;
 
 	// OneOf<Definition, Array<DefinitionLink>>
 	auto* definition = std::get_if<lsp::Definition>(&result.value());
@@ -717,31 +730,33 @@ LSPEditorWrapper::OnGoTo(lsp::TextDocument_DefinitionResult&& result)
 		}
 
 		if (location) {
-			std::string uri = location->uri.toString();
-			lsp::Position pos = location->range.start;
-
-			OpenFileURI(uri, pos.line + 1, pos.character);
+			retLoc = *location;
+			return true;
 		}
 	} else {
 		//Array<DefinitionLink>
 		auto* array = std::get_if<lsp::Array<lsp::DefinitionLink>>(&result.value());
 		if (array) {
 			lsp::LocationLink& location = (*array)[0];
-
-			std::string uri = location.targetUri.toString();
-			lsp::Position pos = location.targetRange.start;
-
-			OpenFileURI(uri, pos.line + 1, pos.character);
+			retLoc.uri = location.targetUri;
+			retLoc.range = location.targetRange;
+			return true;
 		}
 	}
+
+	return false;
 }
 
 
 void
-LSPEditorWrapper::OnFindReferences(lsp::TextDocument_ReferencesResult&& result)
+LSPEditorWrapper::OnFindReferences(lsp::TextDocument_ReferencesResult&& result, std::string symbolName)
 {
+	//FIXME, TODO: should me moved to the LSPProject?:
+	// should appear if: invalid Definition at curson.
+	//	no references found.
+
 	if (result.isNull()) {
-		//FIXME, TODO:
+
 		auto alert = new BAlert("NoReferencesFound",
 			B_TRANSLATE("No references found!"),
 			B_TRANSLATE("OK"), NULL, NULL,
@@ -749,6 +764,9 @@ LSPEditorWrapper::OnFindReferences(lsp::TextDocument_ReferencesResult&& result)
 		alert->Go();
 		return;
 	}
+
+	//Simulating the Search panel results..
+
 	BMessage references(kReferences);
 	std::string currentFileName = "";
 	std::string nextFileName = "null";
@@ -756,7 +774,6 @@ LSPEditorWrapper::OnFindReferences(lsp::TextDocument_ReferencesResult&& result)
 	entry_ref currentRef;
 
 	for (lsp::Location& location : result.value()) {
-		// printf("Reference: %s - %d\n", location.uri.path().data(), location.range.start.line);
 
 		nextFileName = location.uri.path().data();
 
@@ -770,13 +787,15 @@ LSPEditorWrapper::OnFindReferences(lsp::TextDocument_ReferencesResult&& result)
 			entry.GetRef(&currentRef);
 
 			currentMessage.MakeEmpty();
-			currentMessage.what = 'mrre'; //FIXME (const defined in SearchResultPanel)
+			currentMessage.what = MSG_REPORT_RESULT;
 			currentMessage.AddString("filename", currentFileName.c_str());
 		}
 
 		BMessage lineMessage;
 		lineMessage.what = B_REFS_RECEIVED;
-		lineMessage.AddString("text", "Reference (fixme)");
+		BString txt;
+		txt << location.range.start.line + 1 << ": " << symbolName.c_str();
+		lineMessage.AddString("text", txt);
 		lineMessage.AddRef("refs", &currentRef);
 		lineMessage.AddInt32("start:line", location.range.start.line + 1);
 		currentMessage.AddMessage("line", &lineMessage);
@@ -1196,12 +1215,11 @@ LSPEditorWrapper::ApplyTextEdit(lsp::TextEdit &textEdit)
 
 
 void
-LSPEditorWrapper::OpenFileURI(std::string uri, int32 line, int32 character,
+LSPEditorWrapper::OpenFileURI(const lsp::FileUri& uri, int32 line, int32 character,
 					ArrayTextEdit&& edits)
 {
-	BUrl url = uri.c_str();
-	if (url.IsValid() && url.HasPath()) {
-		BEntry entry(url.Path().String());
+	if (uri.isValid()) {
+		BEntry entry(uri.path().data());
 		entry_ref ref;
 		if (entry.Exists()) {
 			BMessage refs(B_REFS_RECEIVED);
@@ -1219,13 +1237,39 @@ LSPEditorWrapper::OpenFileURI(std::string uri, int32 line, int32 character,
 				JumpNavigator::getInstance()->JumpToFile(&refs, fEditor->FileRef());
 			}
 		} else {
-			LogError("OpenFileURI: file does not exist %s", uri.c_str());
+			LogError("OpenFileURI: file does not exist %s", uri.path().data());
 		}
 	} else {
-		LogError("Invalid document URI (%s)", uri.c_str());
+		LogError("Invalid document URI (%s)", uri.path().data());
 	}
 }
 
+std::string
+LSPEditorWrapper::ExtractSymbolFromFile(const lsp::Location& loc)
+{
+    std::ifstream file(loc.uri.path().data());
+    if (!file.is_open())
+		return "no open";
+
+    std::string line;
+    lsp::uint currentLine = 0;
+
+	//TODO: Multiline line symbols?
+    while (std::getline(file, line)) {
+        if (currentLine == loc.range.start.line) {
+
+            size_t start = loc.range.start.character;
+            size_t end = loc.range.end.character - 1;
+
+            if (start == std::string::npos)
+				return "";
+            return line.substr(start, end - start + 1);
+        }
+        currentLine++;
+    }
+
+    return "";
+}
 
 std::string
 LSPEditorWrapper::GetCurrentLine()

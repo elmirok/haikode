@@ -101,7 +101,7 @@ public:
 		void	OnRename(lsp::WorkspaceEdit&& edit); //use the result?
 		void	OnHover(lsp::TextDocument_HoverResult&& result);
 		void	OnGoTo(lsp::TextDocument_DefinitionResult&& result);
-		void	OnFindReferences(lsp::TextDocument_ReferencesResult&& result);
+		void	OnFindReferences(lsp::TextDocument_ReferencesResult&& result, std::string symbolName);
 		void	OnSignatureHelp(lsp::SignatureHelp&& signatureHelp); //use the result?
 		void	OnCompletion(lsp::TextDocument_CompletionResult&& result);
 		void	OnDiagnostics(lsp::json::Value&& params);
@@ -112,6 +112,11 @@ public:
 		//	Still generic methods using json buffers..
 		void	OnFileStatus(lsp::json::Value& params);
 		void	OnInitialize(lsp::json::Value& params);
+
+		//move to LSPProject?
+		bool	LocationFromDefinition(lsp::TextDocument_DefinitionResult&& result, lsp::Location& loc);
+		//move to LSPProject?
+		std::string		ExtractSymbolFromFile(const lsp::Location& loc); //move?
 
 public:
 
@@ -135,14 +140,15 @@ private:
 		void 			FromSciPositionToRange(Sci_Position s_start, Sci_Position s_end, lsp::Range *range);
 		Sci_Position 	ApplyTextEdit(lsp::json::Value& textEdit);
 		Sci_Position 	ApplyTextEdit(lsp::TextEdit &textEdit);
-		void			OpenFileURI(std::string uri, int32 line = -1, int32 character = -1,
+		void			OpenFileURI(const lsp::FileUri& uri, int32 line = -1, int32 character = -1,
 									ArrayTextEdit&& edits = {});
+
 		std::string 	GetCurrentLine();
 		bool			IsStatusValid();
 
 
 		Editor*				fEditor;
-		lsp::CompletionList		fCurrentCompletion;
+		lsp::CompletionList	fCurrentCompletion;
 		Sci_Position		fCompletionPosition;
 		BTextToolTip* 		fToolTip;
 		LSPProjectWrapper*	fLSPProjectWrapper;
