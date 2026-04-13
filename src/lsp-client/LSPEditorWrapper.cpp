@@ -799,6 +799,7 @@ LSPEditorWrapper::OnFindReferences(lsp::TextDocument_ReferencesResult&& result, 
 		lineMessage.AddString("text", txt);
 		lineMessage.AddRef("refs", &currentRef);
 		lineMessage.AddInt32("start:line", location.range.start.line + 1);
+		lineMessage.AddInt32("start:character", location.range.start.character);
 		currentMessage.AddMessage("line", &lineMessage);
 	}
 
