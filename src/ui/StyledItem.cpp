@@ -19,6 +19,7 @@ StyledItem::StyledItem(const char* text,
 	BStringItem(text, outlineLevel, expanded),
 	fFontFace(B_REGULAR_FACE),
 	fExtraTextColor(nullptr),
+	fExtraTextFontFace(B_REGULAR_FACE),
 	fToolTipText()
 {
 }
@@ -108,6 +109,20 @@ StyledItem::ExtraTextColor() const
 }
 
 
+void
+StyledItem::SetExtraTextFontFace(uint16 fontFace)
+{
+	fExtraTextFontFace = fontFace;
+}
+
+
+uint16
+StyledItem::ExtraTextFontFace() const
+{
+	return fExtraTextFontFace;
+}
+
+
 bool
 StyledItem::HasToolTip() const
 {
@@ -168,6 +183,8 @@ StyledItem::DrawText(BView* owner, const char* text,
 	owner->MovePenTo(point);
 	owner->DrawString(text);
 	if (extraText != nullptr) {
+		font.SetFace(fExtraTextFontFace);
+		owner->SetFont(&font, B_FONT_FACE);
 		owner->SetHighColor(ExtraTextColor());
 		owner->DrawString(extraText);
 	}
