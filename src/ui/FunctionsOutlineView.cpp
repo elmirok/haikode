@@ -215,6 +215,7 @@ SymbolListItem::_SetIconAndTooltip()
 		SetExtraText(detail);
 		rgb_color color(100, 100, 100);
 		SetExtraTextColor(color);
+		SetExtraTextFontFace(B_ITALIC_FACE);
 	}
 
 	if (!fIconName.IsEmpty())
