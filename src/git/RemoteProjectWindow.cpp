@@ -30,7 +30,6 @@
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "RemoteProjectWindow"
 
-BHandler *this_handler = nullptr;
 
 #define VIEW_INDEX_BARBER_POLE	(int32) 0
 #define VIEW_INDEX_PROGRESS_BAR	(int32) 1
@@ -133,8 +132,6 @@ RemoteProjectWindow::RemoteProjectWindow(BString repo, BString dirPath, const BM
 	SetDefaultButton(fClone);
 	CenterOnScreen();
 	Show();
-
-	this_handler = this;
 }
 
 

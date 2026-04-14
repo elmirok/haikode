@@ -91,14 +91,14 @@ SwitchBranchMenu::_BuildMenu(const BString& projectPath)
 		try {
 			repo = new Genio::Git::GitRepository(projectPath);
 			auto branches = repo->GetBranches();
-			auto current_branch = repo->GetCurrentBranch();
-			for(auto &branch : branches) {
+			auto currentBranch = repo->GetCurrentBranch();
+			for (auto &branch : branches) {
 				BMessage *message = new BMessage(fMessage->what);
 				message->AddString("branch", branch);
 				message->AddString("project_path", projectPath);
 				auto item = new BMenuItem(branch, message);
 				AddItem(item);
-				if (branch == current_branch)
+				if (branch == currentBranch)
 					item->SetMarked(true);
 			}
 		} catch(...) {
