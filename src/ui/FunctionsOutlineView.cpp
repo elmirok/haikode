@@ -209,12 +209,12 @@ SymbolListItem::_SetIconAndTooltip()
 	if (symbolKind == SymbolKind::Function ||
 		symbolKind == SymbolKind::Method ||
 		symbolKind == SymbolKind::Constructor) {
-		BString text(fDetails.GetString("name"));
 		BString detail(fDetails.GetString("detail"));
 		detail.Remove(0, detail.FindFirst("(") - 1);
 		detail.Truncate(detail.FindLast(")") + 1);
-		text.Append(detail);
-		SetText(text);
+		SetExtraText(detail);
+		rgb_color color(100, 100, 100);
+		SetExtraTextColor(color);
 	}
 
 	if (!fIconName.IsEmpty())
