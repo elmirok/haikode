@@ -28,6 +28,8 @@ public:
 	const char*		ExtraText() const;
 	void			SetExtraTextColor(const rgb_color& color);
 	rgb_color		ExtraTextColor() const;
+	void			SetExtraTextFontFace(uint16 fontFace);
+	uint16			ExtraTextFontFace() const;
 
 	bool			HasToolTip() const;
 	void			SetToolTipText(const char *text);
@@ -48,5 +50,6 @@ private:
 	// is not always used
 	BString			fExtraText;
 	rgb_color* 		fExtraTextColor;
+	uint16			fExtraTextFontFace;
 	BString			fToolTipText;
 };
