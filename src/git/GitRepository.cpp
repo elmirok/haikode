@@ -49,7 +49,7 @@ namespace Genio::Git {
 	static int progress_callback(const git_transfer_progress *stats, void *payload)
 	{
 		callback_data* progressData = reinterpret_cast<callback_data*>(payload);
-		if (progressData != nullptr)
+		if (progressData == nullptr)
 			return 0;
 
 		int currentProgress = stats->total_objects > 0 ?
