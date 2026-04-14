@@ -206,6 +206,17 @@ SymbolListItem::_SetIconAndTooltip()
 			break;
 	}
 
+	if (symbolKind == SymbolKind::Function ||
+		symbolKind == SymbolKind::Method ||
+		symbolKind == SymbolKind::Constructor) {
+		BString text(fDetails.GetString("name"));
+		BString detail(fDetails.GetString("detail"));
+		detail.Remove(0, detail.FindFirst("(") - 1);
+		detail.Truncate(detail.FindLast(")") + 1);
+		text.Append(detail);
+		SetText(text);
+	}
+
 	if (!fIconName.IsEmpty())
 		fIconName = fIconName.Prepend("symbol-");
 
