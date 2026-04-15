@@ -209,11 +209,14 @@ SymbolListItem::_SetIconAndTooltip()
 	if (symbolKind == SymbolKind::Function ||
 		symbolKind == SymbolKind::Method ||
 		symbolKind == SymbolKind::Constructor) {
+		// TODO: More secure parsing
 		BString detail(fDetails.GetString("detail"));
-		detail.Remove(0, detail.FindFirst("(") - 1);
+		detail.Remove(0, detail.FindFirst("("));
 		detail.Truncate(detail.FindLast(")") + 1);
+		detail.Prepend(" ");
 		SetExtraText(detail);
-		rgb_color color(100, 100, 100);
+		// TODO: Better colors
+		rgb_color color(120, 120, 120);
 		SetExtraTextColor(color);
 		SetExtraTextFontFace(B_ITALIC_FACE);
 	}
