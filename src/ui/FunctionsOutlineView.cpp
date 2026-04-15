@@ -213,8 +213,11 @@ SymbolListItem::_SetIconAndTooltip()
 		BString detail(fDetails.GetString("detail"));
 		detail.Remove(0, detail.FindFirst("("));
 		detail.Truncate(detail.FindLast(")") + 1);
-		detail.Prepend(" ");
-		SetExtraText(detail);
+		if (detail != "()")  {
+			// Avoid if no parameters
+			detail.Prepend(" ");
+			SetExtraText(detail);
+		}
 		// TODO: Better colors
 		rgb_color color(120, 120, 120);
 		SetExtraTextColor(color);
