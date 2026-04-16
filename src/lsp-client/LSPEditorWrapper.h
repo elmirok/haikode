@@ -77,7 +77,8 @@ public:
 		void	StartCompletion();
 		void	SelectedCompletion(const char* text);
 		void	Format();
-		void	Rename(std::string newName);
+		void	Rename(lsp::Position& position);
+		void	Rename();
 		void	StartHover(Sci_Position sci_position);
 		void	EndHover();
 		void	GetDiagnostics(std::vector<LSPDiagnostic>& diagnostics) { diagnostics = fLastDiagnostics; }

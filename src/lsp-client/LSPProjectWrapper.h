@@ -71,10 +71,10 @@ public:
     void GoToDefinition(LSPTextDocument* textDocument, lsp::Position position);
     void GoToImplementation(LSPTextDocument* textDocument, lsp::Position position);
     void GoToDeclaration(LSPTextDocument* textDocument, lsp::Position position);
-    void Rename(LSPTextDocument* textDocument, lsp::Position position, std::string_view newName);
 	void Hover(LSPTextDocument* textDocument, lsp::Position position);
     void DocumentSymbol(LSPTextDocument* textDocument);
     void DocumentLink(LSPTextDocument* textDocument);
+    void Rename(LSPTextDocument* textDocument, lsp::Position position);
 
 	/* not used */ void FoldingRange(LSPTextDocument* textDocument);
     /* not used */ void SelectionRange(LSPTextDocument* textDocument, std::vector<lsp::Position> &positions);
@@ -86,6 +86,14 @@ public:
     std::string&	triggerCharacters() { return fTriggerCharacters; } //for completion
 
 private:
+
+	template <typename Func>
+	void	_GetDefinitionForRequest(LSPTextDocument* textDocument,
+											lsp::Position position,
+											Func f);
+
+    void	_Rename(LSPTextDocument* textDocument, lsp::Position position, std::string_view newName);
+
 	bool	_Create();
 	void	_RegisterHandlers();
 	void	_SendNotify(std::string_view method, lsp::json::Value params);

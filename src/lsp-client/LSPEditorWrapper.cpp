@@ -325,16 +325,22 @@ LSPEditorWrapper::GoTo(LSPEditorWrapper::GoToType type)
 
 
 void
-LSPEditorWrapper::Rename(std::string newName)
+LSPEditorWrapper::Rename(lsp::Position& position)
 {
 	if (!IsInitialized()|| !fEditor)
 		return;
 
 	flushChanges();
+	fLSPProjectWrapper->Rename(this, position);
+}
 
+void
+LSPEditorWrapper::Rename()
+{
 	lsp::Position position;
 	GetCurrentLSPPosition(&position);
-	fLSPProjectWrapper->Rename(this, position, newName);
+
+	Rename(position);
 }
 
 

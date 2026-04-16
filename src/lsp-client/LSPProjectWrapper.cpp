@@ -4,6 +4,7 @@
  */
 #include "LSPProjectWrapper.h"
 
+#include "GTextAlert.h"
 #include "Log.h"
 #include "LSPEditorWrapper.h"
 #include "LSPJsonBridge.h"
@@ -764,79 +765,121 @@ LSPProjectWrapper::GoToDeclaration(LSPTextDocument* textDocument, lsp::Position 
 		});
 }
 
-/*
+
+
 void
 LSPProjectWrapper::References(LSPTextDocument* textDocument, lsp::Position position)
 {
-	lsp::ReferenceParams params;
-	params.textDocument.uri = MakeDocUri(textDocument);
-	params.position = position;
-	params.context.includeDeclaration = true;
+	if (!HasCapability(kLCapDefinition))
+		return;
 
-	_SendTypedRequest<lsp::requests::TextDocument_References>(
-		textDocument,
-		std::move(params),
-		[this, uri = std::string(X(textDocument))](lsp::TextDocument_ReferencesResult&& result, int32 reqVersion) {
+	_GetDefinitionForRequest(textDocument, position, [this](LSPTextDocument* textDocument, lsp::Position position, std::string symbolName){
+
+		lsp::ReferenceParams params;
+		params.textDocument.uri = MakeDocUri(textDocument);
+		params.position = position;
+		params.context.includeDeclaration = true;
+
+		_SendTypedRequest<lsp::requests::TextDocument_References>(
+			textDocument,
+			std::move(params),
+			[this, uri = std::string(X(textDocument)), symbolName](lsp::TextDocument_ReferencesResult&& result, int32 reqVersion) {
 			auto* doc = static_cast<LSPEditorWrapper*>(_DocumentByURI(uri.c_str()));
-			if (!doc)
-				return;
+				if (!doc)
+					return;
 
-			if (!result.isNull()) {
-				doc->OnFindReferences(std::move(result));
-			}
+				if (!result.isNull()) {
+					static_cast<LSPEditorWrapper*>(doc)->OnFindReferences(std::move(result), symbolName);
+				}
 		});
-}*/
 
+	});
+}
+
+template <typename Func>
 void
-LSPProjectWrapper::References(LSPTextDocument* textDocument, lsp::Position position)
+LSPProjectWrapper::_GetDefinitionForRequest(LSPTextDocument* textDocument,
+											lsp::Position position,
+											Func f)
+
 {
-	if (!HasCapability(kLCapReferences) || !HasCapability(kLCapDefinition))
+	if (!HasCapability(kLCapDefinition))
 		return;
 
 	lsp::DefinitionParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
 	params.position = position;
 
-
 	_SendTypedRequest<lsp::requests::TextDocument_Definition>(
 		textDocument,
 		std::move(params),
-		[this, position, uri = std::string(X(textDocument))](lsp::TextDocument_DefinitionResult&& result, int32 reqVersion) {
+		[this, position, uri = std::string(X(textDocument)), f](lsp::TextDocument_DefinitionResult&& result, int32 reqVersion) {
 			auto* doc = static_cast<LSPEditorWrapper*>(_DocumentByURI(uri.c_str()));
 			if (!doc)
 				return;
 			if (!result.isNull()) {
-					lsp::Location location;
-					if (doc->LocationFromDefinition(std::move(result), location) == false)
-						return;
+				lsp::Location location;
+				if (doc->LocationFromDefinition(std::move(result), location) == false)
+					return;
 
-					std::string symbolName = doc->ExtractSymbolFromFile(location);
+				std::string symbolName = doc->ExtractSymbolFromFile(location);
 
-					lsp::ReferenceParams params;
-					params.textDocument.uri = MakeDocUri(doc);
-					params.position = position;
-					params.context.includeDeclaration = true;
-
-					_SendTypedRequest<lsp::requests::TextDocument_References>(
-						doc,
-						std::move(params),
-						[this, symbolName, uri = std::string(X(doc))](lsp::TextDocument_ReferencesResult&& result, int32 reqVersion) {
-							auto* doc2 = static_cast<LSPEditorWrapper*>(_DocumentByURI(uri.c_str()));
-							if (!doc2)
-								return;
-
-							if (!result.isNull()) {
-								doc2->OnFindReferences(std::move(result), symbolName);
-							}
-					});
+				f(doc, position, symbolName);
 			}
 	});
 }
 
+void
+LSPProjectWrapper::Rename(LSPTextDocument* textDocument, lsp::Position position)
+{
+	//FIX TODO Rename capability??
+	if (!HasCapability(kLCapDefinition))
+		return;
 
+	_GetDefinitionForRequest(textDocument, position, [this](LSPTextDocument* textDocument, lsp::Position position, std::string symbolName){
+
+
+		//TODO: ask the user the new name:
+		BString label(B_TRANSLATE("Rename symbol '%symbol_name%':"));
+		label.ReplaceFirst("%symbol_name%", symbolName.c_str());
+
+		auto alert = new GTextAlert(B_TRANSLATE("Rename"), label, symbolName.c_str());
+		auto result = alert->Go();
+
+		if (result.Button != GAlertButtons::OkButton)
+			return;
+
+		BString newSymbol = result.Result.String();
+
+		if (newSymbol.IsEmpty() || newSymbol.Compare(symbolName.c_str()) == 0) {
+			return;
+		}
+
+		//Get the new name
+
+		lsp::RenameParams params;
+		params.textDocument.uri = MakeDocUri(textDocument);
+		params.position = position;
+		params.newName = std::string(newSymbol.String());
+
+		_SendTypedRequest<lsp::requests::TextDocument_Rename>(
+			textDocument,
+			std::move(params),
+			[this, uri = std::string(X(textDocument))](lsp::TextDocument_RenameResult&& result, int32 reqVersion) {
+				auto* doc = static_cast<LSPEditorWrapper*>(_DocumentByURI(uri.c_str()));
+				if (!doc)
+					return;
+				if (doc->IsStaleResponse(reqVersion))
+					return;
+				if (!result.isNull())
+					doc->OnRename(std::move(result.value()));
+			});
+
+	});
+}
 
 void
-LSPProjectWrapper::Rename(LSPTextDocument* textDocument, lsp::Position position, std::string_view newName)
+LSPProjectWrapper::_Rename(LSPTextDocument* textDocument, lsp::Position position, std::string_view newName)
 {
 	lsp::RenameParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);

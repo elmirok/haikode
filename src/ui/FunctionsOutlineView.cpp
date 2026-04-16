@@ -302,8 +302,8 @@ private:
 
 			const BMessage symbol = item->Details();
 			const lsp::Position position = {
-				(lsp::uint)symbol.GetInt32("start:character", 0),
-				(lsp::uint)symbol.GetInt32("start:line", 0)
+				(lsp::uint)symbol.GetInt32("start:line", 0),
+				(lsp::uint)symbol.GetInt32("start:character", 0)
 			};
 
 			auto optionsMenu = new BPopUpMenu("Outline menu", false, false);
@@ -459,10 +459,7 @@ FunctionsOutlineView::MessageReceived(BMessage* msg)
 		}
 		case kMsgRenameSymbol:
 		{
-			// TODO: GoToSymbol is not synchronous,
-			// so this won't work always correctly
-			if (_GoToSymbol(msg) == B_OK)
-				_RenameSymbol(msg);
+			_RenameSymbol(msg);
 			break;
 		}
 		case kMsgSort:
@@ -655,6 +652,7 @@ FunctionsOutlineView::_GoToSymbol(BMessage *msg)
 void
 FunctionsOutlineView::_RenameSymbol(BMessage *msg)
 {
-	BMessage go(MSG_RENAME);
+	BMessage go = *msg;
+	go.what = MSG_RENAME;
 	gMainWindow->PostMessage(&go);
 }

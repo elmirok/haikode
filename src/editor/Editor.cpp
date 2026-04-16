@@ -247,7 +247,7 @@ Editor::PerformEditorAction(BMessage* message)
 			FindReferences();
 			break;
 		case MSG_RENAME:
-			Rename();
+			Rename(message);
 			break;
 		case MSG_SWITCHSOURCE:
 			SwitchSourceHeader();
@@ -2036,20 +2036,16 @@ Editor::FindReferences()
 }
 
 void
-Editor::Rename()
+Editor::Rename(BMessage* msg)
 {
-	// Getting the symbol from the language server would require many async steps.
-	// We instead ask Scintilla to deliver it which should be almost if not entirely accurate
-
-	BString symbol = GetSymbol();
-
-	BString label(B_TRANSLATE("Rename symbol '%symbol_name%':"));
-	label.ReplaceFirst("%symbol_name%", symbol);
-
-	auto alert = new GTextAlert(B_TRANSLATE("Rename"), label, symbol);
-	auto result = alert->Go();
-	if (result.Button == GAlertButtons::OkButton)
-		fLSPEditorWrapper->Rename(result.Result.String());
+	int32 line = msg->GetInt32("start:line", -1);
+	int32 character = msg->GetInt32("start:character", -1);
+	if (line == -1 || character == -1) {
+		fLSPEditorWrapper->Rename();
+	} else {
+		lsp::Position position = { (lsp::uint)line, (lsp::uint)character };
+		fLSPEditorWrapper->Rename(position);
+	}
 }
 
 

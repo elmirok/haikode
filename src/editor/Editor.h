@@ -202,7 +202,7 @@ private:
 			void				GoToDeclaration();
 			void				GoToImplementation();
 			void				FindReferences();
-			void				Rename();
+			void				Rename(BMessage* msg);
 			void				SwitchSourceHeader();
 			void				UncommentSelection();
 
