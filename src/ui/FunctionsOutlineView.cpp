@@ -50,7 +50,7 @@ public:
 			fDetails(details),
 			fIconName()
 		{
-			_SetIconAndTooltip();
+			_Initialize();
 		}
 
 		BRect DrawIcon(BView* owner, const BRect& itemBounds,
@@ -86,12 +86,12 @@ private:
 		BMessage	fDetails;
 		BString		fIconName;
 
-		void _SetIconAndTooltip();
+		void _Initialize();
 };
 
 
 void
-SymbolListItem::_SetIconAndTooltip()
+SymbolListItem::_Initialize()
 {
 	SymbolKind symbolKind;
 	Details().FindInt32("kind", reinterpret_cast<int32*>(&symbolKind));
@@ -217,11 +217,8 @@ SymbolListItem::_SetIconAndTooltip()
 			// Avoid if no parameters
 			detail.Prepend(" ");
 			SetExtraText(detail);
+			SetExtraTextFontFace(B_ITALIC_FACE);
 		}
-		// TODO: Better colors
-		rgb_color color(120, 120, 120);
-		SetExtraTextColor(color);
-		SetExtraTextFontFace(B_ITALIC_FACE);
 	}
 
 	if (!fIconName.IsEmpty())
