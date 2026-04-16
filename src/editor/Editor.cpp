@@ -2043,7 +2043,7 @@ Editor::Rename(BMessage* msg)
 	if (line == -1 || character == -1) {
 		fLSPEditorWrapper->Rename();
 	} else {
-		lsp::Position position = { (lsp::uint)line, (lsp::uint)character };
+		lsp::Position position = { (lsp::uint)line - 1, (lsp::uint)character };
 		fLSPEditorWrapper->Rename(position);
 	}
 }

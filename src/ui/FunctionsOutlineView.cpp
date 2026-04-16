@@ -459,6 +459,7 @@ FunctionsOutlineView::MessageReceived(BMessage* msg)
 		}
 		case kMsgRenameSymbol:
 		{
+			_GoToSymbol(msg);
 			_RenameSymbol(msg);
 			break;
 		}
