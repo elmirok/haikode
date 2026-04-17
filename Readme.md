@@ -71,7 +71,7 @@ The needed development files are available in `libgit2_1.9_devel`, `lexilla_deve
 and `editorconfig_core_c_devel` respectively. To install, open a terminal and type:
 
 ```bash
-pkgman install libgit2_1.9_devel lexilla_devel yaml_cpp0.8_devel editorconfig_core_c_devel openssl3_devel
+pkgman install libgit2_1.9_devel lexilla_devel yaml_cpp0.8_devel editorconfig_core_c_devel openssl3_devel lsp_framework
 ```
 
 If you would like to try a clang++ build:
