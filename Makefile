@@ -1,5 +1,5 @@
 ## Genio - The Haiku IDE Makefile ##############################################
-COMPILER_FLAGS = -Werror -std=c++20
+COMPILER_FLAGS = -Werror -std=c++20 -Wno-maybe-uninitialized
 WARNINGS = ALL
 
 TARGET_DIR := app
