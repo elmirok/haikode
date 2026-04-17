@@ -30,7 +30,7 @@ public:
 	void HideCallTip();
 	void ShowCallTip();
 
-	void UpdateSignatures(lsp::Array<lsp::SignatureInformation>& funcs);
+	void UpdateSignatures(const lsp::Array<lsp::SignatureInformation>& signatures);
 
 	int32 Position() const { return fPosition; };
 

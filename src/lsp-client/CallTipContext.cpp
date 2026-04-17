@@ -202,7 +202,7 @@ CallTipAction CallTipContext::_FindFunction()
 
 
 void
-CallTipContext::UpdateSignatures(lsp::Array<lsp::SignatureInformation>& signatures)
+CallTipContext::UpdateSignatures(const lsp::Array<lsp::SignatureInformation>& signatures)
 {
 	fCurrentFunction = -1;
 	fSignatures = signatures;

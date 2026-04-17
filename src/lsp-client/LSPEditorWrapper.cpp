@@ -34,7 +34,7 @@
 #define IF_ID(METHOD_NAME, METHOD) if (id.compare(METHOD_NAME) == 0) { METHOD(result); return; }
 
 
-LSPEditorWrapper::LSPEditorWrapper(BPath filenamePath, Editor* editor)
+LSPEditorWrapper::LSPEditorWrapper(const BPath& filenamePath, Editor* editor)
 	:
 	LSPTextDocument(filenamePath, editor->FileType().c_str()),
 	fEditor(editor),
@@ -325,7 +325,7 @@ LSPEditorWrapper::GoTo(LSPEditorWrapper::GoToType type)
 
 
 void
-LSPEditorWrapper::Rename(lsp::Position& position)
+LSPEditorWrapper::Rename(const lsp::Position& position)
 {
 	if (!IsInitialized()|| !fEditor)
 		return;
@@ -333,6 +333,7 @@ LSPEditorWrapper::Rename(lsp::Position& position)
 	flushChanges();
 	fLSPProjectWrapper->Rename(this, position);
 }
+
 
 void
 LSPEditorWrapper::Rename()
@@ -391,14 +392,12 @@ LSPEditorWrapper::MouseMoved(BMessage* message)
 }
 
 
-
-
 int32
 LSPEditorWrapper::DiagnosticFromPosition(Sci_Position sci_position, LSPDiagnostic& dia)
 {
 	int32 index = -1;
 	if (fEditor->SendMessage(SCI_INDICATORVALUEAT, IND_DIAG, sci_position) == 1) {
-		for (auto& ir : fLastDiagnostics) {
+		for (const auto& ir : fLastDiagnostics) {
 			index++;
 			if (sci_position >= ir.range.from && sci_position < ir.range.to) {
 				dia = ir;
@@ -411,10 +410,10 @@ LSPEditorWrapper::DiagnosticFromPosition(Sci_Position sci_position, LSPDiagnosti
 
 
 int32
-LSPEditorWrapper::DiagnosticFromRange(lsp::Range& range, LSPDiagnostic& dia)
+LSPEditorWrapper::DiagnosticFromRange(const lsp::Range& range, LSPDiagnostic& dia)
 {
 	int32 index = -1;
-	for (auto& ir : fLastDiagnostics) {
+	for (const auto& ir : fLastDiagnostics) {
 		index++;
 		if (ir.diagnostic.range == range) {
 			dia = ir;
@@ -675,7 +674,7 @@ _ExtractHoverText(const lsp::Hover& hover)
 
 	auto& arr = std::get<lsp::Array<lsp::MarkedString>>(hover.contents);
 	std::string combined;
-	for (auto& ms : arr) {
+	for (const auto& ms : arr) {
 		if (!combined.empty())
 			combined += "\n\n";
 		combined += _MarkedStringToText(ms);
@@ -713,13 +712,14 @@ LSPEditorWrapper::OnGoTo(lsp::TextDocument_DefinitionResult&& result)
 	if (LocationFromDefinition(std::move(result), location) == false)
 		return;
 
-	lsp::Position& pos = location.range.start;
+	const lsp::Position& pos = location.range.start;
 	OpenFileURI(location.uri, pos.line + 1, pos.character);
 }
 
 
 bool
-LSPEditorWrapper::LocationFromDefinition(lsp::TextDocument_DefinitionResult&& result, lsp::Location& retLoc)
+LSPEditorWrapper::LocationFromDefinition(lsp::TextDocument_DefinitionResult&& result,
+	lsp::Location& retLoc)
 {
 	// NullOrOneOf<Definition, Array<DefinitionLink>>;
 	if (result.isNull())
@@ -729,8 +729,8 @@ LSPEditorWrapper::LocationFromDefinition(lsp::TextDocument_DefinitionResult&& re
 	auto* definition = std::get_if<lsp::Definition>(&result.value());
 	if (definition) {
 		//using Definition = OneOf<Location, Array<Location>>;
-		lsp::Location* location = std::get_if<lsp::Location>(definition);
-		if (location) {
+		const lsp::Location* location = std::get_if<lsp::Location>(definition);
+		if (location != nullptr) {
 		} else {
 			auto* array = std::get_if<lsp::Array<lsp::Location>>(definition);
 			location = &(*array)[0];
@@ -744,7 +744,7 @@ LSPEditorWrapper::LocationFromDefinition(lsp::TextDocument_DefinitionResult&& re
 		//Array<DefinitionLink>
 		auto* array = std::get_if<lsp::Array<lsp::DefinitionLink>>(&result.value());
 		if (array) {
-			lsp::LocationLink& location = (*array)[0];
+			const lsp::LocationLink& location = (*array)[0];
 			retLoc.uri = location.targetUri;
 			retLoc.range = location.targetRange;
 			return true;
@@ -1036,6 +1036,7 @@ LSPEditorWrapper::_RemoveAllDocumentLinks()
 	fLastDocumentLinks.clear();
 }
 
+
 void
 LSPEditorWrapper::OnInitialize(lsp::json::Value& params)
 {
@@ -1050,6 +1051,7 @@ LSPEditorWrapper::OnInitialize(lsp::json::Value& params)
 	RequestDocumentSymbols();
 }
 
+
 void
 LSPEditorWrapper::OnDocumentLink(lsp::TextDocument_DocumentLinkResult&& links)
 {
@@ -1060,10 +1062,8 @@ LSPEditorWrapper::OnDocumentLink(lsp::TextDocument_DocumentLinkResult&& links)
 	if (links.isNull())
 		return;
 
-
 	for (auto& l : links.value()) {
-
-		lsp::Range& r = l.range;
+		const lsp::Range& r = l.range;
 		InfoRange ir;
 		ir.from = FromLSPPositionToSciPosition(&r.start);
 		ir.to = FromLSPPositionToSciPosition(&r.end);
@@ -1075,6 +1075,7 @@ LSPEditorWrapper::OnDocumentLink(lsp::TextDocument_DocumentLinkResult&& links)
 		fLastDocumentLinks.push_back(ir);
 	}
 }
+
 
 void
 LSPEditorWrapper::OnFileStatus(lsp::json::Value& params)
@@ -1127,12 +1128,14 @@ LSPEditorWrapper::_DoRecursiveDocumentSymbol(lsp::Array<lsp::DocumentSymbol>& ve
 		lsp::Range& symbolRange = sym.selectionRange;
 		symbol.AddInt32("start:line", symbolRange.start.line + 1);
 		symbol.AddInt32("start:character", symbolRange.start.character);
-		lsp::Range& range = sym.range;
+
+		const lsp::Range& range = sym.range;
 		symbol.AddInt32("range:start:line", range.start.line + 1);
 		symbol.AddInt32("range:end:line", 	range.end.line + 1);
 		msg.AddMessage("symbol", &symbol);
 	}
 }
+
 
 void
 LSPEditorWrapper::_DoLinearSymbolInformation(lsp::Array<lsp::SymbolInformation>& vect, BMessage& msg)

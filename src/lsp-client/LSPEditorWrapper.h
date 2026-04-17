@@ -55,7 +55,7 @@ public:
 			GOTO_IMPLEMENTATION
 		};
 
-				LSPEditorWrapper(BPath filenamePath, Editor* fEditor);
+				LSPEditorWrapper(const BPath& filenamePath, Editor* editor);
 		virtual	~LSPEditorWrapper() {};
 		void	ApplySettings();
 		void	SetLSPServer(LSPProjectWrapper* cW);
@@ -77,14 +77,14 @@ public:
 		void	StartCompletion();
 		void	SelectedCompletion(const char* text);
 		void	Format();
-		void	Rename(lsp::Position& position);
+		void	Rename(const lsp::Position& position);
 		void	Rename();
 		void	StartHover(Sci_Position sci_position);
 		void	EndHover();
 		void	GetDiagnostics(std::vector<LSPDiagnostic>& diagnostics) { diagnostics = fLastDiagnostics; }
 		void	FindReferences();
 
-		void	IndicatorClick(Sci_Position position);
+		void	IndicatorClick(Sci_Position sci_position);
 private:
 		void	RequestDocumentSymbols();
 public:
@@ -115,14 +115,14 @@ public:
 		void	OnInitialize(lsp::json::Value& params);
 
 		//move to LSPProject?
-		bool	LocationFromDefinition(lsp::TextDocument_DefinitionResult&& result, lsp::Location& loc);
+		bool	LocationFromDefinition(lsp::TextDocument_DefinitionResult&& result, lsp::Location& retLoc);
 		//move to LSPProject?
 		std::string		ExtractSymbolFromFile(const lsp::Location& loc); //move?
 
 public:
 
-		int32	DiagnosticFromPosition(Sci_Position p, LSPDiagnostic& dia);
-		int32	DiagnosticFromRange(lsp::Range& range, LSPDiagnostic& dia);
+		int32	DiagnosticFromPosition(Sci_Position sci_position, LSPDiagnostic& dia);
+		int32	DiagnosticFromRange(const lsp::Range& range, LSPDiagnostic& dia);
 
 private:
 		bool	IsInitialized();
@@ -131,15 +131,15 @@ private:
 		void	_ShowToolTip(const char* text);
 		void	_RemoveAllDiagnostics();
 		void	_RemoveAllDocumentLinks();
-		void	_DoRecursiveDocumentSymbol(lsp::Array<lsp::DocumentSymbol>& v, BMessage& msg);
-		void	_DoLinearSymbolInformation(lsp::Array<lsp::SymbolInformation>& v, BMessage& msg);
+		void	_DoRecursiveDocumentSymbol(lsp::Array<lsp::DocumentSymbol>& vect, BMessage& msg);
+		void	_DoLinearSymbolInformation(lsp::Array<lsp::SymbolInformation>& vect, BMessage& msg);
 
 		//utils
 		void			FromSciPositionToLSPPosition(const Sci_Position &pos, lsp::Position *lsp_position);
 		Sci_Position 	FromLSPPositionToSciPosition(const lsp::Position* lsp_position);
 		void 			GetCurrentLSPPosition(lsp::Position *lsp_position);
 		void 			FromSciPositionToRange(Sci_Position s_start, Sci_Position s_end, lsp::Range *range);
-		Sci_Position 	ApplyTextEdit(lsp::json::Value& textEdit);
+		Sci_Position 	ApplyTextEdit(lsp::json::Value& textEditJson);
 		Sci_Position 	ApplyTextEdit(lsp::TextEdit &textEdit);
 		void			OpenFileURI(const lsp::FileUri& uri, int32 line = -1, int32 character = -1,
 									ArrayTextEdit&& edits = {});
