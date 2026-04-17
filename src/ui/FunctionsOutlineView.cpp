@@ -19,11 +19,11 @@
 #include <Window.h>
 
 #include "ConfigManager.h"
-#include "Editor.h"
 #include "GenioApp.h"
 #include "GenioWindow.h"
 #include "GenioWindowMessages.h"
 #include "GOutlineListView.h"
+#include "IEditor.h"
 #include "Log.h"
 #include "NoticeMessages.h"
 #include "SpinningAnimation.h"
@@ -552,7 +552,7 @@ FunctionsOutlineView::_UpdateDocumentSymbols(const BMessage& msg, const entry_re
 
 	fCurrentRef = *newRef;
 
-	const int32 status = msg.GetInt32("status", Editor::STATUS_UNKNOWN);
+	const int32 status = msg.GetInt32("status", IEditor::STATUS_UNKNOWN);
 	switch (status) {
 		case IEditor::STATUS_UNKNOWN:
 			fListView->MakeEmpty();
