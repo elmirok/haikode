@@ -210,9 +210,10 @@ SymbolListItem::_Initialize()
 			break;
 	}
 
-	if (symbolKind == SymbolKind::Function ||
-		symbolKind == SymbolKind::Method ||
-		symbolKind == SymbolKind::Constructor) {
+	lsp::SymbolKind symKind = static_cast<lsp::SymbolKind>(symbolKindEnum);
+	if (symKind == lsp::SymbolKind::Function ||
+		symKind == lsp::SymbolKind::Method ||
+		symKind == lsp::SymbolKind::Constructor) {
 		// TODO: More secure parsing
 		BString detail(fDetails.GetString("detail"));
 		detail.Remove(0, detail.FindFirst("("));
