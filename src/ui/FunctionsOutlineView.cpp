@@ -50,7 +50,7 @@ public:
 			fDetails(details),
 			fIconName()
 		{
-			_SetIconAndTooltip();
+			_Initialize();
 		}
 
 		BRect DrawIcon(BView* owner, const BRect& itemBounds,
@@ -86,12 +86,12 @@ private:
 		BMessage	fDetails;
 		BString		fIconName;
 
-		void _SetIconAndTooltip();
+		void _Initialize();
 };
 
 
 void
-SymbolListItem::_SetIconAndTooltip()
+SymbolListItem::_Initialize()
 {
 	// BMessage stores the LSP wire value (1-26) from lsp::SymbolKindEnum::value().
 	// Reconstruct the lsp::SymbolKind enum index by scanning s_values[].
@@ -208,6 +208,21 @@ SymbolListItem::_SetIconAndTooltip()
 			break;
 		default:
 			break;
+	}
+
+	if (symbolKind == SymbolKind::Function ||
+		symbolKind == SymbolKind::Method ||
+		symbolKind == SymbolKind::Constructor) {
+		// TODO: More secure parsing
+		BString detail(fDetails.GetString("detail"));
+		detail.Remove(0, detail.FindFirst("("));
+		detail.Truncate(detail.FindLast(")") + 1);
+		if (detail != "()")  {
+			// Avoid if no parameters
+			detail.Prepend(" ");
+			SetExtraText(detail);
+			SetExtraTextFontFace(B_ITALIC_FACE);
+		}
 	}
 
 	if (!fIconName.IsEmpty())

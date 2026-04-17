@@ -43,8 +43,6 @@ StyledItem::DrawItem(BView* owner, BRect bounds, bool complete)
 	BPoint textPoint(iconRect.right + be_control_look->DefaultLabelSpacing(),
 					bounds.top + BaselineOffset());
 
-	// TODO: would be nice to draw extra text in different style
-	// at least we can draw in different color now
 	DrawText(owner, Text(), ExtraText(), textPoint);
 
 	owner->Sync();
