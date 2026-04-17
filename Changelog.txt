@@ -1,3 +1,10 @@
+v6.0 (not released)
+	- Completely rewrote LSP handling, improving performance.
+	- Added "Find references".
+	- Made renaming symbols more robust.
+	- Fixed auto completion not triggering in some cases.
+	- Class outline: added function parameters.
+---
 v5.0
 	- Added the ability to show the branch name in the window title.
 	- Added the ability to close any tab to further customize the workspace.
