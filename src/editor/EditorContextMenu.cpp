@@ -65,9 +65,10 @@ EditorContextMenu::_PopulateFixMenu(BPopUpMenu* fixMenu, LSPEditorWrapper* lsp,
 								Editor* editor, LSPDiagnostic& dia, int32 index)
 {
 	fixMenu->RemoveItems(0, fixMenu->CountItems(), true);
-	std::vector<CodeAction> actions = dia.diagnostic.codeActions.value();
-	for (int i = 0; i < static_cast<int>(actions.size()); i++) {
-		auto item = new BMenuItem(actions[i].title.c_str(),
+	auto& actionsArray = dia.codeActions.value().array();
+	for (int i = 0; i < static_cast<int>(actionsArray.size()); i++) {
+		std::string title = actionsArray[i].object().get("title").string();
+		auto item = new BMenuItem(title.c_str(),
 			new GMessage({{"what", kApplyFix},
 					{"index", index}, {"action", i}, {"quickFix", true}}));
 		fixMenu->AddItem(item);
@@ -89,7 +90,8 @@ EditorContextMenu::_GetCodeActionsMenu(Editor* editor, BPoint screenPoint, LSPEd
 	BPoint p = editor->ConvertFromScreen(screenPoint);
 	Sci_Position sci_position = editor->SendMessage(SCI_POSITIONFROMPOINT, p.x, p.y);
 	int32 index = outLsp->DiagnosticFromPosition(sci_position, dia);
-	if (index > -1 && dia.diagnostic.codeActions.value().size() > 0) {
+	if (index > -1 && dia.codeActions.has_value()
+		&& dia.codeActions->isArray() && !dia.codeActions->array().empty()) {
 		if (!sFixMenu) {
 			sFixMenu = new BPopUpMenu("FixEditorContextMenu", false, false);
 			sFixMenu->AddItem(new BMenuItem("Fix!", nullptr));
@@ -129,6 +131,7 @@ EditorContextMenu::_GetStandardMenu(Editor* editor, BPoint screenPoint)
 		ActionManager::AddItem(MSG_GOTODEFINITION, sMenu);
 		ActionManager::AddItem(MSG_GOTODECLARATION, sMenu);
 		ActionManager::AddItem(MSG_GOTOIMPLEMENTATION, sMenu);
+		ActionManager::AddItem(MSG_FIND_REFERENCES, sMenu);
 
 		sMenu->AddSeparatorItem();
 

@@ -141,6 +141,8 @@ public:
 			void				SetDocumentSymbols(const BMessage* symbols, IEditor::symbols_status status) override;
 			void				GetDocumentSymbols(BMessage* symbols) const override;
 
+			void				SetReferences(BMessage* references);
+
 			void				SetCommentLineToken(const std::string& commenter) { fCommenter = commenter; }
 			void				SetCommentBlockTokens(const std::string& startBlock,
 												const std::string& endBlock) ;
@@ -199,7 +201,8 @@ private:
 			void				GoToDefinition();
 			void				GoToDeclaration();
 			void				GoToImplementation();
-			void				Rename();
+			void				FindReferences();
+			void				Rename(BMessage* msg);
 			void				SwitchSourceHeader();
 			void				UncommentSelection();
 

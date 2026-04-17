@@ -1,15 +1,16 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023-2026, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
 #pragma once
 
-#include "MessageHandler.h"
+#include "Log.h"
 
 #include <Url.h>
 
-class LSPTextDocument : public MessageHandler {
+
+class LSPTextDocument {
 public:
     LSPTextDocument(BPath filePath, BString fileType)
 		:
@@ -19,6 +20,8 @@ public:
 		fFilenameURI.SetAuthority("");
 	}
 
+	virtual ~LSPTextDocument() = default;
+
     const BString	GetFilenameURI() const { return fFilenameURI.UrlString();}
 	const BString	GetFileStatus()	const { return fFileStatus; }
 
@@ -27,8 +30,25 @@ public:
 
 	const BString& FileType() const { return fFileType; }
 
+			int32	Version() const { return fVersion; }
+			bool 	IsStaleResponse(int32 requestVersion) const {
+						if (Version() != requestVersion) {
+							LogTrace("[%s] Discarding stale response (req=%ld, cur=%ld)",
+								GetFilenameURI().String(), requestVersion, Version());
+							return true;
+					}
+    return false;
+}
+
+
+protected:
+			void	ResetVersion() { fVersion = 0; }
+			int32	NextVersion() { return ++fVersion; }
+
+
 private:
 	BUrl 	fFilenameURI;
 	BString	fFileStatus;
 	BString fFileType;
+	int32	fVersion{0};
 };

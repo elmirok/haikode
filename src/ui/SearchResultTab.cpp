@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, Andrea Anzani 
+ * Copyright 2024, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -137,6 +137,13 @@ SearchResultTab::SetAndStartSearch(BString text, bool wholeWord,
 	fFindTextControl->SetText(text.String());
 
 	_StartSearch(text, wholeWord, caseSensitive, projectPath);
+}
+
+
+void
+SearchResultTab::SetReferencesResult(BMessage* message, const BString& projectPath)
+{
+	fSearchResultPanel->SetSearchResult(message, projectPath);
 }
 
 

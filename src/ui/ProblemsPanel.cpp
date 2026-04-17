@@ -38,12 +38,12 @@ class RangeRow : public BRow {
 public:
 	RangeRow()
 		:
-		fEditor(nullptr)
+		editor(nullptr)
 	{
 	}
 
-	GMessage	fRange;
-	IEditor		*fEditor;
+	IEditor*		editor;
+	lsp::Range 		range;
 };
 
 #define ProblemLabel B_TRANSLATE("Problems")
@@ -90,10 +90,10 @@ ProblemsPanel::MessageReceived(BMessage* msg)
 			if (range) {
 				GMessage refs = {
 					{"what", B_REFS_RECEIVED},
-					{"start:line", range->fRange.GetInt32("start:line", -1) + 1},
-					{"start:character", range->fRange.GetInt32("start:character", -1)}
+					{"start:line", (int32)range->range.start.line + 1},
+					{"start:character", (int32)range->range.start.character }
 				};
-				refs.AddRef("refs",  range->fEditor->FileRef());
+				refs.AddRef("refs",  range->editor->FileRef());
 				Window()->PostMessage(&refs);
 			}
 			break;
@@ -108,23 +108,18 @@ ProblemsPanel::MessageReceived(BMessage* msg)
 				if (!row)
 					return;
 
-				LSPEditorWrapper* lsp = row->fEditor->GetLSPEditorWrapper();
+				LSPEditorWrapper* lsp = row->editor->GetLSPEditorWrapper();
 				if (lsp) {
 					LSPDiagnostic dia;
-
-					Range range;
-					range.start.line = row->fRange["start:line"];
-					range.start.character = row->fRange["start:character"];
-					range.end.line = row->fRange["end:line"];
-					range.end.character = row->fRange["end:character"];
-
-					int32 index = lsp->DiagnosticFromRange(range, dia);
+					int32 index = lsp->DiagnosticFromRange(row->range, dia);
 					fPopUpMenu = new BPopUpMenu("_popup");
 					fPopUpMenu->SetRadioMode(false);
-					if (index > -1 && dia.diagnostic.codeActions.value().size() > 0) {
-						std::vector<CodeAction> actions = dia.diagnostic.codeActions.value();
-						for (int i = 0; i < static_cast<int>(actions.size()); i++) {
-							auto item = new BMenuItem(actions[i].title.c_str(),
+					if (index > -1 && dia.codeActions.has_value()
+						&& dia.codeActions->isArray() && !dia.codeActions->array().empty()) {
+						auto& actionsArray = dia.codeActions->array();
+						for (int i = 0; i < static_cast<int>(actionsArray.size()); i++) {
+							std::string title = actionsArray[i].object().get("title").string();
+							auto item = new BMenuItem(title.c_str(),
 								new GMessage({{"what", kApplyFix}, {"index", index}, {"action", i},
 								{"quickFix", true}}));
 							fPopUpMenu->AddItem(item);
@@ -134,7 +129,7 @@ ProblemsPanel::MessageReceived(BMessage* msg)
 						item->SetEnabled(false);
 						fPopUpMenu->AddItem(item);
 					}
-					fPopUpMenu->SetTargetForItems(row->fEditor->View());
+					fPopUpMenu->SetTargetForItems(row->editor->View());
 					fPopUpMenu->Go(ConvertToScreen(where), true);
 					delete fPopUpMenu;
 					fPopUpMenu = nullptr;
@@ -159,19 +154,13 @@ ProblemsPanel::UpdateProblems(IEditor* editor)
 		std::vector<LSPDiagnostic> diagnostics;
 		lsp->GetDiagnostics(diagnostics);
 		for (auto& dia: diagnostics) {
-			RangeRow* row = new RangeRow();
 
-			GMessage range;
-			range["start:line"] = dia.diagnostic.range.start.line;
-			range["start:character"] = dia.diagnostic.range.start.character;
-			range["end:line"] = dia.diagnostic.range.end.line;
-			range["end:character"] = dia.diagnostic.range.end.character;
-			row->fRange = range;
-			row->fEditor = editor;
-			row->fRange.AddRef("refs", editor->FileRef());
-			row->SetField(new BStringField(dia.diagnostic.category.value().c_str()), kCategoryColumn);
+			RangeRow* row = new RangeRow();
+			row->range = dia.diagnostic.range;
+			row->editor = editor;
+			row->SetField(new BStringField(dia.category.value_or("").c_str()), kCategoryColumn);
 			row->SetField(new BStringField(dia.diagnostic.message.c_str()), kMessageColumn);
-			row->SetField(new BStringField(dia.diagnostic.source.c_str()), kSourceColumn);
+			row->SetField(new BStringField(dia.diagnostic.source.value_or("").c_str()), kSourceColumn);
 			BString line;
 			line.SetToFormat("%d", dia.diagnostic.range.start.line + 1);
 			row->SetField(new BStringField(line), kPositionColumn);

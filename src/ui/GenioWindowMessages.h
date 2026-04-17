@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #ifndef GenioWindowMessages_H
@@ -57,6 +57,7 @@ enum {
 	MSG_GOTODECLARATION			= 'gocl',
 	MSG_GOTOIMPLEMENTATION		= 'goim',
 	MSG_RENAME					= 'rena',
+	MSG_FIND_REFERENCES			= 'refi',
 	MSG_SWITCHSOURCE			= 'swit',
 	MSG_FIND_IN_BROWSER			= 'finb',
 	MSG_COLLAPSE_SYMBOL_NODE	= 'mcsn',

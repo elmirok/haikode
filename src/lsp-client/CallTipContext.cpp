@@ -1,10 +1,11 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023-2026, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #include "CallTipContext.h"
 
 #include <cstring>
+
 #include <String.h>
 #include <Debug.h>
 
@@ -202,7 +203,7 @@ CallTipAction CallTipContext::_FindFunction()
 
 
 void
-CallTipContext::UpdateSignatures(std::vector<SignatureInformation>& signatures)
+CallTipContext::UpdateSignatures(const lsp::Array<lsp::SignatureInformation>& signatures)
 {
 	fCurrentFunction = -1;
 	fSignatures = signatures;
@@ -218,18 +219,22 @@ CallTipContext::ShowCallTip()
 		HideCallTip();
 		return;
 	}
-	size_t countParams = fSignatures[fCurrentFunction].parameters.size();
+
+	auto& params = fSignatures[fCurrentFunction].parameters;
+	size_t countParams = params.has_value() ? params->size() : 0;
 	if (fCurrentParam >= countParams) {
 		// we need to find a better overload!
 		for (size_t i = 0; i < fSignatures.size(); ++i) {
-			if (fCurrentParam < fSignatures[i].parameters.size()) {
+			auto& p = fSignatures[i].parameters;
+			size_t n = p.has_value() ? p->size() : 0;
+			if (fCurrentParam < n) {
 				fCurrentFunction = i;
 				break;
 			}
 		}
 	}
 
-	SignatureInformation& info = fSignatures[fCurrentFunction];
+	lsp::SignatureInformation& info = fSignatures[fCurrentFunction];
 	BString callTipText;
 	if (fSignatures.size() > 1) {
 		callTipText << "\001 " << fCurrentFunction + 1 << " / " << fSignatures.size() << " \002";
@@ -239,11 +244,16 @@ CallTipContext::ShowCallTip()
 
 	int32 hstart = 0;
 	int32 hend = 0;
-	for (size_t i = 0; i < info.parameters.size(); ++i) {
-		if (i == fCurrentParam)	{
-			int base = callTipText.FindFirst("\002") + 1;
-			hstart = base + info.parameters[i].labelOffsets.first;
-			hend   = base + info.parameters[i].labelOffsets.second;
+	if (info.parameters.has_value()) {
+		for (size_t i = 0; i < info.parameters->size(); ++i) {
+			if (i == fCurrentParam)	{
+				int base = callTipText.FindFirst("\002") + 1;
+				auto& label = (*info.parameters)[i].label;
+				if (auto* offsets = std::get_if<lsp::Tuple<lsp::uint, lsp::uint>>(&label)) {
+					hstart = base + std::get<0>(*offsets);
+					hend   = base + std::get<1>(*offsets);
+				}
+			}
 		}
 	}
 	if (IsVisible())
