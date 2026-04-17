@@ -1,10 +1,12 @@
 /*
- * Copyright 2024-2025, The Genio team
+ * Copyright 2024-2026, The Genio team
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
 
 #include "FunctionsOutlineView.h"
+
+#include <lsp/types.h>
 
 #include <Bitmap.h>
 #include <Catalog.h>
@@ -24,7 +26,6 @@
 #include "GOutlineListView.h"
 #include "Log.h"
 #include "NoticeMessages.h"
-#include <lsp/types.h>
 #include "SpinningAnimation.h"
 #include "StyledItem.h"
 #include "ToolBar.h"
