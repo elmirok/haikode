@@ -1,9 +1,8 @@
 /*
- * Copyright 2023, Andrea Anzani
+ * Copyright 2023-2026, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
-#ifndef LSPCapabilities_H
-#define LSPCapabilities_H
+#pragma once
 
 enum LSPCapability {
 	kLCapCompletion           = (1U),
@@ -21,5 +20,3 @@ enum LSPCapability {
 };
 
 #define kMsgCapabilitiesUpdated 'CaUp'
-
-#endif // LSPCapabilities_H

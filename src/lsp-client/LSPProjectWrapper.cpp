@@ -147,15 +147,15 @@ LSPProjectWrapper::LSPProjectWrapper(BPath rootPath, const BMessenger& msgr,
 
 
 void
-LSPProjectWrapper::MessageReceived(BMessage* msg)
+LSPProjectWrapper::MessageReceived(BMessage* message)
 {
-	switch (msg->what) {
+	switch (message->what) {
 		case kLSPNotify:
 		{
 			const char* method;
 			const char* data;
-			if (msg->FindString("method", &method) == B_OK
-				&& msg->FindString("data", &data) == B_OK) {
+			if (message->FindString("method", &method) == B_OK
+				&& message->FindString("data", &data) == B_OK) {
 				try {
 					auto params = lsp::json::parse(data);
 					_OnNotify(method, params);
@@ -171,7 +171,7 @@ LSPProjectWrapper::MessageReceived(BMessage* msg)
 			break;
 		}
 		default:
-			BHandler::MessageReceived(msg);
+			BHandler::MessageReceived(message);
 			break;
 	}
 }
@@ -428,7 +428,7 @@ LSPProjectWrapper::Initialize(std::optional<std::string> rootUri)
 		[this](lsp::json::Value& result) {
 			fInitialized.store(true);
 			Initialized(result);
-			for (auto& doc : fTextDocs)
+			for (const auto& doc : fTextDocs)
 				static_cast<LSPEditorWrapper*>(doc.second)->OnInitialize(result);
 		});
 }
@@ -623,7 +623,8 @@ LSPProjectWrapper::Formatting(LSPTextDocument* textDocument)
 
 
 void
-LSPProjectWrapper::CodeAction(LSPTextDocument* textDocument, lsp::Range range, lsp::CodeActionContext& context)
+LSPProjectWrapper::CodeAction(LSPTextDocument* textDocument, lsp::Range range,
+	const lsp::CodeActionContext& context)
 {
 	lsp::CodeActionParams params;
 	params.textDocument.uri = MakeDocUri(textDocument);
@@ -644,7 +645,7 @@ LSPProjectWrapper::CodeAction(LSPTextDocument* textDocument, lsp::Range range, l
 
 void
 LSPProjectWrapper::Completion(
-	LSPTextDocument* textDocument, lsp::Position position, lsp::CompletionContext& context)
+	LSPTextDocument* textDocument, lsp::Position position, const lsp::CompletionContext& context)
 {
 	if (!HasCapability(kLCapCompletion))
 		return;

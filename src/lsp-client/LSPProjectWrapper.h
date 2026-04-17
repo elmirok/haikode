@@ -47,8 +47,8 @@ public:
 
 	virtual	void	MessageReceived(BMessage* message);
 
-	bool	RegisterTextDocument(LSPTextDocument* fw);
-	void	UnregisterTextDocument(LSPTextDocument* fw);
+	bool	RegisterTextDocument(LSPTextDocument* textDocument);
+	void	UnregisterTextDocument(LSPTextDocument* textDocument);
 
 	bool HasCapability(const LSPCapability flag);
 
@@ -64,8 +64,8 @@ public:
 
 	void RangeFomatting(LSPTextDocument* textDocument, lsp::Range range);
 	void Formatting(LSPTextDocument* textDocument);
-    void CodeAction(LSPTextDocument* textDocument, lsp::Range range, lsp::CodeActionContext& context);
-    void Completion(LSPTextDocument* textDocument, lsp::Position position, lsp::CompletionContext& context);
+    void CodeAction(LSPTextDocument* textDocument, lsp::Range range, const lsp::CodeActionContext& context);
+    void Completion(LSPTextDocument* textDocument, lsp::Position position, const lsp::CompletionContext& context);
     void SignatureHelp(LSPTextDocument* textDocument, lsp::Position position);
     void GoToDefinition(LSPTextDocument* textDocument, lsp::Position position);
     void GoToImplementation(LSPTextDocument* textDocument, lsp::Position position);
@@ -105,7 +105,7 @@ private:
 	void _OnNotify(std::string method, lsp::json::Value& params);
 	void _DrainResponseQueue();
 
-	void	_LogMessage(lsp::LogMessageParams&& params);
+	void	_LogMessage(lsp::LogMessageParams&& logParams);
 
 	typedef std::map<std::string, LSPTextDocument*> MapFile;
 

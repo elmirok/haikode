@@ -185,7 +185,7 @@ LSPServersManager::DisposeLSPServersConfig()
 LSPProjectWrapper*
 LSPServersManager::CreateLSPProject(const BPath& path, const BMessenger& msgr, const BString& fileType)
 {
-	for (LSPServerConfigInterface* interface: fConfigs) {
+	for (const LSPServerConfigInterface* interface: fConfigs) {
 		if (interface->IsFileTypeSupported(fileType)) {
 			return new LSPProjectWrapper(path, msgr, *interface);
 		}

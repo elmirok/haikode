@@ -92,7 +92,7 @@ LSPEditorWrapper::UnsetLSPServer()
 
 
 bool
-LSPEditorWrapper::HasLSPServer()
+LSPEditorWrapper::HasLSPServer() const
 {
 	return fLSPProjectWrapper != nullptr;
 }
@@ -168,7 +168,7 @@ LSPEditorWrapper::SetLSPServer(LSPProjectWrapper* cW) {
 
 
 bool
-LSPEditorWrapper::IsInitialized()
+LSPEditorWrapper::IsInitialized() const
 {
 	return fInitialized && fLSPProjectWrapper != nullptr;
 }
@@ -412,7 +412,7 @@ LSPEditorWrapper::DiagnosticFromPosition(Sci_Position sci_position, LSPDiagnosti
 
 
 int32
-LSPEditorWrapper::DiagnosticFromRange(const lsp::Range& range, LSPDiagnostic& dia)
+LSPEditorWrapper::DiagnosticFromRange(const lsp::Range& range, LSPDiagnostic& dia) const
 {
 	int32 index = -1;
 	for (const auto& ir : fLastDiagnostics) {
@@ -673,7 +673,7 @@ _ExtractHoverText(const lsp::Hover& hover)
 	if (auto* ms = std::get_if<lsp::MarkedString>(&hover.contents))
 		return _MarkedStringToText(*ms);
 
-	auto& arr = std::get<lsp::Array<lsp::MarkedString>>(hover.contents);
+	const auto& arr = std::get<lsp::Array<lsp::MarkedString>>(hover.contents);
 	std::string combined;
 	for (const auto& ms : arr) {
 		if (!combined.empty())
@@ -777,7 +777,7 @@ LSPEditorWrapper::OnFindReferences(lsp::TextDocument_ReferencesResult&& result, 
 
 	BMessage references(kReferences);
 	std::string currentFileName = "";
-	std::string nextFileName = "null";
+	std::string nextFileName;
 	BMessage currentMessage;
 	entry_ref currentRef;
 

@@ -59,7 +59,7 @@ public:
 		void	ApplySettings();
 		void	SetLSPServer(LSPProjectWrapper* cW);
 		void	UnsetLSPServer();
-		bool	HasLSPServer();
+		bool	HasLSPServer() const;
 		bool	HasLSPServerCapability(const LSPCapability cap);
 		void	ApplyFix(BMessage* info);
 		void 	ApplyEdit(std::string info);
@@ -80,7 +80,7 @@ public:
 		void	Rename();
 		void	StartHover(Sci_Position sci_position);
 		void	EndHover();
-		void	GetDiagnostics(std::vector<LSPDiagnostic>& diagnostics) { diagnostics = fLastDiagnostics; }
+		void	GetDiagnostics(std::vector<LSPDiagnostic>& diagnostics) const { diagnostics = fLastDiagnostics; }
 		void	FindReferences();
 
 		void	IndicatorClick(Sci_Position sci_position);
@@ -121,10 +121,10 @@ public:
 public:
 
 		int32	DiagnosticFromPosition(Sci_Position sci_position, LSPDiagnostic& dia);
-		int32	DiagnosticFromRange(const lsp::Range& range, LSPDiagnostic& dia);
+		int32	DiagnosticFromRange(const lsp::Range& range, LSPDiagnostic& dia) const;
 
 private:
-		bool	IsInitialized();
+		bool	IsInitialized() const;
 
 
 		void	_ShowToolTip(const char* text);
