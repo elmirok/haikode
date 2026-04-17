@@ -1,32 +1,32 @@
 /*
- * Copyright 2023, Andrea Anzani
+ * Copyright 2023-2026, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
-#ifndef _H_LSPProjectWrapper
-#define _H_LSPProjectWrapper
+#pragma once
 
 #include <Locker.h>
 #include <Autolock.h>
 #include <Path.h>
 #include <Locker.h>
+#include <MessageFilter.h>
+#include <Messenger.h>
+#include <Url.h>
+
 #include <atomic>
 #include <functional>
 #include <map>
 #include <mutex>
 #include <queue>
 #include <string_view>
-#include <MessageFilter.h>
-#include <Messenger.h>
-#include <Url.h>
 
-#include "LSPServersManager.h"
-#include "LSPCapabilities.h"
 #include <lsp/types.h>
+
 #include "Log.h"
+#include "LSPCapabilities.h"
+#include "LSPServersManager.h"
 #include "LSPPipeClient.h"
-
-#include <lsp/types.h>
 #include "LSPTextDocument.h"
+
 
 class LSPServerConfigInterface;
 
@@ -61,7 +61,6 @@ public:
     void DidClose(LSPTextDocument* textDocument);
     void DidChange(LSPTextDocument* textDocument, std::vector<lsp::TextDocumentContentChangeEvent> &changes);
     void DidSave(LSPTextDocument* textDocument);
-
 
 	void RangeFomatting(LSPTextDocument* textDocument, lsp::Range range);
 	void Formatting(LSPTextDocument* textDocument);
@@ -202,6 +201,3 @@ LSPProjectWrapper::_SendJsonRequest(std::string_view method, lsp::json::Value pa
 			LogError("LSP json request [%s] - error: %s", method.data(), error.message());
 		});
 }
-
-
-#endif // _H_LSPProjectWrapper

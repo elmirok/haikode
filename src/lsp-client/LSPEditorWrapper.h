@@ -2,19 +2,18 @@
  * Copyright 2023-2026, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
-#ifndef LSPEditorWrapper_H
-#define LSPEditorWrapper_H
+#pragma once
 
 #include <Autolock.h>
 #include <ToolTip.h>
 
 #include <vector>
+#include <lsp/types.h>
 
 #include "CallTipContext.h"
 #include "LSPCapabilities.h"
 #include "LSPProjectWrapper.h"
 #include "LSPTextDocument.h"
-#include <lsp/types.h>
 #include "Sci_Position.h"
 
 enum IndicatorIndex {
@@ -162,5 +161,3 @@ private:
 		std::vector<InfoRange>		fLastDocumentLinks;
 		std::vector<lsp::TextDocumentContentChangeEvent> fChanges;
 };
-
-#endif // LSPEditorWrapper_H

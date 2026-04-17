@@ -1,21 +1,21 @@
 /*
- * Copyright 2023, Andrea Anzani
+ * Copyright 2023-2026, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #include "LSPProjectWrapper.h"
 
+#include <lsp/json/json.h>
+#include <lsp/messages.h>
+#include <chrono>
+
+#include <Looper.h>
+
 #include "GTextAlert.h"
 #include "Log.h"
 #include "LSPEditorWrapper.h"
-#include "LSPJsonBridge.h"
 #include "LSPPipeClient.h"
 #include "LSPServersManager.h"
 #include "LSPTextDocument.h"
-
-#include <lsp/json/json.h>
-#include <lsp/messages.h>
-#include <Looper.h>
-#include <chrono>
 
 
 namespace {
@@ -434,7 +434,6 @@ LSPProjectWrapper::Initialize(std::optional<std::string> rootUri)
 }
 
 
-
 bool
 LSPProjectWrapper::_CheckAndSetCapability(json& capas, const char* str, const LSPCapability flag)
 {
@@ -526,7 +525,6 @@ LSPProjectWrapper::DidChange(LSPTextDocument* textDocument, std::vector<lsp::Tex
 }
 
 
-
 void
 LSPProjectWrapper::DidSave(LSPTextDocument* textDocument)
 {
@@ -562,6 +560,7 @@ LSPProjectWrapper::RangeFomatting(LSPTextDocument* textDocument, lsp::Range rang
 		});
 }
 
+
 /* not used */
 void
 LSPProjectWrapper::FoldingRange(LSPTextDocument* textDocument) //NOT USED
@@ -570,6 +569,7 @@ LSPProjectWrapper::FoldingRange(LSPTextDocument* textDocument) //NOT USED
 	params.textDocument.uri = MakeDocUri(textDocument);
 	// TODO: Use SendTypedRequest
 }
+
 
 /* not used */
 void
@@ -580,6 +580,7 @@ LSPProjectWrapper::SelectionRange(LSPTextDocument* textDocument, std::vector<lsp
 	params.positions = std::move(positions);
 	// TODO: Use SendTypedRequest
 }
+
 
 /* not used */
 void
@@ -766,7 +767,6 @@ LSPProjectWrapper::GoToDeclaration(LSPTextDocument* textDocument, lsp::Position 
 }
 
 
-
 void
 LSPProjectWrapper::References(LSPTextDocument* textDocument, lsp::Position position)
 {
@@ -795,6 +795,7 @@ LSPProjectWrapper::References(LSPTextDocument* textDocument, lsp::Position posit
 
 	});
 }
+
 
 template <typename Func>
 void
@@ -828,6 +829,7 @@ LSPProjectWrapper::_GetDefinitionForRequest(LSPTextDocument* textDocument,
 			}
 	});
 }
+
 
 void
 LSPProjectWrapper::Rename(LSPTextDocument* textDocument, lsp::Position position)

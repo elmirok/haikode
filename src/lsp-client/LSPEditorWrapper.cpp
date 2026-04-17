@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, Andrea Anzani
+ * Copyright 2023-2026, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -7,6 +7,7 @@
 
 #include <Alert.h>
 #include <Application.h>
+#include <Debug.h>
 #include <Path.h>
 #include <Catalog.h>
 #include <Window.h>
@@ -14,18 +15,20 @@
 #include <algorithm>
 #include <cstdio>
 #include <debugger.h>
+#include <fstream>
 #include <unistd.h>
-#include "EditorMessages.h"
-#include "LSPCompat.h"
+
 #include "Editor.h"
+#include "EditorMessages.h"
 #include "EditorStatusView.h"
+#include "GrepThread.h" // MSG_REPORT_RESULT definition
+#include "JumpNavigator.h"
+#include "LSPCompat.h"
 #include "Log.h"
 #include "LSPJsonBridge.h"
 #include "LSPProjectWrapper.h"
-#include "JumpNavigator.h"
 #include "TextUtils.h"
-#include <fstream>
-#include "GrepThread.h" // MSG_REPORT_RESULT definition
+
 
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "Editor"
@@ -45,7 +48,7 @@ LSPEditorWrapper::LSPEditorWrapper(const BPath& filenamePath, Editor* editor)
 	fLastWordStartPosition(-1),
 	fLastWordEndPosition(-1)
 {
-	assert(fEditor);
+	ASSERT(fEditor);
 }
 
 
@@ -149,8 +152,8 @@ LSPEditorWrapper::ApplyEdit(std::string info)
 void
 LSPEditorWrapper::SetLSPServer(LSPProjectWrapper* cW) {
 
-	assert(cW);
-	assert(fEditor);
+	ASSERT(cW);
+	ASSERT(fEditor);
 
 	if (fLSPProjectWrapper != nullptr)
 		UnsetLSPServer();
@@ -181,8 +184,7 @@ LSPEditorWrapper::didOpen()
 
 	fLSPProjectWrapper->DidOpen(this, text, FileType().String());
 
-	printf("DIDOPEN %s\n", GetFilenameURI().String());
-
+	// printf("DIDOPEN %s\n", GetFilenameURI().String());
 }
 
 
@@ -195,7 +197,7 @@ LSPEditorWrapper::didClose()
 	ResetVersion();
 	fLSPProjectWrapper->DidClose(this);
 
-	if (fEditor) {
+	if (fEditor != nullptr) {
 		_RemoveAllDiagnostics();
 		_RemoveAllDocumentLinks();
 	}
@@ -515,7 +517,6 @@ LSPEditorWrapper::SelectedCompletion(const char* text)
 void
 LSPEditorWrapper::StartCompletion()
 {
-
 	if (!IsInitialized() || !fEditor)
 		return;
 
@@ -908,7 +909,6 @@ LSPEditorWrapper::OnCompletion(lsp::TextDocument_CompletionResult&& result)
 }
 
 
-
 void
 LSPEditorWrapper::_RemoveAllDiagnostics()
 {
@@ -992,6 +992,7 @@ LSPEditorWrapper::FindReferences()
 
 	fLSPProjectWrapper->References(this, position);
 }
+
 
 void
 LSPEditorWrapper::OnCodeActions(lsp::json::Value&& codeActionsJson)
@@ -1152,7 +1153,6 @@ LSPEditorWrapper::_DoLinearSymbolInformation(lsp::Array<lsp::SymbolInformation>&
 }
 
 
-
 // utility
 void
 LSPEditorWrapper::FromSciPositionToLSPPosition(const Sci_Position& pos, lsp::Position* lsp_position)
@@ -1245,6 +1245,7 @@ LSPEditorWrapper::OpenFileURI(const lsp::FileUri& uri, int32 line, int32 charact
 	}
 }
 
+
 std::string
 LSPEditorWrapper::ExtractSymbolFromFile(const lsp::Location& loc)
 {
@@ -1271,6 +1272,7 @@ LSPEditorWrapper::ExtractSymbolFromFile(const lsp::Location& loc)
 
     return "";
 }
+
 
 std::string
 LSPEditorWrapper::GetCurrentLine()
