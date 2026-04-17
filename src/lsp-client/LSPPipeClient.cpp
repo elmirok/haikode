@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023-2026, Andrea Anzani
  *
  * Source code derived from AGMSScriptOCron
  * 	Copyright (c) 2018 by Alexander G. M. Smith.
@@ -11,15 +11,26 @@
 #include "LSPPipeClient.h"
 
 #include "Log.h"
-#include "LSPReaderThread.h"
+
+
+LSPPipeClient::LSPPipeClient()
+	:
+	fPipeStream(fPipeImage),
+	fConnection(fPipeStream),
+	fHandler(fConnection, 0),
+	fRunning(false)
+{
+}
 
 
 status_t
 LSPPipeClient::Start(const char **argv, int32 argc)
 {
 	status_t image_status = fPipeImage.Init(argv, argc, false, true);
-	if (image_status == B_OK)
-		LSPPipeClient::Run();
+	if (image_status == B_OK) {
+		fRunning.store(true);
+		fReaderThread = std::thread(&LSPPipeClient::_ReaderLoop, this);
+	}
 	return image_status;
 }
 
@@ -27,6 +38,7 @@ LSPPipeClient::Start(const char **argv, int32 argc)
 void
 LSPPipeClient::Close()
 {
+	fRunning.store(false);
 	fPipeImage.Close();
 }
 
@@ -34,164 +46,38 @@ LSPPipeClient::Close()
 LSPPipeClient::~LSPPipeClient()
 {
 	Close();
-	ForceQuit();
+	//sleep(1);
+	if (fReaderThread.joinable())
+		fReaderThread.join();
 }
 
 
-bool
-LSPPipeClient::ReadHeaderLine(char* header, size_t maxlen)
-{
-	ssize_t hasRead = 0;
-	size_t length = 0;
-	while ((hasRead = fPipeImage.Read(&header[length], 1)) != -1) {
-		if (hasRead == 0 || length >= maxlen - 1) // pipe eof or protection
-			return false;
+// --- Reader loop (replaces LSPReaderThread + BLooper message forwarding) ---
 
-		if (header[length] == '\n') {
-			break;
+
+void
+LSPPipeClient::_ReaderLoop()
+{
+	try {
+		while (fRunning.load()) {
+			fHandler.processIncomingMessages();
 		}
-		length++;
+	} catch (const lsp::ConnectionError&) {
+		// Pipe closed — normal shutdown path
+	} catch (const lsp::io::Error&) {
+		// Stream error — pipe broken
+	} catch (const std::exception& e) {
+		LogTrace("LSPPipeClient reader error: %s", e.what());
 	}
-	return true;
+	fRunning.store(false);
 }
 
 
-int
-LSPPipeClient::ReadMessageHeader()
-{
-	char szReadBuffer[255];
-	int len = 0;
-	while (ReadHeaderLine(szReadBuffer, 255)) {
-		if (::strncmp(szReadBuffer, "Content-Length: ", 16) == 0) {
-			len = ::strtol(szReadBuffer + 16, nullptr, 10);
-		} else if (::strncmp(szReadBuffer, "\r\n", 2) == 0) {
-			break;
-		} else {
-			LogTrace("Unsuported LSP message header: %s", szReadBuffer);
-		}
-	}
-	return len;
-}
-
-
-int
-LSPPipeClient::Read(int length, std::string &out)
-{
-	int readSize = 0;
-	ssize_t hasRead;
-	out.resize(length);
-	while ((hasRead = fPipeImage.Read(&out[readSize], length)) != -1) {
-		if (hasRead == 0) // pipe eof
-			return 0;
-
-		readSize += hasRead;
-		if (readSize >= length) {
-			break;
-		}
-	}
-
-	return readSize;
-}
-
-
-bool
-LSPPipeClient::Write(std::string &in)
-{
-	ssize_t hasWritten = 0;
-	if (fWriteLock.Lock()) { // for production code: WithTimeout(1000000) == B_OK)
-		size_t writeSize = 0;
-		size_t totalSize = in.length();
-		while ((hasWritten = fPipeImage.Write(&in[writeSize], totalSize)) != -1) {
-			writeSize += hasWritten;
-			if (writeSize >= totalSize || hasWritten == 0) {
-				break;
-			}
-		}
-		fWriteLock.Unlock();
-	}
-	return (hasWritten != 0);
-}
-
-
-bool
-LSPPipeClient::readMessage(std::string &json)
-{
-	json.clear();
-	int length = ReadMessageHeader();
-	if (length == 0)
-		return false;
-	//SkipLine();
-	//std::string read;
-	if (Read(length, json) == 0)
-		return false;
-	LogTrace("Client - rcv %d:\n%s\n", length, json.c_str());
-	return true;
-}
-
-
-bool
-LSPPipeClient::writeMessage(std::string &content)
-{
-	std::string header = "Content-Length: " + std::to_string(content.length()) +
-                       "\r\n\r\n" + content;
-	LogTrace("Client: - snd \n%s\n", content.c_str());
-	return Write(header);
-}
-
-
-LSPPipeClient::LSPPipeClient(uint32 what, BMessenger& msgr)
-	:
-	AsyncJsonTransport(what, msgr),
-	fReaderThread(nullptr)
-{
-}
+// --- Lifecycle ---
 
 
 pid_t
 LSPPipeClient::GetChildPid() const
 {
 	return fPipeImage.GetChildPid();
-}
-
-
-void
-LSPPipeClient::ForceQuit()
-{
-	if (fReaderThread)
-		fReaderThread->Suspend();
-
-	Close();
-	PostMessage(B_QUIT_REQUESTED);
-}
-
-
-void
-LSPPipeClient::KillThread()
-{
-	if (fReaderThread)
-		fReaderThread->Kill();
-}
-
-
-bool
-LSPPipeClient::HasQuitBeenRequested()
-{
-	return fReaderThread && fReaderThread->HasQuitBeenRequested();
-}
-
-
-thread_id
-LSPPipeClient::Run()
-{
-	fReaderThread = new LSPReaderThread(*this);
-	fReaderThread->Start();
-	return BLooper::Run();
-}
-
-
-void
-LSPPipeClient::Quit()
-{
-	KillThread();
-	return BLooper::Quit();
 }

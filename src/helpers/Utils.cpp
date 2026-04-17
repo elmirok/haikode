@@ -1,6 +1,6 @@
 /*
  * Copyright The Genio Contributors
- * Copyright 2017-2019 Kacper Kasper 
+ * Copyright 2017-2019 Kacper Kasper
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 

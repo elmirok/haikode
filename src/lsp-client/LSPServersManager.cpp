@@ -1,10 +1,13 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023-2026, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
 
 #include "LSPServersManager.h"
+
+#include <string>
+#include <vector>
 
 #include <PathFinder.h>
 
@@ -15,8 +18,6 @@
 #include "LSPLogLevels.h"
 #include "LSPProjectWrapper.h"
 
-#include <string>
-#include <vector>
 
 class ClangdServerConfig : public LSPServerConfigInterface {
 public:
@@ -184,7 +185,7 @@ LSPServersManager::DisposeLSPServersConfig()
 LSPProjectWrapper*
 LSPServersManager::CreateLSPProject(const BPath& path, const BMessenger& msgr, const BString& fileType)
 {
-	for (LSPServerConfigInterface* interface: fConfigs) {
+	for (const LSPServerConfigInterface* interface: fConfigs) {
 		if (interface->IsFileTypeSupported(fileType)) {
 			return new LSPProjectWrapper(path, msgr, *interface);
 		}

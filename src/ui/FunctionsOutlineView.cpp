@@ -24,7 +24,7 @@
 #include "GOutlineListView.h"
 #include "Log.h"
 #include "NoticeMessages.h"
-#include "protocol_objects.h"
+#include <lsp/types.h>
 #include "SpinningAnimation.h"
 #include "StyledItem.h"
 #include "ToolBar.h"
@@ -93,112 +93,116 @@ private:
 void
 SymbolListItem::_SetIconAndTooltip()
 {
-	SymbolKind symbolKind;
-	Details().FindInt32("kind", reinterpret_cast<int32*>(&symbolKind));
+	// BMessage stores the LSP wire value (1-26) from lsp::SymbolKindEnum::value().
+	// Reconstruct the lsp::SymbolKind enum index by scanning s_values[].
+	int32 wireValue;
+	Details().FindInt32("kind", &wireValue);
+	lsp::SymbolKindEnum symbolKindEnum;
+	symbolKindEnum = static_cast<lsp::SymbolKindEnum::ValueType>(wireValue);
 	BString toolTip;
-	switch (symbolKind) {
-		case SymbolKind::File:
+	switch (static_cast<lsp::SymbolKind>(symbolKindEnum)) {
+		case lsp::SymbolKind::File:
 			fIconName = "file";
 			toolTip = B_TRANSLATE("File");
 			break;
-		case SymbolKind::Module:
+		case lsp::SymbolKind::Module:
 			fIconName = "namespace";
 			toolTip = B_TRANSLATE("Module");
 			break;
-		case SymbolKind::Namespace:
+		case lsp::SymbolKind::Namespace:
 			fIconName = "namespace";
 			toolTip = B_TRANSLATE("Namespace");
 			break;
-		case SymbolKind::Package:
+		case lsp::SymbolKind::Package:
 			fIconName = "namespace";
 			toolTip = B_TRANSLATE("Package");
 			break;
-		case SymbolKind::Class:
+		case lsp::SymbolKind::Class:
 			fIconName = "class";
 			toolTip = B_TRANSLATE("Class");
 			break;
-		case SymbolKind::Method:
+		case lsp::SymbolKind::Method:
 			fIconName = "method";
 			toolTip = B_TRANSLATE("Method");
 			break;
-		case SymbolKind::Property:
+		case lsp::SymbolKind::Property:
 			fIconName = "property";
 			toolTip = B_TRANSLATE("Property");
 			break;
-		case SymbolKind::Field:
+		case lsp::SymbolKind::Field:
 			fIconName = "field";
 			toolTip = B_TRANSLATE("Field");
 			break;
-		case SymbolKind::Constructor:
+		case lsp::SymbolKind::Constructor:
 			fIconName = "method";
 			toolTip = B_TRANSLATE("Constructor");
 			break;
-		case SymbolKind::Enum:
+		case lsp::SymbolKind::Enum:
 			fIconName = "enum";
 			toolTip = B_TRANSLATE("Enum");
 			break;
-		case SymbolKind::Interface:
+		case lsp::SymbolKind::Interface:
 			fIconName = "interface";
 			toolTip = B_TRANSLATE("Interface");
 			break;
-		case SymbolKind::Function:
+		case lsp::SymbolKind::Function:
 			fIconName = "method";
 			toolTip = B_TRANSLATE("Function");
 			break;
-		case SymbolKind::Variable:
+		case lsp::SymbolKind::Variable:
 			fIconName = "variable";
 			toolTip = B_TRANSLATE("Variable");
 			break;
-		case SymbolKind::Constant:
+		case lsp::SymbolKind::Constant:
 			fIconName = "constant";
 			toolTip = B_TRANSLATE("Constant");
 			break;
-		case SymbolKind::String:
+		case lsp::SymbolKind::String:
 			fIconName = "string";
 			toolTip = B_TRANSLATE("String");
 			break;
-		case SymbolKind::Number:
+		case lsp::SymbolKind::Number:
 			fIconName = "numeric";
 			// TODO: is this correct ?
 			toolTip = "";
 			break;
-		case SymbolKind::Boolean:
+		case lsp::SymbolKind::Boolean:
 			fIconName = "boolean";
 			toolTip = B_TRANSLATE("Boolean");
 			break;
-		case SymbolKind::Array:
+		case lsp::SymbolKind::Array:
 			fIconName = "array";
 			toolTip = B_TRANSLATE("Array");
 			break;
-		case SymbolKind::Object:
+		case lsp::SymbolKind::Object:
 			fIconName = "namespace";
 			toolTip = B_TRANSLATE("Object");
 			break;
-		case SymbolKind::Key:
+		case lsp::SymbolKind::Key:
 			fIconName = "key";
 			toolTip = B_TRANSLATE("Key");
 			break;
-		case SymbolKind::Null: // icon unavailable
+		case lsp::SymbolKind::Null: // icon unavailable
 			fIconName = "misc";
 			toolTip = B_TRANSLATE("Null");
 			break;
-		case SymbolKind::EnumMember:
+		case lsp::SymbolKind::EnumMember:
 			fIconName = "enum-member";
 			toolTip = B_TRANSLATE("Enum member");
 			break;
-		case SymbolKind::Struct:
+		case lsp::SymbolKind::Struct:
 			fIconName = "structure";
 			toolTip = B_TRANSLATE("Structure");
 			break;
-		case SymbolKind::Event:
+		case lsp::SymbolKind::Event:
 			fIconName = "event";
 			toolTip = B_TRANSLATE("Event");
 			break;
-		case SymbolKind::Operator:
+		case lsp::SymbolKind::Operator:
 			fIconName = "operator";
 			toolTip = B_TRANSLATE("Operator");
 			break;
-		case SymbolKind::TypeParameter:
+		case lsp::SymbolKind::TypeParameter:
 			fIconName = "parameter";
 			toolTip = B_TRANSLATE("Type parameter");
 			break;
@@ -297,9 +301,9 @@ private:
 				return;
 
 			const BMessage symbol = item->Details();
-			const Position position = {
-				symbol.GetInt32("start:character", -1),
-				symbol.GetInt32("start:line", -1)
+			const lsp::Position position = {
+				(lsp::uint)symbol.GetInt32("start:line", 0),
+				(lsp::uint)symbol.GetInt32("start:character", 0)
 			};
 
 			auto optionsMenu = new BPopUpMenu("Outline menu", false, false);
@@ -313,9 +317,10 @@ private:
 					new GMessage{
 						{"what", kMsgRenameSymbol},
 						{"index", index},
-						{"start:line", position.line},
-						{"start:character", position.character}});
-			renameItem->SetEnabled((position.line != -1 && position.character != -1));
+						{"start:line", (int32)position.line},
+						{"start:character", (int32)position.character}});
+			renameItem->SetEnabled(symbol.GetInt32("start:line", -1) != -1
+				&& symbol.GetInt32("start:character", -1) != -1);
 			optionsMenu->AddItem(renameItem);
 			optionsMenu->SetTargetForItems(Target());
 			optionsMenu->Go(ConvertToScreen(where), true);
@@ -454,10 +459,8 @@ FunctionsOutlineView::MessageReceived(BMessage* msg)
 		}
 		case kMsgRenameSymbol:
 		{
-			// TODO: GoToSymbol is not synchronous,
-			// so this won't work always correctly
-			if (_GoToSymbol(msg) == B_OK)
-				_RenameSymbol(msg);
+			_GoToSymbol(msg);
+			_RenameSymbol(msg);
 			break;
 		}
 		case kMsgSort:
@@ -650,6 +653,7 @@ FunctionsOutlineView::_GoToSymbol(BMessage *msg)
 void
 FunctionsOutlineView::_RenameSymbol(BMessage *msg)
 {
-	BMessage go(MSG_RENAME);
+	BMessage go = *msg;
+	go.what = MSG_RENAME;
 	gMainWindow->PostMessage(&go);
 }

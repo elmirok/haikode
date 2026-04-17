@@ -520,6 +520,7 @@ GenioWindow::MessageReceived(BMessage* message)
 		case MSG_GOTODEFINITION:
 		case MSG_GOTODECLARATION:
 		case MSG_GOTOIMPLEMENTATION:
+		case MSG_FIND_REFERENCES:
 		case MSG_RENAME:
 		case MSG_SWITCHSOURCE:
 		case MSG_TEXT_OVERWRITE:
@@ -1016,6 +1017,7 @@ GenioWindow::MessageReceived(BMessage* message)
 					LogError("Selecting editor but it's null! (index %d)", index);
 					break;
 				}
+				printf("SELECT %s\n", editor->FilePath().String());
 				const int32 be_line   = message->GetInt32("start:line", -1);
 				const int32 lsp_char  = message->GetInt32("start:character", -1);
 
@@ -1086,6 +1088,7 @@ GenioWindow::MessageReceived(BMessage* message)
 					if (message->GetBool("caret_position", false) == true) {
 						editor->SetSavedCaretPosition();
 					}
+					printf("NEWTAB %s\n", editor->FilePath().String());
 					ProjectFolder* project = editor->GetProjectFolder();
 					if (project != nullptr) {
 						fTabManager->SetTabColor(editor, project->Color());
@@ -1121,6 +1124,12 @@ GenioWindow::MessageReceived(BMessage* message)
 		case MSG_JUMP_GO_FORWARD:
 			JumpNavigator::getInstance()->JumpToNext();
 			break;
+		case kReferences:
+		{
+			fSearchResultTab->SetReferencesResult(message, GetActiveProject()->Path());
+			_ShowOutputTab(kTabSearchResult);
+			break;
+		}
 		default:
 			BWindow::MessageReceived(message);
 			break;
@@ -1710,7 +1719,7 @@ GenioWindow::_FileOpenAtStartup(BMessage* msg)
 	entry_ref ref;
 	int32 refsCount = 0;
 	while (msg->FindRef("refs", refsCount++, &ref) == B_OK) {
-		_FileOpenWithPosition(&ref, false, -1,-1);
+		_FileOpenWithPosition(&ref, false, -1,-1, false);
 	}
 	if (fTabManager->CountTabs() > opened_index) {
 		fTabManager->SelectTab(opened_index);
@@ -1825,7 +1834,7 @@ GenioWindow::_HandleEditorZoom(int32 value)
 
 status_t
 GenioWindow::_FileOpenWithPosition(entry_ref* ref, bool openWithPreferred,
-	int32 be_line, int32 lsp_char)
+	int32 be_line, int32 lsp_char, bool select)
 {
 	if (!BEntry(ref).Exists())
 		return B_ERROR;
@@ -1856,7 +1865,9 @@ GenioWindow::_FileOpenWithPosition(entry_ref* ref, bool openWithPreferred,
 	be_roster->AddToRecentDocuments(ref, GenioNames::kApplicationSignature);
 
 	// Select the newly added tab
-	fTabManager->SelectTab(editor->FileRef(), &selectTabInfo);
+	if (select) {
+		fTabManager->SelectTab(editor->FileRef(), &selectTabInfo);
+	}
 
 	// TODO: Move some other stuff into _PostFileLoad()
 	_PostFileLoad(editor);
@@ -2007,8 +2018,7 @@ GenioWindow::_PostFileLoad(IEditor* editor)
 		}
 	}
 	editor->ApplySettings();
-	if (editor->GetLSPEditorWrapper() != nullptr)
-		editor->GetLSPEditorWrapper()->RequestDocumentSymbols();
+
 	BMessage noticeMessage(MSG_NOTIFY_EDITOR_FILE_OPENED);
 	noticeMessage.AddString("file_name", editor->FilePath());
 	SendNotices(MSG_NOTIFY_EDITOR_FILE_OPENED, &noticeMessage);
@@ -2702,6 +2712,9 @@ GenioWindow::_InitActions()
 	ActionManager::RegisterAction(MSG_GOTOIMPLEMENTATION,
 									B_TRANSLATE("Go to implementation"));
 
+	ActionManager::RegisterAction(MSG_FIND_REFERENCES,
+									B_TRANSLATE("Find references" B_UTF8_ELLIPSIS));
+
 	ActionManager::RegisterAction(MSG_RENAME,
 									B_TRANSLATE("Rename symbol" B_UTF8_ELLIPSIS));
 
@@ -3062,6 +3075,7 @@ GenioWindow::_InitMenu()
 	ActionManager::AddItem(MSG_GOTODEFINITION, searchMenu);
 	ActionManager::AddItem(MSG_GOTODECLARATION, searchMenu);
 	ActionManager::AddItem(MSG_GOTOIMPLEMENTATION, searchMenu);
+	ActionManager::AddItem(MSG_FIND_REFERENCES, searchMenu);
 
 	searchMenu->AddSeparatorItem();
 
@@ -3071,6 +3085,7 @@ GenioWindow::_InitMenu()
 	ActionManager::SetEnabled(MSG_GOTODEFINITION, false);
 	ActionManager::SetEnabled(MSG_GOTODECLARATION, false);
 	ActionManager::SetEnabled(MSG_GOTOIMPLEMENTATION, false);
+	ActionManager::SetEnabled(MSG_FIND_REFERENCES, false);
 	ActionManager::SetEnabled(MSG_FIND_IN_BROWSER, false);
 	fMenuBar->AddItem(searchMenu);
 
@@ -4373,6 +4388,7 @@ GenioWindow::_UpdateTabChange(IEditor* editor, const BString& caller)
 		ActionManager::SetEnabled(MSG_GOTODEFINITION, false);
 		ActionManager::SetEnabled(MSG_GOTODECLARATION, false);
 		ActionManager::SetEnabled(MSG_GOTOIMPLEMENTATION, false);
+		ActionManager::SetEnabled(MSG_FIND_REFERENCES, false);
 		ActionManager::SetEnabled(MSG_FIND_IN_BROWSER, false);
 		ActionManager::SetEnabled(MSG_SWITCHSOURCE, false);
 
@@ -4457,6 +4473,7 @@ GenioWindow::_UpdateTabChange(IEditor* editor, const BString& caller)
 	ActionManager::SetEnabled(MSG_GOTODEFINITION, editor->HasLSPCapability(kLCapDefinition));
 	ActionManager::SetEnabled(MSG_GOTODECLARATION, editor->HasLSPCapability(kLCapDeclaration));
 	ActionManager::SetEnabled(MSG_GOTOIMPLEMENTATION, editor->HasLSPCapability(kLCapImplementation));
+	ActionManager::SetEnabled(MSG_FIND_REFERENCES, editor->HasLSPCapability(kLCapReferences));
 	ActionManager::SetEnabled(MSG_RENAME, editor->HasLSPCapability(kLCapRename));
 	ActionManager::SetEnabled(MSG_FIND_IN_BROWSER, editor->GetProjectFolder() != nullptr);
 	ActionManager::SetEnabled(MSG_SWITCHSOURCE, (editor->FileType().compare("cpp") == 0));

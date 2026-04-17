@@ -1,9 +1,8 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023-2026, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
-#ifndef LSPCapabilities_H
-#define LSPCapabilities_H
+#pragma once
 
 enum LSPCapability {
 	kLCapCompletion           = (1U),
@@ -16,9 +15,8 @@ enum LSPCapability {
 	kLCapHover                = (1U << 7),
 	kLCapSignatureHelp        = (1U << 8),
 	kLCapRename               = (1U << 9),
-	kLCapDocumentSymbols	  = (1U << 10)
+	kLCapDocumentSymbols	  = (1U << 10),
+	kLCapReferences			  = (1U << 11)
 };
 
 #define kMsgCapabilitiesUpdated 'CaUp'
-
-#endif // LSPCapabilities_H

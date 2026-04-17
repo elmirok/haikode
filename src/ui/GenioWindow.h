@@ -82,7 +82,8 @@ private:
 
 			status_t			_FileOpen(BMessage* msg);
 			status_t			_FileOpenAtStartup(BMessage* msg);
-			status_t			_FileOpenWithPosition(entry_ref* ref, bool openWithPreferred,  int32 be_line, int32 lsp_char);
+			status_t			_FileOpenWithPosition(entry_ref* ref, bool openWithPreferred,
+									int32 be_line, int32 lsp_char, bool select = true);
 			status_t            _FileOpenWithPreferredApp(const entry_ref* ref);
 
 			status_t			_FileSave(IEditor* editor);

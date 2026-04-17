@@ -1,47 +1,42 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023-2026, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
 #pragma once
 
-#include <unistd.h>
+#include <atomic>
+#include <thread>
 
 #include "PipeImage.h"
-#include "Transport.h"
+#include "PipeStream.h"
 
-#include <Locker.h>
+#include <lsp/connection.h>
+#include <lsp/messagehandler.h>
 
-class LSPReaderThread;
-class LSPPipeClient : public AsyncJsonTransport {
+class LSPPipeClient {
 
 public:
 
-			 LSPPipeClient(uint32 what, BMessenger& msgr);
+			 LSPPipeClient();
 	virtual ~LSPPipeClient();
 
 	status_t Start(const char **argv, int32 argc);
 
 	void	Close();
 
-	bool 	readMessage(std::string &json) override;
-	bool 	writeMessage(std::string &json) override;
+	lsp::MessageHandler& Handler() { return fHandler; }
 
 	pid_t	GetChildPid() const;
-
-	void	ForceQuit(); //quite the looper and the kill the thread
-	bool	HasQuitBeenRequested();
-	void	KillThread();
+	bool	IsRunning() const { return fRunning.load(); }
 
 private:
-  int 	ReadMessageHeader();
-  bool	ReadHeaderLine(char* header, size_t maxlen);
-  int 	Read(int length, std::string &out);
-  bool 	Write(std::string &in);
-  void	Quit() override;
-  thread_id	Run() override;
+  void	_ReaderLoop();
 
-  BLocker 			fWriteLock;
-  LSPReaderThread*	fReaderThread;
-  PipeImage			fPipeImage;
+  PipeImage				fPipeImage;
+  PipeStream			fPipeStream;
+  lsp::Connection		fConnection;
+  lsp::MessageHandler	fHandler;
+  std::thread			fReaderThread;
+  std::atomic<bool>		fRunning;
 };

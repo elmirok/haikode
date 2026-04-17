@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, Andrea Anzani 
+ * Copyright 2024, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #pragma once
@@ -25,6 +25,8 @@ public:
 										bool caseSensitive, const BString& projectPath);
 			void	AttachedToWindow() override;
 			void	MessageReceived(BMessage *message) override;
+
+			void	SetReferencesResult(BMessage* message, const BString& projectPath);
 
 private:
 	void 	_StartSearch(BString text, bool wholeWord,
