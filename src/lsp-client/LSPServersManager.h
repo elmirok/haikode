@@ -1,9 +1,8 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023-2026, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
-#ifndef LSPServersManager_H
-#define LSPServersManager_H
+#pragma once
 
 #include <vector>
 
@@ -36,6 +35,3 @@ private:
 		static bool _AddValidConfig(LSPServerConfigInterface*);
 		static std::vector<LSPServerConfigInterface*> fConfigs;
 };
-
-
-#endif // LSPServersManager_H

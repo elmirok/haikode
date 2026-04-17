@@ -1,10 +1,11 @@
 /*
- * Copyright 2023, Andrea Anzani
+ * Copyright 2023-2026, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #pragma once
 
 #include "Editor.h"
+
 #include <lsp/types.h>
 #include <cstdio>
 #include <cstring>

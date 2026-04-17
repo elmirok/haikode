@@ -1,10 +1,11 @@
 /*
- * Copyright 2023, Andrea Anzani
+ * Copyright 2023-2026, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #include "CallTipContext.h"
 
 #include <cstring>
+
 #include <String.h>
 #include <Debug.h>
 
