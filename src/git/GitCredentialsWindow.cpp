@@ -31,7 +31,7 @@
 int32 GitCredentialsWindow::sAuthenticationAttempts = 0;
 
 
-GitCredentialsWindow::GitCredentialsWindow(const char* title, bool user, bool password)
+GitCredentialsWindow::GitCredentialsWindow(const char* title, bool username, bool password)
 	:
 	BWindow(BRect(0, 0, 300, 150), title,
 			B_TITLED_WINDOW, B_NOT_RESIZABLE | B_NOT_ZOOMABLE
@@ -81,9 +81,9 @@ GitCredentialsWindow::GitCredentialsWindow(const char* title, bool user, bool pa
 
 
 void
-GitCredentialsWindow::MessageReceived(BMessage* msg)
+GitCredentialsWindow::MessageReceived(BMessage* message)
 {
-	switch (msg->what) {
+	switch (message->what) {
 		case kCredOK:
 			fUsernameString->SetTo(fUsername->Text());
 			if (fPassword != nullptr && fPasswordString != nullptr)
@@ -97,7 +97,7 @@ GitCredentialsWindow::MessageReceived(BMessage* msg)
 			Quit();
 			break;
 		default:
-			BWindow::MessageReceived(msg);
+			BWindow::MessageReceived(message);
 			break;
 	}
 }
@@ -206,7 +206,7 @@ GitCredentialsWindow::authentication_callback(git_credential** out, const char* 
 
 
 static bool
-verify_host_key(const char *host, git_cert_hostkey* sshKeyCert)
+verify_host_key(const char *host, const git_cert_hostkey* sshKeyCert)
 {
 	BPath knownHostsPath;
 	if (find_directory(B_USER_SETTINGS_DIRECTORY, &knownHostsPath) != B_OK)

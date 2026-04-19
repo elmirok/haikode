@@ -33,9 +33,9 @@ class OverScrollBar : public BView {
 		};
 			OverScrollBar(BRect rect, BMessenger target);
 
-	void	SetProblemsData(std::vector<ScrollMarker> markers);
-	void	UpdateSciMarkers(std::vector<ScrollMarker> markers);
-	void	UpdateHighlightMarkers(std::vector<ScrollMarker> markers);
+	void	SetProblemsData(const std::vector<ScrollMarker>& markers);
+	void	UpdateSciMarkers(const std::vector<ScrollMarker>& markers);
+	void	UpdateHighlightMarkers(const std::vector<ScrollMarker>& markers);
 
 	void	SetCursorPosition(float ratio, int32 line);
 
@@ -55,11 +55,11 @@ private:
 
 	bool	_DoubleArrows(const BRect& bounds) const;
 
-	void	_DrawMarkers(Lane& markers, BRect& bounds,
+	void	_DrawMarkers(const Lane& lane, const BRect& bounds,
 							float startPoint,
 							float trackHeight);
 
-	void	_DrawCaret(BRect& bounds, float startPoint, float trackHeight);
+	void	_DrawCaret(const BRect& bounds, float startPoint, float trackHeight);
 
 	void	_UpdateMarkers(uint8 index, std::vector<ScrollMarker> markers);
 

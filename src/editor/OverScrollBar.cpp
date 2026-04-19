@@ -36,21 +36,21 @@ OverScrollBar::OverScrollBar(BRect rect, BMessenger target)
 
 
 void
-OverScrollBar::SetProblemsData(std::vector<ScrollMarker> markers)
+OverScrollBar::SetProblemsData(const std::vector<ScrollMarker>& markers)
 {
 	_UpdateMarkers(PROBLEMS, markers);
 }
 
 
 void
-OverScrollBar::UpdateSciMarkers(std::vector<ScrollMarker> markers)
+OverScrollBar::UpdateSciMarkers(const std::vector<ScrollMarker>& markers)
 {
 	_UpdateMarkers(BOOKMARKS, markers);
 }
 
 
 void
-OverScrollBar::UpdateHighlightMarkers(std::vector<ScrollMarker> markers)
+OverScrollBar::UpdateHighlightMarkers(const std::vector<ScrollMarker>& markers)
 {
 	_UpdateMarkers(HIGHLIGHT, markers);
 }
@@ -186,20 +186,19 @@ OverScrollBar::Draw(BRect /*rect*/)
 
 
 void
-OverScrollBar::_DrawCaret(BRect& r, float startPoint, float trackHeight)
+OverScrollBar::_DrawCaret(const BRect& bounds, float startPoint, float trackHeight)
 {
 	if (fCaretMarker.ratio > -1 ) {
 		float y = (float)(startPoint + fCaretMarker.ratio * trackHeight);
 		SetHighColor({255, 255, 255, 255});
-		FillRect(BRect(r.left + 1, y, r.right - 1, y + 1));
+		FillRect(BRect(bounds.left + 1, y, bounds.right - 1, y + 1));
 	}
 }
 
 
 void
-OverScrollBar::_DrawMarkers(Lane& lane, BRect& r,
-							float startPoint,
-							float trackHeight)
+OverScrollBar::_DrawMarkers(const Lane& lane, const BRect& bounds,
+							float startPoint, float trackHeight)
 {
 	if (lane.markers.empty() == false) {
 		// Cluster markers into pixel rows; keep worst severity per bucket.
@@ -224,8 +223,8 @@ OverScrollBar::_DrawMarkers(Lane& lane, BRect& r,
 			}
 			SetHighColor(color);
 			float y = (float)kv.first;
-			FillRect(BRect(r.left + 1 + lane.rect.left,  y + lane.rect.top,
-						   r.left + 1 + lane.rect.right, y + lane.rect.bottom));
+			FillRect(BRect(bounds.left + 1 + lane.rect.left,  y + lane.rect.top,
+						   bounds.left + 1 + lane.rect.right, y + lane.rect.bottom));
 		}
 	}
 }
