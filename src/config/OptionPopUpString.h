@@ -34,7 +34,7 @@ public:
 		void SetValue(const char* value)
 		{
 			int32 i = 0;
-			for (std::string v : fValueList) {
+			for (const std::string& v : fValueList) {
 				if (v.compare(value) == 0) {
 					BOptionPopUp::SetValue(i);
 					return;

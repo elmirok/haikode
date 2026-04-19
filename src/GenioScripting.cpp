@@ -210,8 +210,8 @@ GenioApp::_HandleScripting(BMessage* data)
 					BMessenger messenger(fGenioWindow);
 					BMessage openReply;
 					messenger.SendMessage(&open, &openReply);
-					auto index = openReply.GetInt32("result", -1);
-					result = reply.AddInt32("result", index);
+					auto indexResult = openReply.GetInt32("result", -1);
+					result = reply.AddInt32("result", indexResult);
 				}
 			}
 			break;
