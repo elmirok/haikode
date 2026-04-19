@@ -8,13 +8,15 @@
 enum {
 	// editor
 	MSG_NOTIFY_EDITOR_FILE_OPENED 		= 'efop',	// file_name (string)
-
+													// file_ref (entry_ref) (optional)
 	MSG_NOTIFY_EDITOR_FILE_CLOSED 		= 'efcx',	// file_name (string)
-
+													// file_ref (entry_ref) (optional)
 	MSG_NOTIFY_EDITOR_POSITION_CHANGED	= 'epch',	// file_name (string)
+													// file_ref (entry_ref) (optional)
 													// line (int32)
 
 	MSG_NOTIFY_FILE_SAVE_STATUS_CHANGED = 'stch',	// file_name (string)
+													// file_ref (entry_ref) (optional)
 													// needs_save (bool)
 
 	// tab selected

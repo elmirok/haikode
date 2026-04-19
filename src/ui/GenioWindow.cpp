@@ -481,6 +481,9 @@ GenioWindow::MessageReceived(BMessage* message)
 					_UpdateSavepointChange(editor, "EDITOR_POSITION_CHANGED");
 
 					BMessage notice(MSG_NOTIFY_EDITOR_POSITION_CHANGED);
+					notice.AddString("file_name", editor->FilePath());
+					if (editor->FileRef() != nullptr)
+						notice.AddRef("file_ref", editor->FileRef());
 					notice.AddInt32("line", message->GetInt32("line", -1));
 					SendNotices(MSG_NOTIFY_EDITOR_POSITION_CHANGED, &notice);
 				}
@@ -1679,6 +1682,8 @@ GenioWindow::_RemoveTab(IEditor* editor)
 	// chose not to save
 	BMessage noticeMessage(MSG_NOTIFY_FILE_SAVE_STATUS_CHANGED);
 	noticeMessage.AddString("file_name", editor->FilePath());
+	if (editor->FileRef() != nullptr)
+		noticeMessage.AddRef("file_ref", editor->FileRef());
 	noticeMessage.AddBool("needs_save", false);
 	SendNotices(MSG_NOTIFY_FILE_SAVE_STATUS_CHANGED, &noticeMessage);
 
@@ -2021,6 +2026,8 @@ GenioWindow::_PostFileLoad(IEditor* editor)
 
 	BMessage noticeMessage(MSG_NOTIFY_EDITOR_FILE_OPENED);
 	noticeMessage.AddString("file_name", editor->FilePath());
+	if (editor->FileRef() != nullptr)
+		noticeMessage.AddRef("file_ref", editor->FileRef());
 	SendNotices(MSG_NOTIFY_EDITOR_FILE_OPENED, &noticeMessage);
 }
 
@@ -4337,6 +4344,8 @@ GenioWindow::_UpdateSavepointChange(IEditor* editor, const BString& caller)
 	if (caller != "EDITOR_POSITION_CHANGED") {
 		BMessage noticeMessage(MSG_NOTIFY_FILE_SAVE_STATUS_CHANGED);
 		noticeMessage.AddString("file_name", editor->FilePath());
+		if (editor->FileRef() != nullptr)
+			noticeMessage.AddRef("file_ref", editor->FileRef());
 		noticeMessage.AddBool("needs_save", editor->IsModified());
 		SendNotices(MSG_NOTIFY_FILE_SAVE_STATUS_CHANGED, &noticeMessage);
 	}
