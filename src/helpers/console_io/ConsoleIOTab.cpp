@@ -71,11 +71,8 @@ ConsoleIOTab::RunCommand(BMessage* message, bool clean, bool notifyMessage)
 	cmd << message->GetString("cmd", "echo error");
 	if (notifyMessage) {
 		cmd << "\n" << _BannerCommand(message->GetString("banner_claim", "command"), "ended     ", true);
-	}
-
-	if (notifyMessage)
 		fContextMessage = *message;
-
+	}
 	return _RunCommand(cmd.String(), clean);
 }
 
