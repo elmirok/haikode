@@ -86,12 +86,13 @@ public:
 		return fIdMap.contains(id);
 	}
 
-	GTabID*	GetTab(tab_id id)
+	GTabID*	GetTab(tab_id id) const
 	{
-		if (!HasTab(id))
+		TabIdMap::const_iterator i = fIdMap.find(id);
+		if (i == fIdMap.end())
 			return nullptr;
 
-		return fIdMap[id].tab;
+		return (i)->second.tab;
 	}
 
 	void SelectTab(tab_id id)
