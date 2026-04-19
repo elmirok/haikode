@@ -88,7 +88,7 @@ EditorTabView::EditorBy(const node_ref* nodeRef)
 IEditor*
 EditorTabView::SelectedEditor() const
 {
-	GTabEditor* tab = dynamic_cast<GTabEditor*>(Container()->SelectedTab());
+	const GTabEditor* tab = dynamic_cast<GTabEditor*>(Container()->SelectedTab());
 	return tab ? tab->GetEditor() :nullptr;
 }
 
@@ -172,7 +172,7 @@ void
 EditorTabView::ForEachEditor(const std::function<bool(IEditor*)>& op)
 {
 	for (int32 i = 0; i < Container()->CountTabs(); i++) {
-		GTabEditor* tab = dynamic_cast<GTabEditor*>(Container()->TabAt(i));
+		const GTabEditor* tab = dynamic_cast<GTabEditor*>(Container()->TabAt(i));
 		if (tab != nullptr) {
 			bool next = op(tab->GetEditor());
 			if (!next)
@@ -186,7 +186,7 @@ void
 EditorTabView::ReverseForEachEditor(const std::function<bool(IEditor*)>& op)
 {
 	for (int32 i = Container()->CountTabs() - 1; i >= 0; i--) {
-		GTabEditor* tab = dynamic_cast<GTabEditor*>(Container()->TabAt(i));
+		const GTabEditor* tab = dynamic_cast<GTabEditor*>(Container()->TabAt(i));
 		if (tab != nullptr) {
 			bool next = op(tab->GetEditor());
 			if (!next)
@@ -233,7 +233,7 @@ EditorTabView::MessageReceived(BMessage* message)
 IEditor*
 EditorTabView::_GetEditor_(const entry_ref* ref) const
 {
-	GTabEditor* tab = _GetTab_(ref);
+	const GTabEditor* tab = _GetTab_(ref);
 	return tab ? tab->GetEditor() : nullptr;
 }
 
@@ -292,7 +292,7 @@ EditorTabView::CreateTabView(GTab* clone)
 void
 EditorTabView::OnTabSelected(GTab* tab)
 {
-	GTabEditor* gtab = dynamic_cast<GTabEditor*>(tab);
+	const GTabEditor* gtab = dynamic_cast<GTabEditor*>(tab);
 	if (gtab == nullptr)
 		return;
 
@@ -457,7 +457,7 @@ EditorTabView::SelectTab(int32 index, BMessage* selInfo)
 IEditor*
 EditorTabView::EditorAt(int32 index)
 {
-	GTabEditor* tab = dynamic_cast<GTabEditor*>(Container()->TabAt(index));
+	const GTabEditor* tab = dynamic_cast<GTabEditor*>(Container()->TabAt(index));
 	return tab ? tab->GetEditor() : nullptr;
 }
 
@@ -465,7 +465,7 @@ EditorTabView::EditorAt(int32 index)
 BMenuItem*
 EditorTabView::CreateMenuItem(GTab* tab)
 {
-	GTabEditor* gtab = dynamic_cast<GTabEditor*>(tab);
+	const GTabEditor* gtab = dynamic_cast<GTabEditor*>(tab);
 	return gtab ? new CircleColorMenuItem(tab->Label(), gtab->Color(), nullptr) : nullptr;
 }
 

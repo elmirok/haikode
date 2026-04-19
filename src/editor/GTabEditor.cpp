@@ -40,7 +40,7 @@ GTabEditor::MaxSize()
 void
 GTabEditor::CloseButtonClicked()
 {
-	EditorTabView* tabView = dynamic_cast<EditorTabView*>(Container()->GetGTabView());
+	const EditorTabView* tabView = dynamic_cast<EditorTabView*>(Container()->GetGTabView());
 	if (tabView != nullptr) {
 		BMessage msg(EditorTabView::kETVCloseTab);
 		msg.AddUInt64(kEditorId, fEditor->Id());
