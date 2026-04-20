@@ -150,8 +150,8 @@ LSPEditorWrapper::ApplyEdit(std::string info)
 
 
 void
-LSPEditorWrapper::SetLSPServer(LSPProjectWrapper* cW) {
-
+LSPEditorWrapper::SetLSPServer(LSPProjectWrapper* cW)
+{
 	ASSERT(cW);
 	ASSERT(fEditor);
 
@@ -161,7 +161,20 @@ LSPEditorWrapper::SetLSPServer(LSPProjectWrapper* cW) {
 	SetFileType(fEditor->FileType().c_str());
 
 	fLSPProjectWrapper = cW;
-	if (!cW->RegisterTextDocument(this)) {
+
+	// the document registration (didOpen, etc..)
+	// is performed in a second step (when the editor is selected for the first time)
+}
+
+void
+LSPEditorWrapper::RegisterDocument()
+{
+	if(fLSPProjectWrapper == nullptr)
+		return;
+
+	LogInfo("Registering Document to LSP [%s]\n", GetFilenameURI().String());
+
+	if (!fLSPProjectWrapper->RegisterTextDocument(this)) {
 		fLSPProjectWrapper = nullptr;
 	}
 }

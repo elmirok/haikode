@@ -303,8 +303,6 @@ EditorTabView::OnTabSelected(GTab* tab)
 	}
 	message.what = kETVSelectedTab;
 	message.AddUInt64(kEditorId, gtab->GetEditor()->Id());
-	//debugger("kETVSelectedTab");
-	printf("kETVSelectedTab OnTabSelected %ld\n", gtab->GetEditor()->Id());
 	fTarget.SendMessage(&message);
 }
 

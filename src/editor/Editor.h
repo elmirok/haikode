@@ -88,6 +88,9 @@ public:
 			filter_result		BeforeModifiersChanged(BMessage* message);
 			void				GrabFocus() override;
 
+			//The editor is now the selected editor.
+			void				Selected() override;
+
 			void				AttachedToWindow() override;
 
 			// Cut, Copy and Paste interface
@@ -297,4 +300,5 @@ private:
 			Sci_Position		fLastWordEndPosition = -1;
 			OverScrollBar*		fOverScrollBar = nullptr;
 			BString				fLastHighlight = "";
+			bool				fFirstTimeSelected = true;
 };

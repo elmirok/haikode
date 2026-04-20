@@ -50,6 +50,9 @@ public:
 	// Focus management
 	virtual void				GrabFocus() = 0;
 
+	//The editor is now the selected editor.
+	virtual void				Selected() = 0;
+
 	// Clipboard operations
 	virtual bool				CanCopy() = 0;
 	virtual void				Copy() = 0;

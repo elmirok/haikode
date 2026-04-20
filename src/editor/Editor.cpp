@@ -684,7 +684,6 @@ Editor::EndOfLineConvert(int32 eolMode)
 void
 Editor::EnsureVisiblePolicy()
 {
-	printf("EnsureVisiblePolicy\n");
 	SendMessage(SCI_ENSUREVISIBLEENFORCEPOLICY,
 		SendMessage(SCI_LINEFROMPOSITION, GetCurrentPosition(), UNSET), UNSET);
 }
@@ -1020,6 +1019,17 @@ void
 Editor::GrabFocus()
 {
 	SendMessage(SCI_GRABFOCUS, UNSET, UNSET);
+}
+
+void
+Editor::Selected()
+{
+	if (fFirstTimeSelected) {
+		EnsureVisiblePolicy();
+		fFirstTimeSelected = false;
+		if (fLSPEditorWrapper)
+			fLSPEditorWrapper->RegisterDocument();
+	}
 }
 
 void
@@ -2070,8 +2080,11 @@ Editor::SetProjectFolder(ProjectFolder* _proj)
 
 	if (fProjectFolder != nullptr) {
 		LSPProjectWrapper* lspProject = fProjectFolder->GetLSPServer(fFileType.c_str());
-		if (lspProject != nullptr)
+		if (lspProject != nullptr) {
 			fLSPEditorWrapper->SetLSPServer(lspProject);
+			if (fFirstTimeSelected == false)
+				fLSPEditorWrapper->RegisterDocument();
+		}
 		else
 			fLSPEditorWrapper->UnsetLSPServer();
 	} else

@@ -38,6 +38,10 @@ public:
 	// IEditor interface - Focus
 	void						GrabFocus() override;
 
+
+	//The editor is now the selected editor.
+	virtual void				Selected() override {};
+
 	// IEditor interface - Clipboard (not supported for images)
 	bool						CanCopy() override { return false; }
 	void						Copy() override {}
