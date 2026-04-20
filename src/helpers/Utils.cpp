@@ -410,11 +410,7 @@ FindSourceOrHeader(const entry_ref* editorRef, entry_ref* foundRef)
 BPath
 GetUserSettingsDirectory()
 {
-	BPath userPath;
-	status_t status = find_directory(B_USER_SETTINGS_DIRECTORY, &userPath, true);
-	if (status == B_OK)
-		userPath.Append(GenioNames::kApplicationName);
-	return userPath;
+	return GetDataDirectoryByWhich(B_USER_SETTINGS_DIRECTORY);
 }
 
 
@@ -433,23 +429,34 @@ GetGenioDirectory(BPath& destPath)
 	return false;
 }
 
+BPath
+GetDataDirectoryByWhich(directory_which which)
+{
+	BPath genioPath;
+	if (find_directory(which, &genioPath, true) == B_OK) {
+		genioPath.Append(GenioNames::kApplicationName);
+		if (BEntry(genioPath.Path(), true).IsDirectory())
+			return genioPath;
+	}
+	return "";
+}
 
 BPath
 GetDataDirectory()
 {
-	BPath genioPath;
-	// /system/data/Genio when installed from package
-	if (find_directory(B_SYSTEM_DATA_DIRECTORY, &genioPath, true) == B_OK) {
-		genioPath.Append("Genio");
-		if (BEntry(genioPath.Path(), true).IsDirectory())
-			return genioPath;
-	}
+	BPath genioPath = GetDataDirectoryByWhich(B_SYSTEM_DATA_DIRECTORY);
 
 	// When running from repository folder
 	// TODO: Would be nice to check this before the other one
 	// but it's troubling when isntalled from packages,
 	// because it ends up in /system/data/ and not in /system/data/Genio/
-	return GetNearbyDataDirectory();
+
+	// this is mostly for backward compatibility.
+	// TODO REMOVE.
+	if (genioPath == "")
+		return GetNearbyDataDirectory();
+	else
+		return genioPath;
 }
 
 
@@ -625,7 +632,7 @@ Base64Decode(const std::string& string, unsigned char*& outDecoded, size_t& outL
 std::string
 SHA256Hash(unsigned char* buffer, size_t length)
 {
-	// Calculate sha256 
+	// Calculate sha256
 	unsigned char hash[EVP_MAX_MD_SIZE];
 	unsigned int hashLen;
 	EVP_MD_CTX *mdctx = EVP_MD_CTX_new();

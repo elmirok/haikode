@@ -39,10 +39,11 @@ namespace {
 
 void
 DoInAllDataDirectories(std::function<void(const BPath&)> func) {
-	//Fix me order accoring to the visibily rules we want to set.
 	func(GetNearbyDataDirectory());
-	func(GetDataDirectory());
-	func(GetUserSettingsDirectory());
+	func(GetDataDirectoryByWhich(B_USER_SETTINGS_DIRECTORY));
+	func(GetDataDirectoryByWhich(B_USER_NONPACKAGED_DATA_DIRECTORY));
+	func(GetDataDirectoryByWhich(B_SYSTEM_NONPACKAGED_DATA_DIRECTORY));
+	func(GetDataDirectoryByWhich(B_SYSTEM_DATA_DIRECTORY));
 }
 
 void
