@@ -57,9 +57,7 @@ EditorTabView::AddEditor(const char* label, IEditor* editor, BMessage* info, int
 		message = *info;
 	message.what = kETVNewTab;
 	message.AddUInt64(kEditorId, editor->Id());
-	//printf("Sending NEWTAB.. (AddEditor)\n");
 	fTarget.SendMessage(&message);
-
 
 	AddTab(tab, editor->View(), index);
 }
