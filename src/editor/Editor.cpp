@@ -684,6 +684,7 @@ Editor::EndOfLineConvert(int32 eolMode)
 void
 Editor::EnsureVisiblePolicy()
 {
+	printf("EnsureVisiblePolicy\n");
 	SendMessage(SCI_ENSUREVISIBLEENFORCEPOLICY,
 		SendMessage(SCI_LINEFROMPOSITION, GetCurrentPosition(), UNSET), UNSET);
 }
@@ -1873,10 +1874,8 @@ Editor::SetSavedCaretPosition()
 	if (bytes < (int32) sizeof(pos))
 		return B_ERROR; //TODO maybe tweak + cast
 
-	SendMessage(SCI_ENSUREVISIBLEENFORCEPOLICY,
-			SendMessage(SCI_LINEFROMPOSITION, pos, UNSET), UNSET);
-
 	SendMessage(SCI_GOTOPOS, pos, UNSET);
+	EnsureVisiblePolicy();
 
 	return B_OK;
 }
