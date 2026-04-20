@@ -1,4 +1,6 @@
 # Nim - COMPLETE keyword list
+name: Nim
+extensions: [ nim, nims, nimble, nim.cfg ]
 lexer: nim
 properties:
     fold: 1

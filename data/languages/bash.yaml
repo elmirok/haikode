@@ -1,4 +1,6 @@
 # Bash
+name: Bash
+extensions: [ sh, bash, bsh, csh, ksh, configure ]
 lexer: bash
 properties:
     fold: 1

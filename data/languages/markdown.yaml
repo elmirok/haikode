@@ -1,4 +1,6 @@
 # Markdown
+name: Markdown
+extensions: [ md, markdown ]
 lexer: markdown
 styles:
     0: 32

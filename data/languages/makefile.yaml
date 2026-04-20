@@ -1,4 +1,6 @@
 # Makefile
+name: Makefile
+extensions: [ mk, mak, Makefile, Makefile.am, makefile ]
 lexer: makefile
 comments:
     line: "#"

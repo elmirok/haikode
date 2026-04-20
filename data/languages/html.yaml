@@ -1,4 +1,6 @@
 # HTML
+name: HTML
+extensions: [ html, htm, shtml, shtm, xhtml, xht, hta ]
 lexer: hypertext
 properties:
     fold: 1

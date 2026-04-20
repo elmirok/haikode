@@ -1,4 +1,6 @@
 # XML
+name: XML
+extensions: [ xml, xaml, xsl, xslt, xsd, xul, kml, svg, mxml, xsml, wsdl, xlf, xliff, xbl, sxbl, pimx, config, vsixmanifest, manifest, proj, csproj, vbproj, fsproj, vcproj, vcxproj, nproj, pyproj, javaproj, wixproj, filters, settings, testsettings, vsmdi, ruleset, rules, targets, props, vsprops, propdesc, resx, rdlc rdl swidtag gml gtt gpx ]
 lexer: xml
 properties:
     fold: 1

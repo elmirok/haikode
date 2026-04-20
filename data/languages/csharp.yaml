@@ -1,4 +1,6 @@
 # CSharp
+name: "C#"
+extensions: [ cs, csproj, sln, cake ]
 lexer: cpp
 properties:
     fold: 1

@@ -1,4 +1,6 @@
 # AWK
+name: AWK
+extensions: [ awk ]
 # adapted from SciTE
 lexer: perl
 keywords:

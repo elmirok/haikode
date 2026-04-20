@@ -1,4 +1,6 @@
 # PHP
+name: PHP
+extensions: [ php, php3, php4, php5, phps, phpt, phtml ]
 lexer: phpscript
 keywords:
     4: >

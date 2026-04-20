@@ -1,4 +1,6 @@
 # Ruby
+name: Ruby
+extensions: [ rb, rbw, rake, rjs, Rakefile ]
 # adapted from SciTE
 lexer: ruby
 keywords:

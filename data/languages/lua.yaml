@@ -1,4 +1,6 @@
 # Lua
+name: Lua
+extensions: [ lua ]
 lexer: lua
 properties:
     fold: 1

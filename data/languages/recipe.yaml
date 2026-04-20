@@ -1,4 +1,6 @@
 lexer: bash
+name: Recipe
+extensions: [ recipe ]
 properties:
     fold: 1
     fold.comment: 1

@@ -1,4 +1,6 @@
 # C++
+name: C++
+extensions: [ cc, cpp, cxx, h, hh, hpp, hxx, dox ]
 lexer: cpp
 properties:
     fold: 1
