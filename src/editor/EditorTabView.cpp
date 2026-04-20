@@ -43,10 +43,12 @@ EditorTabView::~EditorTabView()
 
 
 void
-EditorTabView::AddEditor(const char* label, IEditor* editor, BMessage* info)
+EditorTabView::AddEditor(const char* label, IEditor* editor, BMessage* info, int32 index)
 {
 	// by default the new editor is placed next to the selected one.
-	int32 index = SelectedTabIndex() + 1;
+	if (index == -1)
+		index = SelectedTabIndex() + 1;
+
 	GTabEditor*	tab = new GTabEditor(label, this, editor);
 
 
@@ -303,7 +305,8 @@ EditorTabView::OnTabSelected(GTab* tab)
 	}
 	message.what = kETVSelectedTab;
 	message.AddUInt64(kEditorId, gtab->GetEditor()->Id());
-//	printf("kETVSelectedTab OnTabSelected %ld\n", gtab->GetEditor()->Id());
+	//debugger("kETVSelectedTab");
+	printf("kETVSelectedTab OnTabSelected %ld\n", gtab->GetEditor()->Id());
 	fTarget.SendMessage(&message);
 }
 
@@ -448,7 +451,7 @@ EditorTabView::SelectTab(int32 index, BMessage* selInfo)
 		}
 		message.what = kETVSelectedTab;
 		message.AddUInt64(kEditorId, tab->GetEditor()->Id());
-		//printf("kETVSelectedTab SelectTab\n");
+		printf("kETVSelectedTab EditorTabView::SelectTab\n");
 		fTarget.SendMessage(&message);
 	}
 }

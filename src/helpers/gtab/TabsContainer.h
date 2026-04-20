@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, Andrea Anzani 
+ * Copyright 2024, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #pragma once
@@ -26,6 +26,8 @@ public:
 	int32	IndexOfTab(GTab* tab) const;
 
 	GTab*	SelectedTab() const;
+
+	void	EnsureTabIsDisplayed(GTab* tab);
 
 	void	ShiftTabs(int32 delta, const char* src); // 0 to refresh the current state
 	void	SetFrontTab(GTab* tab);

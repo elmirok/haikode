@@ -1543,10 +1543,10 @@ GenioWindow::QuitRequested()
 
 
 IEditor*
-GenioWindow::_AddEditorTab(entry_ref* ref, BMessage* addInfo)
+GenioWindow::_AddEditorTab(entry_ref* ref, BMessage* addInfo, int32 index)
 {
 	IEditor* editor = EditorManager::CreateEditor(ref, BMessenger(this));
-	fTabManager->AddEditor(ref->name, editor, addInfo);
+	fTabManager->AddEditor(ref->name, editor, addInfo, index);
 	return editor;
 }
 
@@ -1720,15 +1720,45 @@ GenioWindow::_FileCloseAll()
 status_t
 GenioWindow::_FileOpenAtStartup(BMessage* msg)
 {
+	// strategy to select just one tab:
+	// get the opened_index, open it (it will be selected)
+	// load the tabs before and after.
+	// final touch: ensure the selected is visible!
+
+	type_code typeFound;
 	int32 opened_index = msg->GetInt32("opened_index", 0);
+	int32 countFound = 0;
+	if (msg->GetInfo("refs", &typeFound, &countFound) != B_OK ||
+		countFound <= 0) {
+		return B_ERROR; //?
+	}
+
+	if (opened_index >= countFound)
+		opened_index = 0;
+
 	entry_ref ref;
-	int32 refsCount = 0;
-	while (msg->FindRef("refs", refsCount++, &ref) == B_OK) {
+	//Let's open the selected:
+	if (msg->FindRef("refs", opened_index, &ref) == B_OK) {
 		_FileOpenWithPosition(&ref, false, -1,-1, false);
+	} else {
+		opened_index = 0;
 	}
-	if (fTabManager->CountTabs() > opened_index) {
-		fTabManager->SelectTab(opened_index);
+
+	//tabs after
+	for (int32 i = opened_index + 1; i < countFound; i++) {
+		if (msg->FindRef("refs", i, &ref) == B_OK) {
+			_FileOpenWithPosition(&ref, false, -1,-1, false);
+		}
 	}
+
+	//tabs before
+	for (int32 i = opened_index - 1; i >= 0; i--) {
+		if (msg->FindRef("refs", i, &ref) == B_OK) {
+			_FileOpenWithPosition(&ref, false, -1,-1, false, 0);
+		}
+	}
+
+	fTabManager->EnsureSelectedIsDisplayed();
 	return B_OK;
 }
 
@@ -1839,7 +1869,7 @@ GenioWindow::_HandleEditorZoom(int32 value)
 
 status_t
 GenioWindow::_FileOpenWithPosition(entry_ref* ref, bool openWithPreferred,
-	int32 be_line, int32 lsp_char, bool select)
+	int32 be_line, int32 lsp_char, bool select, int32 index)
 {
 	if (!BEntry(ref).Exists())
 		return B_ERROR;
@@ -1853,7 +1883,7 @@ GenioWindow::_FileOpenWithPosition(entry_ref* ref, bool openWithPreferred,
 	//this will force getting the caret position from file attributes when loaded.
 	GMessage selectTabInfo = {{ "caret_position", true }, {"start:line", be_line},{"start:character", lsp_char}};
 
-	IEditor* editor = _AddEditorTab(ref, &selectTabInfo);
+	IEditor* editor = _AddEditorTab(ref, &selectTabInfo, index);
 
 	if (editor == nullptr) {
 		LogError("Failed adding editor");

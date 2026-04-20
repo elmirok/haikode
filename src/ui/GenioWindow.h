@@ -67,7 +67,7 @@ public:
 private:
 			void				_PrepareWorkspace();
 
-			IEditor*			_AddEditorTab(entry_ref* ref, BMessage* addInfo);
+			IEditor*			_AddEditorTab(entry_ref* ref, BMessage* addInfo, int32 index);
 			status_t			_RemoveTab(IEditor* editor);
 
 			status_t			_BuildProject();
@@ -83,7 +83,7 @@ private:
 			status_t			_FileOpen(BMessage* msg);
 			status_t			_FileOpenAtStartup(BMessage* msg);
 			status_t			_FileOpenWithPosition(entry_ref* ref, bool openWithPreferred,
-									int32 be_line, int32 lsp_char, bool select = true);
+									int32 be_line, int32 lsp_char, bool select = true, int32 index = -1);
 			status_t            _FileOpenWithPreferredApp(const entry_ref* ref);
 
 			status_t			_FileSave(IEditor* editor);

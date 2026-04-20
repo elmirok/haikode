@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, Andrea Anzani 
+ * Copyright 2024, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -32,7 +32,7 @@ public:
 		BCardView::Draw(rect);
 		DropZoneDraw(this, rect);
 	}
-	
+
 	void MouseUp(BPoint where) override {
 		DropZoneMouseUp(this, where);
 	}
@@ -351,6 +351,12 @@ GTabView::SelectTab(GTab* tab)
 
 	fTabsContainer->SetFrontTab(tab);
 	OnTabSelected(tab);
+}
+
+void
+GTabView::EnsureSelectedIsDisplayed()
+{
+	fTabsContainer->EnsureTabIsDisplayed(fTabsContainer->SelectedTab());
 }
 
 

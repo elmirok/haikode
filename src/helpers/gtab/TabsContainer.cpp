@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, Andrea Anzani 
+ * Copyright 2024, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -132,29 +132,33 @@ TabsContainer::SetFrontTab(GTab* tab)
 		if (fSelectedTab)
 			fSelectedTab->SetIsFront(true);
 
-		int32 index = IndexOfTab(fSelectedTab);
-		if (fTabShift >= index) {
-			ShiftTabs(index - fTabShift, "select tab");
-		} else {
-			// let's ensure at least the tab's "middle point"
-			// is visible.
-			float middle = fSelectedTab->Frame().right - (fSelectedTab->Frame().Width() / 2.0f);
-			if (middle > Bounds().right) {
-				int32 shift = 0;
-				for (int32 i = fTabShift; i < CountTabs(); i++) {
-					GTab* nextTab = TabAt(i);
-					middle -= nextTab->Bounds().Width();
-					shift++;
-					if (middle < Bounds().right) {
-						break;
-					}
-				}
-				ShiftTabs(shift, "select tab_2");
-			}
-		}
+		EnsureTabIsDisplayed(fSelectedTab);
 	}
 }
 
+void
+TabsContainer::EnsureTabIsDisplayed(GTab* tab)
+{
+	int32 index = IndexOfTab(tab);
+	if (fTabShift >= index) {
+		ShiftTabs(index - fTabShift, "shift left");
+	} else {
+		// let's ensure most of the tab is visible.
+		float middle = tab->Frame().right - 5.0f;
+		if (middle > Bounds().right) {
+			int32 shift = 0;
+			for (int32 i = fTabShift; i < CountTabs(); i++) {
+				GTab* nextTab = TabAt(i);
+				middle -= nextTab->Bounds().Width();
+				shift++;
+				if (middle < Bounds().right) {
+					break;
+				}
+			}
+			ShiftTabs(shift, "shift right");
+		}
+	}
+}
 
 void
 TabsContainer::ShiftTabs(int32 delta, const char* src)

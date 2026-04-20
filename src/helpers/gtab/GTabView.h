@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, Andrea Anzani 
+ * Copyright 2024, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #pragma once
@@ -42,6 +42,8 @@ class GTabView : public BGroupView {
 
 			void	MoveTabs(GTab* fromTab, GTab* toTab, TabsContainer* fromContainer);
 			void	SelectTab(GTab* tab);
+
+			void	EnsureSelectedIsDisplayed();
 
 	virtual void	OnMenuTabButton();
 

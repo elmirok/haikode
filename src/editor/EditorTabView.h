@@ -29,7 +29,7 @@ public:
 			 EditorTabView(BMessenger target, button_width tabWidth = B_WIDTH_AS_USUAL);
 			~EditorTabView();
 
-	void	AddEditor(const char* label, IEditor* editor, BMessage* info = nullptr);
+	void	AddEditor(const char* label, IEditor* editor, BMessage* info = nullptr, int32 index = -1);
 
 	IEditor* SelectedEditor() const;
 
