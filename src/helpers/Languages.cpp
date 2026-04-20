@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023, Andrea Anzani
  * Copyright 2014-2018 Kacper Kasper  (from Koder editor)
  * All rights reserved. Distributed under the terms of the MIT license.
  */
@@ -39,6 +39,8 @@ namespace {
 
 void
 DoInAllDataDirectories(std::function<void(const BPath&)> func) {
+	//Fix me order accoring to the visibily rules we want to set.
+	func(GetNearbyDataDirectory());
 	func(GetDataDirectory());
 	func(GetUserSettingsDirectory());
 }
@@ -164,6 +166,9 @@ Languages::_ApplyLanguage(Editor* editor, const char* lang, const BPath &path)
 	p.Append(lang);
 	BString fileName(p.Path());
 	fileName.Append(".yaml");
+
+		printf("Applying language %s using file %s\n", lang, fileName.String());
+
 	if (!BEntry(fileName.String()).Exists()) {
 		// TODO: Workaround for a bug in Haiku x86_32: exceptions
 		// thrown inside yaml_cpp aren't catchable. We throw this exception
@@ -303,25 +308,49 @@ Languages::_LoadLanguages(const BPath& path)
 {
 	BPath p(path);
 	p.Append("languages");
-	BString fileName(p.Path());
-	fileName.Append(".yaml");
-	if (!BEntry(fileName.String()).Exists()) {
-		// TODO: Workaround for a bug in Haiku x86_32: exceptions
-		// thrown inside yaml_cpp aren't catchable. We throw this exception
-		// inside Genio and that works.
-		throw YAML::BadFile(fileName.String());
+
+	BDirectory languages(p.Path());
+	if (languages.InitCheck() != B_OK) {
+		LogError("Can't reading the language directory: %s", p.Path());
+		printf("Can't reading the language directory: %s\n", p.Path());
+		return;
 	}
-	const YAML::Node languages = YAML::LoadFile(std::string(p.Path()) + ".yaml");
-	for(const auto& language : languages) {
-		auto name = language.first.as<std::string>();
-		auto menuitem = language.second["name"].as<std::string>();
-		auto extensions = language.second["extensions"].as<std::vector<std::string>>();
-		for(auto extension : extensions) {
-			sExtensions[extension] = name;
-			LogInfo("Extension [%s] for language [%s]", extension.c_str(), name.c_str());
+	printf("Reading the language directory: %s\n", p.Path());
+	entry_ref ref;
+	while(languages.GetNextRef(&ref) == B_OK) {
+
+		printf("--> Language file: %s\n", ref.name);
+
+		std::string name(ref.name);
+		if (name.ends_with(".yaml") == false) {
+			continue;
 		}
-		if(std::find(sLanguages.begin(), sLanguages.end(), name) == sLanguages.end())
-			sLanguages.push_back(name);
-		sMenuItems[name] = menuitem;
+
+		name.resize(name.size() - 5);
+
+		BEntry entry(&ref);
+		if (entry.InitCheck() == B_OK && entry.IsFile()) {
+			BPath languageFile(&ref);
+			printf("--> Language file: %s\n", languageFile.Path());
+
+			try {
+				const YAML::Node lang = YAML::LoadFile(languageFile.Path());
+				std::string menuname = lang["name"].as<std::string>();
+				auto extensions = lang["extensions"].as<std::vector<std::string>>();
+				for (const auto& ext : extensions) {
+					sExtensions[ext] = name;
+					printf("Extension [%s] for language [%s]\n", ext.c_str(), name.c_str());
+				}
+
+				//NOTE: strong assumption name == filename (.yaml)
+				if(std::find(sLanguages.begin(), sLanguages.end(), name) == sLanguages.end())
+					sLanguages.push_back(name);
+
+				sMenuItems[name] = menuname;
+
+			} catch (const YAML::Exception & e)  {
+				printf("Error reading %s (%s)\n", languageFile.Path(), e.msg.c_str());
+			}
+		}
 	}
 }
