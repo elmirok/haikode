@@ -447,7 +447,7 @@ EditorTabView::SelectTab(int32 index, BMessage* selInfo)
 		}
 		message.what = kETVSelectedTab;
 		message.AddUInt64(kEditorId, tab->GetEditor()->Id());
-		printf("kETVSelectedTab EditorTabView::SelectTab\n");
+		//printf("kETVSelectedTab EditorTabView::SelectTab\n");
 		fTarget.SendMessage(&message);
 	}
 }
