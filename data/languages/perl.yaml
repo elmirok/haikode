@@ -1,4 +1,6 @@
 # Perl
+name: Perl
+extensions: [ pl, pm, pod ]
 # adapted from SciTE
 lexer: perl
 keywords:

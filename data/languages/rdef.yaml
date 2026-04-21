@@ -1,4 +1,6 @@
 # RDef
+name: RDef
+extensions: [ rdef ]
 lexer: cpp
 properties:
     fold: 1

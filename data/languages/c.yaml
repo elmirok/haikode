@@ -1,4 +1,6 @@
 # C
+name: C
+extensions: [ c ]
 lexer: cpp
 properties:
     fold: 1

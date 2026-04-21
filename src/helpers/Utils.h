@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019 Kacper Kasper 
+ * Copyright 2017-2019 Kacper Kasper
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -7,6 +7,7 @@
 #define UTILS_H
 
 
+#include <FindDirectory.h>
 #include <string>
 
 #include <Alert.h>
@@ -24,6 +25,7 @@ struct entry_ref;
 rgb_color	TextColorByLuminance(rgb_color background);
 
 bool	GetGenioDirectory(BPath& destPath);
+BPath	GetDataDirectoryByWhich(directory_which which);
 BPath	GetDataDirectory();
 BPath	GetUserSettingsDirectory();
 BPath	GetNearbyDataDirectory();

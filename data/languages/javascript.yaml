@@ -1,4 +1,6 @@
 # JavaScript
+name: JavaScript
+extensions: [ js, jsm, json, ts ]
 lexer: cpp
 properties:
     fold: 1

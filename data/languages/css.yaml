@@ -1,4 +1,6 @@
 # CSS
+name: CSS
+extensions: [ css ]
 lexer: css
 properties:
 keywords:

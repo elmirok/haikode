@@ -1,4 +1,6 @@
 # Python
+name: Python
+extensions: [ py, pyw ]
 lexer: python
 properties:
     fold: 1

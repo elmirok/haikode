@@ -1,4 +1,6 @@
 # YAML
+name: YAML
+extensions: [ yml, yaml ]
 lexer: yaml
 comments:
     line: "#"

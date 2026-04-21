@@ -1,4 +1,6 @@
 # YAB
+name: YAB
+extensions: [ yab ]
 lexer: yab
 properties:
     fold: 1

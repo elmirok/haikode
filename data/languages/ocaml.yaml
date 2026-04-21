@@ -1,4 +1,6 @@
 # OCaml
+name: OCaml
+extensions: [ ml, mli, sml, thy ]
 lexer: caml
 keywords:
     0: >

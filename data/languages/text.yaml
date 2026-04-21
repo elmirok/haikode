@@ -1,2 +1,4 @@
 # Text file
+name: Text file
+extensions: [ txt ]
 lexer: null

@@ -1,4 +1,6 @@
 # GDScript
+name: GDScript
+extensions: [ gd ]
 lexer: python
 properties:
     fold: 1

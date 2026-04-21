@@ -1,4 +1,6 @@
 lexer: jam
+name: Jam
+extensions: [ Jamfile, Jamrules, Jambase ]
 properties:
     fold: 1
     fold.comment: 1

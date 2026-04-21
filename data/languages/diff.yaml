@@ -1,4 +1,6 @@
 # Diff
+name: Diff
+extensions: [ diff, patch, patchset ]
 lexer: diff
 styles:
     0: 32

@@ -1,4 +1,6 @@
 # Rust
+name: Rust
+extensions: [ rs ]
 # adapted from SciTE
 lexer: rust
 keywords:
