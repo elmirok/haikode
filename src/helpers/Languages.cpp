@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, Andrea Anzani
+ * Copyright 2023-2026, Andrea Anzani
  * Copyright 2014-2018 Kacper Kasper  (from Koder editor)
  * All rights reserved. Distributed under the terms of the MIT license.
  */
@@ -158,6 +158,9 @@ Languages::ApplyLanguage(Editor* editor, const char* lang)
 /* static */ std::map<int, int>
 Languages::_ApplyLanguage(Editor* editor, const char* lang, const BPath &path)
 {
+
+	LogDebug("Applying language %s using path %s\n", lang, path.Path());
+
 	if(sLexerLibraries.empty() == true)
 		return {};
 	// TODO: early exit if lexer not changed
@@ -167,8 +170,6 @@ Languages::_ApplyLanguage(Editor* editor, const char* lang, const BPath &path)
 	p.Append(lang);
 	BString fileName(p.Path());
 	fileName.Append(".yaml");
-
-		printf("Applying language %s using file %s\n", lang, fileName.String());
 
 	if (!BEntry(fileName.String()).Exists()) {
 		// TODO: Workaround for a bug in Haiku x86_32: exceptions
@@ -313,14 +314,13 @@ Languages::_LoadLanguages(const BPath& path)
 	BDirectory languages(p.Path());
 	if (languages.InitCheck() != B_OK) {
 		LogError("Can't reading the language directory: %s", p.Path());
-		printf("Can't reading the language directory: %s\n", p.Path());
 		return;
 	}
-	printf("Reading the language directory: %s\n", p.Path());
+	LogDebug("Reading the language directory: %s\n", p.Path());
 	entry_ref ref;
 	while(languages.GetNextRef(&ref) == B_OK) {
 
-		printf("--> Language file: %s\n", ref.name);
+		LogTrace("--> Language file: %s\n", ref.name);
 
 		std::string name(ref.name);
 		if (name.ends_with(".yaml") == false) {
@@ -332,7 +332,7 @@ Languages::_LoadLanguages(const BPath& path)
 		BEntry entry(&ref);
 		if (entry.InitCheck() == B_OK && entry.IsFile()) {
 			BPath languageFile(&ref);
-			printf("--> Language file: %s\n", languageFile.Path());
+			LogTrace("--> Language file: %s\n", languageFile.Path());
 
 			try {
 				const YAML::Node lang = YAML::LoadFile(languageFile.Path());
@@ -340,7 +340,7 @@ Languages::_LoadLanguages(const BPath& path)
 				auto extensions = lang["extensions"].as<std::vector<std::string>>();
 				for (const auto& ext : extensions) {
 					sExtensions[ext] = name;
-					printf("Extension [%s] for language [%s]\n", ext.c_str(), name.c_str());
+					LogTrace("Extension [%s] for language [%s]\n", ext.c_str(), name.c_str());
 				}
 
 				//NOTE: strong assumption name == filename (.yaml)
@@ -350,7 +350,7 @@ Languages::_LoadLanguages(const BPath& path)
 				sMenuItems[name] = menuname;
 
 			} catch (const YAML::Exception & e)  {
-				printf("Error reading %s (%s)\n", languageFile.Path(), e.msg.c_str());
+				LogError("Error reading %s (%s)\n", languageFile.Path(), e.msg.c_str());
 			}
 		}
 	}
