@@ -324,10 +324,17 @@ Languages::_LoadLanguages(const BPath& path)
 
 		std::string name(ref.name);
 		if (name.ends_with(".yaml") == false) {
+			LogTrace("    invalid filename: %s\n", ref.name);
 			continue;
 		}
 
 		name.resize(name.size() - 5);
+
+		//The configuration is already present.
+		if(std::find(sLanguages.begin(), sLanguages.end(), name) != sLanguages.end()) {
+			LogTrace("    configuration already loaded: %s\n", ref.name);
+			continue;
+		}
 
 		BEntry entry(&ref);
 		if (entry.InitCheck() == B_OK && entry.IsFile()) {
@@ -343,10 +350,7 @@ Languages::_LoadLanguages(const BPath& path)
 					LogTrace("Extension [%s] for language [%s]\n", ext.c_str(), name.c_str());
 				}
 
-				//NOTE: strong assumption name == filename (.yaml)
-				if(std::find(sLanguages.begin(), sLanguages.end(), name) == sLanguages.end())
-					sLanguages.push_back(name);
-
+				sLanguages.push_back(name);
 				sMenuItems[name] = menuname;
 
 			} catch (const YAML::Exception & e)  {
