@@ -85,16 +85,20 @@ TabsContainer::RemoveTab(GTab* tab)
 {
 	ASSERT(tab != nullptr);
 
-	int32 selectedIndex = IndexOfTab(tab);
+	int32 removedIndex = IndexOfTab(tab);
 	tab->LayoutItem()->RemoveSelf();
 	tab->RemoveSelf();
 
-	if (CountTabs() == 0) {
-		_SelectTabOnTabView(nullptr);
-	} else  if (selectedIndex >= CountTabs()) {
-		_SelectTabOnTabView(TabAt(CountTabs() - 1));
-	} else {
-		_SelectTabOnTabView(TabAt(selectedIndex));
+	// Updating the selection should happen only
+	// if we are removing the selected tab..
+	if (tab == SelectedTab()) {
+		if (CountTabs() == 0) {
+			_SelectTabOnTabView(nullptr);
+		} else  if (removedIndex >= CountTabs()) {
+			_SelectTabOnTabView(TabAt(CountTabs() - 1));
+		} else {
+			_SelectTabOnTabView(TabAt(removedIndex));
+		}
 	}
 
 	delete tab->LayoutItem();

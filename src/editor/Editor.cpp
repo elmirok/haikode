@@ -1022,6 +1022,17 @@ Editor::GrabFocus()
 }
 
 void
+Editor::Selected()
+{
+	if (fFirstTimeSelected) {
+		EnsureVisiblePolicy();
+		fFirstTimeSelected = false;
+		if (fLSPEditorWrapper)
+			fLSPEditorWrapper->RegisterDocument();
+	}
+}
+
+void
 Editor::AttachedToWindow()
 {
 	BScintillaView::AttachedToWindow();
@@ -1873,10 +1884,8 @@ Editor::SetSavedCaretPosition()
 	if (bytes < (int32) sizeof(pos))
 		return B_ERROR; //TODO maybe tweak + cast
 
-	SendMessage(SCI_ENSUREVISIBLEENFORCEPOLICY,
-			SendMessage(SCI_LINEFROMPOSITION, pos, UNSET), UNSET);
-
 	SendMessage(SCI_GOTOPOS, pos, UNSET);
+	EnsureVisiblePolicy();
 
 	return B_OK;
 }
@@ -2071,8 +2080,11 @@ Editor::SetProjectFolder(ProjectFolder* _proj)
 
 	if (fProjectFolder != nullptr) {
 		LSPProjectWrapper* lspProject = fProjectFolder->GetLSPServer(fFileType.c_str());
-		if (lspProject != nullptr)
+		if (lspProject != nullptr) {
 			fLSPEditorWrapper->SetLSPServer(lspProject);
+			if (!fFirstTimeSelected)
+				fLSPEditorWrapper->RegisterDocument();
+		}
 		else
 			fLSPEditorWrapper->UnsetLSPServer();
 	} else

@@ -34,10 +34,10 @@ public:
 
 	void						Cut(BClipboard* clipboard) override
 									{ return BTextView::Cut(clipboard); }
-									
+
 	void						Paste(BClipboard* clipboard) override
 									{ return BTextView::Paste(clipboard); }
-									
+
 	void						Undo(BClipboard* clipboard) override
 									{ return BTextView::Undo(clipboard); }
 #endif
@@ -53,6 +53,10 @@ public:
 
 	// IEditor interface - Focus
 	void						GrabFocus() override;
+
+
+	//The editor is now the selected editor.
+	virtual void				Selected() override {};
 
 	// IEditor interface - Clipboard
 	bool						CanCopy() override { return false; }

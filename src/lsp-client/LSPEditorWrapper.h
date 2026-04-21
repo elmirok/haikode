@@ -58,6 +58,7 @@ public:
 		virtual	~LSPEditorWrapper() {};
 		void	ApplySettings();
 		void	SetLSPServer(LSPProjectWrapper* cW);
+		void	RegisterDocument();
 		void	UnsetLSPServer();
 		bool	HasLSPServer() const;
 		bool	HasLSPServerCapability(const LSPCapability cap);

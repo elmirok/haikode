@@ -1020,7 +1020,6 @@ GenioWindow::MessageReceived(BMessage* message)
 					LogError("Selecting editor but it's null! (index %d)", index);
 					break;
 				}
-				printf("SELECT %s\n", editor->FilePath().String());
 				const int32 be_line   = message->GetInt32("start:line", -1);
 				const int32 lsp_char  = message->GetInt32("start:character", -1);
 
@@ -1032,6 +1031,8 @@ GenioWindow::MessageReceived(BMessage* message)
 
 				editor->GrabFocus();
 				_UpdateTabChange(editor, "EditorTabView::kETVSelectedTab");
+				editor->Selected();
+
 				FakeMouseMovement(editor->View());
 
 				BMessage tabSelectedNotice(MSG_NOTIFY_EDITOR_FILE_SELECTED);
@@ -1091,7 +1092,6 @@ GenioWindow::MessageReceived(BMessage* message)
 					if (message->GetBool("caret_position", false) == true) {
 						editor->SetSavedCaretPosition();
 					}
-					printf("NEWTAB %s\n", editor->FilePath().String());
 					ProjectFolder* project = editor->GetProjectFolder();
 					if (project != nullptr) {
 						fTabManager->SetTabColor(editor, project->Color());

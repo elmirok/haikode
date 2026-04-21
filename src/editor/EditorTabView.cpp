@@ -57,9 +57,7 @@ EditorTabView::AddEditor(const char* label, IEditor* editor, BMessage* info, int
 		message = *info;
 	message.what = kETVNewTab;
 	message.AddUInt64(kEditorId, editor->Id());
-	//printf("Sending NEWTAB.. (AddEditor)\n");
 	fTarget.SendMessage(&message);
-
 
 	AddTab(tab, editor->View(), index);
 }
@@ -305,8 +303,6 @@ EditorTabView::OnTabSelected(GTab* tab)
 	}
 	message.what = kETVSelectedTab;
 	message.AddUInt64(kEditorId, gtab->GetEditor()->Id());
-	//debugger("kETVSelectedTab");
-	printf("kETVSelectedTab OnTabSelected %ld\n", gtab->GetEditor()->Id());
 	fTarget.SendMessage(&message);
 }
 
@@ -451,7 +447,7 @@ EditorTabView::SelectTab(int32 index, BMessage* selInfo)
 		}
 		message.what = kETVSelectedTab;
 		message.AddUInt64(kEditorId, tab->GetEditor()->Id());
-		printf("kETVSelectedTab EditorTabView::SelectTab\n");
+		//printf("kETVSelectedTab EditorTabView::SelectTab\n");
 		fTarget.SendMessage(&message);
 	}
 }
