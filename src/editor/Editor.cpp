@@ -2082,7 +2082,7 @@ Editor::SetProjectFolder(ProjectFolder* _proj)
 		LSPProjectWrapper* lspProject = fProjectFolder->GetLSPServer(fFileType.c_str());
 		if (lspProject != nullptr) {
 			fLSPEditorWrapper->SetLSPServer(lspProject);
-			if (fFirstTimeSelected == false)
+			if (!fFirstTimeSelected)
 				fLSPEditorWrapper->RegisterDocument();
 		}
 		else
