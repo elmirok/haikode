@@ -1,5 +1,5 @@
 ## Genio - The Haiku IDE Makefile ##############################################
-COMPILER_FLAGS = -Werror -std=c++20 -Wno-maybe-uninitialized
+COMPILER_FLAGS = -Werror -std=c++20
 WARNINGS = ALL
 
 TARGET_DIR := app
@@ -74,6 +74,8 @@ ifeq ($(BUILD_WITH_CLANG), 1)
 	CC  := clang
 	CXX := clang++
 	LD  := clang++
+else
+	COMPILER_FLAGS += -Wno-maybe-uninitialized
 endif
 
 
