@@ -68,7 +68,7 @@ class GTabDropZone : Draggable {
 			view->Invalidate();
 		}
 
-		bool	_ValidDragAndDrop(const BMessage* message);
+		bool _ValidDragAndDrop(const BMessage* message) const;
 
 		bool				fTabDragging = false;
 		TabsContainer*		fTabsContainer;

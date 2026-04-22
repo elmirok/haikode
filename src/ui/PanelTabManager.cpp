@@ -151,7 +151,7 @@ public:
 protected:
 	void OnTabRemoved(GTab* _tab) override
 	{
-		GTabID* tab = dynamic_cast<GTabID*>(_tab);
+		const GTabID* tab = dynamic_cast<GTabID*>(_tab);
 		ASSERT(tab != nullptr && fIdMap.contains(tab->ID()) == true);
 		fIdMap.erase(tab->ID());
 	}
@@ -231,7 +231,7 @@ PanelTabManager::LoadConfiguration(const BMessage& config)
 
 
 void
-PanelTabManager::SaveConfiguration(BMessage& config)
+PanelTabManager::SaveConfiguration(BMessage& config) const
 {
 	for (const auto& info:fTVList) {
 		PanelTabView* tabview = info.second;
@@ -304,7 +304,7 @@ void
 PanelTabManager::_AddPanel(const char* tabview_name,
 							BView* panel, tab_id id,
 							BString prevOwner,
-							int32 index, bool select)
+							int32 index, bool select) const
 {
 	PanelTabView* tabview = _GetPanelTabView(tabview_name);
 	ASSERT(tabview != nullptr);
@@ -313,7 +313,7 @@ PanelTabManager::_AddPanel(const char* tabview_name,
 
 
 status_t
-PanelTabManager::FillPanelsMenu(BMenu* menu)
+PanelTabManager::FillPanelsMenu(BMenu* menu) const
 {
 	for (const auto& panel:fTVList) {
 		panel.second->FillPanelsMenu(menu);
@@ -323,7 +323,7 @@ PanelTabManager::FillPanelsMenu(BMenu* menu)
 
 
 void
-PanelTabManager::SelectTab(tab_id id)
+PanelTabManager::SelectTab(tab_id id) const
 {
 	for (const auto& panel:fTVList) {
 		if (panel.second->HasTab(id)) {
@@ -335,7 +335,7 @@ PanelTabManager::SelectTab(tab_id id)
 
 
 void
-PanelTabManager::ShowPanelByTab(tab_id id)
+PanelTabManager::ShowPanelByTab(tab_id id) const
 {
 	for (const auto& panel:fTVList) {
 		if (panel.second->HasTab(id)) {
@@ -356,7 +356,7 @@ PanelTabManager::ShowPanelByTab(tab_id id)
 
 
 void
-PanelTabManager::ShowTab(tab_id id)
+PanelTabManager::ShowTab(tab_id id) const
 {
 	for (const auto& panel:fTVList) {
 		if (panel.second->HasTab(id)) {
@@ -373,7 +373,7 @@ PanelTabManager::ShowTab(tab_id id)
 
 
 void
-PanelTabManager::SetLabelForTab(tab_id id, const char* label)
+PanelTabManager::SetLabelForTab(tab_id id, const char* label) const
 {
 	for (const auto& panel:fTVList) {
 		if (panel.second->HasTab(id)) {
@@ -385,9 +385,9 @@ PanelTabManager::SetLabelForTab(tab_id id, const char* label)
 
 
 void
-PanelTabManager::ShowPanelTabView(const char* tabview_name, bool show)
+PanelTabManager::ShowPanelTabView(const char* tabViewName, bool show) const
 {
-	PanelTabView* tabview = _GetPanelTabView(tabview_name);
+	PanelTabView* tabview = _GetPanelTabView(tabViewName);
 
 	if (show && tabview->IsHidden())
 		tabview->Show();
@@ -397,9 +397,9 @@ PanelTabManager::ShowPanelTabView(const char* tabview_name, bool show)
 
 
 bool
-PanelTabManager::IsPanelTabViewVisible(const char* tabviewName) const
+PanelTabManager::IsPanelTabViewVisible(const char* tabViewName) const
 {
-	return !_GetPanelTabView(tabviewName)->IsHidden();
+	return !_GetPanelTabView(tabViewName)->IsHidden();
 }
 
 
@@ -414,9 +414,9 @@ PanelTabManager::IsPanelClosed(tab_id id) const
 
 
 PanelTabView*
-PanelTabManager::_GetPanelTabView(const char* sname) const
+PanelTabManager::_GetPanelTabView(const char* name) const
 {
-	auto item = fTVList.find(sname);
+	auto item = fTVList.find(name);
 	if (item == fTVList.end())
 		debugger("_GetPanelTabView() called but no panel found!");
 	return (*item).second;
