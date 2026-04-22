@@ -172,14 +172,14 @@ private:
 			void				_InitActions();
 			void				_ShowView(BView*, bool show, int32 msgWhat = -1);
 			void				_ShowPanelTabView(const char* name, bool show, int32 msgWhat = -1);
-			status_t			_AlertInvalidBuildConfig(BString text);
+			status_t			_AlertInvalidBuildConfig(BString message);
 			void				_CloseMultipleTabs(std::vector<IEditor*>& editors);
 			void				_HandleConfigurationChanged(BMessage* msg);
 			void				_HandleProjectConfigurationChanged(BMessage* message);
 			void				_ChangeIconSize(bool small);
 			BMenu*				_CreateLanguagesMenu();
 			void				_ToggleScreenMode(int32 action);
-			void				_ForwardToSelectedEditor(BMessage* msg);
+			void				_ForwardToSelectedEditor(BMessage* message);
 			void				_UpdateWindowTitle(IEditor* editor, const char* currentBranch);
 			void				_ReloadFileInEditor(IEditor* editor, entry_ref* ref);
 
