@@ -9,19 +9,18 @@
 #include <Autolock.h>
 #include <Button.h>
 #include <Debug.h>
-#include <MessageRunner.h>
-#include <ObjectList.h>
 #include <Catalog.h>
 #include <CheckBox.h>
 #include <Clipboard.h>
 #include <LayoutBuilder.h>
+#include <MessageRunner.h>
 #include <ObjectList.h>
 #include <OutlineListView.h>
 #include <PathMonitor.h>
 #include <PopUpMenu.h>
-#include <StringItem.h>
-#include <SeparatorView.h>
 #include <ScrollView.h>
+#include <SeparatorView.h>
+#include <StringItem.h>
 #include <StringView.h>
 
 #include "ConfigManager.h"
