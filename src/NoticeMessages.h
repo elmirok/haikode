@@ -31,8 +31,14 @@ enum {
 													// project_name (string)
 													// project_path (string)
 													// status (int32)
+
 	MSG_NOTIFY_LSP_INDEXING				= 'lsid',
-	MSG_NOTIFY_PROJECT_LIST_CHANGED		= 'nplc',
+
+	MSG_NOTIFY_PROJECT_LIST_CHANGED		= 'nplc',	// project_name (string array)
+													// project_path (string array)
+													// active_project_name (string)
+													// active_project_path (string)
+
 	MSG_NOTIFY_PROJECT_SET_ACTIVE		= 'npsa',	// active_project_name (string)
 													// active_project_path (string)
 	MSG_NOTIFY_FIND_STATUS				= 'fist',
