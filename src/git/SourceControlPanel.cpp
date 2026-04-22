@@ -272,7 +272,7 @@ SourceControlPanel::MessageReceived(BMessage *message)
 					case MSG_NOTIFY_PROJECT_LIST_CHANGED:
 					{
 						LogInfo("MSG_NOTIFY_PROJECT_LIST_CHANGED");
-						if (gMainWindow->GetProjectBrowser()->CountProjects() == 0) {
+						if (!message->HasString("project_name")) {
 							fBranchMenu->MakeEmpty();
 							fRepositoryView->MakeEmpty();
 							fMainLayout->SetVisibleItem(kPanelsIndexRepository);
