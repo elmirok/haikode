@@ -43,35 +43,35 @@ public:
 		PanelTabManager();
 
 		void	LoadConfiguration(const BMessage& config);
-		void	SaveConfiguration(BMessage& config);
+		void	SaveConfiguration(BMessage& config) const;
 
 		BView*	CreatePanelTabView(const char* tabview_name, orientation orientation);
 		BView*	GetPanelTabView(const char* name);
 
 		void	AddPanelByConfig(BView* panel, tab_id id);
 
-		void	SelectTab(tab_id id);
-		void	ShowTab(tab_id id);
+		void	SelectTab(tab_id id) const;
+		void	ShowTab(tab_id id) const;
 
-		void	SetLabelForTab(tab_id id, const char* label);
+		void	SetLabelForTab(tab_id id, const char* label) const;
 
-		void	ShowPanelTabView(const char* tabview_name, bool visible);
-		bool	IsPanelTabViewVisible(const char* tabview_name) const;
+		void	ShowPanelTabView(const char* tabViewName, bool show) const;
+		bool	IsPanelTabViewVisible(const char* tabViewName) const;
 		bool	IsPanelClosed(tab_id id) const;
 
 		static	BMessage	DefaultConfig();
 
-		status_t	FillPanelsMenu(BMenu* menu);
+		status_t	FillPanelsMenu(BMenu* menu) const;
 
-		void		ShowPanelByTab(tab_id id);
+		void		ShowPanelByTab(tab_id id) const;
 
 private:
 		void			_AddPanel(const char* tabview_name,
 								  BView* panel,
 								  tab_id id,
 								  BString prevOwner,
-								  int32 index=-1,
-								  bool select = false);
+								  int32 index = -1,
+								  bool select = false) const;
 
 		PanelTabView*	_GetPanelTabView(const char* name) const;
 		TabViewList		fTVList;

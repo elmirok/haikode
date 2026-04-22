@@ -17,13 +17,13 @@
 
 
 bool
-GTabDropZone::_ValidDragAndDrop(const BMessage* message)
+GTabDropZone::_ValidDragAndDrop(const BMessage* message) const
 {
 	const GTab* fromTab = reinterpret_cast<const GTab*>(message->GetPointer("tab", nullptr));
 	if (fromTab == nullptr)
 		return false;
 
-	TabsContainer* fromContainer = fromTab->Container();
+	const TabsContainer* fromContainer = fromTab->Container();
 	if (fromContainer == nullptr)
 		return false;
 
@@ -247,7 +247,7 @@ GTab::InitiateDrag(BPoint where)
 		int32 bpr = dragBitmap->BytesPerRow();
 		for (int32 y = 0; y < height; y++, bits += bpr) {
 			uint8* line = bits + 3;
-			for (uint8* end = line + 4 * width; line < end; line += 4)
+			for (const uint8* end = line + 4 * width; line < end; line += 4)
 				*line = ALPHA;
 		}
 		dragBitmap->Unlock();
