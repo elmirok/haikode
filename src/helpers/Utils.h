@@ -8,6 +8,8 @@
 
 
 #include <FindDirectory.h>
+
+#include <functional>
 #include <string>
 
 #include <Alert.h>
@@ -17,6 +19,7 @@
 
 class BBitmap;
 class BCheckBox;
+class BPath;
 class BRadioButton;
 class BScintillaView;
 
@@ -29,6 +32,9 @@ BPath	GetDataDirectoryByWhich(directory_which which);
 BPath	GetDataDirectory();
 BPath	GetUserSettingsDirectory();
 BPath	GetNearbyDataDirectory();
+
+void	DoInAllDataDirectories(std::function<void(const BPath&)> func);
+void	DoInAllLibDirectories(std::function<void(const BPath&)> func);
 
 BString	GetVersion();
 bool	IsXMasPeriod();
