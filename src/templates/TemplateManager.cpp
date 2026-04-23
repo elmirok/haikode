@@ -5,6 +5,8 @@
 
 #include "TemplateManager.h"
 
+#include <fstream>
+
 #include <Application.h>
 #include <AppFileInfo.h>
 #include <Catalog.h>
@@ -29,12 +31,14 @@ using Entry = BPrivate::BEntryOperationEngineBase::Entry;
 
 class CustomCopyEngineController: public BCopyEngine::BController {
 public:
-	CustomCopyEngineController();
+	CustomCopyEngineController(const char* projectName);
+
+private:
 	bool EntryStarted(const char* path) override;
 	bool EntryFinished(const char* path, status_t error) override;
-};
 
-static CustomCopyEngineController sCopyEngineController;
+	BString fProjectName;
+};
 
 // TemplateManager
 TemplateManager::TemplateManager()
@@ -84,8 +88,9 @@ TemplateManager::CopyProjectTemplate(const entry_ref* source, const entry_ref* d
 	destPath.Append(name);
 	Entry destEntry(destPath.Path());
 
+	CustomCopyEngineController controller(name);
 	BCopyEngine copyEngine(BCopyEngine::COPY_RECURSIVELY);
-	copyEngine.SetController(&sCopyEngineController);
+	copyEngine.SetController(&controller);
 	status_t status = copyEngine.CopyEntry(sourceEntry, destEntry);
 	if (status != B_OK) {
 		BString err(strerror(status));
@@ -151,8 +156,32 @@ TemplateManager::GetUserTemplateDirectory()
 }
 
 
+static void
+ReplaceStringInFile(const char* filePath, const char* original, const char* replacement)
+{
+	std::ifstream inputFile(filePath);
+	std::stringstream buffer;
+	buffer << inputFile.rdbuf();
+	std::string content = buffer.str();
+
+	size_t pos = 0;
+	while ((pos = content.find(original, pos)) != std::string::npos) {
+		content.replace(pos, std::string(original).length(), replacement);
+		pos += std::string(replacement).length();
+	}
+
+	inputFile.close();
+
+	std::ofstream outputFile(filePath);
+	outputFile << content;
+}
+
+
 // CustomCopyEngineController
-CustomCopyEngineController::CustomCopyEngineController()
+CustomCopyEngineController::CustomCopyEngineController(const char* projectName)
+	:
+	BCopyEngine::BController(),
+	fProjectName(projectName)
 {
 }
 
@@ -171,5 +200,11 @@ bool
 CustomCopyEngineController::EntryFinished(const char* path, status_t error)
 {
 	LogTrace("Finished copying %s: %s", path, ::strerror(error));
+	BPath filePath(path);
+	if (BString(filePath.Leaf()) == "Makefile") {
+		// Test, not working
+		ReplaceStringInFile(path, "${project.name}", fProjectName.String());
+	}
+
 	return BCopyEngine::BController::EntryFinished(path, error);
 }
