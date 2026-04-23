@@ -54,6 +54,11 @@ void
 StyledItem::Update(BView* owner, const BFont* font)
 {
 	BStringItem::Update(owner, font);
+	// Take into account also the extra text width
+	if (!fExtraText.IsEmpty()) {
+		const float extraWidth = font->StringWidth(fExtraText.String());
+		SetWidth(Width() + extraWidth);
+	}
 }
 
 

@@ -131,7 +131,7 @@ private:
 	void	_SendTypedRequest(LSPTextDocument* textDocument, typename M::Params&& params, F&& then);
 
 	template<typename M, typename F>
-	auto	_addFunctionToQueue(F&& then, int32 version = -1);
+	auto	_addFunctionToQueue(F&& then, int32 requestVersion = -1);
 
 	template<typename F>
 	void	_enqueueOnUIThread(F&& fn);

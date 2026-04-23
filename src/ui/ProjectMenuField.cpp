@@ -8,11 +8,9 @@
 
 #include <Catalog.h>
 #include <NaturalCompare.h>
+#include <Window.h>
 
-#include "GenioWindow.h"
 #include "NoticeMessages.h"
-#include "ProjectBrowser.h"
-#include "ProjectFolder.h"
 
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "ProjectMenuField"
@@ -101,20 +99,25 @@ ProjectMenuField::_HandleProjectListChanged(const BMessage* message)
 
 	MakeEmpty();
 
-	const ProjectBrowser* projectBrowser = gMainWindow->GetProjectBrowser();
-	for (int32 p = 0; p < projectBrowser->CountProjects(); p++) {
-		ProjectFolder* project = projectBrowser->ProjectAt(p);
-		if (project == nullptr)
+	int32 index = 0;
+	for (;;) {
+		BString projectPath;
+		BString projectName;
+		if (message->FindString("project_path", index, &projectPath) != B_OK)
 			break;
-		bool marked = project->Name() == selectedProject;
-		AddItem(project->Name(), project->Path(), fWhat, true, marked);
+		if (message->FindString("project_name", index, &projectName) != B_OK)
+			break;
+		bool marked = projectName == selectedProject;
+		AddItem(projectName, projectPath, fWhat, true, marked);
+
+		index++;
 	}
 
 	if (projectMenu->FindMarked() == nullptr) {
-		const ProjectFolder* activeProject = gMainWindow->GetActiveProject();
 		BMenuItem* item = nullptr;
-		if (activeProject != nullptr)
-			item = projectMenu->FindItem(activeProject->Name());
+		BString activeProjectName;
+		if (message->FindString("active_project_name", &activeProjectName) == B_OK)
+			item = projectMenu->FindItem(activeProjectName);
 		else
 			item = projectMenu->ItemAt(0);
 		if (item != nullptr) {

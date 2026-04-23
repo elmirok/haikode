@@ -1021,6 +1021,7 @@ Editor::GrabFocus()
 	SendMessage(SCI_GRABFOCUS, UNSET, UNSET);
 }
 
+
 void
 Editor::Selected()
 {
@@ -1030,7 +1031,10 @@ Editor::Selected()
 		if (fLSPEditorWrapper)
 			fLSPEditorWrapper->RegisterDocument();
 	}
+
+	UpdateStatusBar();
 }
+
 
 void
 Editor::AttachedToWindow()

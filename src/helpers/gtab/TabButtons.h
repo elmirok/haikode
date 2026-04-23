@@ -114,15 +114,15 @@ public:
 	{
 	}
 
-	virtual void DrawSymbol(BRect frame, const BRect& updateRect,
-		const rgb_color& base)
+	void DrawSymbol(BRect frame, const BRect& updateRect,
+		const rgb_color& base) override
 	{
 		float tint = IsEnabled() ? B_DARKEN_4_TINT : B_DARKEN_1_TINT;
 		be_control_look->DrawArrowShape(this, frame, updateRect,
 			base, BControlLook::B_DOWN_ARROW, 0, tint);
 	}
 
-	virtual void MouseDown(BPoint point)
+	void MouseDown(BPoint point) override
 	{
 		// Don't reopen the menu if it's already open or freshly closed.
 		bigtime_t clickSpeed = 2000000;
@@ -139,7 +139,7 @@ public:
 		SetValue(B_CONTROL_ON);
 	}
 
-	virtual void MouseUp(BPoint point)
+	void MouseUp(BPoint point) override
 	{
 		// Do nothing
 	}

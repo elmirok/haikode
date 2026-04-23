@@ -3775,10 +3775,21 @@ GenioWindow::_ProjectFolderClose(ProjectFolder *project)
 			SetActiveProject(newActiveProject);
 	}
 
+	BMessage changedMessage;
+	for (int32 p = 0; p < fProjectsFolderBrowser->CountProjects(); p++) {
+		const ProjectFolder* project = fProjectsFolderBrowser->ProjectAt(p);
+		changedMessage.AddString("project_name", project->Name());
+		changedMessage.AddString("project_path", project->Path());
+	}
+	
+	if (GetActiveProject() != nullptr) {
+		changedMessage.AddString("active_project_name", GetActiveProject()->Name());
+		changedMessage.AddString("active_project_path", GetActiveProject()->Path());
+	}
 	// Notify subscribers that the project list has changed
 	// Done here so the new active project is already set and subscribers
 	// know (SourceControlPanel for example)
-	SendNotices(MSG_NOTIFY_PROJECT_LIST_CHANGED);
+	SendNotices(MSG_NOTIFY_PROJECT_LIST_CHANGED, &changedMessage);
 
 	delete project;
 
@@ -3934,9 +3945,20 @@ GenioWindow::_ProjectFolderOpenCompleted(ProjectFolder* project,
 		opened = "Active project open: ";
 	}
 
+	BMessage changedMessage;
+	for (int32 p = 0; p < fProjectsFolderBrowser->CountProjects(); p++) {
+		const ProjectFolder* project = fProjectsFolderBrowser->ProjectAt(p);
+		changedMessage.AddString("project_name", project->Name());
+		changedMessage.AddString("project_path", project->Path());
+	}
+
+	if (GetActiveProject() != nullptr) {
+		changedMessage.AddString("active_project_name", GetActiveProject()->Name());
+		changedMessage.AddString("active_project_path", GetActiveProject()->Path());
+	}
 	// Notify subscribers that project list has changed
 	// Done here so the active project is already set
-	SendNotices(MSG_NOTIFY_PROJECT_LIST_CHANGED);
+	SendNotices(MSG_NOTIFY_PROJECT_LIST_CHANGED, &changedMessage);
 
 	BString projectPath = project->Path();
 	BString notification;

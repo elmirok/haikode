@@ -9,19 +9,18 @@
 #include <Autolock.h>
 #include <Button.h>
 #include <Debug.h>
-#include <MessageRunner.h>
-#include <ObjectList.h>
 #include <Catalog.h>
 #include <CheckBox.h>
 #include <Clipboard.h>
 #include <LayoutBuilder.h>
+#include <MessageRunner.h>
 #include <ObjectList.h>
 #include <OutlineListView.h>
 #include <PathMonitor.h>
 #include <PopUpMenu.h>
-#include <StringItem.h>
-#include <SeparatorView.h>
 #include <ScrollView.h>
+#include <SeparatorView.h>
+#include <StringItem.h>
 #include <StringView.h>
 
 #include "ConfigManager.h"
@@ -272,7 +271,7 @@ SourceControlPanel::MessageReceived(BMessage *message)
 					case MSG_NOTIFY_PROJECT_LIST_CHANGED:
 					{
 						LogInfo("MSG_NOTIFY_PROJECT_LIST_CHANGED");
-						if (gMainWindow->GetProjectBrowser()->CountProjects() == 0) {
+						if (!message->HasString("project_name")) {
 							fBranchMenu->MakeEmpty();
 							fRepositoryView->MakeEmpty();
 							fMainLayout->SetVisibleItem(kPanelsIndexRepository);
