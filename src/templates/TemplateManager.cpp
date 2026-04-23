@@ -27,6 +27,16 @@ const char* kTemplateDirectory = "templates";
 
 using Entry = BPrivate::BEntryOperationEngineBase::Entry;
 
+class CustomCopyEngineController: public BCopyEngine::BController {
+public:
+	CustomCopyEngineController();
+	bool EntryStarted(const char* path) override;
+	bool EntryFinished(const char* path, status_t error) override;
+};
+
+static CustomCopyEngineController sCopyEngineController;
+
+// TemplateManager
 TemplateManager::TemplateManager()
 {
 }
@@ -74,7 +84,9 @@ TemplateManager::CopyProjectTemplate(const entry_ref* source, const entry_ref* d
 	destPath.Append(name);
 	Entry destEntry(destPath.Path());
 
-	status_t status = BCopyEngine(BCopyEngine::COPY_RECURSIVELY).CopyEntry(sourceEntry, destEntry);
+	BCopyEngine copyEngine(BCopyEngine::COPY_RECURSIVELY);
+	copyEngine.SetController(&sCopyEngineController);
+	status_t status = copyEngine.CopyEntry(sourceEntry, destEntry);
 	if (status != B_OK) {
 		BString err(strerror(status));
 		LogError("Error creating new template %s in %s: %s", sourcePath.Path(), destPath.Path(),err.String());
@@ -136,4 +148,28 @@ TemplateManager::GetUserTemplateDirectory()
 	create_directory(userPath.Path(), 0777);
 
 	return userPath.Path();
+}
+
+
+// CustomCopyEngineController
+CustomCopyEngineController::CustomCopyEngineController()
+{
+}
+
+
+/* virtual */
+bool
+CustomCopyEngineController::EntryStarted(const char* path)
+{
+	LogTrace("Start copying %s", path);
+	return BCopyEngine::BController::EntryStarted(path);
+}
+
+
+/* virtual */
+bool
+CustomCopyEngineController::EntryFinished(const char* path, status_t error)
+{
+	LogTrace("Finished copying %s: %s", path, ::strerror(error));
+	return BCopyEngine::BController::EntryFinished(path, error);
 }
