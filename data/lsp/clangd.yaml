@@ -1,0 +1,11 @@
+# clangd LSP server.
+
+name: "clangd"
+command: "/boot/system/bin/clangd"
+fileTypes: ["c", "cpp", "h", "hpp"]
+args:
+  - "--offset-encoding=utf-8"
+  - "--pretty"
+  - "--header-insertion-decorators=false"
+  - "--pch-storage=memory"
+  - "--log=${lsp_clangd_log_level}"

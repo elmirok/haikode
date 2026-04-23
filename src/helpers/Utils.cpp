@@ -482,6 +482,16 @@ GetNearbyDataDirectory()
 }
 
 
+void
+DoInAllDataDirectories(std::function<void(const BPath&)> func) {
+	func(GetNearbyDataDirectory());
+	func(GetDataDirectoryByWhich(B_USER_SETTINGS_DIRECTORY));
+	func(GetDataDirectoryByWhich(B_USER_NONPACKAGED_DATA_DIRECTORY));
+	func(GetDataDirectoryByWhich(B_SYSTEM_NONPACKAGED_DATA_DIRECTORY));
+	func(GetDataDirectoryByWhich(B_SYSTEM_DATA_DIRECTORY));
+}
+
+
 bool
 IsXMasPeriod()
 {

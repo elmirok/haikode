@@ -6,17 +6,20 @@
 
 #include "LSPServersManager.h"
 
+#include <Directory.h>
 #include <string>
 #include <vector>
 
 #include <PathFinder.h>
+#include <yaml-cpp/yaml.h>
 
 #include "ConfigManager.h"
-#include "GenioApp.h"
 #include "GException.h"
+#include "GenioApp.h"
 #include "Log.h"
 #include "LSPLogLevels.h"
 #include "LSPProjectWrapper.h"
+#include "Utils.h"
 
 
 class ClangdServerConfig : public LSPServerConfigInterface {
@@ -93,6 +96,60 @@ public:
 };
 
 
+class YAMLServerConfig : public LSPServerConfigInterface
+{
+	public:
+			static YAMLServerConfig*	fromFile(BPath lspFile)
+			{
+				YAMLServerConfig* config = nullptr;
+				try {
+					const YAML::Node lsp = YAML::LoadFile(lspFile.Path());
+					if (!lsp["name"] ||
+						!lsp["command"] ||
+						!lsp["fileTypes"])
+							return nullptr;
+
+					config = new YAMLServerConfig();
+					std::string command = lsp["command"].as<std::string>();;
+					config->fArgv.push_back(command.c_str());
+					for (const auto& ft : lsp["fileTypes"]) {
+						config->fFileTypes.push_back(ft.as<std::string>());
+					}
+					// args
+					if (lsp["args"]) {
+						for (const auto& arg : lsp["args"]) {
+							std::string argument = arg.as<std::string>();
+							if (argument.find("${") != std::string::npos)
+								continue;
+
+							config->fArgv.push_back(arg.as<std::string>().c_str());
+						}
+					}
+
+
+
+				} catch (const YAML::Exception & e)  {
+					if (config != nullptr){
+						delete config;
+						config = nullptr;
+					}
+					//LogError
+					printf("Error reading %s (%s)\n", lspFile.Path(), e.msg.c_str());
+				}
+				return config;
+			}
+
+		const bool IsFileTypeSupported (const BString& fileType) const override {
+			 return
+				(std::find(fFileTypes.begin(), fFileTypes.end(), fileType.String()) != fFileTypes.end());
+		}
+	private:
+			YAMLServerConfig(){}
+
+			std::vector<std::string>	fFileTypes;
+
+};
+
 class OmniSharpServerConfig : public LSPServerConfigInterface {
 public:
 	OmniSharpServerConfig()
@@ -113,7 +170,7 @@ public:
 
 		fOffset = 0;
 	}
-	
+
 	const bool	IsFileTypeSupported(const BString& fileType) const override
 	{
 		return (fileType.Compare("csharp") == 0);
@@ -162,6 +219,51 @@ LSPServersManager::_AddValidConfig(LSPServerConfigInterface* interface)
 status_t
 LSPServersManager::InitLSPServersConfig()
 {
+	DoInAllDataDirectories([&](const BPath& path) {
+		// we should iterate inside the directory
+		// TODO move to an external method
+
+		BPath p(path);
+		p.Append("lsp");
+
+		BDirectory languages(p.Path());
+		if (languages.InitCheck() != B_OK) {
+			//LogError
+			printf("Can't reading the lsp directory: %s\n", p.Path());
+			return;
+		}
+		//LogDebug
+		printf("Reading the lsp directory: %s\n", p.Path());
+		entry_ref ref;
+		while(languages.GetNextRef(&ref) == B_OK) {
+			//LogTrace
+			printf("--> LSP file: %s\n", ref.name);
+			std::string name(ref.name);
+			if (name.ends_with(".yaml") == false) {
+				//LogTrace
+				printf("    invalid filename: %s\n", ref.name);
+				continue;
+			}
+			name.resize(name.size() - 5);
+
+			BEntry entry(&ref);
+			if (entry.InitCheck() == B_OK && entry.IsFile()) {
+				BPath lspFile(&ref);
+				//LogTrace
+				printf("--> Lsp file: %s\n", lspFile.Path());
+				YAMLServerConfig* yamllsp =YAMLServerConfig::fromFile(lspFile);
+				if (yamllsp != nullptr) {
+					//LogInfo
+					printf("LSP config loaded! %s\n", lspFile.Path());
+					_AddValidConfig(yamllsp);
+				}
+
+			}
+
+		}
+
+	});
+
 	_AddValidConfig(new ClangdServerConfig());
 	_AddValidConfig(new PylspServerConfig());
 	_AddValidConfig(new OmniSharpServerConfig());
