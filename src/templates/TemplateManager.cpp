@@ -207,7 +207,7 @@ TemplateManager::_LoadTemplates()
 	while (templatesDir.GetNextRef(&ref) == B_OK) {
 		fTemplates.push_back(ref);
 	}
-	
+
 	BDirectory userTemplatesDir(GetUserTemplateDirectory());
 	while (userTemplatesDir.GetNextRef(&ref) == B_OK) {
 		fUserTemplates.push_back(ref);

@@ -1282,8 +1282,6 @@ ProjectOutlineListView::ShowPopupMenu(BPoint where)
 
 	TemplatesMenu* fileNewProjectMenuItem = new TemplatesMenu(this, B_TRANSLATE("New"),
 		new BMessage(MSG_PROJECT_MENU_NEW_FILE), new BMessage(MSG_SHOW_TEMPLATE_USER_FOLDER),
-		TemplateManager::GetDefaultTemplateDirectory(),
-		TemplateManager::GetUserTemplateDirectory(),
 		TemplatesMenu::SHOW_ALL_VIEW_MODE,	true);
 
 	fileNewProjectMenuItem->SetEnabled(true);

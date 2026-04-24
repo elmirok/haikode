@@ -26,8 +26,6 @@ const char* kNewFolderLabel = "New folder";
 
 TemplatesMenu::TemplatesMenu(BHandler *target, const char* label,
 								BMessage *message, BMessage *showTemplateMessage,
-								const BString& defaultDirectory,
-								const BString&  userDirectory,
 								ViewMode mode,
 								bool showNewFolder)
 	:
@@ -37,8 +35,6 @@ TemplatesMenu::TemplatesMenu(BHandler *target, const char* label,
 	fMessage(message),
 	fShowTemplateMessage(showTemplateMessage),
 	fViewMode(mode),
-	fDefaultDirectory(defaultDirectory),
-	fUserDirectory(userDirectory),
 	fShowNewFolder(showNewFolder),
 	fEnableNewFolder(true),
 	fShowTemplatesDirectory(fShowTemplateMessage != nullptr ? true : false)
@@ -156,7 +152,7 @@ TemplatesMenu::_BuildMenu()
 	int32 userTemplatesCount = _BuildTemplateItems(true);
 	
 	if (fShowTemplatesDirectory) {
-		if (userTemplatesCount > 0)
+		/*if (userTemplatesCount > 0)
 			AddSeparatorItem();
 
 		// this is the message sent to open the templates folder
@@ -173,10 +169,10 @@ TemplatesMenu::_BuildMenu()
 			templateMessage);
 		AddItem(fOpenItem);
 		if (dirRef == entry_ref())
-			fOpenItem->SetEnabled(false);
+			fOpenItem->SetEnabled(false);*/
 	}
 
-	return count > 0;
+	return count + userTemplatesCount > 0;
 }
 
 
