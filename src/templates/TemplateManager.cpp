@@ -9,6 +9,7 @@
 #include <AppFileInfo.h>
 #include <Catalog.h>
 #include <CopyEngine.h>
+#include <Debug.h>
 #include <Directory.h>
 #include <Entry.h>
 #include <EntryOperationEngineBase.h>
@@ -27,6 +28,8 @@ const char* kTemplateDirectory = "templates";
 
 using Entry = BPrivate::BEntryOperationEngineBase::Entry;
 
+TemplateManager* TemplateManager::sManager = nullptr;
+
 TemplateManager::TemplateManager()
 {
 }
@@ -34,6 +37,38 @@ TemplateManager::TemplateManager()
 
 TemplateManager::~TemplateManager()
 {
+}
+
+
+/* static */
+status_t
+TemplateManager::Initialize()
+{
+	if (sManager == nullptr)
+		sManager = new (std::nothrow) TemplateManager();
+
+	if (sManager == nullptr)
+		return B_NO_MEMORY;
+
+	return B_OK;
+}
+
+
+/* static */
+void
+TemplateManager::Dispose()
+{
+	delete sManager;
+	sManager = nullptr;
+}
+
+
+/* static */
+TemplateManager*
+TemplateManager::Get()
+{
+	ASSERT(sManager != nullptr);
+	return sManager;
 }
 
 
@@ -137,3 +172,43 @@ TemplateManager::GetUserTemplateDirectory()
 
 	return userPath.Path();
 }
+
+
+status_t
+TemplateManager::_LoadTemplates()
+{
+	fTemplates.clear();
+	// the templates folder
+	
+	BDirectory templatesDir(GetDefaultTemplateDirectory());
+	entry_ref ref;
+	while (templatesDir.GetNextRef(&ref) == B_OK) {
+		fTemplates.push_back(ref);
+/*		BNode node(&entry);
+		BNodeInfo nodeInfo(&node);
+
+		char fileName[B_FILE_NAME_LENGTH];
+		entry.GetName(fileName);
+		if (nodeInfo.InitCheck() == B_OK) {
+			char mimeType[B_MIME_TYPE_LENGTH];
+			nodeInfo.GetType(mimeType);
+
+			BMimeType mime(mimeType);
+			if (mime.IsValid()) {
+				entry_ref ref;
+				entry.GetRef(&ref);
+				if (entry.IsDirectory())
+					message->AddString("type", "new_folder_template");
+				else
+					message->AddString("type", "new_file_template");
+				auto item = new IconMenuItem(fileName, message, &nodeInfo, B_MINI_ICON);
+				item->SetEnabled(itemEnabled);
+				AddItem(item);
+				count++;
+			}
+		}*/
+	}
+	
+	return B_OK;
+}
+

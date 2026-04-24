@@ -24,6 +24,7 @@
 #include "LSPServersManager.h"
 #include "PanelTabManager.h"
 #include "Styler.h"
+#include "TemplateManager.h"
 #include "TerminalManager.h"
 #include "Utils.h"
 
@@ -71,6 +72,10 @@ GenioApp::GenioApp()
 
 	fExtensionManager = new ExtensionManager();
 
+	status_t status = TemplateManager::Initialize();
+	if (status != B_OK) {
+		LogError("Cannot initialize Template Manager!");
+	}
 	fGenioWindow = new GenioWindow(BRect(gCFG["ui_bounds"]));
 	fGenioWindow->MoveOnScreen();
 }
@@ -81,6 +86,7 @@ GenioApp::~GenioApp()
 	// Save settings on quit, anyway
 	gCFG.SaveToFile({fConfigurationPath});
 	LSPServersManager::DisposeLSPServersConfig();
+	TemplateManager::Dispose();
 }
 
 
