@@ -73,6 +73,28 @@ TemplateManager::Get()
 
 
 status_t
+TemplateManager::GetTemplatesList(entry_list& templates)
+{
+	// TODO: Don't load every time
+	status_t status = _LoadTemplates();
+	if (status == B_OK)
+		templates = fTemplates;
+	return status;
+}
+
+
+status_t
+TemplateManager::GetUserTemplatesList(entry_list &userTemplates)
+{
+	// TODO: Don't load every time
+	status_t status = _LoadTemplates();
+	if (status == B_OK)
+		userTemplates = fUserTemplates;
+	return status;
+}
+
+
+status_t
 TemplateManager::CopyFileTemplate(const entry_ref* source, const entry_ref* destination, entry_ref* newFileRef)
 {
 	// Copy template file to destination
@@ -178,37 +200,19 @@ status_t
 TemplateManager::_LoadTemplates()
 {
 	fTemplates.clear();
-	// the templates folder
-	
+	fUserTemplates.clear();
+
 	BDirectory templatesDir(GetDefaultTemplateDirectory());
 	entry_ref ref;
 	while (templatesDir.GetNextRef(&ref) == B_OK) {
 		fTemplates.push_back(ref);
-/*		BNode node(&entry);
-		BNodeInfo nodeInfo(&node);
-
-		char fileName[B_FILE_NAME_LENGTH];
-		entry.GetName(fileName);
-		if (nodeInfo.InitCheck() == B_OK) {
-			char mimeType[B_MIME_TYPE_LENGTH];
-			nodeInfo.GetType(mimeType);
-
-			BMimeType mime(mimeType);
-			if (mime.IsValid()) {
-				entry_ref ref;
-				entry.GetRef(&ref);
-				if (entry.IsDirectory())
-					message->AddString("type", "new_folder_template");
-				else
-					message->AddString("type", "new_file_template");
-				auto item = new IconMenuItem(fileName, message, &nodeInfo, B_MINI_ICON);
-				item->SetEnabled(itemEnabled);
-				AddItem(item);
-				count++;
-			}
-		}*/
 	}
 	
+	BDirectory userTemplatesDir(GetUserTemplateDirectory());
+	while (userTemplatesDir.GetNextRef(&ref) == B_OK) {
+		fUserTemplates.push_back(ref);
+	}
+
 	return B_OK;
 }
 

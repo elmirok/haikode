@@ -46,7 +46,7 @@ public:
 
 private:
 	bool 					_BuildMenu();
-	int32					_BuildTemplateItems(const BString& directory);
+	int32					_BuildTemplateItems(bool user);
 
 	BHandler* 				fTarget;
 	BMenuItem* 				fOpenItem;

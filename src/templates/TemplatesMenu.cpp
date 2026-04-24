@@ -15,6 +15,7 @@
 #include <MimeTypes.h>
 
 #include "IconMenuItem.h"
+#include "TemplateManager.h"
 
 
 #undef B_TRANSLATION_CONTEXT
@@ -150,10 +151,10 @@ TemplatesMenu::_BuildMenu()
 		AddSeparatorItem();
 	}
 
-	_BuildTemplateItems(fDefaultDirectory);
+	_BuildTemplateItems(false);
 	AddSeparatorItem();
-	int32 userTemplatesCount = _BuildTemplateItems(fUserDirectory);
-
+	int32 userTemplatesCount = _BuildTemplateItems(true);
+	
 	if (fShowTemplatesDirectory) {
 		if (userTemplatesCount > 0)
 			AddSeparatorItem();
@@ -180,15 +181,23 @@ TemplatesMenu::_BuildMenu()
 
 
 int32
-TemplatesMenu::_BuildTemplateItems(const BString& directory)
+TemplatesMenu::_BuildTemplateItems(bool user)
 {
-	// the templates folder
-	BDirectory templatesDir(directory);
-	BEntry entry;
+	entry_list entryList;
+	if (user) {
+		if (TemplateManager::Get()->GetUserTemplatesList(entryList) != B_OK)
+			return 0;
+	} else {
+		if (TemplateManager::Get()->GetTemplatesList(entryList) != B_OK)
+			return 0;
+	}
+	
 	bool itemEnabled = true;
 
 	int32 count = 0;
-	while (templatesDir.GetNextEntry(&entry, true) == B_OK) {
+	for (entry_list::iterator i = entryList.begin(); i != entryList.end(); i++) {
+		entry_ref ref = *i;
+		BEntry entry(&ref);
 		BNode node(&entry);
 		BNodeInfo nodeInfo(&node);
 
@@ -214,7 +223,6 @@ TemplatesMenu::_BuildTemplateItems(const BString& directory)
 			if (mime.IsValid()) {
 				entry_ref ref;
 				entry.GetRef(&ref);
-
 				void* sender = nullptr;
 				fMessage->FindPointer("sender", &sender);
 				entry_ref senderRef;
@@ -224,9 +232,9 @@ TemplatesMenu::_BuildTemplateItems(const BString& directory)
 				message->AddPointer("sender", sender);
 				message->AddRef("sender_ref", &senderRef);
 				if (entry.IsDirectory())
-					message->AddString("type","new_folder_template");
+					message->AddString("type", "new_folder_template");
 				else
-					message->AddString("type","new_file_template");
+					message->AddString("type", "new_file_template");
 				auto item = new IconMenuItem(fileName, message, &nodeInfo, B_MINI_ICON);
 				item->SetEnabled(itemEnabled);
 				AddItem(item);

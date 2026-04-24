@@ -12,14 +12,18 @@
 
 #include <vector>
 
-class TemplateManager {
+typedef std::vector<entry_ref> entry_list;
 
+class TemplateManager {
 public:
 
 	static status_t Initialize();
 	static void	Dispose();
 
 	static TemplateManager* Get();
+
+	status_t GetTemplatesList(entry_list& templates);
+	status_t GetUserTemplatesList(entry_list& userTemplates);
 
  	static status_t		CopyFileTemplate(const entry_ref* source, const entry_ref* destination, entry_ref* newFileRef);
 	static status_t		CopyProjectTemplate(const entry_ref* source, const entry_ref* destination,
@@ -39,7 +43,8 @@ private:
 
 	static TemplateManager* sManager;
 
-	std::vector<entry_ref> fTemplates;
+	entry_list fTemplates;
+	entry_list fUserTemplates;
 };
 
 
