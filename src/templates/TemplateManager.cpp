@@ -121,7 +121,7 @@ BString
 TemplateManager::GetDefaultTemplateDirectory()
 {
 	// Default template directory
-	BPath templatePath = GetDataDirectory();
+	BPath templatePath = GetNearbyDataDirectory();
 	templatePath.Append(kTemplateDirectory);
 	return templatePath.Path();
 }
