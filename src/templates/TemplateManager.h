@@ -40,6 +40,7 @@ private:
 						~TemplateManager();
 
 	status_t			_LoadTemplates();
+	status_t			_LoadUserTemplates();
 
 	static TemplateManager* sManager;
 

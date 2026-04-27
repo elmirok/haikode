@@ -50,7 +50,7 @@ TemplateManager::Initialize()
 	if (sManager == nullptr)
 		return B_NO_MEMORY;
 
-	return B_OK;
+	return sManager->_LoadTemplates();
 }
 
 
@@ -75,11 +75,8 @@ TemplateManager::Get()
 status_t
 TemplateManager::GetTemplatesList(entry_list& templates)
 {
-	// TODO: Don't load every time
-	status_t status = _LoadTemplates();
-	if (status == B_OK)
-		templates = fTemplates;
-	return status;
+	templates = fTemplates;
+	return B_OK;
 }
 
 
@@ -87,7 +84,7 @@ status_t
 TemplateManager::GetUserTemplatesList(entry_list &userTemplates)
 {
 	// TODO: Don't load every time
-	status_t status = _LoadTemplates();
+	status_t status = _LoadUserTemplates();
 	if (status == B_OK)
 		userTemplates = fUserTemplates;
 	return status;
@@ -200,7 +197,6 @@ status_t
 TemplateManager::_LoadTemplates()
 {
 	fTemplates.clear();
-	fUserTemplates.clear();
 
 	BDirectory templatesDir(GetDefaultTemplateDirectory());
 	entry_ref ref;
@@ -208,6 +204,16 @@ TemplateManager::_LoadTemplates()
 		fTemplates.push_back(ref);
 	}
 
+	return B_OK;
+}
+
+
+status_t
+TemplateManager::_LoadUserTemplates()
+{
+	fUserTemplates.clear();
+
+	entry_ref ref;
 	BDirectory userTemplatesDir(GetUserTemplateDirectory());
 	while (userTemplatesDir.GetNextRef(&ref) == B_OK) {
 		fUserTemplates.push_back(ref);
@@ -215,4 +221,3 @@ TemplateManager::_LoadTemplates()
 
 	return B_OK;
 }
-
