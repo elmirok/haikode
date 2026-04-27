@@ -23,7 +23,6 @@ public:
 
 protected:
 	std::vector<const char*> fArgv;
-	int32 fOffset;
 };
 
 class LSPServersManager {
