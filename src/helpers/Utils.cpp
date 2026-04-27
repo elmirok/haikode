@@ -483,7 +483,8 @@ GetNearbyDataDirectory()
 }
 
 void
-DoInAllDataDirectories(std::function<void(const BPath&)> func) {
+DoInAllDataDirectories(std::function<void(const BPath&)> func)
+{
 	func(GetNearbyDataDirectory());
 	func(GetDataDirectoryByWhich(B_USER_SETTINGS_DIRECTORY));
 	func(GetDataDirectoryByWhich(B_USER_NONPACKAGED_DATA_DIRECTORY));
