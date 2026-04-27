@@ -26,7 +26,7 @@ public:
 								EmptyEditor();
 								~EmptyEditor() override;
 
-	status_t					PerformEditorAction(BMessage* msg) override;
+	status_t					PerformEditorAction(BMessage* message) override;
 
 #if __clang__
 	void						Copy(BClipboard* clipboard) override

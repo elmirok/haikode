@@ -78,7 +78,7 @@ public:
 								Editor(entry_ref* ref, const BMessenger& target);
 								~Editor() override;
 			BView*				View() override { return this; }
-			status_t			PerformEditorAction(BMessage* msg) override;
+			status_t			PerformEditorAction(BMessage* message) override;
 			editor_id			Id() override { return fId; }
 			BString				Name() const override { return fFileName; }
 			void				SetProjectFolder(ProjectFolder*) override;
@@ -177,7 +177,7 @@ public:
 protected:
 			virtual	void 		MessageReceived(BMessage* message) override;
 			void				SetTarget(const BMessenger& target);
-			void				NotificationReceived(SCNotification* n) override;
+			void				NotificationReceived(SCNotification* notification) override;
 
 private:
 
@@ -197,7 +197,7 @@ private:
 			int					FindPrevious(const BString& search, int flags, bool wrap);
 			int					FindInTarget(const BString& search, int flags, int startPosition, int endPosition);
 			int32				Find(const BString&  text, int flags, bool backwards, bool onWrap);
-			filter_result		OnArrowKey(int8 ch);
+			filter_result		OnArrowKey(int8 key);
 			void				SetZoom(int32 zoom);
 			void				Completion();
 			void				Format();
@@ -240,7 +240,7 @@ private:
 			void				UpdateStatusBar();
 			void				_ApplyExtensionSettings();
 			void 				_LoadResources(BMessage *message);
-			void				_MaintainIndentation(char c);
+			void				_MaintainIndentation(char ch);
 			void				_SetLineIndentation(int line, int indent);
 			void				_BraceHighlight();
 			bool				_BraceMatch(int pos);
