@@ -68,7 +68,7 @@ BString
 ExtensionManager::_GetSystemDirectory()
 {
 	// Default template directory
-	BPath templatePath = GetDataDirectory();
+	BPath templatePath = GetNearbyDataDirectory();
 	templatePath.Append(kExtensionDirectory);
 	return templatePath.Path();
 }

@@ -478,9 +478,9 @@ GetNearbyDataDirectory()
 			genioPath.Append("data");
 		}
 	}
+
 	return genioPath;
 }
-
 
 void
 DoInAllDataDirectories(std::function<void(const BPath&)> func) {
@@ -491,6 +491,19 @@ DoInAllDataDirectories(std::function<void(const BPath&)> func) {
 	func(GetDataDirectoryByWhich(B_SYSTEM_DATA_DIRECTORY));
 }
 
+void
+DoInAllLibDirectories(std::function<void(const BPath&)> func)
+{
+	BPath libPath;
+	find_directory(B_SYSTEM_LIB_DIRECTORY, &libPath);
+	func(libPath);
+	find_directory(B_USER_LIB_DIRECTORY, &libPath);
+	func(libPath);
+	find_directory(B_SYSTEM_NONPACKAGED_LIB_DIRECTORY, &libPath);
+	func(libPath);
+	find_directory(B_USER_NONPACKAGED_LIB_DIRECTORY, &libPath);
+	func(libPath);
+}
 
 bool
 IsXMasPeriod()

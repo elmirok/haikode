@@ -91,14 +91,12 @@ std::unordered_map<int, Styler::Style>	Styler::sStylesMapping;
 Styler::ApplyGlobal(BScintillaView* editor, const char* style, const BFont* font)
 {
 	sStylesMapping.clear();
-	try {
-		_ApplyGlobal(editor, style, GetDataDirectory(), font);
-	} catch (const YAML::BadFile &) {
-	}
-	try {
-		_ApplyGlobal(editor, style, GetUserSettingsDirectory(), font);
-	} catch (const YAML::BadFile &) {
-	}
+	DoInAllDataDirectories([&](const BPath& path) {
+		try {
+			_ApplyGlobal(editor, style, path, font);
+		} catch (const YAML::BadFile &) {
+		}
+	});
 }
 
 
@@ -215,14 +213,12 @@ Styler::ApplySystemStyle(BScintillaView* editor)
 /* static */ void
 Styler::ApplyBasicStyle(BScintillaView* editor, const char* style, const BFont* font)
 {
-	try {
-		_ApplyBasicStyle(editor, style, GetDataDirectory(), font);
-	} catch (const YAML::BadFile &) {
-	}
-	try {
-		_ApplyBasicStyle(editor, style, GetUserSettingsDirectory(), font);
-	} catch (const YAML::BadFile &) {
-	}
+	DoInAllDataDirectories([&](const BPath& path) {
+		try {
+			_ApplyBasicStyle(editor, style, path, font);
+		} catch (const YAML::BadFile &) {
+		}
+	});
 }
 
 
@@ -331,8 +327,9 @@ Styler::ApplyLanguage(BScintillaView* editor, const std::map<int, int>& styleMap
 void
 Styler::GetAvailableStyles(std::set<std::string> &styles)
 {
-	_GetAvailableStyles(styles, GetDataDirectory());
-	_GetAvailableStyles(styles, GetUserSettingsDirectory());
+	DoInAllDataDirectories([&](const BPath& path) {
+		_GetAvailableStyles(styles, path);
+	});
 }
 
 

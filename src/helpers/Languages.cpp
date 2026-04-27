@@ -37,20 +37,6 @@ std::map<std::string, std::string> 	Languages::sExtensions;
 
 namespace {
 
-
-void
-DoInAllLibDirectories(std::function<void(const BPath&)> func) {
-	BPath libPath;
-	find_directory(B_SYSTEM_LIB_DIRECTORY, &libPath);
-	func(libPath);
-	find_directory(B_USER_LIB_DIRECTORY, &libPath);
-	func(libPath);
-	find_directory(B_SYSTEM_NONPACKAGED_LIB_DIRECTORY, &libPath);
-	func(libPath);
-	find_directory(B_USER_NONPACKAGED_LIB_DIRECTORY, &libPath);
-	func(libPath);
-}
-
 class LexerLibrary {
 public:
 	LexerLibrary(const char* path) {
