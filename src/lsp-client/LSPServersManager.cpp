@@ -9,7 +9,6 @@
 #include <Directory.h>
 #include <PathFinder.h>
 
-#include <iostream>
 #include <string>
 #include <vector>
 
@@ -70,82 +69,78 @@ GetBinaryFullpath(std::string binaryName)
 }
 
 
-class YAMLServerConfig : public LSPServerConfigInterface
-{
-	public:
-			static YAMLServerConfig* fromFile(BPath lspFile)
-			{
-				YAMLServerConfig* config = nullptr;
-				try {
-					const YAML::Node lsp = YAML::LoadFile(lspFile.Path());
-					if (!lsp["name"] ||
-						!lsp["command"] ||
-						!lsp["fileTypes"])
-							return nullptr;
+class YAMLServerConfig : public LSPServerConfigInterface {
+public:
+	static YAMLServerConfig* GetFromFile(const BPath& lspFile) {
+		YAMLServerConfig* config = nullptr;
+		try {
+			const YAML::Node lsp = YAML::LoadFile(lspFile.Path());
+			if (!lsp["name"] ||
+				!lsp["command"] ||
+				!lsp["fileTypes"])
+					return nullptr;
 
-					config = new YAMLServerConfig();
-					std::string command = lsp["command"].as<std::string>();
-
-					// if it's just a binary name (no path)
-					// let's search it in the bin paths:
-					BPath path(command.c_str());
-					if (strcmp(path.Leaf(), command.c_str()) == 0) {
-						command = GetBinaryFullpath(command);
-						if (command.empty() == true) {
-							return nullptr;
-						}
-					}
-
-					config->fArgv.push_back(strdup(command.c_str()));
-					for (const auto& ft : lsp["fileTypes"]) {
-						config->fFileTypes.push_back(ft.as<std::string>());
-					}
-					// args
-					if (lsp["args"]) {
-						for (const auto& arg : lsp["args"]) {
-							std::string argument = arg.as<std::string>();
-							size_t startPos = argument.find("${");
-							size_t endPos = argument.find("}", startPos);
-							if (startPos != std::string::npos && endPos != std::string::npos) {
-
-								  std::string token = argument.substr(startPos + 2, endPos - startPos - 2);
-								  if (token == "lsp_clangd_log_level") {
-									  std::string level = GetCLangLogLevel();
-									  argument.replace(startPos, (endPos - startPos) + 1, level);
-									  config->fArgv.push_back(strdup(argument.c_str()));
-								  } else if (token == "genio_pid") {
-										thread_id pid = find_thread(NULL);
-										BString spid;
-										spid << (int32)pid;
-										config->fArgv.push_back(strdup(spid.String()));
-								  } else {
-									  // Handle other tokens
-									  LogError("Unkown LSP config token : %s", token.c_str());
-								  }
-								  continue;
-							}
-
-							config->fArgv.push_back(strdup(arg.as<std::string>().c_str()));
-						}
-					}
-				} catch (const YAML::Exception & e)  {
-					if (config != nullptr){
-						delete config;
-						config = nullptr;
-					}
-					LogError("Error reading %s (%s)\n", lspFile.Path(), e.msg.c_str());
+			std::string command = lsp["command"].as<std::string>();
+			// if it's just a binary name (no path)
+			// let's search it in the bin paths:
+			BPath path(command.c_str());
+			if (strcmp(path.Leaf(), command.c_str()) == 0) {
+				command = GetBinaryFullpath(command);
+				if (command.empty()) {
+					return nullptr;
 				}
-				return config;
 			}
+			config = new YAMLServerConfig();
+			config->fArgv.push_back(strdup(command.c_str()));
+			for (const auto& ft : lsp["fileTypes"]) {
+				config->fFileTypes.push_back(ft.as<std::string>());
+			}
+			// args
+			if (lsp["args"]) {
+				for (const auto& arg : lsp["args"]) {
+					std::string argument = arg.as<std::string>();
+					size_t startPos = argument.find("${");
+					size_t endPos = argument.find("}", startPos);
+					if (startPos != std::string::npos && endPos != std::string::npos) {
 
-		const bool IsFileTypeSupported (const BString& fileType) const override {
-			 return
-				(std::find(fFileTypes.begin(), fFileTypes.end(), fileType.String()) != fFileTypes.end());
+						  std::string token = argument.substr(startPos + 2, endPos - startPos - 2);
+						  if (token == "lsp_clangd_log_level") {
+							  std::string level = GetCLangLogLevel();
+							  argument.replace(startPos, (endPos - startPos) + 1, level);
+							  config->fArgv.push_back(strdup(argument.c_str()));
+						  } else if (token == "genio_pid") {
+								thread_id pid = find_thread(NULL);
+								BString spid;
+								spid << (int32)pid;
+								config->fArgv.push_back(strdup(spid.String()));
+						  } else {
+							  // Handle other tokens
+							  LogError("Unkown LSP config token : %s", token.c_str());
+						  }
+						  continue;
+					}
+
+					config->fArgv.push_back(strdup(arg.as<std::string>().c_str()));
+				}
+			}
+		} catch (const YAML::Exception & e)  {
+			if (config != nullptr){
+				delete config;
+				config = nullptr;
+			}
+			LogError("Error reading %s (%s)\n", lspFile.Path(), e.msg.c_str());
 		}
-	private:
-			YAMLServerConfig(){}
+		return config;
+	}
 
-			std::vector<std::string>	fFileTypes;
+	const bool IsFileTypeSupported (const BString& fileType) const override {
+		 return
+			std::find(fFileTypes.begin(), fFileTypes.end(), fileType.String()) != fFileTypes.end();
+	}
+private:
+	YAMLServerConfig() {}
+
+	std::vector<std::string> fFileTypes;
 };
 
 
@@ -195,7 +190,7 @@ LSPServersManager::InitLSPServersConfig()
 				if (entry.InitCheck() == B_OK && entry.IsFile()) {
 					BPath lspFile(&ref);
 					LogTrace("--> Lsp file: %s", lspFile.Path());
-					YAMLServerConfig* yamllsp = YAMLServerConfig::fromFile(lspFile);
+					YAMLServerConfig* yamllsp = YAMLServerConfig::GetFromFile(lspFile);
 					if (yamllsp != nullptr) {
 						LogInfo("LSP config loaded! %s", lspFile.Path());
 						_AddValidConfig(yamllsp);
