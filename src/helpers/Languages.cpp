@@ -37,7 +37,6 @@ std::map<std::string, std::string> 	Languages::sExtensions;
 
 namespace {
 
-
 class LexerLibrary {
 public:
 	LexerLibrary(const char* path) {
