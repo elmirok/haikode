@@ -62,6 +62,10 @@ GetBinaryFullpath(std::string binaryName)
 			break;
 		}
 	}
+
+	if (path.InitCheck() != B_OK)
+		return std::string();
+
 	return path.Path();
 }
 
@@ -83,9 +87,9 @@ class YAMLServerConfig : public LSPServerConfigInterface
 					std::string command = lsp["command"].as<std::string>();
 
 					// if it's just a binary name (no path)
-					// let's search it in the pin paths:
+					// let's search it in the bin paths:
 					BPath path(command.c_str());
-					if (strcmp(path.Leaf(),command.c_str()) == 0) {
+					if (strcmp(path.Leaf(), command.c_str()) == 0) {
 						command = GetBinaryFullpath(command);
 						if (command.empty() == true) {
 							return nullptr;
