@@ -13,6 +13,7 @@
 #include <FindDirectory.h>
 #include <String.h>
 #include <getopt.h>
+#include <iostream>
 
 
 #include "ConfigManager.h"
@@ -549,6 +550,8 @@ main(int argc, char* argv[])
 	try {
 		app = new GenioApp();
 		app->Run();
+	} catch (const std::exception& error) {
+		std::cerr << error.what() << std::endl;
 	} catch (...) {
 		debugger("Exception caught.");
 	}
