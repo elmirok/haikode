@@ -2963,8 +2963,6 @@ GenioWindow::_InitMenu()
 
 	fileMenu->AddItem(fFileNewMenuItem = new TemplatesMenu(this, B_TRANSLATE("New"),
 			new BMessage(MSG_FILE_NEW), new BMessage(MSG_SHOW_TEMPLATE_USER_FOLDER),
-			TemplateManager::GetDefaultTemplateDirectory(),
-			TemplateManager::GetUserTemplateDirectory(),
 			TemplatesMenu::SHOW_ALL_VIEW_MODE,	true));
 
 	ActionManager::AddItem(MSG_FILE_OPEN, fileMenu);

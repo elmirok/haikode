@@ -9,6 +9,7 @@
 #include <AppFileInfo.h>
 #include <Catalog.h>
 #include <CopyEngine.h>
+#include <Debug.h>
 #include <Directory.h>
 #include <Entry.h>
 #include <EntryOperationEngineBase.h>
@@ -27,6 +28,8 @@ const char* kTemplateDirectory = "templates";
 
 using Entry = BPrivate::BEntryOperationEngineBase::Entry;
 
+TemplateManager* TemplateManager::sManager = nullptr;
+
 TemplateManager::TemplateManager()
 {
 }
@@ -34,6 +37,57 @@ TemplateManager::TemplateManager()
 
 TemplateManager::~TemplateManager()
 {
+}
+
+
+/* static */
+status_t
+TemplateManager::Initialize()
+{
+	if (sManager == nullptr)
+		sManager = new (std::nothrow) TemplateManager();
+
+	if (sManager == nullptr)
+		return B_NO_MEMORY;
+
+	return sManager->_LoadTemplates();
+}
+
+
+/* static */
+void
+TemplateManager::Dispose()
+{
+	delete sManager;
+	sManager = nullptr;
+}
+
+
+/* static */
+TemplateManager*
+TemplateManager::Get()
+{
+	ASSERT(sManager != nullptr);
+	return sManager;
+}
+
+
+status_t
+TemplateManager::GetTemplatesList(entry_list& templates)
+{
+	templates = fTemplates;
+	return B_OK;
+}
+
+
+status_t
+TemplateManager::GetUserTemplatesList(entry_list &userTemplates)
+{
+	// TODO: Don't load every time
+	status_t status = _LoadUserTemplates();
+	if (status == B_OK)
+		userTemplates = fUserTemplates;
+	return status;
 }
 
 
@@ -136,4 +190,34 @@ TemplateManager::GetUserTemplateDirectory()
 	create_directory(userPath.Path(), 0777);
 
 	return userPath.Path();
+}
+
+
+status_t
+TemplateManager::_LoadTemplates()
+{
+	fTemplates.clear();
+
+	BDirectory templatesDir(GetDefaultTemplateDirectory());
+	entry_ref ref;
+	while (templatesDir.GetNextRef(&ref) == B_OK) {
+		fTemplates.push_back(ref);
+	}
+
+	return B_OK;
+}
+
+
+status_t
+TemplateManager::_LoadUserTemplates()
+{
+	fUserTemplates.clear();
+
+	entry_ref ref;
+	BDirectory userTemplatesDir(GetUserTemplateDirectory());
+	while (userTemplatesDir.GetNextRef(&ref) == B_OK) {
+		fUserTemplates.push_back(ref);
+	}
+
+	return B_OK;
 }

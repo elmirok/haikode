@@ -27,8 +27,6 @@ public:
 
 							TemplatesMenu(BHandler *target, const char* label,
 											BMessage *message, BMessage *showTemplateMessage,
-											const BString& defaultDirectory,
-											const BString& userDirectory,
 											ViewMode mode = FILE_VIEW_MODE,
 											bool showNewFolder = true);
 	virtual 				~TemplatesMenu();
@@ -46,15 +44,13 @@ public:
 
 private:
 	bool 					_BuildMenu();
-	int32					_BuildTemplateItems(const BString& directory);
+	status_t				_BuildTemplateItem(const entry_ref& ref);
 
 	BHandler* 				fTarget;
 	BMenuItem* 				fOpenItem;
 	BMessage*				fMessage;
 	BMessage*				fShowTemplateMessage;
 	ViewMode				fViewMode;
-	const BString 			fDefaultDirectory;
-	const BString 			fUserDirectory;
 	bool					fShowNewFolder;
 	bool					fEnableNewFolder;
 	bool					fShowTemplatesDirectory;
