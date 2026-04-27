@@ -1,8 +1,11 @@
 v6.0 (not released)
 	- Completely rewrote LSP handling, improving performance.
 	- Added "Find references".
+	- Moved LSP servers configuration to yaml so it's no longer hardcoded.
+	- Made languages configuration easier to extend with external files.
 	- Made renaming symbols more robust.
 	- Fixed auto completion not triggering in some cases.
+	- Fixed status view not updating when changing editors in some cases.
 	- Class outline: added function parameters.
 ---
 v5.0
