@@ -101,9 +101,9 @@ Styler::ApplyGlobal(BScintillaView* editor, const char* style, const BFont* font
 
 
 /* static */ void
-Styler::_ApplyGlobal(BScintillaView* editor, const char* style, const BPath &path, const BFont* font)
+Styler::_ApplyGlobal(BScintillaView* editor, const char* styleName, const BPath &path, const BFont* font)
 {
-	BString fullpath = _FullStylePath(style, path);
+	BString fullpath = _FullStylePath(styleName, path);
 	const YAML::Node styles = YAML::LoadFile(fullpath.String());
 	YAML::Node global;
 	if (styles["Global"]) {
@@ -240,7 +240,7 @@ Styler::_ApplyBasicStyle(BScintillaView* editor, const char* style, const BPath 
 
 
 void
-Styler::_ApplyBasicStyle(BScintillaView* editor, YAML::Node& global)
+Styler::_ApplyBasicStyle(BScintillaView* editor, const YAML::Node& global)
 {
 	int id;
 	Style s;
@@ -275,7 +275,7 @@ Styler::_ApplyBasicStyle(BScintillaView* editor, YAML::Node& global)
 
 
 void
-Styler::_ApplyDefaultStyle(BScintillaView* editor, YAML::Node& global,  const BFont* font)
+Styler::_ApplyDefaultStyle(BScintillaView* editor, const YAML::Node& global, const BFont* font)
 {
 	if (!global["Default"])
 		return;
