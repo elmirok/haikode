@@ -153,7 +153,9 @@ TemplatesMenu::_BuildMenu()
 		_BuildTemplateItem(entry);
 	}
 
-	AddSeparatorItem();
+	int32 templatesCount = entryList.size();
+	if (templatesCount > 0)
+		AddSeparatorItem();
 
 	entry_list userEntryList;
 	TemplateManager::Get()->GetUserTemplatesList(userEntryList);
@@ -183,7 +185,7 @@ TemplatesMenu::_BuildMenu()
 			fOpenItem->SetEnabled(false);
 	}
 
-	return count + userTemplatesCount > 0;
+	return templatesCount + userTemplatesCount > 0;
 }
 
 
