@@ -551,10 +551,12 @@ main(int argc, char* argv[])
 		app = new GenioApp();
 		app->Run();
 	} catch (const std::exception& error) {
-		std::cerr << error.what() << std::endl;
-	} catch (...) {
-		debugger("Exception caught.");
+		debugger(error.what());
 	}
+
+	// Haiku will call debugger() by itself on uncaught exceptions, so
+	// we can avoid the generic catch here. We only catch std::exception so we can show
+	// a better crash message
 	delete app;
 
 	return 0;
