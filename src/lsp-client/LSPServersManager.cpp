@@ -202,12 +202,9 @@ LSPServersManager::InitLSPServersConfig()
 					}
 				}
 			}
-		} catch (const YAML::BadFile &) {
-			// TODO: Log something ?
-		} catch (const std::exception &e) {
-			std::cout << e.what() << std::endl;
 		} catch (...) {
-			// TODO ???
+			// this usually means there's a bad yaml file somewhere
+			// We can continue without hassles 
 		}
 	});
 	return B_OK;
