@@ -9,6 +9,7 @@
 #include <Directory.h>
 #include <PathFinder.h>
 
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -165,36 +166,44 @@ status_t
 LSPServersManager::InitLSPServersConfig()
 {
 	DoInAllDataDirectories([&](const BPath& path) {
-		// iterate inside the directory
-		BPath p(path);
-		p.Append("lsp");
+		try {
+			// iterate inside the directory
+			BPath p(path);
+			p.Append("lsp");
 
-		BDirectory languages(p.Path());
-		if (languages.InitCheck() != B_OK) {
-			LogError("Can't read the lsp directory: %s", p.Path());
-			return;
-		}
-		LogDebug("Reading the lsp directory: %s", p.Path());
-		entry_ref ref;
-		while(languages.GetNextRef(&ref) == B_OK) {
-			LogTrace("--> LSP file: %s", ref.name);
-			std::string name(ref.name);
-			if (name.ends_with(".yaml") == false) {
-				LogTrace("\tinvalid filename: %s", ref.name);
-				continue;
+			BDirectory languages(p.Path());
+			if (languages.InitCheck() != B_OK) {
+				LogError("Can't read the lsp directory: %s", p.Path());
+				return;
 			}
-			name.resize(name.size() - 5);
+			LogDebug("Reading the lsp directory: %s", p.Path());
+			entry_ref ref;
+			while (languages.GetNextRef(&ref) == B_OK) {
+				LogTrace("--> LSP file: %s", ref.name);
+				std::string name(ref.name);
+				if (name.ends_with(".yaml") == false) {
+					LogTrace("\tinvalid filename: %s", ref.name);
+					continue;
+				}
+				name.resize(name.size() - 5);
 
-			BEntry entry(&ref);
-			if (entry.InitCheck() == B_OK && entry.IsFile()) {
-				BPath lspFile(&ref);
-				LogTrace("--> Lsp file: %s", lspFile.Path());
-				YAMLServerConfig* yamllsp =YAMLServerConfig::fromFile(lspFile);
-				if (yamllsp != nullptr) {
-					LogInfo("LSP config loaded! %s", lspFile.Path());
-					_AddValidConfig(yamllsp);
+				BEntry entry(&ref);
+				if (entry.InitCheck() == B_OK && entry.IsFile()) {
+					BPath lspFile(&ref);
+					LogTrace("--> Lsp file: %s", lspFile.Path());
+					YAMLServerConfig* yamllsp = YAMLServerConfig::fromFile(lspFile);
+					if (yamllsp != nullptr) {
+						LogInfo("LSP config loaded! %s", lspFile.Path());
+						_AddValidConfig(yamllsp);
+					}
 				}
 			}
+		} catch (const YAML::BadFile &) {
+			// TODO: Log something ?
+		} catch (const std::exception &e) {
+			std::cout << e.what() << std::endl;
+		} catch (...) {
+			// TODO ???
 		}
 	});
 	return B_OK;
