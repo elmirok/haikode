@@ -7,10 +7,11 @@
 #include "LSPServersManager.h"
 
 #include <Directory.h>
+#include <PathFinder.h>
+
 #include <string>
 #include <vector>
 
-#include <PathFinder.h>
 #include <yaml-cpp/yaml.h>
 
 #include "ConfigManager.h"
@@ -23,7 +24,8 @@
 
 
 
-std::string GetCLangLogLevel()
+std::string
+GetCLangLogLevel()
 {
 	std::string logLevel;
 	switch ((int32)gCFG["lsp_clangd_log_level"]) {
@@ -41,7 +43,9 @@ std::string GetCLangLogLevel()
 	return logLevel;
 }
 
-std::string GetBinaryFullpath(std::string binaryName)
+
+std::string
+GetBinaryFullpath(std::string binaryName)
 {
 	BStringList paths;
 	BPath path;
@@ -64,7 +68,7 @@ std::string GetBinaryFullpath(std::string binaryName)
 class YAMLServerConfig : public LSPServerConfigInterface
 {
 	public:
-			static YAMLServerConfig*	fromFile(BPath lspFile)
+			static YAMLServerConfig* fromFile(BPath lspFile)
 			{
 				YAMLServerConfig* config = nullptr;
 				try {
@@ -119,9 +123,6 @@ class YAMLServerConfig : public LSPServerConfigInterface
 							config->fArgv.push_back(strdup(arg.as<std::string>().c_str()));
 						}
 					}
-
-
-
 				} catch (const YAML::Exception & e)  {
 					if (config != nullptr){
 						delete config;
@@ -140,13 +141,10 @@ class YAMLServerConfig : public LSPServerConfigInterface
 			YAMLServerConfig(){}
 
 			std::vector<std::string>	fFileTypes;
-
 };
 
 
-
-
-std::vector<LSPServerConfigInterface*> LSPServersManager::fConfigs;
+std::vector<LSPServerConfigInterface*> LSPServersManager::sConfigs;
 
 
 /* static */
@@ -154,7 +152,7 @@ bool
 LSPServersManager::_AddValidConfig(LSPServerConfigInterface* interface)
 {
 	if (interface->Argc() > 0 && BEntry(interface->Argv()[0], true).Exists()) {
-		fConfigs.push_back(interface);
+		sConfigs.push_back(interface);
 		return true;
 	}
 	LogInfo("LSP Server [%s] not installed!", interface->Argv()[0]);
@@ -173,7 +171,7 @@ LSPServersManager::InitLSPServersConfig()
 
 		BDirectory languages(p.Path());
 		if (languages.InitCheck() != B_OK) {
-			LogError("Can't reading the lsp directory: %s", p.Path());
+			LogError("Can't read the lsp directory: %s", p.Path());
 			return;
 		}
 		LogDebug("Reading the lsp directory: %s", p.Path());
@@ -207,10 +205,10 @@ LSPServersManager::InitLSPServersConfig()
 status_t
 LSPServersManager::DisposeLSPServersConfig()
 {
-	for (LSPServerConfigInterface* interface: fConfigs) {
+	for (LSPServerConfigInterface* interface: sConfigs) {
 		delete interface;
 	}
-	fConfigs.clear();
+	sConfigs.clear();
 	return B_OK;
 }
 
@@ -219,7 +217,7 @@ LSPServersManager::DisposeLSPServersConfig()
 LSPProjectWrapper*
 LSPServersManager::CreateLSPProject(const BPath& path, const BMessenger& msgr, const BString& fileType)
 {
-	for (const LSPServerConfigInterface* interface: fConfigs) {
+	for (const LSPServerConfigInterface* interface: sConfigs) {
 		if (interface->IsFileTypeSupported(fileType)) {
 			return new LSPProjectWrapper(path, msgr, *interface);
 		}
