@@ -67,6 +67,7 @@
 #include "SourceControlPanel.h"
 #include "SwitchBranchMenu.h"
 #include "Task.h"
+#include "TemplateManager.h"
 #include "TemplatesMenu.h"
 #include "TerminalTab.h"
 #include "ToolsMenu.h"
