@@ -121,9 +121,8 @@ TemplatesMenu::_BuildMenu()
 {
 	// clear everything...
 	fOpenItem = nullptr;
-	int32 count = CountItems();
-	while (count--)
-		delete RemoveItem((int32)0);
+
+	RemoveItems(0, CountItems(), true);
 
 	if (fShowNewFolder) {
 		// Always create a new message
@@ -190,11 +189,11 @@ TemplatesMenu::_BuildMenu()
 
 
 status_t
-TemplatesMenu::_BuildTemplateItem(const entry_ref& ref)
+TemplatesMenu::_BuildTemplateItem(const entry_ref& itemRef)
 {
 	bool itemEnabled = true;
 
-	BEntry entry(&ref);
+	BEntry entry(&itemRef);
 	BNode node(&entry);
 	BNodeInfo nodeInfo(&node);
 

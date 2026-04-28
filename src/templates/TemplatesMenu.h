@@ -44,7 +44,7 @@ public:
 
 private:
 	bool 					_BuildMenu();
-	status_t				_BuildTemplateItem(const entry_ref& ref);
+	status_t				_BuildTemplateItem(const entry_ref& itemRef);
 
 	BHandler* 				fTarget;
 	BMenuItem* 				fOpenItem;

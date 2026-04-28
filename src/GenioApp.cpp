@@ -13,7 +13,6 @@
 #include <FindDirectory.h>
 #include <String.h>
 #include <getopt.h>
-#include <iostream>
 
 
 #include "ConfigManager.h"
