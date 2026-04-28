@@ -871,19 +871,19 @@ SourceControlPanel::_UpdateRepositoryTask(const Genio::Git::GitRepository* repo,
 			fRepositoryView->MakeEmpty();
 			// local branches
 			fRepositoryView->InitEmptySuperItem(B_TRANSLATE("Local branches"));
-			for (auto &branch : localBranches) {
-				fRepositoryView->BuildBranchTree(branch, kLocalBranch, branch == fCurrentBranch);
+			for (const auto &localBranch : localBranches) {
+				fRepositoryView->BuildBranchTree(branch, kLocalBranch, localBranch == fCurrentBranch);
 			}
 
 			// remote branches
 			fRepositoryView->InitEmptySuperItem(B_TRANSLATE("Remote branches"));
-			for (auto &branch : remoteBranches) {
-				fRepositoryView->BuildBranchTree(branch, kRemoteBranch, false);
+			for (const auto &remoteBranch : remoteBranches) {
+				fRepositoryView->BuildBranchTree(remoteBranch, kRemoteBranch, false);
 			}
 
 			// tags
 			fRepositoryView->InitEmptySuperItem(B_TRANSLATE("Tags"));
-			for (auto &tag : allTags) {
+			for (const auto &tag : allTags) {
 				fRepositoryView->BuildBranchTree(tag, kTag, false);
 			}
 
