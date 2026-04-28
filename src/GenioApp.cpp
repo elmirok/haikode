@@ -444,7 +444,7 @@ GenioApp::_PrepareConfig(ConfigManager& cfg)
 	std::set<std::string> allStyles;
 	Styler::GetAvailableStyles(allStyles);
 	int32 style_index = 1;
-	for (auto style : allStyles) {
+	for (const auto& style : allStyles) {
 		BString opt("option_");
 		opt << style_index;
 
