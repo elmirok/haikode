@@ -32,14 +32,18 @@ using Entry = BPrivate::BEntryOperationEngineBase::Entry;
 
 class CustomCopyEngineController: public BCopyEngine::BController {
 public:
-	CustomCopyEngineController(const char* projectName);
+	CustomCopyEngineController(const char* projectName, const BPath& sourcePath,
+		const BPath& destPath);
 
 private:
 	bool EntryStarted(const char* path) override;
 	bool EntryFinished(const char* path, status_t error) override;
 
 	BString fProjectName;
+	BPath fSourcePath;
+	BPath fDestPath;
 };
+
 
 // TemplateManager
 TemplateManager* TemplateManager::sManager = nullptr;
@@ -143,7 +147,7 @@ TemplateManager::CopyProjectTemplate(const entry_ref* source, const entry_ref* d
 	destPath.Append(name);
 	Entry destEntry(destPath.Path());
 
-	CustomCopyEngineController controller(name);
+	CustomCopyEngineController controller(name, sourcePath, destPath);
 	BCopyEngine copyEngine(BCopyEngine::COPY_RECURSIVELY);
 	copyEngine.SetController(&controller);
 	status_t status = copyEngine.CopyEntry(sourceEntry, destEntry);
@@ -211,60 +215,6 @@ TemplateManager::GetUserTemplateDirectory()
 }
 
 
-static void
-ReplaceStringInFile(const char* filePath, const char* original, const char* replacement)
-{
-	std::ifstream inputFile(filePath);
-	std::stringstream buffer;
-	buffer << inputFile.rdbuf();
-	std::string content = buffer.str();
-
-	size_t pos = 0;
-	while ((pos = content.find(original, pos)) != std::string::npos) {
-		content.replace(pos, std::string(original).length(), replacement);
-		pos += std::string(replacement).length();
-	}
-
-	inputFile.close();
-
-	std::ofstream outputFile(filePath);
-	outputFile << content;
-}
-
-
-// CustomCopyEngineController
-CustomCopyEngineController::CustomCopyEngineController(const char* projectName)
-	:
-	BCopyEngine::BController(),
-	fProjectName(projectName)
-{
-}
-
-
-/* virtual */
-bool
-CustomCopyEngineController::EntryStarted(const char* path)
-{
-	LogTrace("Start copying %s", path);
-	return BCopyEngine::BController::EntryStarted(path);
-}
-
-
-/* virtual */
-bool
-CustomCopyEngineController::EntryFinished(const char* path, status_t error)
-{
-	LogTrace("Finished copying %s: %s", path, ::strerror(error));
-	BPath filePath(path);
-	if (BString(filePath.Leaf()) == "Makefile") {
-		// Test, not working
-		ReplaceStringInFile(path, "${project.name}", fProjectName.String());
-	}
-
-	return BCopyEngine::BController::EntryFinished(path, error);
-}
-
-
 status_t
 TemplateManager::_LoadTemplates()
 {
@@ -292,4 +242,64 @@ TemplateManager::_LoadUserTemplates()
 	}
 
 	return B_OK;
+}
+
+
+static void
+ReplaceStringInFile(const char* filePath, const char* original, const char* replacement)
+{
+	std::ifstream inputFile(filePath);
+	std::stringstream buffer;
+	buffer << inputFile.rdbuf();
+	std::string content = buffer.str();
+
+	size_t pos = 0;
+	while ((pos = content.find(original, pos)) != std::string::npos) {
+		content.replace(pos, std::string(original).length(), replacement);
+		pos += std::string(replacement).length();
+	}
+
+	inputFile.close();
+
+	std::ofstream outputFile(filePath);
+	outputFile << content;
+}
+
+
+// CustomCopyEngineController
+CustomCopyEngineController::CustomCopyEngineController(const char* projectName,
+	const BPath& sourcePath, const BPath& destPath)
+	:
+	BCopyEngine::BController(),
+	fProjectName(projectName),
+	fSourcePath(sourcePath),
+	fDestPath(destPath)
+{
+}
+
+
+/* virtual */
+bool
+CustomCopyEngineController::EntryStarted(const char* path)
+{
+	LogTrace("Start copying %s\n", path);
+	return BCopyEngine::BController::EntryStarted(path);
+}
+
+
+/* virtual */
+bool
+CustomCopyEngineController::EntryFinished(const char* path, status_t error)
+{
+	BString destination(path);
+	destination.ReplaceFirst(fSourcePath.Path(), fDestPath.Path());
+	LogTrace("Finished copying %s to %s: %s\n", path, destination.String(), ::strerror(error));
+	
+	BPath filePath(destination.String());
+	if (BString(filePath.Leaf()) == "Makefile") {
+		// TODO: test
+		ReplaceStringInFile(path, "${project.name}", fProjectName.String());
+	}
+
+	return BCopyEngine::BController::EntryFinished(path, error);
 }
