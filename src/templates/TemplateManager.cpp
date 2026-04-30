@@ -282,7 +282,7 @@ CustomCopyEngineController::CustomCopyEngineController(const char* projectName,
 bool
 CustomCopyEngineController::EntryStarted(const char* path)
 {
-	LogTrace("Start copying %s\n", path);
+	LogDebug("Start copying %s", path);
 	return BCopyEngine::BController::EntryStarted(path);
 }
 
@@ -293,12 +293,12 @@ CustomCopyEngineController::EntryFinished(const char* path, status_t error)
 {
 	BString destination(path);
 	destination.ReplaceFirst(fSourcePath.Path(), fDestPath.Path());
-	LogTrace("Finished copying %s to %s: %s\n", path, destination.String(), ::strerror(error));
+	LogDebug("Finished copying %s to %s: %s", path, destination.String(), ::strerror(error));
 	
 	BPath filePath(destination.String());
 	if (BString(filePath.Leaf()) == "Makefile") {
 		// TODO: test
-		ReplaceStringInFile(path, "${project.name}", fProjectName.String());
+		ReplaceStringInFile(filePath.Path(), "${project.name}", fProjectName.String());
 	}
 
 	return BCopyEngine::BController::EntryFinished(path, error);
