@@ -22,7 +22,6 @@ LSPPipeClient::LSPPipeClient()
 {
 }
 
-
 status_t
 LSPPipeClient::Start(const char **argv, int32 argc)
 {
@@ -30,6 +29,8 @@ LSPPipeClient::Start(const char **argv, int32 argc)
 	if (image_status == B_OK) {
 		fRunning.store(true);
 		fReaderThread = std::thread(&LSPPipeClient::_ReaderLoop, this);
+	} else {
+		LogErrorF("%s", strerror(image_status));
 	}
 	return image_status;
 }

@@ -24,6 +24,7 @@
 #include "LSPServersManager.h"
 #include "PanelTabManager.h"
 #include "Styler.h"
+#include "TemplateManager.h"
 #include "TerminalManager.h"
 #include "Utils.h"
 
@@ -71,6 +72,10 @@ GenioApp::GenioApp()
 
 	fExtensionManager = new ExtensionManager();
 
+	status_t status = TemplateManager::Initialize();
+	if (status != B_OK) {
+		LogError("Cannot initialize Template Manager!");
+	}
 	fGenioWindow = new GenioWindow(BRect(gCFG["ui_bounds"]));
 	fGenioWindow->MoveOnScreen();
 }
@@ -81,6 +86,7 @@ GenioApp::~GenioApp()
 	// Save settings on quit, anyway
 	gCFG.SaveToFile({fConfigurationPath});
 	LSPServersManager::DisposeLSPServersConfig();
+	TemplateManager::Dispose();
 }
 
 
@@ -438,7 +444,7 @@ GenioApp::_PrepareConfig(ConfigManager& cfg)
 	std::set<std::string> allStyles;
 	Styler::GetAvailableStyles(allStyles);
 	int32 style_index = 1;
-	for (auto style : allStyles) {
+	for (const auto& style : allStyles) {
 		BString opt("option_");
 		opt << style_index;
 
@@ -543,9 +549,13 @@ main(int argc, char* argv[])
 	try {
 		app = new GenioApp();
 		app->Run();
-	} catch (...) {
-		debugger("Exception caught.");
+	} catch (const std::exception& error) {
+		debugger(error.what());
 	}
+
+	// Haiku will call debugger() by itself on uncaught exceptions, so
+	// we can avoid the generic catch here. We only catch std::exception so we can show
+	// a better crash message
 	delete app;
 
 	return 0;

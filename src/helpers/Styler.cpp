@@ -91,21 +91,19 @@ std::unordered_map<int, Styler::Style>	Styler::sStylesMapping;
 Styler::ApplyGlobal(BScintillaView* editor, const char* style, const BFont* font)
 {
 	sStylesMapping.clear();
-	try {
-		_ApplyGlobal(editor, style, GetDataDirectory(), font);
-	} catch (const YAML::BadFile &) {
-	}
-	try {
-		_ApplyGlobal(editor, style, GetUserSettingsDirectory(), font);
-	} catch (const YAML::BadFile &) {
-	}
+	DoInAllDataDirectories([&](const BPath& path) {
+		try {
+			_ApplyGlobal(editor, style, path, font);
+		} catch (const YAML::BadFile &) {
+		}
+	});
 }
 
 
 /* static */ void
-Styler::_ApplyGlobal(BScintillaView* editor, const char* style, const BPath &path, const BFont* font)
+Styler::_ApplyGlobal(BScintillaView* editor, const char* styleName, const BPath &path, const BFont* font)
 {
-	BString fullpath = _FullStylePath(style, path);
+	BString fullpath = _FullStylePath(styleName, path);
 	const YAML::Node styles = YAML::LoadFile(fullpath.String());
 	YAML::Node global;
 	if (styles["Global"]) {
@@ -215,14 +213,12 @@ Styler::ApplySystemStyle(BScintillaView* editor)
 /* static */ void
 Styler::ApplyBasicStyle(BScintillaView* editor, const char* style, const BFont* font)
 {
-	try {
-		_ApplyBasicStyle(editor, style, GetDataDirectory(), font);
-	} catch (const YAML::BadFile &) {
-	}
-	try {
-		_ApplyBasicStyle(editor, style, GetUserSettingsDirectory(), font);
-	} catch (const YAML::BadFile &) {
-	}
+	DoInAllDataDirectories([&](const BPath& path) {
+		try {
+			_ApplyBasicStyle(editor, style, path, font);
+		} catch (const YAML::BadFile &) {
+		}
+	});
 }
 
 
@@ -244,7 +240,7 @@ Styler::_ApplyBasicStyle(BScintillaView* editor, const char* style, const BPath 
 
 
 void
-Styler::_ApplyBasicStyle(BScintillaView* editor, YAML::Node& global)
+Styler::_ApplyBasicStyle(BScintillaView* editor, const YAML::Node& global)
 {
 	int id;
 	Style s;
@@ -279,7 +275,7 @@ Styler::_ApplyBasicStyle(BScintillaView* editor, YAML::Node& global)
 
 
 void
-Styler::_ApplyDefaultStyle(BScintillaView* editor, YAML::Node& global,  const BFont* font)
+Styler::_ApplyDefaultStyle(BScintillaView* editor, const YAML::Node& global, const BFont* font)
 {
 	if (!global["Default"])
 		return;
@@ -331,8 +327,9 @@ Styler::ApplyLanguage(BScintillaView* editor, const std::map<int, int>& styleMap
 void
 Styler::GetAvailableStyles(std::set<std::string> &styles)
 {
-	_GetAvailableStyles(styles, GetDataDirectory());
-	_GetAvailableStyles(styles, GetUserSettingsDirectory());
+	DoInAllDataDirectories([&](const BPath& path) {
+		_GetAvailableStyles(styles, path);
+	});
 }
 
 

@@ -1,0 +1,7 @@
+# pylsp LSP server.
+
+name: "pylsp"
+command: "pylsp"
+fileTypes: ["python"]
+args:
+  - "-v"

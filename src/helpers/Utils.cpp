@@ -478,9 +478,33 @@ GetNearbyDataDirectory()
 			genioPath.Append("data");
 		}
 	}
+
 	return genioPath;
 }
 
+void
+DoInAllDataDirectories(std::function<void(const BPath&)> func)
+{
+	func(GetNearbyDataDirectory());
+	func(GetDataDirectoryByWhich(B_USER_SETTINGS_DIRECTORY));
+	func(GetDataDirectoryByWhich(B_USER_NONPACKAGED_DATA_DIRECTORY));
+	func(GetDataDirectoryByWhich(B_SYSTEM_NONPACKAGED_DATA_DIRECTORY));
+	func(GetDataDirectoryByWhich(B_SYSTEM_DATA_DIRECTORY));
+}
+
+void
+DoInAllLibDirectories(std::function<void(const BPath&)> func)
+{
+	BPath libPath;
+	find_directory(B_SYSTEM_LIB_DIRECTORY, &libPath);
+	func(libPath);
+	find_directory(B_USER_LIB_DIRECTORY, &libPath);
+	func(libPath);
+	find_directory(B_SYSTEM_NONPACKAGED_LIB_DIRECTORY, &libPath);
+	func(libPath);
+	find_directory(B_USER_NONPACKAGED_LIB_DIRECTORY, &libPath);
+	func(libPath);
+}
 
 bool
 IsXMasPeriod()

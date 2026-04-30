@@ -1,0 +1,11 @@
+# OmniSharp LSP server.
+
+name: "OmniSharp"
+command: "/boot/system/non-packaged/bin/dotnet/dotnet"
+fileTypes: ["csharp"]
+args:
+  - "/boot/system/non-packaged/bin/OmniSharp/OmniSharp.dll"
+  - "-lsp"
+  - "-v"
+  - "--hostPID"
+  - "${genio_pid}"

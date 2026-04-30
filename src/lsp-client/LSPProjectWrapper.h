@@ -179,6 +179,9 @@ LSPProjectWrapper::_SendTypedRequest(LSPTextDocument* textDocument, typename M::
 		_addFunctionToQueue<M>(std::forward<F>(then), requestVersion),
 		[](const lsp::ResponseError& error) {
 			LogError("LSP request [%s] - error: %s", M::Method.data(), error.message());
+			if(error.data().has_value()) {
+				LogError(" request error data: %s", lsp::json::stringify(error.data().value()));
+			}
 		});
 }
 

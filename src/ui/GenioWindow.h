@@ -104,7 +104,7 @@ private:
 
 			status_t			_SelectEditorToPosition(IEditor* editor, int32 be_line, int32 lsp_char);
 			void				_ApplyEditsToSelectedEditor(BMessage* msg);
-			void 				_HandleEditorZoom(int32 changeValue);
+			void 				_HandleEditorZoom(int32 value);
 
 			void				_GetFocusAndSelection(BTextControl* control) const;
 			status_t			_Git(const BString& git_command);
@@ -174,13 +174,13 @@ private:
 			void				_ShowPanelTabView(const char* name, bool show, int32 msgWhat = -1);
 			status_t			_AlertInvalidBuildConfig(BString message);
 			void				_CloseMultipleTabs(std::vector<IEditor*>& editors);
-			void				_HandleConfigurationChanged(BMessage* msg);
+			void				_HandleConfigurationChanged(BMessage* message);
 			void				_HandleProjectConfigurationChanged(BMessage* message);
 			void				_ChangeIconSize(bool small);
 			BMenu*				_CreateLanguagesMenu();
 			void				_ToggleScreenMode(int32 action);
 			void				_ForwardToSelectedEditor(BMessage* message);
-			void				_UpdateWindowTitle(IEditor* editor, const char* currentBranch);
+			void				_UpdateWindowTitle(IEditor* editor, const char* branch);
 			void				_ReloadFileInEditor(IEditor* editor, entry_ref* ref);
 
 private:

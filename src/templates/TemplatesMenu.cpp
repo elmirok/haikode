@@ -15,6 +15,7 @@
 #include <MimeTypes.h>
 
 #include "IconMenuItem.h"
+#include "TemplateManager.h"
 
 
 #undef B_TRANSLATION_CONTEXT
@@ -25,8 +26,6 @@ const char* kNewFolderLabel = "New folder";
 
 TemplatesMenu::TemplatesMenu(BHandler *target, const char* label,
 								BMessage *message, BMessage *showTemplateMessage,
-								const BString& defaultDirectory,
-								const BString&  userDirectory,
 								ViewMode mode,
 								bool showNewFolder)
 	:
@@ -36,8 +35,6 @@ TemplatesMenu::TemplatesMenu(BHandler *target, const char* label,
 	fMessage(message),
 	fShowTemplateMessage(showTemplateMessage),
 	fViewMode(mode),
-	fDefaultDirectory(defaultDirectory),
-	fUserDirectory(userDirectory),
 	fShowNewFolder(showNewFolder),
 	fEnableNewFolder(true),
 	fShowTemplatesDirectory(fShowTemplateMessage != nullptr ? true : false)
@@ -124,9 +121,8 @@ TemplatesMenu::_BuildMenu()
 {
 	// clear everything...
 	fOpenItem = nullptr;
-	int32 count = CountItems();
-	while (count--)
-		delete RemoveItem((int32)0);
+
+	RemoveItems(0, CountItems(), true);
 
 	if (fShowNewFolder) {
 		// Always create a new message
@@ -150,10 +146,23 @@ TemplatesMenu::_BuildMenu()
 		AddSeparatorItem();
 	}
 
-	_BuildTemplateItems(fDefaultDirectory);
-	AddSeparatorItem();
-	int32 userTemplatesCount = _BuildTemplateItems(fUserDirectory);
+	entry_list entryList;
+	TemplateManager::Get()->GetTemplatesList(entryList);
+	for (const entry_ref& entry : entryList) {
+		_BuildTemplateItem(entry);
+	}
 
+	int32 templatesCount = entryList.size();
+	if (templatesCount > 0)
+		AddSeparatorItem();
+
+	entry_list userEntryList;
+	TemplateManager::Get()->GetUserTemplatesList(userEntryList);
+	for (const entry_ref& userEntry : userEntryList) {
+		_BuildTemplateItem(userEntry);
+	}
+
+	int32 userTemplatesCount = userEntryList.size();
 	if (fShowTemplatesDirectory) {
 		if (userTemplatesCount > 0)
 			AddSeparatorItem();
@@ -161,7 +170,7 @@ TemplatesMenu::_BuildMenu()
 		// this is the message sent to open the templates folder
 		BMessage *templateMessage = new BMessage(fShowTemplateMessage->what);
 		entry_ref dirRef;
-		BDirectory userTemplateDirectory(fUserDirectory);
+		BDirectory userTemplateDirectory(TemplateManager::GetUserTemplateDirectory());
 		BEntry entry;
 		if (userTemplateDirectory.GetEntry(&entry) == B_OK)
 			entry.GetRef(&dirRef);
@@ -175,64 +184,58 @@ TemplatesMenu::_BuildMenu()
 			fOpenItem->SetEnabled(false);
 	}
 
-	return count > 0;
+	return templatesCount + userTemplatesCount > 0;
 }
 
 
-int32
-TemplatesMenu::_BuildTemplateItems(const BString& directory)
+status_t
+TemplatesMenu::_BuildTemplateItem(const entry_ref& itemRef)
 {
-	// the templates folder
-	BDirectory templatesDir(directory);
-	BEntry entry;
 	bool itemEnabled = true;
 
-	int32 count = 0;
-	while (templatesDir.GetNextEntry(&entry, true) == B_OK) {
-		BNode node(&entry);
-		BNodeInfo nodeInfo(&node);
+	BEntry entry(&itemRef);
+	BNode node(&entry);
+	BNodeInfo nodeInfo(&node);
 
-		// ViewMode can be changed at any time before the menu is invoked to show/hide folder or
-		// directories or both depending on the context and the item selected to perform the
-		// operation on
-		if (fViewMode == DIRECTORY_VIEW_MODE && !entry.IsDirectory())
-			break;
-		if (fViewMode == FILE_VIEW_MODE && entry.IsDirectory())
-			break;
-		if (fViewMode == DISABLE_FILES_VIEW_MODE && !entry.IsDirectory())
-			itemEnabled = false;
-		if (fViewMode == DISABLE_DIRECTORIES_VIEW_MODE && entry.IsDirectory())
-			itemEnabled = false;
+	// ViewMode can be changed at any time before the menu is invoked to show/hide folder or
+	// directories or both depending on the context and the item selected to perform the
+	// operation on
+	if (fViewMode == DIRECTORY_VIEW_MODE && !entry.IsDirectory())
+		return B_ERROR;
+	if (fViewMode == FILE_VIEW_MODE && entry.IsDirectory())
+		return B_ERROR;
+	if (fViewMode == DISABLE_FILES_VIEW_MODE && !entry.IsDirectory())
+		itemEnabled = false;
+	if (fViewMode == DISABLE_DIRECTORIES_VIEW_MODE && entry.IsDirectory())
+		itemEnabled = false;
 
-		char fileName[B_FILE_NAME_LENGTH];
-		entry.GetName(fileName);
-		if (nodeInfo.InitCheck() == B_OK) {
-			char mimeType[B_MIME_TYPE_LENGTH];
-			nodeInfo.GetType(mimeType);
+	char fileName[B_FILE_NAME_LENGTH];
+	entry.GetName(fileName);
+	if (nodeInfo.InitCheck() == B_OK) {
+		char mimeType[B_MIME_TYPE_LENGTH];
+		nodeInfo.GetType(mimeType);
 
-			BMimeType mime(mimeType);
-			if (mime.IsValid()) {
-				entry_ref ref;
-				entry.GetRef(&ref);
-
-				void* sender = nullptr;
-				fMessage->FindPointer("sender", &sender);
-				entry_ref senderRef;
-				fMessage->FindRef("sender_ref", &senderRef);
-				BMessage *message = new BMessage(fMessage->what);
-				message->AddRef("refs", &ref);
-				message->AddPointer("sender", sender);
-				message->AddRef("sender_ref", &senderRef);
-				if (entry.IsDirectory())
-					message->AddString("type","new_folder_template");
-				else
-					message->AddString("type","new_file_template");
-				auto item = new IconMenuItem(fileName, message, &nodeInfo, B_MINI_ICON);
-				item->SetEnabled(itemEnabled);
-				AddItem(item);
-				count++;
-			}
+		BMimeType mime(mimeType);
+		if (mime.IsValid()) {
+			entry_ref ref;
+			entry.GetRef(&ref);
+			void* sender = nullptr;
+			fMessage->FindPointer("sender", &sender);
+			entry_ref senderRef;
+			fMessage->FindRef("sender_ref", &senderRef);
+			BMessage *message = new BMessage(fMessage->what);
+			message->AddRef("refs", &ref);
+			message->AddPointer("sender", sender);
+			message->AddRef("sender_ref", &senderRef);
+			if (entry.IsDirectory())
+				message->AddString("type", "new_folder_template");
+			else
+				message->AddString("type", "new_file_template");
+			auto item = new IconMenuItem(fileName, message, &nodeInfo, B_MINI_ICON);
+			item->SetEnabled(itemEnabled);
+			AddItem(item);
 		}
 	}
-	return count;
+
+	return B_OK;
 }

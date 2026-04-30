@@ -35,10 +35,10 @@
 #include "ConfigManager.h"
 #include "ConfigWindow.h"
 #include "ConsoleIOTabView.h"
-#include "EditorMessageFilter.h"
-#include "EditorMouseWheelMessageFilter.h"
-#include "EditorMessages.h"
 #include "EditorManager.h"
+#include "EditorMessageFilter.h"
+#include "EditorMessages.h"
+#include "EditorMouseWheelMessageFilter.h"
 #include "EditorTabView.h"
 #include "ExtensionManager.h"
 #include "FSUtils.h"
@@ -2624,12 +2624,13 @@ GenioWindow::_ShowView(BView* view, bool show, int32 msgWhat)
 		ActionManager::SetPressed(msgWhat, !view->IsHidden());
 }
 
+
 void
-GenioWindow::_ShowPanelTabView(const char* tabview_name, bool show, int32 msgWhat)
+GenioWindow::_ShowPanelTabView(const char* name, bool show, int32 msgWhat)
 {
-	fPanelTabManager->ShowPanelTabView(tabview_name, show);
+	fPanelTabManager->ShowPanelTabView(name, show);
 	if (msgWhat > -1)
-		ActionManager::SetPressed(msgWhat, fPanelTabManager->IsPanelTabViewVisible(tabview_name));
+		ActionManager::SetPressed(msgWhat, fPanelTabManager->IsPanelTabViewVisible(name));
 }
 
 
@@ -2963,8 +2964,6 @@ GenioWindow::_InitMenu()
 
 	fileMenu->AddItem(fFileNewMenuItem = new TemplatesMenu(this, B_TRANSLATE("New"),
 			new BMessage(MSG_FILE_NEW), new BMessage(MSG_SHOW_TEMPLATE_USER_FOLDER),
-			TemplateManager::GetDefaultTemplateDirectory(),
-			TemplateManager::GetUserTemplateDirectory(),
 			TemplatesMenu::SHOW_ALL_VIEW_MODE,	true));
 
 	ActionManager::AddItem(MSG_FILE_OPEN, fileMenu);
@@ -3588,10 +3587,10 @@ GenioWindow::_ProjectFileDelete(BMessage* message)
 			else
 				status = entry.Remove();
 			if (status != B_OK) {
-				BString text(B_TRANSLATE("Could not delete \"%name%\".\n\n"));
-				text << ::strerror(status);
-				text.ReplaceFirst("%name%", name);
-				OKAlert("Delete item", text.String(), B_WARNING_ALERT);
+				BString messageText(B_TRANSLATE("Could not delete \"%name%\".\n\n"));
+				messageText << ::strerror(status);
+				messageText.ReplaceFirst("%name%", name);
+				OKAlert("Delete item", messageText.String(), B_WARNING_ALERT);
 				LogError("Could not delete %s (%s)", name, ::strerror(status));
 			}
 		}
@@ -3671,15 +3670,15 @@ GenioWindow::_TemplateNewProject(BMessage* message)
 	LogTrace("new_folder_template");
 	entry_ref template_ref;
 	if (message->FindRef("refs", &template_ref) == B_OK) {
-		BMessage *message = new BMessage(MSG_CREATE_NEW_PROJECT);
-		message->AddRef("template_ref", &template_ref);
+		BMessage *newMessage = new BMessage(MSG_CREATE_NEW_PROJECT);
+		newMessage->AddRef("template_ref", &template_ref);
 		const char* projectsDirectory = gCFG["projects_directory"];
 		const BEntry entry(projectsDirectory, true);
 		entry_ref ref;
 		entry.GetRef(&ref);
 		BFilePanel* createNewProjectPanel = new BFilePanel(B_SAVE_PANEL, new BMessenger(this),
 										&ref, B_DIRECTORY_NODE, false,
-										message,
+										newMessage,
 										nullptr, true, true);
 		createNewProjectPanel->Show();
 	}
@@ -3777,9 +3776,9 @@ GenioWindow::_ProjectFolderClose(ProjectFolder *project)
 
 	BMessage changedMessage;
 	for (int32 p = 0; p < fProjectsFolderBrowser->CountProjects(); p++) {
-		const ProjectFolder* project = fProjectsFolderBrowser->ProjectAt(p);
-		changedMessage.AddString("project_name", project->Name());
-		changedMessage.AddString("project_path", project->Path());
+		const ProjectFolder* projectIter = fProjectsFolderBrowser->ProjectAt(p);
+		changedMessage.AddString("project_name", projectIter->Name());
+		changedMessage.AddString("project_path", projectIter->Path());
 	}
 	
 	if (GetActiveProject() != nullptr) {
@@ -3947,9 +3946,9 @@ GenioWindow::_ProjectFolderOpenCompleted(ProjectFolder* project,
 
 	BMessage changedMessage;
 	for (int32 p = 0; p < fProjectsFolderBrowser->CountProjects(); p++) {
-		const ProjectFolder* project = fProjectsFolderBrowser->ProjectAt(p);
-		changedMessage.AddString("project_name", project->Name());
-		changedMessage.AddString("project_path", project->Path());
+		const ProjectFolder* projectIter = fProjectsFolderBrowser->ProjectAt(p);
+		changedMessage.AddString("project_name", projectIter->Name());
+		changedMessage.AddString("project_path", projectIter->Path());
 	}
 
 	if (GetActiveProject() != nullptr) {
@@ -4055,13 +4054,13 @@ GenioWindow::_ShowItemInTracker(const entry_ref* ref)
 		BEntry parentDirectory;
 		status = itemEntry.GetParent(&parentDirectory);
 		if (status == B_OK) {
-			entry_ref ref;
-			status = parentDirectory.GetRef(&ref);
+			entry_ref parentRef;
+			status = parentDirectory.GetRef(&parentRef);
 			if (status == B_OK) {
 				node_ref nref;
 				status = itemEntry.GetNodeRef(&nref);
 				if (status == B_OK)
-					_ShowInTracker(ref, &nref);
+					_ShowInTracker(parentRef, &nref);
 			}
 		}
 	}
@@ -4721,10 +4720,10 @@ GenioWindow::_UpdateWindowTitle(IEditor* editor, const char* branch)
 
 
 void
-GenioWindow::_ReloadFileInEditor(IEditor* editor, entry_ref* newRef)
+GenioWindow::_ReloadFileInEditor(IEditor* editor, entry_ref* ref)
 {
 	editor->UnloadFile();
-	editor->SetFileRef(newRef);
+	editor->SetFileRef(ref);
 	_PreFileLoad(editor);
 	editor->LoadFromFile();
 	_PostFileLoad(editor);

@@ -23,7 +23,6 @@ public:
 
 protected:
 	std::vector<const char*> fArgv;
-	int32 fOffset;
 };
 
 class LSPServersManager {
@@ -33,5 +32,5 @@ public:
 		static status_t				DisposeLSPServersConfig();
 private:
 		static bool _AddValidConfig(LSPServerConfigInterface*);
-		static std::vector<LSPServerConfigInterface*> fConfigs;
+		static std::vector<LSPServerConfigInterface*> sConfigs;
 };

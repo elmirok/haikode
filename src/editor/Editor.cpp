@@ -175,6 +175,7 @@ Editor::~Editor()
 	UnloadFile();
 }
 
+
 status_t
 Editor::PerformEditorAction(BMessage* message)
 {
@@ -1275,7 +1276,7 @@ Editor::ModeString()
 void
 Editor::NotificationReceived(SCNotification* notification)
 {
-	Sci_NotifyHeader* pNmhdr = &notification->nmhdr;
+	const Sci_NotifyHeader* pNmhdr = &notification->nmhdr;
 
 	switch (pNmhdr->code) {
 		// Auto-indent
