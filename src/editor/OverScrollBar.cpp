@@ -12,13 +12,8 @@
 #define B_TRANSLATION_CONTEXT "Scrollbar Overlay"
 
 #define MARKER_HEIGHT 6
+#define LANES_COUNT 3
 
-enum lanes {
-	BOOKMARKS = 0,
-	PROBLEMS  = 1,
-	HIGHLIGHT = 2,
-	LANES_COUNT = 3
-};
 
 OverScrollBar::OverScrollBar(BRect rect, BMessenger target)
 	:
@@ -29,35 +24,14 @@ OverScrollBar::OverScrollBar(BRect rect, BMessenger target)
 	fCaretMarker.severity = 100;
 	fCaretMarker.message = B_TRANSLATE("Caret position");
 
-	fLanes[BOOKMARKS] = { BOOKMARKS, BRect( 0, 0,  5, MARKER_HEIGHT - 1), };
-	fLanes[PROBLEMS]  = { PROBLEMS,  BRect( 6, 0, 14, MARKER_HEIGHT - 1), };
-	fLanes[HIGHLIGHT] = { HIGHLIGHT, BRect(14, 0, 20, MARKER_HEIGHT - 1), };
+	fLanes[0] = { BRect( 0, 0,  5, MARKER_HEIGHT - 1), };
+	fLanes[1] = { BRect( 6, 0, 14, MARKER_HEIGHT - 1), };
+	fLanes[2] = { BRect(14, 0, 20, MARKER_HEIGHT - 1), };
 }
 
 
 void
-OverScrollBar::SetProblemsData(const std::vector<ScrollMarker>& markers)
-{
-	_UpdateMarkers(PROBLEMS, markers);
-}
-
-
-void
-OverScrollBar::UpdateSciMarkers(const std::vector<ScrollMarker>& markers)
-{
-	_UpdateMarkers(BOOKMARKS, markers);
-}
-
-
-void
-OverScrollBar::UpdateHighlightMarkers(const std::vector<ScrollMarker>& markers)
-{
-	_UpdateMarkers(HIGHLIGHT, markers);
-}
-
-
-void
-OverScrollBar::_UpdateMarkers(uint8 index, std::vector<ScrollMarker> markers)
+OverScrollBar::UpdateMarkers(uint8 index, const std::vector<ScrollMarker>& markers)
 {
 	if (markers.empty() && fLanes[index].markers.empty())
 		return; // avoid redrawing for nothing.

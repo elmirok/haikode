@@ -8,8 +8,6 @@
 #include <vector>
 
 class BToolTip;
-
-
 class OverScrollBar : public BView {
 	public:
 		// severity:
@@ -27,15 +25,12 @@ class OverScrollBar : public BView {
 		};
 
 		struct Lane {
-			uint8 index; //not used?
 			BRect rect;
 			std::vector<ScrollMarker> markers;
 		};
 			OverScrollBar(BRect rect, BMessenger target);
 
-	void	SetProblemsData(const std::vector<ScrollMarker>& markers);
-	void	UpdateSciMarkers(const std::vector<ScrollMarker>& markers);
-	void	UpdateHighlightMarkers(const std::vector<ScrollMarker>& markers);
+	void	UpdateMarkers(uint8 index, const std::vector<ScrollMarker>& markers);
 
 	void	SetCursorPosition(float ratio, int32 line);
 
@@ -60,8 +55,6 @@ private:
 							float trackHeight);
 
 	void	_DrawCaret(const BRect& bounds, float startPoint, float trackHeight);
-
-	void	_UpdateMarkers(uint8 index, std::vector<ScrollMarker> markers);
 
 	scroll_bar_info             fScrollBarInfo;
 	BMessenger                  fTarget;

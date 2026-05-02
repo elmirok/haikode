@@ -61,6 +61,12 @@ const int kIdleTimeout = 400000; //0.4secs
 
 // IND_HIGHLIGHT is now defined in LSPEditorWrapper.h
 
+enum scrollbar_lanes {
+	BOOKMARKS = 0,
+	PROBLEMS  = 1,
+	HIGHLIGHT = 2
+};
+
 
 bool Editor::sAutoIndent = true;
 
@@ -548,7 +554,7 @@ Editor::_UpdateOverScrollBarSciMarkers()
 			markers.push_back({ratio, 7, (int32)line+1, B_TRANSLATE("Bookmark")});
 			line++;
 		}
-		fOverScrollBar->UpdateSciMarkers(std::move(markers));
+		fOverScrollBar->UpdateMarkers(BOOKMARKS, std::move(markers));
 	}
 }
 
@@ -2481,11 +2487,11 @@ Editor::SetProblems()
 				float ratio = (totalLines > 1) ? ((float)line / totalLines) : 0.0f;
 				markers.push_back({ratio, dia.diagnostic.severity ? static_cast<int>(*dia.diagnostic.severity) : 0, line, dia.diagnostic.message});
 			}
-			fOverScrollBar->SetProblemsData(std::move(markers));
+			fOverScrollBar->UpdateMarkers(PROBLEMS, std::move(markers));
 		}
 	} else if (fOverScrollBar) {
 		// No LSP – clear any stale markers
-		fOverScrollBar->SetProblemsData({});
+		fOverScrollBar->UpdateMarkers(PROBLEMS, {});
 	}
 
 	// Update problems panel
@@ -2631,7 +2637,7 @@ Editor::_HandleDoubleClik()
 		}
 	}
 	if (fOverScrollBar != nullptr)
-		fOverScrollBar->UpdateHighlightMarkers(std::move(markers));
+		fOverScrollBar->UpdateMarkers(HIGHLIGHT, std::move(markers));
 
 }
 
@@ -2650,7 +2656,7 @@ Editor::_UpdateHighlight()
 
         _ClearHighlight();
 		if (fOverScrollBar != nullptr) {
-			fOverScrollBar->UpdateHighlightMarkers({});
+			fOverScrollBar->UpdateMarkers(HIGHLIGHT, {});
 		}
 
         return;
