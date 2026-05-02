@@ -5,7 +5,7 @@
 ## architecture of Haiku.
 
 # The name of the binary.
-NAME = my_cli_app
+NAME = ${project.name}
 TARGET_DIR = .
 
 # The type of binary, must be one of:

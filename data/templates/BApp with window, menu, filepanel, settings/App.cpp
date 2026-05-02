@@ -13,7 +13,7 @@
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "Application"
 
-const char* kApplicationSignature = "application/x-vnd.MyName-MyApp";
+const char* kApplicationSignature = "application/x-vnd.MyName-${project.name}";
 
 
 App::App()

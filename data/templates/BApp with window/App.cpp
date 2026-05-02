@@ -8,7 +8,7 @@
 #include "MainWindow.h"
 
 
-const char* kApplicationSignature = "application/x-vnd.MyName-MyApp";
+const char* kApplicationSignature = "application/x-vnd.MyName-${project.name}";
 
 
 App::App()
