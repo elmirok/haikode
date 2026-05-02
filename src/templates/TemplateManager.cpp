@@ -296,8 +296,8 @@ CustomCopyEngineController::EntryFinished(const char* path, status_t error)
 	LogDebug("Finished copying %s to %s: %s", path, destination.String(), ::strerror(error));
 	
 	BPath filePath(destination.String());
-	if (BString(filePath.Leaf()) == "Makefile") {
-		// TODO: test
+	if (BEntry(filePath.Path()).IsFile()) {
+		// TODO: Add other replacements
 		ReplaceStringInFile(filePath.Path(), "${project.name}", fProjectName.String());
 	}
 
