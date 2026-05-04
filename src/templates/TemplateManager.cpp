@@ -6,6 +6,8 @@
 #include "TemplateManager.h"
 
 #include <fstream>
+#include <map>
+#include <regex>
 
 #include <Application.h>
 #include <AppFileInfo.h>
@@ -121,7 +123,9 @@ TemplateManager::CopyFileTemplate(const entry_ref* source, const entry_ref* dest
 	destPath.Append(source->name);
 	Entry destEntry(destPath.Path());
 
-	status_t status = BCopyEngine().CopyEntry(sourceEntry, destEntry);
+	// TODO: Use the custom controller, get the project name
+	BCopyEngine copyEngine;
+	status_t status = copyEngine.CopyEntry(sourceEntry, destEntry);
 	if (status != B_OK) {
 		BString err(strerror(status));
 		LogError("Error creating new file %s in %s: %s", sourcePath.Path(), destPath.Path(),err.String());
@@ -246,23 +250,39 @@ TemplateManager::_LoadUserTemplates()
 
 
 static void
-ReplaceStringInFile(const char* filePath, const char* original, const char* replacement)
+ReplaceStringsInFile(const char* filePath, std::map<std::string, std::string> replacements)
 {
 	std::ifstream inputFile(filePath);
-	std::stringstream buffer;
-	buffer << inputFile.rdbuf();
-	std::string content = buffer.str();
-
-	size_t pos = 0;
-	while ((pos = content.find(original, pos)) != std::string::npos) {
-		content.replace(pos, std::string(original).length(), replacement);
-		pos += std::string(replacement).length();
+	std::regex pattern(R"(\$\{([^}]+)\})");
+	std::string line;
+	std::string fileContent;
+	while (std::getline(inputFile, line)) {
+		std::smatch match;
+		std::string processedLine;
+		std::string::const_iterator searchStart(line.cbegin());
+		while (std::regex_search(searchStart, line.cend(), match, pattern)) {
+			std::string key = match[1];
+			processedLine += std::string(searchStart, match[0].first);
+			std::map<std::string, std::string>::iterator replacement = replacements.find(key);
+			if (replacement != replacements.end()) {
+				LogDebug("Replacing ${%s} with %s", key.c_str(), replacement->second.c_str());
+				processedLine += replacement->second;
+			} else {
+				LogDebug("Warning: No replacement for ${%s}", key.c_str());
+				processedLine += match[0];
+			}
+			searchStart = match.suffix().first;
+		}
+		processedLine += std::string(searchStart, line.cend());
+		fileContent += processedLine + "\n";
 	}
 
 	inputFile.close();
 
 	std::ofstream outputFile(filePath);
-	outputFile << content;
+
+	outputFile << fileContent;
+	outputFile.close();
 }
 
 
@@ -294,11 +314,14 @@ CustomCopyEngineController::EntryFinished(const char* path, status_t error)
 	BString destination(path);
 	destination.ReplaceFirst(fSourcePath.Path(), fDestPath.Path());
 	LogDebug("Finished copying %s to %s: %s", path, destination.String(), ::strerror(error));
-	
+
+	std::map<std::string, std::string> replacements = {
+		{ std::string("project.name"), std::string(fProjectName.String()) }
+	};
+
 	BPath filePath(destination.String());
 	if (BEntry(filePath.Path()).IsFile()) {
-		// TODO: Add other replacements
-		ReplaceStringInFile(filePath.Path(), "${project.name}", fProjectName.String());
+		ReplaceStringsInFile(filePath.Path(), replacements);
 	}
 
 	return BCopyEngine::BController::EntryFinished(path, error);
