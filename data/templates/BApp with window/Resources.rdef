@@ -1,4 +1,4 @@
-resource app_signature "application/x-vnd.MyName-${project.name}";
+resource app_signature "application/x-vnd.${project.name}";
 
 resource app_flags B_SINGLE_LAUNCH;
 

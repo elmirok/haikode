@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, My Name 
+ * Copyright 2024, ${author.name}
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -8,7 +8,7 @@
 #include "MainWindow.h"
 
 
-const char* kApplicationSignature = "application/x-vnd.MyName-${project.name}";
+const char* kApplicationSignature = "application/x-vnd.${project.name}";
 
 
 App::App()
