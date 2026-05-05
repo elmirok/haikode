@@ -20,7 +20,9 @@
 #include <Path.h>
 #include <Roster.h>
 
+#include "ConfigManager.h"
 #include "FSUtils.h"
+#include "GenioApp.h"
 #include "Log.h"
 #include "Utils.h"
 
@@ -316,7 +318,9 @@ CustomCopyEngineController::EntryFinished(const char* path, status_t error)
 	LogDebug("Finished copying %s to %s: %s", path, destination.String(), ::strerror(error));
 
 	std::map<std::string, std::string> replacements = {
-		{ std::string("project.name"), std::string(fProjectName.String()) }
+		{ "project.name", std::string(fProjectName.String()) },
+		{ "author.name", (const char*)(gCFG["author_name"]) },
+		{ "author.email", (const char*)(gCFG["author_email"]) }
 	};
 
 	BPath filePath(destination.String());
