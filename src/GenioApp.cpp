@@ -388,8 +388,8 @@ GenioApp::_PrepareConfig(ConfigManager& cfg)
 
 	BString generalTemplates = general;
 	generalTemplates.Append("/").Append(B_TRANSLATE("Templates"));
-	cfg.AddConfig(generalTemplates.String(), "author_name", B_TRANSLATE("Name"), "");
-	cfg.AddConfig(generalTemplates.String(), "author_email", B_TRANSLATE("Email"), "");
+	cfg.AddConfig(generalTemplates.String(), "author_name", B_TRANSLATE("Name"), "YourName");
+	cfg.AddConfig(generalTemplates.String(), "author_email", B_TRANSLATE("Email"), "your.email@email.com");
 
 	GMessage sizes;
 	sizes = { {"mode","options"},
