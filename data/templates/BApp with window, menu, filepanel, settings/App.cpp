@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, My Name 
+ * Copyright ${date.year}, ${author.name}
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -13,7 +13,7 @@
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "Application"
 
-const char* kApplicationSignature = "application/x-vnd.MyName-${project.name}";
+const char* kApplicationSignature = "application/x-vnd.${author.name_without_spaces}-${project.name}";
 
 
 App::App()
