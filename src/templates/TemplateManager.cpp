@@ -6,7 +6,9 @@
 #include "TemplateManager.h"
 
 #include <algorithm>
+#include <chrono>
 #include <fstream>
+#include <iostream>
 #include <map>
 #include <regex>
 
@@ -305,13 +307,26 @@ CustomCopyEngineController::CustomCopyEngineController(const char* projectName,
 	authorNameWithoutSpaces.erase(std::remove(authorNameWithoutSpaces.begin(),
 					authorNameWithoutSpaces.end(), ' '), authorNameWithoutSpaces.end());
 
+	auto now = std::chrono::system_clock::now();
+	std::chrono::year_month_day ymd{std::chrono::floor<std::chrono::days>(now)};
+	std::ostringstream s;
+	s << ymd.year();
+	std::string year = s.str();
+
+	// TODO: Put these into documentation
 	std::map<std::string, std::string> replacements = {
 		{ "project.name", std::string(fProjectName.String()) },
 		{ "author.name", (const char*)(gCFG["author_name"]) },
 		{ "author.email", (const char*)(gCFG["author_email"]) },
-		{ "author.name_without_spaces", authorNameWithoutSpaces }
+		{ "author.name_without_spaces", authorNameWithoutSpaces },
+		{ "date.year", year }
 	};
 
+	if (Logger::IsTraceEnabled()) {
+		for (auto r: replacements) {
+			std::cout << r.first << ": " << r.second << std::endl;
+		}
+	}
 	fReplacements = replacements;
 }
 
