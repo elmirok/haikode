@@ -5,6 +5,7 @@
 
 #include "TemplateManager.h"
 
+#include <algorithm>
 #include <fstream>
 #include <map>
 #include <regex>
@@ -46,6 +47,9 @@ private:
 	BString fProjectName;
 	BPath fSourcePath;
 	BPath fDestPath;
+
+	typedef std::map<std::string, std::string> string_map;
+	string_map fReplacements;
 };
 
 
@@ -297,6 +301,18 @@ CustomCopyEngineController::CustomCopyEngineController(const char* projectName,
 	fSourcePath(sourcePath),
 	fDestPath(destPath)
 {
+	std::string authorNameWithoutSpaces = (const char*)gCFG["author_name"];
+	authorNameWithoutSpaces.erase(std::remove(authorNameWithoutSpaces.begin(),
+					authorNameWithoutSpaces.end(), ' '), authorNameWithoutSpaces.end());
+
+	std::map<std::string, std::string> replacements = {
+		{ "project.name", std::string(fProjectName.String()) },
+		{ "author.name", (const char*)(gCFG["author_name"]) },
+		{ "author.email", (const char*)(gCFG["author_email"]) },
+		{ "author.name_without_spaces", authorNameWithoutSpaces }
+	};
+
+	fReplacements = replacements;
 }
 
 
@@ -317,15 +333,9 @@ CustomCopyEngineController::EntryFinished(const char* path, status_t error)
 	destination.ReplaceFirst(fSourcePath.Path(), fDestPath.Path());
 	LogDebug("Finished copying %s to %s: %s", path, destination.String(), ::strerror(error));
 
-	std::map<std::string, std::string> replacements = {
-		{ "project.name", std::string(fProjectName.String()) },
-		{ "author.name", (const char*)(gCFG["author_name"]) },
-		{ "author.email", (const char*)(gCFG["author_email"]) }
-	};
-
 	BPath filePath(destination.String());
 	if (BEntry(filePath.Path()).IsFile()) {
-		ReplaceStringsInFile(filePath.Path(), replacements);
+		ReplaceStringsInFile(filePath.Path(), fReplacements);
 	}
 
 	return BCopyEngine::BController::EntryFinished(path, error);
