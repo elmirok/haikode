@@ -131,8 +131,11 @@ TemplateManager::CopyFileTemplate(const entry_ref* source, const entry_ref* dest
 	destPath.Append(source->name);
 	Entry destEntry(destPath.Path());
 
-	// TODO: Use the custom controller, get the project name
+	// TODO: get the real project name, not the leaf
 	BCopyEngine copyEngine;
+	CustomCopyEngineController controller(destPath.Leaf(), sourcePath, destPath);
+	copyEngine.SetController(&controller);
+
 	status_t status = copyEngine.CopyEntry(sourceEntry, destEntry);
 	if (status != B_OK) {
 		BString err(strerror(status));
