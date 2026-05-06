@@ -386,6 +386,11 @@ GenioApp::_PrepareConfig(ConfigManager& cfg)
 	cfg.AddConfig(generalAppearance.String(), "use_small_icons",
 		B_TRANSLATE("Use smaller icons in toolbar"), false);
 
+	BString generalTemplates = general;
+	generalTemplates.Append("/").Append(B_TRANSLATE("Templates"));
+	cfg.AddConfig(generalTemplates.String(), "author_name", B_TRANSLATE("Name"), "YourName");
+	cfg.AddConfig(generalTemplates.String(), "author_email", B_TRANSLATE("Email"), "your.email@email.com");
+
 	GMessage sizes;
 	sizes = { {"mode","options"},
 			  {"option_1", { {"value", -1}, {"label", B_TRANSLATE("Default size") } } }

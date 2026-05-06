@@ -3626,6 +3626,7 @@ GenioWindow::_TemplateNewFile(BMessage* message)
 		LogError("Can't find refs in message!");
 		return;
 	}
+	// TODO: Pass the project name to CopyFileTemplate so we can use it in there
 	entry_ref refNew;
 	status_t status = TemplateManager::CopyFileTemplate(&source, &dest, &refNew);
 	if (status != B_OK) {
@@ -3780,7 +3781,7 @@ GenioWindow::_ProjectFolderClose(ProjectFolder *project)
 		changedMessage.AddString("project_name", projectIter->Name());
 		changedMessage.AddString("project_path", projectIter->Path());
 	}
-	
+
 	if (GetActiveProject() != nullptr) {
 		changedMessage.AddString("active_project_name", GetActiveProject()->Name());
 		changedMessage.AddString("active_project_path", GetActiveProject()->Path());

@@ -5,7 +5,7 @@
 ## architecture of Haiku.
 
 # The name of the binary.
-NAME = MyApp
+NAME = ${project.name}
 TARGET_DIR = .
 
 # The type of binary, must be one of:
@@ -17,7 +17,7 @@ TYPE = APP
 
 # 	If you plan to use localization, specify the application's MIME signature.
 
-APP_MIME_SIG = application/x-vnd.MyName-MyApp
+APP_MIME_SIG = application/x-vnd.${author.name_without_spaces}-${project.name}
 
 #	The following lines tell Pe and Eddie where the SRCS, RDEFS, and RSRCS are
 #	so that Pe and Eddie can fill them in for you.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, My Name 
+ * Copyright ${date.year}, ${author.name}
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #ifndef MAINWINDOW_H
