@@ -10,10 +10,11 @@
 #include <Directory.h>
 #include <MenuItem.h>
 #include <MimeTypes.h>
+
 #include <cstdio>
 
+#include "ExtensionManager.h"
 #include "GenioApp.h"
-#include "GenioWindowMessages.h"
 
 
 #undef B_TRANSLATION_CONTEXT

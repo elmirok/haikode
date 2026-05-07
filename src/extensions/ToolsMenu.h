@@ -11,9 +11,6 @@
 #pragma once
 
 #include <Menu.h>
-#include <functional>
-
-#include "ExtensionManager.h"
 
 
 class ToolsMenu : public BMenu {
