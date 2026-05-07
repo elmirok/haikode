@@ -180,7 +180,7 @@ LSPProjectWrapper::_SendTypedRequest(LSPTextDocument* textDocument, typename M::
 		[](const lsp::ResponseError& error) {
 			LogError("LSP request [%s] - error: %s", M::Method.data(), error.message());
 			if(error.data().has_value()) {
-				LogError(" request error data: %s", lsp::json::stringify(error.data().value()));
+				LogError(" request error data: %s", lsp::json::stringify(error.data().value()).c_str());
 			}
 		});
 }
