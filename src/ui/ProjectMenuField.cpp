@@ -144,6 +144,18 @@ ProjectMenuField::_HandleActiveProjectChanged(const BMessage* message)
 	bool changed = false;
 	if (activeProjectName != selectedProjectName) {
 		item = Menu()->FindItem(activeProjectName);
+		if (item == nullptr) {
+			// The active project is not present in the menu.
+			// That means we have not yet received the "project list changed"
+			// message. Just add the active project here.
+			BString projectPath;
+			BString projectName;
+			if (message->FindString("active_project_path", &projectPath) == B_OK &&
+					message->FindString("active_project_name", &projectName) == B_OK) {
+				AddItem(projectName, projectPath, fWhat, true, true);
+				item = Menu()->FindItem(activeProjectName);
+			}
+		}
 		if (item != nullptr) {
 			changed = !item->IsMarked();
 			item->SetMarked(true);
