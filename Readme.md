@@ -9,7 +9,13 @@ Genio is a native and fully functional IDE for the [Haiku operating system](http
 
 Some of the features of the Genio IDE are:
 
-* LSP Server support (autocompletion, signature help, go to definition/implementation/declaration, quick fix, format)
+* LSP Server support:
+  * autocompletion
+  * signature help
+  * go to definition/implementation/declaration
+  * find references
+  * quick fix
+  * code formatting
 * Multi-project browser
 * Customizable workspace
 * Integrated source control with GIT (including opening a remote project)
@@ -19,7 +25,7 @@ Some of the features of the Genio IDE are:
 * "Problems" tab
 * Integrated terminal
 * Build on save / Save on build
-* User templates for quickly creating new files and projects
+* User templates with placeholders for quickly creating new files and projects
 * Rich editor with many features:
   * Multiple tabs
   * Syntax highlighting for many languages
@@ -48,8 +54,10 @@ pkgman install gcc_syslibs_devel cmd:clang
 
 Genio aims to be an easy, simple yet powerful IDE for Haiku inspired by VS Code and Nova.
 
-* Plug-in architecture
-* Bring the editor up-to-date and on par with other Haiku editors (Koder, Pe)
+Planned features are:
+
+* Integrated debugging
+* Implement a Plug-in architecture
 * Compiler error parser
 
 ## Configuring LSP
