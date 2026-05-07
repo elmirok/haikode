@@ -1,6 +1,7 @@
 v6.0 (not released)
 	- Completely rewrote LSP handling, improving performance.
 	- Added "Find references".
+	- Implemented template placeholders (project name, author, and others).
 	- Moved LSP servers configuration to yaml so it's no longer hardcoded.
 	- Made languages configuration easier to extend with external files.
 	- Made renaming symbols more robust.
