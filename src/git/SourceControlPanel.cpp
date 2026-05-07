@@ -872,7 +872,7 @@ SourceControlPanel::_UpdateRepositoryTask(const Genio::Git::GitRepository* repo,
 			// local branches
 			fRepositoryView->InitEmptySuperItem(B_TRANSLATE("Local branches"));
 			for (const auto &localBranch : localBranches) {
-				fRepositoryView->BuildBranchTree(branch, kLocalBranch, localBranch == fCurrentBranch);
+				fRepositoryView->BuildBranchTree(localBranch, kLocalBranch, localBranch == fCurrentBranch);
 			}
 
 			// remote branches
