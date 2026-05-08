@@ -9,6 +9,7 @@ v6.0 (not released)
 	- Fixed status view not updating when changing editors in some cases.
 	- Fixed project browser not selecting the active file in some cases.
 	- Fixed layout when moving build log or terminal tab to the left/right panes.
+	- Fixed cloning a git repository using ssh authentication through an agent.
 	- Class outline: added function parameters.
 ---
 v5.0
