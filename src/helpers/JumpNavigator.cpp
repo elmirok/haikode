@@ -1,5 +1,5 @@
 /*
- * Copyright 2025, Andrea Anzani 
+ * Copyright 2025, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -10,13 +10,30 @@
 
 #include "Log.h"
 
+bool
+operator==(const JumpPosition& a, const JumpPosition& b)
+{
+	return a.character == b.character && a.line == b.line && a.ref == b.ref;
+}
+
+
+JumpNavigator::JumpNavigator()
+{
+	fCurrentPosition.ref.device = -1;
+	fCurrentPosition.character = -1;
+	fCurrentPosition.line = -1;
+}
+
+
 void
 JumpNavigator::JumpToFile(BMessage* message, JumpPosition* currentPosition)
 {
 	entry_ref ref;
 	if (message->FindRef("refs", 0, &ref) == B_OK) {
-		message->AddRef("jumpFrom", currentPosition);
+		message->AddRef("jumpFrom", &currentPosition->ref);
 		message->what = B_REFS_RECEIVED;
+		message->AddInt32("line", currentPosition->line);
+		message->AddInt32("character", currentPosition->character);
 		be_app->PostMessage(message);
 	}
 }
@@ -25,7 +42,7 @@ JumpNavigator::JumpToFile(BMessage* message, JumpPosition* currentPosition)
 void
 JumpNavigator::JumpingTo(JumpPosition& newPosition, JumpPosition& fromPosition)
 {
-	LogDebugF("from %s to %s\n", fromPosition.name, newPosition.name);
+	//LogDebugF("from %s to %s\n", fromPosition.name, newPosition.name);
 	if (newPosition == fromPosition || newPosition == fCurrentPosition)
 		return;
 
@@ -76,8 +93,10 @@ JumpNavigator::JumpToPrev()
 void
 JumpNavigator::_GoToCurrentPosition()
 {
-	LogDebugF("%s\n", fCurrentPosition.name);
+	LogDebugF("%s\n", fCurrentPosition.ref.name);
 	BMessage ref(B_REFS_RECEIVED);
-	ref.AddRef("refs", &fCurrentPosition);
+	ref.AddRef("refs", &fCurrentPosition.ref);
+	ref.AddInt32("line", fCurrentPosition.line);
+	ref.AddInt32("character", fCurrentPosition.character);
 	be_app->PostMessage(&ref);
 }

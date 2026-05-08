@@ -1799,7 +1799,11 @@ GenioWindow::_FileOpen(BMessage* msg)
 		if (refsCount == 1) {
 			entry_ref fromRef;
 			if (msg->FindRef("jumpFrom", 0, &fromRef) == B_OK) {
-				JumpNavigator::getInstance()->JumpingTo(ref, fromRef);
+				int32 jumpFromLine = msg->GetInt32("line", -1);
+				int32 jumpFromChar = msg->GetInt32("character", -1);
+				JumpPosition jumpPos = { ref, be_line, lsp_char };
+				JumpPosition jumpFromPos = { fromRef, jumpFromLine, jumpFromChar };
+				JumpNavigator::getInstance()->JumpingTo(jumpPos, jumpFromPos);
 			}
 		}
 	}

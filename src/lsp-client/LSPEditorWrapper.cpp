@@ -1247,8 +1247,8 @@ LSPEditorWrapper::OpenFileURI(const lsp::FileUri& uri, int32 line, int32 charact
 				if (edits.empty() == false) {
 					refs.AddString("edit",  lsp::json::stringify(lsp::toJson(std::move(edits))).c_str());
 				}
-
-				JumpNavigator::getInstance()->JumpToFile(&refs, fEditor->FileRef());
+				JumpPosition jumpPos = { *fEditor->FileRef(), line, character };
+				JumpNavigator::getInstance()->JumpToFile(&refs, &jumpPos);
 			}
 		} else {
 			LogError("OpenFileURI: file does not exist %s", uri.path().data());
