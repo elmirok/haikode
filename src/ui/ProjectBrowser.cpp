@@ -22,11 +22,13 @@
 
 #include "ActionManager.h"
 #include "ConfigManager.h"
+#include "EditorTabView.h"
 #include "GenioApp.h"
 #include "GenioWatchingFilter.h"
 #include "GenioWindowMessages.h"
 #include "GenioWindow.h"
 #include "GOutlineListView.h"
+#include "IEditor.h"
 #include "Log.h"
 #include "NoticeMessages.h"
 #include "ProjectFolder.h"
@@ -234,7 +236,6 @@ ProjectBrowser::_RemoveItemForPath(BString pathToRemove)
 			true, ProjectOutlineListView::CompareProjectItems);
 	}
 }
-
 
 
 void
@@ -707,6 +708,13 @@ ProjectBrowser::AttachedToWindow()
 
 	if (fOutlineListView->CountItems() == 0)
 		static_cast<BCardLayout*>(GetLayout())->SetVisibleItem(int32(1));
+	else {
+		// AttachedToWindow might have been called AFTER the MSG_NOTIFY_EDITOR_FILE_SELECTED
+		// message has fired, so we did not receive it
+		IEditor* editor = gMainWindow->TabManager()->SelectedEditor();
+		if (editor != nullptr)
+			SelectItemByRef(editor->GetProjectFolder(), *editor->FileRef());
+	}
 }
 
 
