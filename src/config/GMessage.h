@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
  // Version 2
@@ -80,6 +80,7 @@ public:
 	}
 
 	auto operator[](const char* key) -> GMessageReturn;
+	auto operator[](const char* key) const -> GMessageReturn;
 
 	bool Has(const char* key) const
 	{
@@ -231,6 +232,13 @@ public:
 		GMessage* newMsg = new GMessage();
 		fMsg->FindMessage(fKey, newMsg);
 		return GMessageReturn(newMsg, key, this);
+	}
+
+	auto operator[](const char* key) const -> GMessageReturn
+	{
+		GMessage* newMsg = new GMessage();
+		fMsg->FindMessage(fKey, newMsg);
+		return GMessageReturn(newMsg, key, const_cast<GMessageReturn*>(this));
 	}
 
 	void
