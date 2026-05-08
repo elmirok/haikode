@@ -18,6 +18,9 @@ public:
 		void	SetInitialCommand(const char* command);
 		void	SetInitialTheme(const char* themeName);
 
+		BSize	MaxSize() override;
+		BSize	MinSize() override;
+
 virtual	void 	NotifyCommandQuit(bool exitNormal, int exitStatus);
 
 protected:

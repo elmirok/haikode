@@ -101,6 +101,22 @@ TerminalTab::SetInitialTheme(const char* themeName)
 }
 
 
+/* virtual */
+BSize
+TerminalTab::MaxSize()
+{
+	return BSize(B_SIZE_UNLIMITED, B_SIZE_UNLIMITED);
+}
+
+
+/* virtual */
+BSize
+TerminalTab::MinSize()
+{
+	return BSize(100, 100);
+}
+
+
 status_t
 TerminalTab::_RunCommand(const char* cmd, bool clean)
 {
