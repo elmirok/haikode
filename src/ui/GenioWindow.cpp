@@ -3970,6 +3970,11 @@ GenioWindow::_ProjectFolderOpenCompleted(ProjectFolder* project,
 		_TryAssociateEditorWithProject(editor, project);
 	}
 
+	IEditor* editor = fTabManager->SelectedEditor();
+	if (editor != nullptr && editor->FileRef() != nullptr) {
+		GetProjectBrowser()->SelectItemByRef(project, *editor->FileRef());
+	}
+
 	// TODO: Move this elsewhere!
 	BString taskName;
 	taskName << "Detect " << project->Name() << " build system";
