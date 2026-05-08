@@ -7,6 +7,8 @@ v6.0 (not released)
 	- Made renaming symbols more robust.
 	- Fixed auto completion not triggering in some cases.
 	- Fixed status view not updating when changing editors in some cases.
+	- Fixed project browser not selecting the active file in some cases.
+	- Fixed layout when moving build log or terminal tab to the left/right panes.
 	- Class outline: added function parameters.
 ---
 v5.0
