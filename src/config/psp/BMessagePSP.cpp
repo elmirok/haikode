@@ -61,9 +61,10 @@ BMessagePSP::SaveKey(ConfigManager& manager, const char* key, GMessage& storage)
 }
 
 
+/* static */
 bool
 BMessagePSP::_SameTypeAndFixedSize(
-	BMessage* msgL, const char* keyL, BMessage* msgR, const char* keyR) const
+	BMessage* msgL, const char* keyL, BMessage* msgR, const char* keyR)
 {
 	type_code typeL = 0;
 	bool fixedSizeL = false;

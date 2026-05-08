@@ -10,8 +10,8 @@
 
 #include "PermanentStorageProvider.h"
 
-class BRect;
 class BMessagePSP;
+class BRect;
 
 class YamlPSP : public PermanentStorageProvider {
 public:

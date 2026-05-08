@@ -46,7 +46,9 @@
 			{ 	storage[key] = node.as<pod>(); return B_OK; }
 
 
-YamlPSP::YamlPSP():fBMsgPSP(nullptr)
+YamlPSP::YamlPSP()
+	:
+	fBMsgPSP(nullptr)
 {
 }
 
@@ -54,7 +56,7 @@ YamlPSP::YamlPSP():fBMsgPSP(nullptr)
 status_t
 YamlPSP::Open(const BPath& _dest, kPSPMode mode)
 {
-	//workaround.
+	// workaround
 	BPath dest;
 	dest.SetTo(BString(_dest.Path()).Append(".yaml").String());
 
@@ -67,46 +69,50 @@ YamlPSP::Open(const BPath& _dest, kPSPMode mode)
 		try {
 			yaml = YAML::LoadFile(dest.Path());
 			LogInfo("YAML file loaded successfully: %s", dest.Path());
-		} catch(const YAML::ParserException& e) {
+		} catch (const YAML::ParserException& e) {
 			LogError("YAML Parser Error in file %s at line %zu, column %zu: %s",
 				dest.Path(), e.mark.line + 1, e.mark.column + 1, e.msg.c_str());
 			yaml.reset(); // Reset to empty on parse error
-			if (mode == kPSPReadMode) return B_ERROR;
-		} catch(const YAML::BadFile& e) {
+			if (mode == kPSPReadMode)
+				return B_ERROR;
+		} catch (const YAML::BadFile& e) {
 			LogError("YAML Bad File Error: Cannot open file %s: %s",
 				dest.Path(), e.msg.c_str());
 			yaml.reset(); // Reset to empty on file error
-			if (mode == kPSPReadMode) return B_ERROR;
-		} catch(const YAML::Exception& e) {
+			if (mode == kPSPReadMode)
+				return B_ERROR;
+		} catch (const YAML::Exception& e) {
 			LogError("YAML General Error in file %s: %s",
 				dest.Path(), e.msg.c_str());
 			yaml.reset(); // Reset to empty on YAML error
-			if (mode == kPSPReadMode) return B_ERROR;
-		} catch(const std::exception& e) {
+			if (mode == kPSPReadMode)
+				return B_ERROR;
+		} catch (const std::exception& e) {
 			LogError("Standard Exception while loading YAML file %s: %s",
 				dest.Path(), e.what());
 			yaml.reset(); // Reset to empty on standard exception
-			if (mode == kPSPReadMode) return B_ERROR;
-		} catch(...) {
+			if (mode == kPSPReadMode)
+				return B_ERROR;
+		} catch (...) {
 			LogError("Unknown exception while loading YAML file %s", dest.Path());
 			yaml.reset(); // Reset to empty on unknown exception
-			if (mode == kPSPReadMode) return B_ERROR;
+			if (mode == kPSPReadMode)
+				return B_ERROR;
 		}
 	} else {
 		// .yaml file doesn't exist.
-        //let's try the BMessage format (backward compatibility, to be removed!)
-        if (mode == PermanentStorageProvider::kPSPReadMode &&
-            BEntry(_dest.Path()).Exists()) {
-                fBMsgPSP = new BMessagePSP();
-                status_t status = fBMsgPSP->Open(_dest, mode);
-                if (status == B_OK) {
-                    LogInfo("Loaded configuration from legacy BMessage file %s", _dest.Path());
-                    return B_OK;
-                } else {
-                    LogError("Failed to load legacy BMessage file %s: %s | Reverting to new YAML format.", _dest.Path(), strerror(status));
-                }
-
-        }
+		//let's try the BMessage format (backward compatibility, to be removed!)
+		if (mode == PermanentStorageProvider::kPSPReadMode &&
+				BEntry(_dest.Path()).Exists()) {
+			fBMsgPSP = new BMessagePSP();
+			status_t status = fBMsgPSP->Open(_dest, mode);
+			if (status == B_OK) {
+				LogInfo("Loaded configuration from legacy BMessage file %s", _dest.Path());
+				return B_OK;
+			} else {
+				LogError("Failed to load legacy BMessage file %s: %s | Reverting to new YAML format.", _dest.Path(), strerror(status));
+			}
+		}
 		yaml.reset();
 	}
 
@@ -114,9 +120,7 @@ YamlPSP::Open(const BPath& _dest, kPSPMode mode)
 	status_t status = fFile.SetTo(dest.Path(), fileMode);
 	if (status != B_OK) {
 		LogError("Failed to open file %s with mode %s: %s",
-			dest.Path(),
-			(mode == kPSPReadMode) ? "READ" : "WRITE",
-			::strerror(status));
+			dest.Path(), (mode == kPSPReadMode) ? "READ" : "WRITE", ::strerror(status));
 	}
 	return status;
 }
@@ -125,11 +129,11 @@ YamlPSP::Open(const BPath& _dest, kPSPMode mode)
 status_t
 YamlPSP::Close()
 {
-    if (fBMsgPSP) {
-        fBMsgPSP->Close();
-        delete fBMsgPSP;
-        fBMsgPSP = nullptr;
-    }
+	if (fBMsgPSP != nullptr) {
+		fBMsgPSP->Close();
+		delete fBMsgPSP;
+		fBMsgPSP = nullptr;
+	}
 	status_t status = fFile.InitCheck();
 	if (status == B_OK && fFile.IsWritable()) {
 		try {
@@ -171,9 +175,9 @@ status_t
 YamlPSP::LoadKey(ConfigManager& manager, const char* key,
 						GMessage& storage, GMessage& parameterConfig)
 {
-    if (fBMsgPSP) {
-        return fBMsgPSP->LoadKey(manager, key, storage, parameterConfig);
-    }
+	if (fBMsgPSP != nullptr) {
+		return fBMsgPSP->LoadKey(manager, key, storage, parameterConfig);
+	}
 
 	const YAML::Node fromFile = yaml[key];
 	if (!fromFile) {
@@ -536,7 +540,7 @@ YamlPSP::_LoadMessageValue(const char* key, const YAML::Node& node, GMessage& me
 status_t
 YamlPSP::_SaveKey(YAML::Node& yaml, const char* key, GMessage& storage, int32 keyIndex)
 {
-	switch(storage.Type(key)){
+	switch(storage.Type(key)) {
 		_yaml_case(B_BOOL_TYPE, bool, Bool)
 		_yaml_case_string(B_STRING_TYPE, String)
 		_yaml_case(B_INT32_TYPE,   int32,  Int32)
@@ -567,7 +571,7 @@ YamlPSP::_SaveKey(YAML::Node& yaml, const char* key, GMessage& storage, int32 ke
 			YAML::Node subnode;
 			LogInfo("_SaveKey(MESSAGE, %s, Index %ld) - Message has %d fields", key, keyIndex, msg.CountNames(B_ANY_TYPE));
 			status_t st = storage.FindMessage(key, keyIndex, &msg);
-			if ( st == B_OK) {
+			if (st == B_OK) {
 				//parse all the values
 				int32 index = 0;
 				type_code type = B_ANY_TYPE;
@@ -615,7 +619,6 @@ YamlPSP::_SaveKey(YAML::Node& yaml, const char* key, GMessage& storage, int32 ke
 				}
 
 				LogInfo("Finished processing BMessage %s", key);
-				//msg.PrintToStream();
 			}
 			return st;
 		}

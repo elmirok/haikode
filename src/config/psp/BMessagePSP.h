@@ -23,5 +23,5 @@ private:
 	BFile fFile;
 	GMessage fFromFile;
 
-	bool _SameTypeAndFixedSize(BMessage* msgL, const char* keyL, BMessage* msgR, const char* keyR) const;
+	static bool _SameTypeAndFixedSize(BMessage* msgL, const char* keyL, BMessage* msgR, const char* keyR);
 };
