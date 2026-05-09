@@ -1,5 +1,5 @@
 /*
- * Copyright 2025, Andrea Anzani
+ * Copyright 2025-2026, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -32,7 +32,7 @@ TerminalTab::TerminalTab(bool autorestart)
 void
 TerminalTab::FrameResized(float w, float h)
 {
-	if (fTermView) {
+	if (fTermView != nullptr) {
 		fTermView->ResizeTo(w, h);
 	}
 	BView::FrameResized(w, h);
@@ -44,11 +44,9 @@ TerminalTab::AttachedToWindow()
 {
 	BView::AttachedToWindow();
 	if (fTermView == nullptr) {
-		fTermView = TerminalManager::CreateNewTerminal(BRect(0, 0, 100,100), BMessenger(this), fCommand, fThemeName);
+		fTermView = TerminalManager::CreateNewTerminal(BRect(0, 0, 100,100), BMessenger(this),
+														fCommand, fThemeName);
 		fTermView->SetResizingMode(B_FOLLOW_NONE);
-		fTermView->SetExplicitMinSize(BSize(100, 100));
-		fTermView->SetExplicitPreferredSize(BSize(100, 100));
-		fTermView->SetExplicitMaxSize(BSize(B_SIZE_UNLIMITED, B_SIZE_UNLIMITED));
 		AddChild(fTermView);
 	}
 }
@@ -137,10 +135,11 @@ TerminalTab::_RunCommand(const char* cmd, bool clean)
 
 
 BView*
-TerminalTab::_FindTarget() //ugly hack
+TerminalTab::_FindTarget()
 {
-	//We need a more deterministic way to find the view!
-	if (fTermView && fTermView->ChildAt(0) && fTermView->ChildAt(0)->ChildAt(0))
+	// TODO: ugly hack!!! We need a more deterministic way to find the view!
+	if (fTermView != nullptr && fTermView->ChildAt(0) != nullptr
+		&& fTermView->ChildAt(0)->ChildAt(0) != nullptr)
 		return fTermView->ChildAt(0)->ChildAt(0);
 
 	return nullptr;
