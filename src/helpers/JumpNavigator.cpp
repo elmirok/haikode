@@ -30,10 +30,10 @@ JumpNavigator::JumpToFile(BMessage* message, JumpPosition* currentPosition)
 {
 	entry_ref ref;
 	if (message->FindRef("refs", 0, &ref) == B_OK) {
-		message->AddRef("jumpFrom", &currentPosition->ref);
+		message->AddRef("jumpFromRef", &currentPosition->ref);
 		message->what = B_REFS_RECEIVED;
-		message->AddInt32("line", currentPosition->line);
-		message->AddInt32("character", currentPosition->character);
+		message->AddInt32("jumpFromLine", currentPosition->line);
+		message->AddInt32("jumpFromCharacter", currentPosition->character);
 		be_app->PostMessage(message);
 	}
 }
@@ -42,7 +42,10 @@ JumpNavigator::JumpToFile(BMessage* message, JumpPosition* currentPosition)
 void
 JumpNavigator::JumpingTo(JumpPosition& newPosition, JumpPosition& fromPosition)
 {
-	//LogDebugF("from %s to %s\n", fromPosition.name, newPosition.name);
+	LogDebugF("from %s (line: %ld, char: %ld) to %s (line: %ld, char: %ld)\n",
+		fromPosition.ref.name, fromPosition.line, fromPosition.character,
+		newPosition.ref.name, newPosition.line, newPosition.character);
+
 	if (newPosition == fromPosition || newPosition == fCurrentPosition)
 		return;
 
