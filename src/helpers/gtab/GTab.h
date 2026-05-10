@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, Andrea Anzani 
+ * Copyright 2024, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #pragma once
@@ -262,7 +262,8 @@ private:
 class GTabScrollLeftButton : public TabButtonDropZone {
 public:
 	GTabScrollLeftButton(BMessage* message, TabsContainer* container)
-		: TabButtonDropZone(message, container)
+		:
+		TabButtonDropZone(message, container)
 	{
 	}
 
@@ -279,12 +280,13 @@ public:
 class GTabScrollRightButton : public TabButtonDropZone {
 public:
 	GTabScrollRightButton(BMessage* message, TabsContainer* container)
-		: TabButtonDropZone(message, container)
+		:
+		TabButtonDropZone(message, container)
 	{
 	}
 
-	virtual void DrawSymbol(BRect frame, const BRect& updateRect,
-		const rgb_color& base)
+	void DrawSymbol(BRect frame, const BRect& updateRect,
+		const rgb_color& base) override
 	{
 		frame.OffsetBy(1, 0);
 		float tint = IsEnabled() ? B_DARKEN_4_TINT : B_DARKEN_1_TINT;

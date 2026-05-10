@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, Andrea Anzani 
+ * Copyright 2024, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -44,7 +44,7 @@ GTabDropZone::DropZoneMouseMoved(BView* view,
 								 const BMessage* dragMessage)
 {
 	if (dragMessage &&
-	    dragMessage->what == TAB_DRAG &&
+		dragMessage->what == TAB_DRAG &&
 		_ValidDragAndDrop(dragMessage)) {
 		switch (transit) {
 			case B_ENTERED_VIEW:
@@ -134,9 +134,9 @@ void
 GTab::DrawTab(BView* owner, BRect updateRect)
 {
 	BRect frame(owner->Bounds());
-    if (fIsFront) {
-        frame.left--;
-        frame.right++;
+	if (fIsFront) {
+		frame.left--;
+		frame.right++;
 	}
 
 	DrawBackground(owner, frame, updateRect, fIsFront);
@@ -193,7 +193,7 @@ GTab::MouseDown(BPoint where)
 
 	const int32 buttons = msg->GetInt32("buttons", 0);
 
- 	if (Container())
+	if (Container())
 		Container()->MouseDownOnTab(this, where, buttons);
 
 	if (buttons & B_PRIMARY_MOUSE_BUTTON) {
@@ -306,12 +306,12 @@ IncreaseContrastBy(float& tint, const float& value, const int& brightness)
 
 
 // GTabCloseButton
-GTabCloseButton::GTabCloseButton(const char* label,
-										const BHandler* handler):
-										GTab(label),
-										fOverCloseRect(false),
-										fClicked(false),
-										fHandler(handler)
+GTabCloseButton::GTabCloseButton(const char* label, const BHandler* handler)
+	:
+	GTab(label),
+	fOverCloseRect(false),
+	fClicked(false),
+	fHandler(handler)
 {
 }
 
