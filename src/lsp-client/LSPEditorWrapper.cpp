@@ -1247,7 +1247,9 @@ LSPEditorWrapper::OpenFileURI(const lsp::FileUri& uri, int32 line, int32 charact
 				if (edits.empty() == false) {
 					refs.AddString("edit",  lsp::json::stringify(lsp::toJson(std::move(edits))).c_str());
 				}
-				JumpPosition jumpPos = { *fEditor->FileRef(), line, character };
+				int32 charInLine = 0;
+				int32 line = fEditor->GetCurrentLineNumber(&charInLine);
+				JumpPosition jumpPos = { *fEditor->FileRef(),  line + 1, charInLine};
 				JumpNavigator::getInstance()->JumpToFile(&refs, &jumpPos);
 			}
 		} else {

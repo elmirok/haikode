@@ -125,8 +125,7 @@ public:
 	const BString				GetLine(int32 lineNumber) override { return ""; }
 	void						InsertLine(BString text, int32 lineNumber) override {}
 	int32						CountLines() override { return 0; }
-	int32						GetCurrentColumnNumber() override { return 0; }
-	int32						GetCurrentLineNumber() override { return 0; }
+	int32						GetCurrentLineNumber(int32* character_position = nullptr) override { return 0; }
 	int32						GetCurrentPosition() override { return 0; }
 	BMessage					GetCaretPositionInfo() override { return BMessage(); }
 	BMessage					GetSelectionRange() override { return BMessage(); }

@@ -121,8 +121,7 @@ public:
 	virtual const BString		GetLine(int32 lineNumber) = 0;
 	virtual void				InsertLine(BString text, int32 lineNumber) = 0;
 	virtual int32				CountLines() = 0;
-	virtual int32				GetCurrentColumnNumber() = 0;
-	virtual int32				GetCurrentLineNumber() = 0;
+	virtual int32				GetCurrentLineNumber(int32* character_position = nullptr) = 0;
 	virtual int32				GetCurrentPosition() = 0;
 	virtual BMessage			GetCaretPositionInfo() = 0;
 	virtual BMessage			GetSelectionRange() = 0;

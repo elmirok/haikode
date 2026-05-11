@@ -7,13 +7,15 @@
 
 #include <Application.h>
 #include <Message.h>
+#include <cstdio>
 
 #include "Log.h"
 
 bool
 operator==(const JumpPosition& a, const JumpPosition& b)
 {
-	return a.character == b.character && a.line == b.line && a.ref == b.ref;
+	// NOTE: not checking character position to avoid stupid jumps to be recorded!
+	return /*a.character == b.character && */ a.line == b.line && a.ref == b.ref;
 }
 
 
@@ -96,10 +98,11 @@ JumpNavigator::JumpToPrev()
 void
 JumpNavigator::_GoToCurrentPosition()
 {
-	LogDebugF("%s\n", fCurrentPosition.ref.name);
+	LogDebugF("%s %d:%d\n", fCurrentPosition.ref.name,fCurrentPosition.line,fCurrentPosition.character);
 	BMessage ref(B_REFS_RECEIVED);
 	ref.AddRef("refs", &fCurrentPosition.ref);
-	ref.AddInt32("line", fCurrentPosition.line);
-	ref.AddInt32("character", fCurrentPosition.character);
+	ref.AddInt32("start:line", fCurrentPosition.line);
+	ref.AddInt32("start:character", fCurrentPosition.character);
+
 	be_app->PostMessage(&ref);
 }
