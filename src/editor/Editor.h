@@ -162,8 +162,8 @@ public:
 			const 	BString		GetLine(int32 lineNumber) override;
 			void				InsertLine(BString text, int32 lineNumber) override;
 			int32				CountLines() override;
-			int32				GetCurrentColumnNumber() override;
-			int32				GetCurrentLineNumber() override;
+			int32				GetCurrentColumnNumber();
+			int32				GetCurrentLineNumber(int32* character_position = nullptr) override;
 			int32				GetCurrentPosition() override;
 			BMessage			GetCaretPositionInfo() override;
 			BMessage			GetSelectionRange() override;

@@ -839,16 +839,22 @@ Editor::FindPrevious(const BString& search, int flags, bool wrap)
 
 
 int32
-Editor::GetCurrentColumnNumber()
+Editor::GetCurrentColumnNumber() //it's not the char position in the line!
 {
 	return SendMessage(SCI_GETCOLUMN, GetCurrentPosition(), 0);
 }
 
 
 int32
-Editor::GetCurrentLineNumber()
+Editor::GetCurrentLineNumber(int32* character)
 {
-	return SendMessage(SCI_LINEFROMPOSITION, GetCurrentPosition(), 0);
+	int32 offset = GetCurrentPosition();
+	int32 line = SendMessage(SCI_LINEFROMPOSITION, offset, UNSET);
+	if (character) {
+		int32 lineStart = SendMessage(SCI_POSITIONFROMLINE, line, UNSET);
+		*character = offset - lineStart;
+	}
+	return line;
 }
 
 
@@ -863,11 +869,13 @@ BMessage
 Editor::GetCaretPositionInfo()
 {
 	int32 offset = GetCurrentPosition();
-	int32 line = GetCurrentLineNumber() + 1;
-	int32 column = GetCurrentColumnNumber() + 1;
+	int32 charInLine = 0;
+	int32 line = GetCurrentLineNumber(&charInLine);
+	int32 column = GetCurrentColumnNumber() + 1; //TODO: why the column is +1?
 
 	BMessage position;
-	position.AddInt32("line", line);
+	position.AddInt32("line", line + 1);
+	position.AddInt32("character", charInLine);
 	position.AddInt32("column", column);
 	position.AddInt32("offset", offset);
 

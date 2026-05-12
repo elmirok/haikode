@@ -1,5 +1,5 @@
 /*
- * Copyright 2025, Andrea Anzani 
+ * Copyright 2025, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #pragma once
@@ -11,7 +11,13 @@
 class BMessage;
 // Once per project or a single one?
 
-typedef entry_ref JumpPosition;
+struct JumpPosition {
+	entry_ref ref;
+	int32 line;
+	int32 character;
+};
+
+bool operator==(const JumpPosition& a, const JumpPosition& b);
 
 class JumpNavigator {
 public:
@@ -31,7 +37,7 @@ public:
 	void	JumpToPrev();
 
 private:
-			JumpNavigator() { fCurrentPosition.device = -1; }
+			JumpNavigator();
 	void	_GoToCurrentPosition();
 
 	std::stack<JumpPosition>	history;
