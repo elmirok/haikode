@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -20,6 +20,13 @@ auto
 GMessage::operator[](const char* key) -> GMessageReturn
 {
 	return GMessageReturn(this, key);
+}
+
+
+auto
+GMessage::operator[](const char* key) const -> GMessageReturn
+{
+	return GMessageReturn(const_cast<GMessage*>(this), key);
 }
 
 

@@ -43,9 +43,9 @@ public:
 
 			if (fPSPList[(int32)kStorageTypeNoStore] == nullptr)
 				fPSPList[(int32)kStorageTypeNoStore] = CreatePSPByType(kStorageTypeNoStore);
-		
+
 			LogDebug("Configured config separator [%s]", key);
-			
+
 			}
 
 		template<typename T>
@@ -87,6 +87,7 @@ public:
 		void PrintValues() const;
 
 		auto operator[](const char* key) -> ConfigManagerReturn;
+		auto operator[](const char* key) const -> const ConfigManagerReturn;
 
 		bool HasKey(const char* key) const;
 
@@ -101,7 +102,7 @@ private:
 friend ConfigManagerReturn;
 
 		template< typename Return >
-		Return get(const char* key)
+		Return get(const char* key) const
 		{
 			BAutolock lock(fLocker);
 			return fStorage[key];
@@ -142,7 +143,7 @@ public:
 		}
 
 		template< typename Return >
-        operator Return() { return fConfigManager.get<Return>(fKey);  };
+        operator Return() const { return fConfigManager.get<Return>(fKey);  };
 
 		template< typename T >
 		void operator =(T n) { fConfigManager.set<T>(fKey, n); };

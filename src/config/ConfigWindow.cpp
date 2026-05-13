@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2025, Andrea Anzani 
+ * Copyright 2023-2025, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -60,7 +60,7 @@ public:
 
 	void MessageReceived(BMessage* msg)
 	{
-		GMessage& gsm = *reinterpret_cast<GMessage*>(msg);
+		const GMessage& gsm = *reinterpret_cast<GMessage*>(msg);
 		if (msg->what == kOnNewValue) {
 			fConfigManager[gsm["key"]] = RetrieveValue();
 		} else if (msg->what == kSetValueNoUpdate) {
