@@ -30,6 +30,7 @@ jobs:
                    --suppress=unmatchedSuppression \
                    --suppress=unusedFunction \
                    --suppress=unusedStructMember \
+                   --check-level=exhaustive \
                    -i data \
                    -i libs \
                    . \
