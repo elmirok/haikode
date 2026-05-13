@@ -39,6 +39,8 @@ public:
 	void	SetTabLabel(IEditor*, const char* label);
 	BString	TabLabel(IEditor* editor) const;
 
+	void	InvalidateTab(IEditor* editor);
+
 	void	SelectTab(const entry_ref* ref, BMessage* selInfo = nullptr);
 
 	void	SelectTab(IEditor* editor);

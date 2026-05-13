@@ -131,6 +131,14 @@ EditorTabView::TabLabel(IEditor* editor) const
 
 
 void
+EditorTabView::InvalidateTab(IEditor* editor)
+{
+	GTabEditor* tab = _GetTab(editor);
+	tab->Invalidate();
+}
+
+
+void
 EditorTabView::SelectTab(const entry_ref* ref, BMessage* selInfo)
 {
 	GTab* tab = _GetTab_(ref);

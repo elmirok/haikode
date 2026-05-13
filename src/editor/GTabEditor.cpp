@@ -1,5 +1,5 @@
 /*
- * Copyright 2025, Andrea Anzani 
+ * Copyright 2025, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -88,6 +88,8 @@ GTabEditor::DrawLabel(BView* owner, BRect frame, const BRect& updateRect, bool i
 	BFont font;
 	owner->GetFont(&font);
 	BString truncatedLabel = fLabel;
+	if (GetEditor() != nullptr && GetEditor()->IsModified())
+		truncatedLabel.Append("*");
 	font.TruncateString(&truncatedLabel, B_TRUNCATE_SMART, frame.Width());
 	be_control_look->DrawLabel(owner, truncatedLabel, frame, updateRect,
 		base, 0, BAlignment(B_ALIGN_LEFT, B_ALIGN_MIDDLE));

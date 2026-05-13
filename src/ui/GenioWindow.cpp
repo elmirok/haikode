@@ -4288,23 +4288,12 @@ GenioWindow::_UpdateRecentCommands(const BString& text)
 status_t
 GenioWindow::_UpdateLabelModifiedStatus(IEditor* editor, bool isModified)
 {
-	// TODO: Would be nice to move this to GTabEditor
+	// GTabEditor draws the tab differently if file is modified
 	if (editor != nullptr) {
-		if (isModified) {
-			// Add '*' to file name
-			BString label(fTabManager->TabLabel(editor));
-			label.Append("*");
-			fTabManager->SetTabLabel(editor, label.String());
-		} else {
-			// Remove '*' from file name
-			BString label(fTabManager->TabLabel(editor));
-			label.RemoveLast("*");
-			fTabManager->SetTabLabel(editor, label.String());
-		}
-		return B_OK;
+		fTabManager->InvalidateTab(editor);
 	}
 
-	return B_ERROR;
+	return B_OK;
 }
 
 
