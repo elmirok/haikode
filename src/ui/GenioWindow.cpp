@@ -2755,7 +2755,7 @@ GenioWindow::_InitActions()
 									B_TRANSLATE("Go to implementation"));
 
 	ActionManager::RegisterAction(MSG_FIND_REFERENCES,
-									B_TRANSLATE("Find references" B_UTF8_ELLIPSIS));
+									B_TRANSLATE("Find references"));
 
 	ActionManager::RegisterAction(MSG_RENAME,
 									B_TRANSLATE("Rename symbol" B_UTF8_ELLIPSIS));
