@@ -66,7 +66,7 @@ OverScrollBar::AttachedToWindow()
 
 	BScrollBar* parent = dynamic_cast<BScrollBar*>(Parent());
 	if (parent != nullptr) {
-		const float width = parent->Bounds().Width() - 2.0;
+		const float width = parent->Bounds().Width() - 2.0f;
 		const float laneWidth = (width / (float)LANES_COUNT);
 		for (int32 l = 0; l < LANES_COUNT; l++) {
 			if (l != 0)
@@ -261,5 +261,5 @@ OverScrollBar::_DoubleArrows(const BRect& bounds) const
 	// From BScrollBar source:
 	// if there is not enough room, switch to single arrows even though
 	// double arrows is specified
-	return bounds.Height() > (bounds.Width() + 1) * 4 + fScrollBarInfo.min_knob_size * 2;
+	return bounds.Height() > (bounds.Width() + 1) * 4 + float(fScrollBarInfo.min_knob_size * 2);
 }
