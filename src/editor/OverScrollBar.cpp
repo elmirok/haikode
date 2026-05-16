@@ -4,6 +4,7 @@
 #include <ToolTip.h>
 
 #include <map>
+#include <stdexcept>
 
 #include "Editor.h"
 #include "Log.h"
@@ -33,6 +34,9 @@ OverScrollBar::OverScrollBar(BRect rect, BMessenger target)
 void
 OverScrollBar::UpdateMarkers(uint8 index, const std::vector<ScrollMarker>& markers)
 {
+	if (index >= LANES_COUNT)
+		throw std::runtime_error("OverScrollBar::UpdateMarkers(): bad index");
+
 	if (markers.empty() && fLanes[index].markers.empty())
 		return; // avoid redrawing for nothing.
 
