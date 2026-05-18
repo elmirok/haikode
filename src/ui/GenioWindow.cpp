@@ -1736,12 +1736,18 @@ GenioWindow::_FileOpenAtStartup(BMessage* msg)
 	if (opened_index >= countFound)
 		opened_index = 0;
 
+	// Additional challenge: If we already have a file selected
+	// (double-click on a file in Tracker -> open Genio and the file),
+	// let's avoid losing the selection.
+
+	if (fTabManager->SelectedEditor() != nullptr)
+		opened_index = -1;
+
 	entry_ref ref;
+
 	//Let's open the selected:
-	if (msg->FindRef("refs", opened_index, &ref) == B_OK) {
+	if (opened_index > -1 && msg->FindRef("refs", opened_index, &ref) == B_OK) {
 		_FileOpenWithPosition(&ref, false, -1,-1, false);
-	} else {
-		opened_index = 0;
 	}
 
 	//tabs after
