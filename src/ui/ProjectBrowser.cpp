@@ -465,6 +465,10 @@ ProjectBrowser::MessageReceived(BMessage* message)
 						project->SetBuildingState(building);
 						fOutlineListView->Invalidate();
 					}
+					if (building)
+						SpinningAnimation::Initialize(fOutlineListView);
+					else
+						SpinningAnimation::Dispose(fOutlineListView);
 					break;
 				}
 				case MSG_NOTIFY_GIT_BRANCH_CHANGED:
@@ -706,8 +710,6 @@ ProjectBrowser::AttachedToWindow()
 		Window()->UnlockLooper();
 	}
 
-	SpinningAnimation::Initialize(fOutlineListView);
-
 	if (fOutlineListView->CountItems() == 0)
 		static_cast<BCardLayout*>(GetLayout())->SetVisibleItem(int32(1));
 	else {
@@ -724,8 +726,6 @@ ProjectBrowser::AttachedToWindow()
 void
 ProjectBrowser::DetachedFromWindow()
 {
-	SpinningAnimation::Dispose(fOutlineListView);
-
 	if (Window()->LockLooper()) {
 		Window()->StopWatching(this, MSG_NOTIFY_EDITOR_FILE_OPENED);
 		Window()->StopWatching(this, MSG_NOTIFY_EDITOR_FILE_CLOSED);
