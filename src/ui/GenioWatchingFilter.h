@@ -40,7 +40,8 @@ public:
 		BString fullPath = path.Path();
 
 		//TODO: use an hidden configuration!
-		if (fullPath.FindFirst("/.git") != B_ERROR) {
+		if (fullPath.FindFirst("/.git/") != B_ERROR) {
+			printf("Filtering %s\n", fullPath.String());
 			//Let's filter well known problematic directories.
 			return B_OK;
 		}
