@@ -10,7 +10,9 @@
 #include <Path.h>
 #include <PathMonitor.h>
 #include <cstdio>
-
+#include <string>
+#include <vector>
+#include <sstream>
 #include "Log.h"
 
 // This is attached to the PathMonitor class to avoid watching too many (useless) files.
@@ -19,6 +21,17 @@
 
 class GenioWatchingFilter : public BPrivate::BPathMonitor::BWatchingInterface {
 public:
+			GenioWatchingFilter(const char* watch_nodes_filters) {
+				std::stringstream ss(watch_nodes_filters);
+				std::string item;
+				while (std::getline(ss, item, ',')) {
+					if (!item.empty()) {
+						fFilters.push_back(item);
+						LogTraceF("Using filter [%s]\n", item.c_str());
+					}
+				}
+			}
+
 	status_t WatchNode(const node_ref* node, uint32 flags, const BHandler* handler,
 							  		const BLooper* looper = NULL)
 
@@ -39,11 +52,12 @@ public:
 
 		BString fullPath = path.Path();
 
-		//TODO: use an hidden configuration!
-		if (fullPath.FindFirst("/.git/") != B_ERROR) {
-			printf("Filtering %s\n", fullPath.String());
-			//Let's filter well known problematic directories.
-			return B_OK;
+		//Let's filter useless directories.
+		for(auto& filter : fFilters) {
+			if (fullPath.FindFirst(filter.c_str()) != B_ERROR) {
+				LogTraceF("Filtering %s", fullPath.String());
+				return B_OK;
+			}
 		}
 
 		status = BPrivate::BPathMonitor::BWatchingInterface::WatchNode(node, flags, handler, looper);
@@ -69,6 +83,7 @@ public:
 private:
 
 		uint32	fWatchedNodes = 0L;
+		std::vector<std::string>	fFilters;
 };
 
 #endif // GenioWatchingFilter_H
