@@ -18,6 +18,7 @@
 #include <TranslationUtils.h>
 #include <View.h>
 
+#include "GOutlineListView.h"
 #include "Log.h"
 
 
@@ -26,7 +27,7 @@ static std::vector<BBitmap*> sBuildAnimationFrames;
 static BLocker sLocker("SpinningAnimation locker");
 static thread_id sThread = -1;
 static sem_id sSemaphore = -1;
-static std::map<BListItem*, BView*> sMessengers;
+static std::map<BListItem*, BView*> sEntries;
 
 /* static */
 void
@@ -54,10 +55,10 @@ SpinningAnimation::RegisterItem(BView* view, BListItem* item)
 	BAutolock _(sLocker);
 
 	// fail if the view is already there
-	if (sMessengers.find(item) != sMessengers.end())
+	if (sEntries.find(item) != sEntries.end())
 		return B_ERROR;
 
-	sMessengers[item] = view;
+	sEntries[item] = view;
 
 	if (sThread < 0) {
 		// first time called, initialize
@@ -80,10 +81,10 @@ SpinningAnimation::UnregisterItem(BView* /*unused*/, BListItem* item)
 {
 	BAutolock _(sLocker);
 
-	sMessengers.erase(item);
+	sEntries.erase(item);
 
 	// Only dispose things if there aren't any connected views
-	if (sMessengers.size() != 0)
+	if (sEntries.size() != 0)
 		return B_OK;
 
 	delete_sem(sSemaphore);
@@ -155,8 +156,13 @@ SpinningAnimation::_AnimationThread(void* castToThis)
 		if (++sBuildAnimationIndex >= (int32)sBuildAnimationFrames.size())
 			sBuildAnimationIndex = 0;
 
-		for (auto& entry : sMessengers) {
-			BMessenger(entry.second).SendMessage(B_INVALIDATE);
+		for (auto& entry : sEntries) {
+			if (entry.second->LockLooperWithTimeout(200000L) == B_OK) {
+				GOutlineListView* listView = dynamic_cast<GOutlineListView*>(entry.second);
+				if (listView != nullptr)
+					listView->InvalidateItem(listView->IndexOf(entry.first));
+				entry.second->UnlockLooper();
+			}
 		}
 
 		sLocker.Unlock();

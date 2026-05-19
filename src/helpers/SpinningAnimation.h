@@ -5,7 +5,6 @@
 #pragma once
 
 
-
 #include <Rect.h>
 #include <SupportDefs.h>
 
