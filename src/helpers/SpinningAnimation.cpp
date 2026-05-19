@@ -49,7 +49,7 @@ SpinningAnimation::Draw(BView* owner, BRect bounds)
 
 /* static */
 status_t
-SpinningAnimation::Initialize(BView* view, BListItem* item)
+SpinningAnimation::RegisterItem(BView* view, BListItem* item)
 {
 	BAutolock _(sLocker);
 
@@ -76,7 +76,7 @@ SpinningAnimation::Initialize(BView* view, BListItem* item)
 
 /* static */
 status_t
-SpinningAnimation::Dispose(BView* view, BListItem* item)
+SpinningAnimation::UnregisterItem(BView* /*unused*/, BListItem* item)
 {
 	BAutolock _(sLocker);
 

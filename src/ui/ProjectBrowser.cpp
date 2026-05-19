@@ -465,9 +465,9 @@ ProjectBrowser::MessageReceived(BMessage* message)
 						ProjectItem* item = GetProjectItemForProject(project);
 						project->SetBuildingState(building);
 						if (building)
-							SpinningAnimation::Initialize(fOutlineListView, item);
+							SpinningAnimation::RegisterItem(fOutlineListView, item);
 						else
-							SpinningAnimation::Dispose(fOutlineListView, item);
+							SpinningAnimation::UnregisterItem(fOutlineListView, item);
 						fOutlineListView->InvalidateItem(fOutlineListView->IndexOf(item));
 					}
 					break;

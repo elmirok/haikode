@@ -250,7 +250,7 @@ public:
 
 	virtual ~PendingListItem()
 	{
-		SpinningAnimation::Dispose(nullptr, this);
+		SpinningAnimation::UnregisterItem(nullptr, this);
 	}
 
 	void DrawItem(BView* owner, BRect bounds, bool complete) override
@@ -567,7 +567,7 @@ FunctionsOutlineView::_UpdateDocumentSymbols(const BMessage& msg, const entry_re
 			fListView->MakeEmpty();
 			BListItem* item = new PendingListItem(B_TRANSLATE("Creating outline"));
 			fListView->AddItem(item);
-			SpinningAnimation::Initialize(fListView, item);
+			SpinningAnimation::RegisterItem(fListView, item);
 			return;
 		}
 		default:

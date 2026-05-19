@@ -14,8 +14,8 @@ class BView;
 class SpinningAnimation {
 public:
 	static void		Draw(BView* owner, BRect bounds);
-	static status_t	Initialize(BView* view, BListItem* item);
-	static status_t Dispose(BView* view, BListItem* item);
+	static status_t	RegisterItem(BView* view, BListItem* item);
+	static status_t UnregisterItem(BView* view, BListItem* item);
 
 private:
 	static status_t _LoadIcons();
