@@ -1,14 +1,17 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023-2026, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
-#ifndef GenioWatchingFilter_H
-#define GenioWatchingFilter_H
-
+#pragma once
 
 #include <Directory.h>
 #include <Path.h>
 #include <PathMonitor.h>
+
+#include <cstdio>
+#include <sstream>
+#include <string>
+#include <vector>
 
 #include "Log.h"
 
@@ -18,6 +21,18 @@
 
 class GenioWatchingFilter : public BPrivate::BPathMonitor::BWatchingInterface {
 public:
+	GenioWatchingFilter(const char* watchNodesFilters)
+	{
+		std::stringstream ss(watchNodesFilters);
+		std::string item;
+		while (std::getline(ss, item, ',')) {
+			if (!item.empty()) {
+				fFilters.push_back(item);
+				LogTraceF("Using filter [%s]\n", item.c_str());
+			}
+		}
+	}
+
 	status_t WatchNode(const node_ref* node, uint32 flags, const BHandler* handler,
 							  		const BLooper* looper = NULL)
 
@@ -31,23 +46,39 @@ public:
 			return B_OK;
 		}
 
+		BEntry entry;
+		dir.GetEntry(&entry);
+		BPath path;
+		entry.GetPath(&path);
+		BString fullPath = path.Path();
+
+		// Let's filter useless directories.
+		for (auto& filter : fFilters) {
+			if (fullPath.FindFirst(filter.c_str()) != B_ERROR) {
+				LogTraceF("Filtering %s", fullPath.String());
+				return B_OK;
+			}
+		}
+
 		status = BPrivate::BPathMonitor::BWatchingInterface::WatchNode(node, flags, handler, looper);
 		if (status != B_OK && flags != B_STOP_WATCHING) {
-			BEntry entry;
-			dir.GetEntry(&entry);
-			BPath path;
-			entry.GetPath(&path);
 			LogErrorF("Can't watch_node for directory [%s](%d) (%s) handler (%p) looper (%p) %d",
-						path.Path(),
+						fullPath.String(),
 						node->node,
 						strerror(status),
 						handler,
 						looper,
 						status == B_BAD_VALUE);
 			//TODO: maybe we should notify the user that the PathMonitor is not working?
+		} else {
+			fWatchedNodes++;
 		}
 		return status;
 	}
-};
 
-#endif // GenioWatchingFilter_H
+	uint32	WatchedNodesCount() const { return fWatchedNodes; }
+
+private:
+		uint32	fWatchedNodes = 0L;
+		std::vector<std::string>	fFilters;
+};

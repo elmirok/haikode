@@ -543,6 +543,8 @@ GenioApp::_PrepareConfig(ConfigManager& cfg)
 							GenioNames::kSettingsProjectsToReopen, dummy);
 	cfg.AddConfig("Hidden", GenioNames::kSettingsFilesToReopen,
 							GenioNames::kSettingsFilesToReopen, dummy);
+
+	cfg.AddConfig("Hidden", "watch_nodes_filters", "watch_nodes_filters", "/.git/,/generated,/objects.");
 }
 
 

@@ -136,7 +136,8 @@ ProjectBrowser::ProjectBrowser()
 		.Add(projectDropView)
 		.SetVisibleItem(int32(0));
 
-	fGenioWatchingFilter = new GenioWatchingFilter();
+	const char* watch_nodes_filters = gCFG["watch_nodes_filters"];
+	fGenioWatchingFilter = new GenioWatchingFilter(watch_nodes_filters);
 	BPrivate::BPathMonitor::SetWatchingInterface(fGenioWatchingFilter);
 }
 
@@ -416,6 +417,7 @@ ProjectBrowser::MessageReceived(BMessage* message)
 						ExpandProjectCollapseOther(activeProject);
 					}
 					fOutlineListView->Invalidate();
+					LogDebug("Watched nodes count, so far: %u\n", fGenioWatchingFilter->WatchedNodesCount());
 					break;
 				case MSG_NOTIFY_EDITOR_FILE_OPENED:
 				case MSG_NOTIFY_EDITOR_FILE_CLOSED:
