@@ -6,12 +6,13 @@
 
 #include "SpinningAnimation.h"
 
-#include <Bitmap.h>
-#include <set>
+#include <map>
 #include <vector>
 
 #include <Application.h>
 #include <Autolock.h>
+#include <Bitmap.h>
+#include <ListItem.h>
 #include <MessageRunner.h>
 #include <Resources.h>
 #include <TranslationUtils.h>
@@ -25,7 +26,7 @@ static std::vector<BBitmap*> sBuildAnimationFrames;
 static BLocker sLocker("SpinningAnimation locker");
 static thread_id sThread = -1;
 static sem_id sSemaphore = -1;
-static std::set<BMessenger> sMessengers;
+static std::map<BListItem*, BView*> sMessengers;
 
 /* static */
 void
@@ -48,15 +49,15 @@ SpinningAnimation::Draw(BView* owner, BRect bounds)
 
 /* static */
 status_t
-SpinningAnimation::Initialize(BView* view)
+SpinningAnimation::Initialize(BView* view, BListItem* item)
 {
 	BAutolock _(sLocker);
 
 	// fail if the view is already there
-	if (sMessengers.find(view) != sMessengers.end())
+	if (sMessengers.find(item) != sMessengers.end())
 		return B_ERROR;
 
-	sMessengers.insert(view);
+	sMessengers[item] = view;
 
 	if (sThread < 0) {
 		// first time called, initialize
@@ -75,11 +76,11 @@ SpinningAnimation::Initialize(BView* view)
 
 /* static */
 status_t
-SpinningAnimation::Dispose(BView* view)
+SpinningAnimation::Dispose(BView* view, BListItem* item)
 {
 	BAutolock _(sLocker);
 
-	sMessengers.erase(view);
+	sMessengers.erase(item);
 
 	// Only dispose things if there aren't any connected views
 	if (sMessengers.size() != 0)
@@ -154,8 +155,8 @@ SpinningAnimation::_AnimationThread(void* castToThis)
 		if (++sBuildAnimationIndex >= (int32)sBuildAnimationFrames.size())
 			sBuildAnimationIndex = 0;
 
-		for (BMessenger messenger : sMessengers) {
-			messenger.SendMessage(B_INVALIDATE);
+		for (auto& entry : sMessengers) {
+			BMessenger(entry.second).SendMessage(B_INVALIDATE);
 		}
 
 		sLocker.Unlock();

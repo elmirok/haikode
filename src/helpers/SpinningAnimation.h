@@ -9,12 +9,13 @@
 #include <Rect.h>
 #include <SupportDefs.h>
 
+class BListItem;
 class BView;
 class SpinningAnimation {
 public:
 	static void		Draw(BView* owner, BRect bounds);
-	static status_t	Initialize(BView* view);
-	static status_t Dispose(BView* view);
+	static status_t	Initialize(BView* view, BListItem* item);
+	static status_t Dispose(BView* view, BListItem* item);
 
 private:
 	static status_t _LoadIcons();

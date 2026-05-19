@@ -248,6 +248,11 @@ public:
 	{
 	}
 
+	~PendingListItem()
+	{
+		SpinningAnimation::Dispose(nullptr, this);
+	}
+
 	void DrawItem(BView* owner, BRect bounds, bool complete) override
 	{
 		StyledItem::DrawItem(owner, bounds, complete);
@@ -392,8 +397,6 @@ FunctionsOutlineView::AttachedToWindow()
 	// but it isn't so important, since the setting is hidden
 	sSortedByName = gCFG["outline_sort_symbols"];
 	fToolBar->SetActionPressed(kMsgSort, sSortedByName);
-
-	SpinningAnimation::Initialize(fListView);
 }
 
 
@@ -401,8 +404,6 @@ FunctionsOutlineView::AttachedToWindow()
 void
 FunctionsOutlineView::DetachedFromWindow()
 {
-	SpinningAnimation::Dispose(fListView);
-
 	if (gMainWindow != nullptr && gMainWindow->LockLooper()) {
 		gMainWindow->StopWatching(this, MSG_NOTIFY_EDITOR_POSITION_CHANGED);
 		gMainWindow->StopWatching(this, MSG_NOTIFY_EDITOR_SYMBOLS_UPDATED);
@@ -562,9 +563,13 @@ FunctionsOutlineView::_UpdateDocumentSymbols(const BMessage& msg, const entry_re
 			fListView->AddItem(new BStringItem(B_TRANSLATE("No outline available")));
 			return;
 		case IEditor::STATUS_REQUESTED:
+		{
 			fListView->MakeEmpty();
-			fListView->AddItem(new PendingListItem(B_TRANSLATE("Creating outline")));
+			BListItem* item = new PendingListItem(B_TRANSLATE("Creating outline"));
+			fListView->AddItem(item);
+			SpinningAnimation::Initialize(fListView, item);
 			return;
+		}
 		default:
 			break;
 	}
