@@ -248,7 +248,7 @@ public:
 	{
 	}
 
-	~PendingListItem()
+	virtual ~PendingListItem()
 	{
 		SpinningAnimation::Dispose(nullptr, this);
 	}

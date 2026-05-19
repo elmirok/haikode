@@ -20,6 +20,8 @@ public:
 	void MouseDown(BPoint where) override;
 	void MouseUp(BPoint where) override;
 
+	void MakeEmpty() override;
+
 protected:
 	virtual void ShowPopupMenu(BPoint where);
 };

@@ -63,6 +63,23 @@ GOutlineListView::MouseUp(BPoint where)
 }
 
 
+static
+bool
+DeleteItem(BListItem* item)
+{
+	delete item;
+	return true;
+}
+
+
+void
+GOutlineListView::MakeEmpty()
+{
+	FullListDoForEach(DeleteItem);
+	BOutlineListView::MakeEmpty();
+}
+
+
 /* virtual */
 void
 GOutlineListView::ShowPopupMenu(BPoint where)
