@@ -6,6 +6,10 @@
 
 #include "SpinningAnimation.h"
 
+#include <Bitmap.h>
+#include <set>
+#include <vector>
+
 #include <Application.h>
 #include <Autolock.h>
 #include <MessageRunner.h>
@@ -16,12 +20,12 @@
 #include "Log.h"
 
 
-int32 SpinningAnimation::sBuildAnimationIndex = 0;
-std::vector<BBitmap*> SpinningAnimation::sBuildAnimationFrames;
-BLocker SpinningAnimation::sLocker("SpinningAnimation locker");
-thread_id SpinningAnimation::sThread = -1;
-sem_id SpinningAnimation::sSemaphore = -1;
-std::set<BMessenger> SpinningAnimation::sMessengers;
+static int32 sBuildAnimationIndex = 0;
+static std::vector<BBitmap*> sBuildAnimationFrames;
+static BLocker sLocker("SpinningAnimation locker");
+static thread_id sThread = -1;
+static sem_id sSemaphore = -1;
+static std::set<BMessenger> sMessengers;
 
 /* static */
 void
@@ -147,8 +151,8 @@ SpinningAnimation::_AnimationThread(void* castToThis)
 
 		sLocker.Lock();
 
-		if (++SpinningAnimation::sBuildAnimationIndex >= (int32)sBuildAnimationFrames.size())
-			SpinningAnimation::sBuildAnimationIndex = 0;
+		if (++sBuildAnimationIndex >= (int32)sBuildAnimationFrames.size())
+			sBuildAnimationIndex = 0;
 
 		for (BMessenger messenger : sMessengers) {
 			messenger.SendMessage(B_INVALIDATE);

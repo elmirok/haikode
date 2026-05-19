@@ -4,13 +4,12 @@
  */
 #pragma once
 
-#include <vector>
 
-#include <Bitmap.h>
-#include <Locker.h>
 
-#include <set>
+#include <Rect.h>
+#include <SupportDefs.h>
 
+class BView;
 class SpinningAnimation {
 public:
 	static void		Draw(BView* owner, BRect bounds);
@@ -20,12 +19,5 @@ public:
 private:
 	static status_t _LoadIcons();
 	static int32	_AnimationThread(void*);
-
-	static int32 sBuildAnimationIndex;
-	static std::vector<BBitmap*> sBuildAnimationFrames;
-	static thread_id sThread;
-	static BLocker sLocker;
-	static std::set<BMessenger> sMessengers;
-	static sem_id sSemaphore;
 };
 
