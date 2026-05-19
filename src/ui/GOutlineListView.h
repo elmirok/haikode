@@ -1,5 +1,5 @@
 /*
- * Copyright 2025, The Genio Team
+ * Copyright 2025-2026, The Genio Team
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #pragma once
@@ -10,7 +10,7 @@
 // Implements a listview which can show a popup menu on right click
 // and handles tooltips for StyledItem(s)
 // inherited class should reimplement ShowPopUpMenu()
-
+// N.B: MakeEmpty() also deletes the items
 class GOutlineListView: public BOutlineListView {
 public:
 	GOutlineListView(const char* name, list_view_type type = B_SINGLE_SELECTION_LIST,
