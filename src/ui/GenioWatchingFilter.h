@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #ifndef GenioWatchingFilter_H
@@ -9,6 +9,7 @@
 #include <Directory.h>
 #include <Path.h>
 #include <PathMonitor.h>
+#include <cstdio>
 
 #include "Log.h"
 
@@ -31,23 +32,42 @@ public:
 			return B_OK;
 		}
 
+		BEntry entry;
+		dir.GetEntry(&entry);
+		BPath path;
+		entry.GetPath(&path);
+
+		BString fullPath = path.Path();
+
+		//TODO: use an hidden configuration!
+		if (fullPath.FindFirst("/.git") != B_ERROR) {
+			//Let's filter well known problematic directories.
+			return B_OK;
+		}
+
 		status = BPrivate::BPathMonitor::BWatchingInterface::WatchNode(node, flags, handler, looper);
+
 		if (status != B_OK && flags != B_STOP_WATCHING) {
-			BEntry entry;
-			dir.GetEntry(&entry);
-			BPath path;
-			entry.GetPath(&path);
+
 			LogErrorF("Can't watch_node for directory [%s](%d) (%s) handler (%p) looper (%p) %d",
-						path.Path(),
+						fullPath.String(),
 						node->node,
 						strerror(status),
 						handler,
 						looper,
 						status == B_BAD_VALUE);
 			//TODO: maybe we should notify the user that the PathMonitor is not working?
+		} else {
+			fWatchedNodes++;
 		}
 		return status;
 	}
+
+	uint32	WatchedNodesCount() const { return fWatchedNodes; }
+
+private:
+
+		uint32	fWatchedNodes = 0L;
 };
 
 #endif // GenioWatchingFilter_H

@@ -416,6 +416,7 @@ ProjectBrowser::MessageReceived(BMessage* message)
 						ExpandProjectCollapseOther(activeProject);
 					}
 					fOutlineListView->Invalidate();
+					printf("WatchedNodes so far: %u\n", fGenioWatchingFilter->WatchedNodesCount());
 					break;
 				case MSG_NOTIFY_EDITOR_FILE_OPENED:
 				case MSG_NOTIFY_EDITOR_FILE_CLOSED:
