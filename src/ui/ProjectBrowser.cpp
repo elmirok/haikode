@@ -462,13 +462,14 @@ ProjectBrowser::MessageReceived(BMessage* message)
 					const BString projectPath = message->GetString("project_path");
 					ProjectFolder* project = ProjectByPath(projectPath);
 					if (project != nullptr) {
+						ProjectItem* item = GetProjectItemForProject(project);
 						project->SetBuildingState(building);
-						fOutlineListView->Invalidate();
+						if (building)
+							SpinningAnimation::RegisterItem(fOutlineListView, item);
+						else
+							SpinningAnimation::UnregisterItem(fOutlineListView, item);
+						fOutlineListView->InvalidateItem(fOutlineListView->IndexOf(item));
 					}
-					if (building)
-						SpinningAnimation::Initialize(fOutlineListView);
-					else
-						SpinningAnimation::Dispose(fOutlineListView);
 					break;
 				}
 				case MSG_NOTIFY_GIT_BRANCH_CHANGED:

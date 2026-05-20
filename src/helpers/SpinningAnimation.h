@@ -4,28 +4,20 @@
  */
 #pragma once
 
-#include <vector>
 
-#include <Bitmap.h>
-#include <Locker.h>
+#include <Rect.h>
+#include <SupportDefs.h>
 
-#include <set>
-
+class BListItem;
+class BView;
 class SpinningAnimation {
 public:
 	static void		Draw(BView* owner, BRect bounds);
-	static status_t	Initialize(BView* view);
-	static status_t Dispose(BView* view);
+	static status_t	RegisterItem(BView* view, BListItem* item);
+	static status_t UnregisterItem(BView* view, BListItem* item);
 
 private:
 	static status_t _LoadIcons();
 	static int32	_AnimationThread(void*);
-
-	static int32 sBuildAnimationIndex;
-	static std::vector<BBitmap*> sBuildAnimationFrames;
-	static thread_id sThread;
-	static BLocker sLocker;
-	static std::set<BMessenger> sMessengers;
-	static sem_id sSemaphore;
 };
 
