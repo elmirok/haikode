@@ -66,7 +66,7 @@ namespace Genio::Git {
 
 		BMessage msg(progressData->what);
 		msg.AddString("progress_text", progressString);
-		msg.AddFloat("progress_value", currentProgress);
+		msg.AddFloat("progress_value", float(currentProgress));
 		progressData->messenger.SendMessage(&msg);
 		return 0;
 	}
