@@ -84,11 +84,11 @@ ConfigManager::HasKey(const char* key) const
 status_t
 ConfigManager::LoadFromFile(std::array<BPath, kStorageTypeCountNb> paths)
 {
+	status_t status = B_OK;
 	BAutolock lock(fLocker);
 	for (int32 i = 0; i < kStorageTypeCountNb; i++) {
-		if (fPSPList[i] != nullptr &&
-			fPSPList[i]->Open(paths[i], PermanentStorageProvider::kPSPReadMode) != B_OK) {
-			LogErrorF("Failed to open PermanentStorageProvider (%d)!", i);
+		if (fPSPList[i] != nullptr && (status = fPSPList[i]->Open(paths[i], PermanentStorageProvider::kPSPReadMode)) != B_OK) {
+			LogErrorF("Failed to open PermanentStorageProvider (%d): %s!", i, ::strerror(status));
 			return B_ERROR;
 		} else {
 			LogInfoF("PermanentStorageProvider (%d) opened successfully.", i);
@@ -106,7 +106,6 @@ ConfigManager::LoadFromFile(std::array<BPath, kStorageTypeCountNb> paths)
 	fNoticeMessage.RemoveData(kContext);
 	fNoticeMessage.AddString(kContext, "load_from_file");
 
-	status_t status = B_OK;
 	GMessage msg;
 	int32 index = 0;
 	while (fConfiguration.FindMessage("config", index++, &msg) == B_OK) {
