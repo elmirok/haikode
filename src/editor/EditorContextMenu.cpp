@@ -88,7 +88,7 @@ EditorContextMenu::_GetCodeActionsMenu(Editor* editor, BPoint screenPoint, LSPEd
 
 	LSPDiagnostic dia;
 	BPoint p = editor->ConvertFromScreen(screenPoint);
-	Sci_Position sci_position = editor->SendMessage(SCI_POSITIONFROMPOINT, p.x, p.y);
+	Sci_Position sci_position = editor->SendMessage(SCI_POSITIONFROMPOINT, uptr_t(p.x), sptr_t(p.y));
 	int32 index = outLsp->DiagnosticFromPosition(sci_position, dia);
 	if (index > -1 && dia.codeActions.has_value()
 		&& dia.codeActions->isArray() && !dia.codeActions->array().empty()) {
