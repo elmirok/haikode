@@ -37,8 +37,6 @@ void	DoInAllLibDirectories(std::function<void(const BPath&)> func);
 BString	GetVersion();
 bool	IsXMasPeriod();
 
-bool	IsFileSupported(const entry_ref* ref);
-
 std::string GetFileName(const std::string& filename);
 std::string GetFileExtension(const std::string& filename);
 

@@ -75,8 +75,6 @@ EditorManager::IsFileSupported(const entry_ref* ref, BString& outFileType)
 		return true;
 	}
 
-	// TODO: Code duplication between here and Utils::IsFileSupported()
-
 	// Check MIME type for text or image files
 	BNodeInfo info(&entry);
 	if (info.InitCheck() == B_OK) {
