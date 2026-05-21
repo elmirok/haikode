@@ -75,6 +75,8 @@ EditorManager::IsFileSupported(const entry_ref* ref, BString& outFileType)
 		return true;
 	}
 
+	// TODO: Code duplication between here and Utils::IsFileSupported()
+
 	// Check MIME type for text or image files
 	BNodeInfo info(&entry);
 	if (info.InitCheck() == B_OK) {
@@ -83,7 +85,7 @@ EditorManager::IsFileSupported(const entry_ref* ref, BString& outFileType)
 			LogError("Error in getting mime type from file [%s]", path.Path());
 			mime[0] = '\0';
 		}
-		if (mime[0] == '\0' || ::strcmp(mime, "application/octet-stream") == 0) {
+		if (mime[0] == '\0' || ::strcmp(mime, B_FILE_MIME_TYPE) == 0) {
 			if (update_mime_info(path.Path(), false, true, B_UPDATE_MIME_INFO_FORCE_UPDATE_ALL) == B_OK) {
 				if (info.GetType(mime) != B_OK) {
 					LogError("Error in getting mime type from file [%s]", path.Path());
