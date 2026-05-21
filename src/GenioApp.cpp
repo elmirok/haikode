@@ -552,6 +552,11 @@ GenioApp::_PrepareConfig(ConfigManager& cfg)
 int
 main(int argc, char* argv[])
 {
+	if (!CheckDependencies()) {
+		debugger("Dependencies are missing!");
+		return -1;
+	}
+
 	GenioApp* app = nullptr;
 	try {
 		app = new GenioApp();

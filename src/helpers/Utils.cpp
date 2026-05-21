@@ -33,7 +33,7 @@
 
 #include "GenioApp.h"
 #include "Languages.h"
-
+#include "Log.h"
 
 using BPrivate::gSystemCatalog;
 
@@ -44,6 +44,18 @@ using BPrivate::gSystemCatalog;
 #if OPENSSL_VERSION_MAJOR < 3
 	#error "OpenSSL version 3 is required!"
 #endif
+
+bool
+CheckDependencies()
+{
+	unsigned long openSSLVersion = OpenSSL_version_num();
+	if ((openSSLVersion >> 28) < 3) {
+		LogError("OpenSSL version 3 required!");
+		return false;
+	}
+	return true;
+}
+
 
 rgb_color
 TextColorByLuminance(rgb_color background)

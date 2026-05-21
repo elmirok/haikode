@@ -24,6 +24,8 @@ class BScintillaView;
 
 struct entry_ref;
 
+bool	CheckDependencies();
+
 rgb_color	TextColorByLuminance(rgb_color background);
 
 bool	GetGenioDirectory(BPath& destPath);
