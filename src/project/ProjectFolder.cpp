@@ -131,12 +131,14 @@ status_t
 ProjectFolder::Open()
 {
 	ASSERT(fSettings != nullptr);
+	LogTraceF("%s", "Loading settings...");
 	status_t status = LoadSettings();
 	if (status != B_OK) {
 		// not a fatal error, just start with defaults
 		LogInfoF("%s", "Cannot load project settings");
 	}
 
+	LogTraceF("%s", "Initializing GIT...");
 	try {
 		fGitRepository = new GitRepository(fFullPath);
 	} catch (const GitException &ex) {
@@ -144,6 +146,7 @@ ProjectFolder::Open()
 			fFullPath.String(), ex.Error(), ex.what());
 	}
 
+	LogTraceF("%s", "returning...");
 	return B_OK;
 }
 
