@@ -26,6 +26,7 @@
 #include <openssl/bio.h>
 #include <openssl/buffer.h>
 #include <openssl/evp.h>
+#include <openssl/opensslv.h>
 
 #include <algorithm>
 #include <string>
@@ -40,6 +41,10 @@ using BPrivate::gSystemCatalog;
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "Utilities"
 
+
+#if OPENSSL_VERSION_MAJOR < 3
+	#error "OpenSSL version 3 is required!"
+#endif
 
 rgb_color
 TextColorByLuminance(rgb_color background)
