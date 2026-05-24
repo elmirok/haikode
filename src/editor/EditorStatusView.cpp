@@ -250,7 +250,7 @@ StatusView::SetStatus(BMessage* message)
 	fCellText[kLineFeed] 	  	= message->GetString("eol", "");
 	fCellText[kFileStateCell] 	= message->GetString("readOnly", "");
 	fCellText[kEditorConfig] 	= message->GetString("editorconfig", "");
-	fCellText[kTrimWhitespace] 	= message->GetString("trim_trialing_whitespace", "");
+	fCellText[kTrimWhitespace] 	= message->GetString("trim_trailing_whitespace", "");
 
 	BString style = message->GetString("indent_style", "");
 	int32 size = message->GetInt32("indent_size", -1);

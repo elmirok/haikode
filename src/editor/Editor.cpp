@@ -1830,7 +1830,7 @@ Editor::UpdateStatusBar()
 	update.AddString("readOnly", ModeString());
 	update.AddString("eol", _EndOfLineString());
 	update.AddString("editorconfig", fHasEditorConfig ? EDITORCONFIG_YES_GLYPH : EDITORCONFIG_NO_GLYPH);
-	update.AddString("trim_trialing_whitespace", fEditorConfig.TrimTrailingWhitespace ? "TRIM" : "NOTRIM");
+	update.AddString("trim_trailing_whitespace", fEditorConfig.TrimTrailingWhitespace ? "TRIM" : "NOTRIM");
 	update.AddString("indent_style", fEditorConfig.IndentStyle == IndentStyle::Tab ? "TAB" : "SPACE");
 	update.AddInt32("indent_size", fEditorConfig.IndentSize);
 
