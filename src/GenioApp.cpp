@@ -14,7 +14,6 @@
 #include <String.h>
 #include <getopt.h>
 
-
 #include "ConfigManager.h"
 #include "ExtensionManager.h"
 #include "GenioWindow.h"
@@ -139,7 +138,8 @@ GenioApp::AboutRequested()
 	extraInfo << B_TRANSLATE("Made with love in Italy");
 
 	window->AddExtraInfo(extraInfo);
-	window->ResizeBy(0, 200);
+	window->ResizeBy(200, 200);
+	window->CenterOnScreen();
 
 	// xmas-icon!
 	if (IsXMasPeriod() && window->Icon()) {
