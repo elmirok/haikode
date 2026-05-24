@@ -6,15 +6,18 @@ v6.0 (not released)
 	- Made languages configuration easier to extend with external files.
 	- Made renaming symbols more robust.
 	- Jump history now also saves the cursor position.
-	- Fixed performance regression.
-	- Fixed memory leak in class outline view.
-	- Fixed node monitoring issue on big projects with many subfolders (i.e. Haiku).
 	- Fixed auto completion not triggering in some cases.
 	- Fixed status view not updating when changing editors in some cases.
 	- Fixed project browser not selecting the active file in some cases.
-	- Fixed layout when moving build log or terminal tab to the left/right panes.
 	- Fixed cloning a git repository using ssh authentication through an agent.
 	- Class outline: added function parameters.
+---
+v5.1
+	- Fixed performance regression.
+	- Fixed memory leak in class outline view.
+	- Fixed node monitoring issue on big projects with many subfolders (i.e. Haiku).
+	- Fixed layout when moving build log or terminal tab to the left/right panes.
+	- Fixed selecting file in editor when opening from tracker.
 ---
 v5.0
 	- Added the ability to show the branch name in the window title.
