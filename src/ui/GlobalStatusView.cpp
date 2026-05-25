@@ -55,13 +55,13 @@ GlobalStatusView::GlobalStatusView()
 	SetExplicitMinSize(BSize(B_SIZE_UNSET, height));
 
 	BLayoutBuilder::Grid<>(this, B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING)
-		.Add(fLSPStatusView, 0, 0)
-		.AddGlue(1, 0)
+		.Add(fLSPStatusView, 0, 0, 2)
 		.Add(fLastFindStatus, 2, 0)
 		.AddGlue(3, 0)
 		.Add(fBuildProfileView, 4, 0)
 		.AddGlue(5, 0)
-		.Add(fBuildStatusView, 6, 0)
+		.Add(fBuildStatusView, 6, 0, 2)
+		.SetColumnWeight(6, 0)
 		.End()
 		;
 }
