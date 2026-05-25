@@ -79,12 +79,18 @@ BuildProfileView::MessageReceived(BMessage* message)
 			switch (what) {				
 				case MSG_NOTIFY_PROJECT_SET_ACTIVE:
 				{
-					fProjectString->SetText(message->GetString("active_project_name", ""));
+					BString projectString(B_TRANSLATE("Project: \%project\%"));
+					BString projectName = message->GetString("active_project_name");
+					projectString.ReplaceFirst("\%project\%", projectName);
+					fProjectString->SetText(projectString.String());
 					break;
 				}
 				case MSG_NOTIFY_PROJECT_BUILD_PROFILE_CHANGED:
 				{
-					fBuildProfileString->SetText(message->GetString("build_profile_name", ""));
+					BString profileName = message->GetString("build_profile_name");
+					profileName.Prepend("(");
+					profileName.Append(")");
+					fBuildProfileString->SetText(profileName.String());
 					break;
 				}
 				default:
