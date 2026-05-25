@@ -8,7 +8,6 @@
 
 #include <Catalog.h>
 #include <LayoutBuilder.h>
-#include <MessageRunner.h>
 #include <StatusBar.h>
 #include <StringView.h>
 #include <Window.h>
