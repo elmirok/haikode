@@ -35,7 +35,6 @@ GlobalStatusView::GlobalStatusView()
 	fLSPStringView(nullptr),
 	fLSPStatusBar(nullptr),
 	fLastStatusChange(system_time()),
-	fRunnerBuild(nullptr),
 	fRunnerFind(nullptr)
 {
 	font_height fontHeight;

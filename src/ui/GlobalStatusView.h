@@ -25,6 +25,5 @@ private:
 	BStatusBar*		fLSPStatusBar;
 	BStringView*	fLastFindStatus;
 	bigtime_t		fLastStatusChange;
-	BMessageRunner* fRunnerBuild;
 	BMessageRunner* fRunnerFind;
 };
