@@ -4,7 +4,7 @@
  */
 #include "GlobalStatusView.h"
 
-#include <BarberPole.h>
+
 #include <Catalog.h>
 #include <ControlLook.h>
 #include <GroupLayoutBuilder.h>
@@ -16,6 +16,7 @@
 #include <StringView.h>
 #include <Window.h>
 
+#include "BuildStatusView.h"
 #include "NoticeMessages.h"
 
 #undef B_TRANSLATION_CONTEXT
@@ -24,14 +25,12 @@
 
 const bigtime_t kTextAutohideTimeout = 5000000ULL;
 
-const uint32 kHideBuildingText = 'HIDE';
 const uint32 kHideFindText = 'HIFE';
 
 GlobalStatusView::GlobalStatusView()
 	:
 	BView("global_status_view", B_WILL_DRAW),
-	fBuildBarberPole(nullptr),
-	fBuildStringView(nullptr),
+	fBuildStatusView(nullptr),
 	fLSPStringView(nullptr),
 	fLSPStatusBar(nullptr),
 	fLastStatusChange(system_time()),
@@ -43,13 +42,10 @@ GlobalStatusView::GlobalStatusView()
 	float height = ::ceilf(fontHeight.ascent + fontHeight.descent
 		+ fontHeight.leading + be_control_look->DefaultItemSpacing());
 
-	fBuildBarberPole = new BarberPole("build_barberpole");
-	fBuildStringView = new BStringView("build_text", "");
+	fBuildStatusView = new BuildStatusView();
 	fLSPStringView = new BStringView("LSP_text", "");
 	fLSPStatusBar = new BStatusBar("LSP_progressbar");
 	fLastFindStatus = new BStringView("find_status", "");
-
-	fBuildBarberPole->Hide();
 
 	fLSPStatusBar->Hide();
 
@@ -66,18 +62,9 @@ GlobalStatusView::GlobalStatusView()
 		.AddGlue(0.1f)
 		.Add(fLastFindStatus, 0.2f)
 		.AddGlue(0.1f)
-		.AddGroup(B_HORIZONTAL, B_USE_SMALL_SPACING, 0.4f)
-			.SetInsets(2, 4)
-			.Add(fBuildStringView)
-			.Add(fBuildBarberPole)
+		.Add(fBuildStatusView)
 		.End()
 		;
-
-	fBuildStringView->SetExplicitMinSize(BSize(200, B_SIZE_UNSET));
-	fBuildStringView->SetExplicitAlignment(BAlignment(B_ALIGN_RIGHT, B_ALIGN_VERTICAL_UNSET));
-
-	fBuildBarberPole->SetExplicitMaxSize(BSize(250, B_SIZE_UNSET));
-	fBuildBarberPole->SetExplicitAlignment(BAlignment(B_ALIGN_LEFT, B_ALIGN_VERTICAL_CENTER));
 
 	fLSPStringView->SetExplicitMinSize(BSize(100, B_SIZE_UNSET));
 	fLSPStringView->SetExplicitAlignment(BAlignment(B_ALIGN_LEFT, B_ALIGN_VERTICAL_UNSET));
@@ -92,7 +79,6 @@ GlobalStatusView::AttachedToWindow()
 {
 	BView::AttachedToWindow();
 	if (Window()->LockLooper()) {
-		Window()->StartWatching(this, MSG_NOTIFY_BUILDING_PHASE);
 		Window()->StartWatching(this, MSG_NOTIFY_LSP_INDEXING);
 		Window()->StartWatching(this, MSG_NOTIFY_FIND_STATUS);
 		Window()->UnlockLooper();
@@ -106,7 +92,6 @@ GlobalStatusView::DetachedFromWindow()
 {
 	BView::DetachedFromWindow();
 	if (Window()->LockLooper()) {
-		Window()->StopWatching(this, MSG_NOTIFY_BUILDING_PHASE);
 		Window()->StopWatching(this, MSG_NOTIFY_LSP_INDEXING);
 		Window()->StopWatching(this, MSG_NOTIFY_FIND_STATUS);
 		Window()->UnlockLooper();
@@ -129,11 +114,6 @@ void
 GlobalStatusView::MessageReceived(BMessage *message)
 {
 	switch (message->what) {
-		case kHideBuildingText:
-			_ResetRunner(&fRunnerBuild);
-			fBuildStringView->SetText("");
-			fBuildBarberPole->Hide();
-			break;
 		case kHideFindText:
 			_ResetRunner(&fRunnerFind);
 			fLastFindStatus->SetText("");
@@ -142,55 +122,7 @@ GlobalStatusView::MessageReceived(BMessage *message)
 		{
 			int32 what;
 			message->FindInt32(B_OBSERVE_WHAT_CHANGE, &what);
-			switch (what) {
-				case MSG_NOTIFY_BUILDING_PHASE:
-				{
-					_ResetRunner(&fRunnerBuild);
-
-					if (fBuildBarberPole->IsHidden())
-						fBuildBarberPole->Show();
-
-					// TODO: Instead of doing this here, put the string into the message
-					// from the caller and just retrieve it and display it here
-					bool building = message->GetBool("building", false);
-					BString projectName = message->GetString("project_name");
-					BString cmdType = message->GetString("cmd_type");
-					status_t status = message->GetInt32("status", B_OK);
-					BString text;
-					if (building) {
-						if (cmdType.Compare("build") == 0)
-							text = B_TRANSLATE("Building project '\"%project%\"'" B_UTF8_ELLIPSIS);
-						else if (cmdType.Compare("clean") == 0)
-							text = B_TRANSLATE("Cleaning project '\"%project%\"'" B_UTF8_ELLIPSIS);
-						fBuildBarberPole->Start();
-					} else {
-						if (cmdType.Compare("build") == 0) {
-							if (status == B_OK)
-								text = B_TRANSLATE("Finished building project '\"%project%\"'");
-							else
-								text = B_TRANSLATE("Failed building project '\"%project%\"'");
-						} else if (cmdType.Compare("clean") == 0) {
-							if (status == B_OK)
-								text = B_TRANSLATE("Finished cleaning project '\"%project%\"'");
-							else
-								text = B_TRANSLATE("Failed cleaning project '\"%project%\"'");
-						}
-						fBuildBarberPole->Stop();
-						_StartRunner(&fRunnerBuild, kHideBuildingText);
-					}
-					text.ReplaceFirst("\"%project%\"", projectName);
-					fBuildStringView->SetText(text.String());
-
-					if (status != B_OK) {
-						// On fail
-						fBuildStringView->SetHighColor(ui_color(B_FAILURE_COLOR));
-						// beep();
-					} else
-						fBuildStringView->SetHighColor(ui_color(B_CONTROL_TEXT_COLOR));
-
-					fLastStatusChange = system_time();
-					break;
-				}
+			switch (what) {				
 				case MSG_NOTIFY_LSP_INDEXING:
 				{
 					BString kind = message->GetString("kind", "end");
