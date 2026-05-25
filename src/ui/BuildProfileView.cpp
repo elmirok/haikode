@@ -47,6 +47,7 @@ BuildProfileView::AttachedToWindow()
 	BView::AttachedToWindow();
 
 	if (Window()->LockLooper()) {
+		Window()->StartWatching(this, MSG_NOTIFY_PROJECT_BUILD_PROFILE_CHANGED);
 		Window()->StartWatching(this, MSG_NOTIFY_PROJECT_SET_ACTIVE);
 		Window()->UnlockLooper();
 	}
@@ -58,6 +59,7 @@ void
 BuildProfileView::DetachedFromWindow()
 {
 	if (Window()->LockLooper()) {
+		Window()->StopWatching(this, MSG_NOTIFY_PROJECT_BUILD_PROFILE_CHANGED);
 		Window()->StopWatching(this, MSG_NOTIFY_PROJECT_SET_ACTIVE);
 		Window()->UnlockLooper();
 	}
@@ -78,6 +80,11 @@ BuildProfileView::MessageReceived(BMessage* message)
 				case MSG_NOTIFY_PROJECT_SET_ACTIVE:
 				{
 					fProjectString->SetText(message->GetString("active_project_name", ""));
+					break;
+				}
+				case MSG_NOTIFY_PROJECT_BUILD_PROFILE_CHANGED:
+				{
+					fBuildProfileString->SetText(message->GetString("build_profile_name", ""));
 					break;
 				}
 				default:

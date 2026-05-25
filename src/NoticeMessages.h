@@ -39,8 +39,12 @@ enum {
 													// active_project_name (string)
 													// active_project_path (string)
 
+	// Project
 	MSG_NOTIFY_PROJECT_SET_ACTIVE		= 'npsa',	// active_project_name (string)
 													// active_project_path (string)
+	MSG_NOTIFY_PROJECT_BUILD_PROFILE_CHANGED = 'nppc',	// project_name (string)
+														// build_profile_name (string)
+
 	MSG_NOTIFY_FIND_STATUS				= 'fist',
 
 	// workspace

@@ -543,12 +543,20 @@ GenioWindow::MessageReceived(BMessage* message)
 		{
 			GetActiveProject()->SetBuildMode(BuildMode::DebugMode);
 			_UpdateProjectMenuItemsState(true);
+			BMessage noticeMessage;
+			noticeMessage.AddString("project_name", GetActiveProject()->Name());
+			noticeMessage.AddString("build_profile_name", "debug");
+			SendNotices(MSG_NOTIFY_PROJECT_BUILD_PROFILE_CHANGED, &noticeMessage);
 			break;
 		}
 		case MSG_BUILD_MODE_RELEASE:
 		{
 			GetActiveProject()->SetBuildMode(BuildMode::ReleaseMode);
 			_UpdateProjectMenuItemsState(true);
+			BMessage noticeMessage;
+			noticeMessage.AddString("project_name", GetActiveProject()->Name());
+			noticeMessage.AddString("build_profile_name", "release");
+			SendNotices(MSG_NOTIFY_PROJECT_BUILD_PROFILE_CHANGED, &noticeMessage);
 			break;
 		}
 		case MSG_BUILD_PROJECT:
