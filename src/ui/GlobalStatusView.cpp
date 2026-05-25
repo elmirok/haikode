@@ -17,6 +17,7 @@
 #include <Window.h>
 
 #include "BuildStatusView.h"
+#include "LSPStatusView.h"
 #include "NoticeMessages.h"
 #include "Utils.h"
 
@@ -32,8 +33,7 @@ GlobalStatusView::GlobalStatusView()
 	:
 	BView("global_status_view", B_WILL_DRAW),
 	fBuildStatusView(nullptr),
-	fLSPStringView(nullptr),
-	fLSPStatusBar(nullptr),
+	fLSPStatusView(nullptr),
 	fLastStatusChange(system_time()),
 	fRunnerFind(nullptr)
 {
@@ -43,34 +43,21 @@ GlobalStatusView::GlobalStatusView()
 		+ fontHeight.leading + be_control_look->DefaultItemSpacing());
 
 	fBuildStatusView = new BuildStatusView();
-	fLSPStringView = new BStringView("LSP_text", "");
-	fLSPStatusBar = new BStatusBar("LSP_progressbar");
+	fLSPStatusView = new LSPStatusView();
 	fLastFindStatus = new BStringView("find_status", "");
-
-	fLSPStatusBar->Hide();
 
 	// TODO: Maybe this is wrong but it works
 	SetExplicitMaxSize(BSize(B_SIZE_UNSET, height));
 	SetExplicitMinSize(BSize(B_SIZE_UNSET, height));
 
 	BLayoutBuilder::Group<>(this, B_HORIZONTAL)
-		.AddGroup(B_HORIZONTAL, B_USE_SMALL_SPACING, 0.4f)
-			.SetInsets(2, 0)
-			.Add(fLSPStringView)
-			.Add(fLSPStatusBar)
-		.End()
+		.Add(fLSPStatusView)
 		.AddGlue(0.1f)
 		.Add(fLastFindStatus, 0.2f)
 		.AddGlue(0.1f)
 		.Add(fBuildStatusView)
 		.End()
 		;
-
-	fLSPStringView->SetExplicitMinSize(BSize(100, B_SIZE_UNSET));
-	fLSPStringView->SetExplicitAlignment(BAlignment(B_ALIGN_LEFT, B_ALIGN_VERTICAL_UNSET));
-
-	fLSPStatusBar->SetExplicitMaxSize(BSize(150, B_SIZE_UNSET));
-	fLSPStatusBar->SetExplicitAlignment(BAlignment(B_ALIGN_LEFT, B_ALIGN_VERTICAL_CENTER));
 }
 
 
@@ -79,7 +66,6 @@ GlobalStatusView::AttachedToWindow()
 {
 	BView::AttachedToWindow();
 	if (Window()->LockLooper()) {
-		Window()->StartWatching(this, MSG_NOTIFY_LSP_INDEXING);
 		Window()->StartWatching(this, MSG_NOTIFY_FIND_STATUS);
 		Window()->UnlockLooper();
 	}
@@ -92,7 +78,6 @@ GlobalStatusView::DetachedFromWindow()
 {
 	BView::DetachedFromWindow();
 	if (Window()->LockLooper()) {
-		Window()->StopWatching(this, MSG_NOTIFY_LSP_INDEXING);
 		Window()->StopWatching(this, MSG_NOTIFY_FIND_STATUS);
 		Window()->UnlockLooper();
 	}
@@ -123,37 +108,6 @@ GlobalStatusView::MessageReceived(BMessage *message)
 			int32 what;
 			message->FindInt32(B_OBSERVE_WHAT_CHANGE, &what);
 			switch (what) {				
-				case MSG_NOTIFY_LSP_INDEXING:
-				{
-					BString kind = message->GetString("kind", "end");
-					if (kind.Compare("end") == 0) {
-						fLSPStringView->SetText("");
-						if (!fLSPStatusBar->IsHidden())
-							fLSPStatusBar->Hide();
-						return;
-					}
-
-					// TODO: translate ?
-					BString text;
-					const char* str = nullptr;
-					if (message->FindString("title", &str) == B_OK) {
-						text << str << " ";
-					}
-					if (message->FindString("message", &str) == B_OK) {
-						text << str << " ";
-					}
-					int32 percentage = 0;
-					if (message->FindInt32("percentage", &percentage) == B_OK) {
-						text << "(" << percentage << "%)";
-						if (fLSPStatusBar->IsHidden())
-							fLSPStatusBar->Show();
-
-						fLSPStatusBar->Update(percentage - fLSPStatusBar->CurrentValue());
-					}
-
-					fLSPStringView->SetText(text.String());
-					break;
-				}
 				case MSG_NOTIFY_FIND_STATUS:
 				{
 					DeleteMessageRunner(&fRunnerFind);

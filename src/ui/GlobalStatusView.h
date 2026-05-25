@@ -21,8 +21,7 @@ public:
 
 private:
 	BView*			fBuildStatusView;
-	BStringView*	fLSPStringView;
-	BStatusBar*		fLSPStatusBar;
+	BView*			fLSPStatusView;
 	BStringView*	fLastFindStatus;
 	bigtime_t		fLastStatusChange;
 	BMessageRunner* fRunnerFind;
