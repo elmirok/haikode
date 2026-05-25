@@ -7,7 +7,7 @@
 
 #include <Catalog.h>
 #include <ControlLook.h>
-#include <GroupLayoutBuilder.h>
+#include <GridLayoutBuilder.h>
 #include <LayoutBuilder.h>
 #include <LayoutUtils.h>
 #include <Message.h>
@@ -51,16 +51,17 @@ GlobalStatusView::GlobalStatusView()
 	fBuildProfileView = new BuildProfileView();
 
 	// TODO: Maybe this is wrong but it works
-	SetExplicitMaxSize(BSize(B_SIZE_UNSET, height));
+	SetExplicitMaxSize(BSize(B_SIZE_UNLIMITED, height));
 	SetExplicitMinSize(BSize(B_SIZE_UNSET, height));
 
-	BLayoutBuilder::Group<>(this, B_HORIZONTAL)
-		.Add(fLSPStatusView)
-		.AddGlue(0.1f)
-		.Add(fLastFindStatus, 0.2f)
-		.AddGlue(0.1f)
-		.Add(fBuildProfileView)
-		.Add(fBuildStatusView)
+	BLayoutBuilder::Grid<>(this, B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING)
+		.Add(fLSPStatusView, 0, 0)
+		.AddGlue(1, 0)
+		.Add(fLastFindStatus, 2, 0)
+		.AddGlue(3, 0)
+		.Add(fBuildProfileView, 4, 0)
+		.AddGlue(5, 0)
+		.Add(fBuildStatusView, 6, 0)
 		.End()
 		;
 }
