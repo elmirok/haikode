@@ -47,6 +47,7 @@ BuildProfileView::AttachedToWindow()
 	BView::AttachedToWindow();
 
 	if (Window()->LockLooper()) {
+		Window()->StartWatching(this, MSG_NOTIFY_PROJECT_SET_ACTIVE);
 		Window()->UnlockLooper();
 	}
 }
@@ -57,6 +58,7 @@ void
 BuildProfileView::DetachedFromWindow()
 {
 	if (Window()->LockLooper()) {
+		Window()->StopWatching(this, MSG_NOTIFY_PROJECT_SET_ACTIVE);
 		Window()->UnlockLooper();
 	}
 	BView::DetachedFromWindow();
@@ -68,6 +70,21 @@ void
 BuildProfileView::MessageReceived(BMessage* message)
 {
 	switch (message->what) {
+		case B_OBSERVER_NOTICE_CHANGE:
+		{
+			int32 what;
+			message->FindInt32(B_OBSERVE_WHAT_CHANGE, &what);
+			switch (what) {				
+				case MSG_NOTIFY_PROJECT_SET_ACTIVE:
+				{
+					fProjectString->SetText(message->GetString("active_project_name", ""));
+					break;
+				}
+				default:
+					BView::MessageReceived(message);
+					break;
+			}
+		}
 		default:
 			BView::MessageReceived(message);
 			break;

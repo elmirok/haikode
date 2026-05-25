@@ -16,6 +16,7 @@
 #include <StringView.h>
 #include <Window.h>
 
+#include "BuildProfileView.h"
 #include "BuildStatusView.h"
 #include "LSPStatusView.h"
 #include "NoticeMessages.h"
@@ -34,6 +35,8 @@ GlobalStatusView::GlobalStatusView()
 	BView("global_status_view", B_WILL_DRAW),
 	fBuildStatusView(nullptr),
 	fLSPStatusView(nullptr),
+	fLastFindStatus(nullptr),
+	fBuildProfileView(nullptr),
 	fLastStatusChange(system_time()),
 	fRunnerFind(nullptr)
 {
@@ -45,6 +48,7 @@ GlobalStatusView::GlobalStatusView()
 	fBuildStatusView = new BuildStatusView();
 	fLSPStatusView = new LSPStatusView();
 	fLastFindStatus = new BStringView("find_status", "");
+	fBuildProfileView = new BuildProfileView();
 
 	// TODO: Maybe this is wrong but it works
 	SetExplicitMaxSize(BSize(B_SIZE_UNSET, height));
@@ -55,6 +59,7 @@ GlobalStatusView::GlobalStatusView()
 		.AddGlue(0.1f)
 		.Add(fLastFindStatus, 0.2f)
 		.AddGlue(0.1f)
+		.Add(fBuildProfileView)
 		.Add(fBuildStatusView)
 		.End()
 		;

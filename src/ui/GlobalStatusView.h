@@ -23,6 +23,7 @@ private:
 	BView*			fBuildStatusView;
 	BView*			fLSPStatusView;
 	BStringView*	fLastFindStatus;
+	BView*			fBuildProfileView;
 	bigtime_t		fLastStatusChange;
 	BMessageRunner* fRunnerFind;
 };
