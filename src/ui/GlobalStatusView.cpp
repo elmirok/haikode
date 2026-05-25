@@ -18,6 +18,7 @@
 
 #include "BuildStatusView.h"
 #include "NoticeMessages.h"
+#include "Utils.h"
 
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "GlobalStatusView"
@@ -115,7 +116,7 @@ GlobalStatusView::MessageReceived(BMessage *message)
 {
 	switch (message->what) {
 		case kHideFindText:
-			_ResetRunner(&fRunnerFind);
+			DeleteMessageRunner(&fRunnerFind);
 			fLastFindStatus->SetText("");
 			break;
 		case B_OBSERVER_NOTICE_CHANGE:
@@ -156,9 +157,9 @@ GlobalStatusView::MessageReceived(BMessage *message)
 				}
 				case MSG_NOTIFY_FIND_STATUS:
 				{
-					_ResetRunner(&fRunnerFind);
+					DeleteMessageRunner(&fRunnerFind);
 					fLastFindStatus->SetText(message->GetString("status", ""));
-					_StartRunner(&fRunnerFind, kHideFindText);
+					StartMessageRunner(&fRunnerFind, this, kHideFindText, kTextAutohideTimeout);
 					break;
 				}
 				default:
@@ -172,23 +173,4 @@ GlobalStatusView::MessageReceived(BMessage *message)
 			BView::MessageReceived(message);
 			break;
 	}
-}
-
-
-void
-GlobalStatusView::_ResetRunner(BMessageRunner** runner)
-{
-	if (*runner != nullptr) {
-		delete *runner;
-		*runner = nullptr;
-	}
-}
-
-
-void
-GlobalStatusView::_StartRunner(BMessageRunner** runner, uint32 what)
-{
-	BMessenger messenger(this);
-	*runner = new BMessageRunner(messenger, new BMessage(what),
-				kTextAutohideTimeout, 1);
 }

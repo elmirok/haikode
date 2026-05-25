@@ -14,6 +14,7 @@
 #include <Window.h>
 
 #include "NoticeMessages.h"
+#include "Utils.h"
 
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "BuildStatusView"
@@ -78,7 +79,7 @@ BuildStatusView::MessageReceived(BMessage* message)
 {
 	switch (message->what) {
 		case kHideBuildingText:
-			_ResetRunner(&fRunnerBuild);
+			DeleteMessageRunner(&fRunnerBuild);
 			fBuildStringView->SetText("");
 			fBuildBarberPole->Hide();
 			break;
@@ -89,7 +90,7 @@ BuildStatusView::MessageReceived(BMessage* message)
 			switch (what) {				
 				case MSG_NOTIFY_BUILDING_PHASE:
 				{
-					_ResetRunner(&fRunnerBuild);
+					DeleteMessageRunner(&fRunnerBuild);
 
 					if (fBuildBarberPole->IsHidden())
 						fBuildBarberPole->Show();
@@ -120,7 +121,7 @@ BuildStatusView::MessageReceived(BMessage* message)
 								text = B_TRANSLATE("Failed cleaning project '\"%project%\"'");
 						}
 						fBuildBarberPole->Stop();
-						_StartRunner(&fRunnerBuild, kHideBuildingText);
+						StartMessageRunner(&fRunnerBuild, this, kHideBuildingText, kTextAutohideTimeout);
 					}
 					text.ReplaceFirst("\"%project%\"", projectName);
 					fBuildStringView->SetText(text.String());
@@ -141,22 +142,3 @@ BuildStatusView::MessageReceived(BMessage* message)
 	}
 }
 
-
-// TODO: Make these static and put into Utils ?
-void
-BuildStatusView::_ResetRunner(BMessageRunner** runner)
-{
-	if (*runner != nullptr) {
-		delete *runner;
-		*runner = nullptr;
-	}
-}
-
-
-void
-BuildStatusView::_StartRunner(BMessageRunner** runner, uint32 what)
-{
-	BMessenger messenger(this);
-	*runner = new BMessageRunner(messenger, new BMessage(what),
-				kTextAutohideTimeout, 1);
-}

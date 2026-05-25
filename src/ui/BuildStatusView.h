@@ -17,8 +17,6 @@ public:
 	void DetachedFromWindow() override;
 	void MessageReceived(BMessage* message) override;
 private:
-	void	_ResetRunner(BMessageRunner**  runner);
-	void	_StartRunner(BMessageRunner** runner, uint32 what);
 
 	BarberPole*		fBuildBarberPole;
 	BStringView*	fBuildStringView;

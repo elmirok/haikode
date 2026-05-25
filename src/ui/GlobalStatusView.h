@@ -20,9 +20,6 @@ public:
 	virtual void MessageReceived(BMessage *message);
 
 private:
-			void	_ResetRunner(BMessageRunner**  runner);
-			void	_StartRunner(BMessageRunner** runner, uint32 what);
-
 	BView*			fBuildStatusView;
 	BStringView*	fLSPStringView;
 	BStatusBar*		fLSPStatusBar;
