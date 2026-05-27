@@ -5,6 +5,9 @@
 
 #include "PipeStream.h"
 
+//Break the glass in case of unknown LSP problems!
+
+//#define DEBUG_LSP_PIPE_STREAM 1
 
 PipeStream::PipeStream(PipeImage& pipe)
 	:
@@ -23,6 +26,9 @@ PipeStream::read(char* buffer, std::size_t size)
 			throw lsp::io::Error("PipeStream: read failed (EOF or pipe error)");
 		totalRead += static_cast<std::size_t>(n);
 	}
+#ifdef DEBUG_LSP_PIPE_STREAM
+	printf("READ: %.*s\n", (int32)totalRead, buffer);
+#endif
 }
 
 
@@ -36,4 +42,7 @@ PipeStream::write(const char* buffer, std::size_t size)
 			throw lsp::io::Error("PipeStream: write failed (pipe error)");
 		totalWritten += static_cast<std::size_t>(n);
 	}
+#ifdef DEBUG_LSP_PIPE_STREAM
+	printf("WRITE: %.*s\n", (int32)totalWritten, buffer);
+#endif
 }
