@@ -1,5 +1,5 @@
 /*
- * Copyright 2026, The Genio team 
+ * Copyright 2026, The Genio team
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -33,7 +33,7 @@ BuildStatusView::BuildStatusView()
 	fBuildStringView = new BStringView("build_text", "");
 
 	BLayoutBuilder::Group<>(this, B_HORIZONTAL)
-		.SetInsets(2, 4)
+		.SetInsets(2, 2)
 		.Add(fBuildStringView)
 		.Add(fBuildBarberPole)
 		.End();
@@ -87,7 +87,7 @@ BuildStatusView::MessageReceived(BMessage* message)
 		{
 			int32 what;
 			message->FindInt32(B_OBSERVE_WHAT_CHANGE, &what);
-			switch (what) {				
+			switch (what) {
 				case MSG_NOTIFY_BUILDING_PHASE:
 				{
 					DeleteMessageRunner(&fRunnerBuild);
@@ -142,3 +142,10 @@ BuildStatusView::MessageReceived(BMessage* message)
 	}
 }
 
+
+/* virtual */
+BSize
+BuildStatusView::MinSize()
+{
+	return BSize(300, B_SIZE_UNSET);
+}
