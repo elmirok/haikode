@@ -93,6 +93,7 @@ enum {
 	MSG_RUN_TARGET				= 'ruta',
 	MSG_BUILD_MODE_RELEASE		= 'bmre',
 	MSG_BUILD_MODE_DEBUG		= 'bmde',
+	MSG_BUILD_MODE_TOGGLE		= 'bmdt',
 	MSG_DEBUG_PROJECT			= 'depr',
 	MSG_MAKE_CATKEYS			= 'maca',
 	MSG_MAKE_BINDCATALOGS		= 'mabi',

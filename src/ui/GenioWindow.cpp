@@ -539,6 +539,17 @@ GenioWindow::MessageReceived(BMessage* message)
 			}
 			break;
 		}
+		case MSG_BUILD_MODE_TOGGLE:
+		{
+			// TODO: remove this if/when we introduce custom
+			// build profiles
+			ProjectFolder* project = GetActiveProject();
+			if (project->GetBuildMode() == BuildMode::DebugMode)
+				GetActiveProject()->SetBuildMode(BuildMode::ReleaseMode);
+			else
+				GetActiveProject()->SetBuildMode(BuildMode::DebugMode);
+			break;
+		}
 		case MSG_BUILD_MODE_DEBUG:
 		{
 			GetActiveProject()->SetBuildMode(BuildMode::DebugMode);
