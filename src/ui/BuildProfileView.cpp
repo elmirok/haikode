@@ -6,6 +6,7 @@
 
 #include "BuildProfileView.h"
 
+#include <Alignment.h>
 #include <Catalog.h>
 #include <ControlLook.h>
 #include <LayoutBuilder.h>
@@ -65,9 +66,7 @@ BuildProfileView::MessageReceived(BMessage* message)
 			switch (what) {
 				case MSG_NOTIFY_PROJECT_SET_ACTIVE:
 				{
-					fProject = B_TRANSLATE("Project: \%project\%");
-					BString projectName = message->GetString("active_project_name");
-					fProject.ReplaceFirst("\%project\%", projectName);
+					fProject = message->GetString("active_project_name");
 					BString label;
 					label.Append(fProject.String());
 					label.Append(" ");
@@ -103,17 +102,16 @@ BuildProfileView::MessageReceived(BMessage* message)
 void
 BuildProfileView::Draw(BRect updateRect)
 {
-	/*BRect rect = Bounds();
-	if (fInside)
-		be_control_look->DrawButtonFrame(this, rect, updateRect, LowColor(), LowColor(), Flags());
-	SetHighColor(ui_color(B_DOCUMENT_TEXT_COLOR));
+	BRect rect = Bounds();
+	be_control_look->DrawButtonFrame(this, rect, updateRect, LowColor(), LowColor(), Flags());
+	SetHighColor(ui_color(B_CONTROL_TEXT_COLOR));
 
 	font_height fontHeight;
 	GetFontHeight(&fontHeight);
 	BPoint penLocation = PenLocation();
 	penLocation.y += fontHeight.ascent + fontHeight.descent + fontHeight.leading;
-	be_control_look->DrawLabel(this, Label(), Bounds(), updateRect, HighColor(), Flags());*/
-	BButton::Draw(updateRect);
+	be_control_look->DrawLabel(this, Label(), Bounds(), updateRect, HighColor(), Flags(),
+		BAlignment(B_ALIGN_HORIZONTAL_CENTER, B_ALIGN_VERTICAL_CENTER));
 }
 
 
