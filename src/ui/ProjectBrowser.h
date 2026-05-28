@@ -6,7 +6,11 @@
 
 #include <map>
 
+#include <CardLayout.h>
+#include <ListView.h>
 #include <Locker.h>
+#include <ScrollView.h>
+#include <TextControl.h>
 #include <View.h>
 
 #include "ProjectFolder.h"
@@ -27,7 +31,9 @@ enum {
 
 	MSG_BROWSER_SELECT_ITEM				= 'sele',
 	MSG_PROJECT_ADD_ITEMS_BATCH			= 'paib',
-	MSG_PROJECT_BATCH_SYNC				= 'pbsy'
+	MSG_PROJECT_BATCH_SYNC				= 'pbsy',
+
+	MSG_FILTER_TEXT_CHANGED				= 'ftch'
 };
 
 // Batch size for adding items - tuned for performance vs responsiveness
@@ -102,6 +108,11 @@ private:
 	void			_FlushItemBatchLocked(ProjectFolder* project, bool synchronous);
 	void			_ProcessItemBatch(BMessage* message);
 
+	void			_ApplyFilter();
+	void			_ClearFilter();
+	void			_PopulateFilterResults();
+	bool			_IsFilterActive() const;
+
 private:
 	ProjectOutlineListView*	fOutlineListView;
 	GenioWatchingFilter*	fGenioWatchingFilter;
@@ -113,4 +124,10 @@ private:
 	// Each project has its own batch of commands to prevent mixing
 	BLocker					fBatchLock;
 	std::map<ProjectFolder*, std::vector<AddItemCommand>>	fItemBatches;
+
+	BTextControl*			fFilterTextControl;
+	BListView*				fFilterListView;
+	BScrollView*			fFilterScrollView;
+	BCardLayout*			fCardLayout;
+	BString					fFilterString;
 };

@@ -200,10 +200,27 @@ ProjectBrowser::ProjectBrowser()
 	BScrollView* scrollView = new BScrollView("scrollview", fOutlineListView,
 		B_FRAME_EVENTS | B_WILL_DRAW, true, true, B_FANCY_BORDER);
 
-	BLayoutBuilder::Cards<>(this)
-		.Add(scrollView)
-		.Add(projectDropView)
-		.SetVisibleItem(int32(0));
+	fFilterTextControl = new BTextControl("FilterField", "", "",
+		new BMessage(MSG_FILTER_TEXT_CHANGED));
+	fFilterTextControl->SetModificationMessage(new BMessage(MSG_FILTER_TEXT_CHANGED));
+
+	fFilterListView = new BListView("FilterResults", B_SINGLE_SELECTION_LIST);
+	fFilterListView->SetInvocationMessage(new BMessage(MSG_PROJECT_MENU_OPEN_FILE));
+	fFilterScrollView = new BScrollView("filterscroll", fFilterListView,
+		B_FRAME_EVENTS | B_WILL_DRAW, false, true, B_FANCY_BORDER);
+
+	BView* cardView = new BView("cards", 0);
+	fCardLayout = new BCardLayout();
+	cardView->SetLayout(fCardLayout);
+	fCardLayout->AddView(scrollView);
+	fCardLayout->AddView(fFilterScrollView);
+	fCardLayout->AddView(projectDropView);
+	fCardLayout->SetVisibleItem(int32(0));
+
+	BLayoutBuilder::Group<>(this, B_VERTICAL, 0)
+		.Add(fFilterTextControl)
+		.Add(cardView)
+	.End();
 
 	const char* watch_nodes_filters = gCFG["watch_nodes_filters"];
 	fGenioWatchingFilter = new GenioWatchingFilter(watch_nodes_filters);
@@ -633,6 +650,25 @@ ProjectBrowser::MessageReceived(BMessage* message)
 			}
 			break;
 		}
+		case MSG_FILTER_TEXT_CHANGED:
+		{
+			_ApplyFilter();
+			break;
+		}
+		case MSG_PROJECT_MENU_OPEN_FILE:
+		{
+			int32 index = fFilterListView->CurrentSelection();
+			if (index >= 0) {
+				FilterListItem* filterItem = dynamic_cast<FilterListItem*>(
+					fFilterListView->ItemAt(index));
+				if (filterItem != nullptr) {
+					BMessage openMsg(MSG_PROJECT_MENU_OPEN_FILE);
+					openMsg.AddRef("refs", &filterItem->Ref());
+					Window()->PostMessage(&openMsg);
+				}
+			}
+			break;
+		}
 		default:
 			BView::MessageReceived(message);
 			break;
@@ -768,6 +804,9 @@ ProjectBrowser::AttachedToWindow()
 {
 	BView::AttachedToWindow();
 
+	fFilterTextControl->SetTarget(this);
+	fFilterListView->SetTarget(this);
+
 	if (Window()->LockLooper()) {
 		Window()->StartWatching(this, MSG_NOTIFY_EDITOR_FILE_OPENED);
 		Window()->StartWatching(this, MSG_NOTIFY_EDITOR_FILE_CLOSED);
@@ -781,7 +820,7 @@ ProjectBrowser::AttachedToWindow()
 	}
 
 	if (fOutlineListView->CountItems() == 0)
-		static_cast<BCardLayout*>(GetLayout())->SetVisibleItem(int32(1));
+		fCardLayout->SetVisibleItem(int32(2));
 	else {
 		// AttachedToWindow might have been called AFTER the MSG_NOTIFY_EDITOR_FILE_SELECTED
 		// message has fired, so we did not receive it
@@ -839,7 +878,7 @@ ProjectBrowser::ProjectFolderPopulate(ProjectFolder* project)
 
 	if (LockLooper()) {
 		if (fOutlineListView->CountItems() == 0)
-			static_cast<BCardLayout*>(GetLayout())->SetVisibleItem(int32(0));
+			fCardLayout->SetVisibleItem(int32(0));
 		UnlockLooper();
 	}
 
@@ -931,7 +970,7 @@ ProjectBrowser::ProjectFolderDepopulate(ProjectFolder* project)
 	}
 
 	if (fOutlineListView->CountItems() == 0)
-		static_cast<BCardLayout*>(GetLayout())->SetVisibleItem(int32(1));
+		fCardLayout->SetVisibleItem(int32(2));
 
 	// Clean up any batch associated with this project
 	BAutolock lock(fBatchLock);
@@ -1105,6 +1144,80 @@ ProjectBrowser::_ProcessItemBatch(BMessage* message)
 
 	// Note: We deliberately don't call Invalidate() here
 	// The list view will invalidate as items are added
+}
+
+
+void
+ProjectBrowser::_ApplyFilter()
+{
+	fFilterString = fFilterTextControl->Text();
+
+	if (fFilterString.IsEmpty()) {
+		_ClearFilter();
+		return;
+	}
+
+	_PopulateFilterResults();
+	fCardLayout->SetVisibleItem(int32(1));
+}
+
+
+void
+ProjectBrowser::_PopulateFilterResults()
+{
+	fFilterListView->MakeEmpty();
+
+	BString filterLower(fFilterString);
+	filterLower.ToLower();
+
+	const int32 count = fOutlineListView->FullListCountItems();
+	for (int32 i = 0; i < count; i++) {
+		ProjectItem* item = dynamic_cast<ProjectItem*>(
+			fOutlineListView->FullListItemAt(i));
+		if (item == nullptr)
+			continue;
+
+		SourceItem* source = item->GetSourceItem();
+		if (source == nullptr || source->Type() != FileItem)
+			continue;
+
+		BString name(source->EntryRef()->name);
+		BString nameLower(name);
+		nameLower.ToLower();
+
+		if (nameLower.FindFirst(filterLower) < 0)
+			continue;
+
+		ProjectFolder* project = source->GetProjectFolder();
+		BPath itemPath(source->EntryRef());
+		BString relativePath(itemPath.Path());
+		relativePath.RemoveFirst(project->Path());
+		if (relativePath.StartsWith("/"))
+			relativePath.RemoveFirst("/");
+
+		FilterListItem* filterItem = new FilterListItem(*source->EntryRef(), relativePath);
+		fFilterListView->AddItem(filterItem);
+	}
+}
+
+
+bool
+ProjectBrowser::_IsFilterActive() const
+{
+	return !fFilterString.IsEmpty();
+}
+
+
+void
+ProjectBrowser::_ClearFilter()
+{
+	fFilterString = "";
+	fFilterListView->MakeEmpty();
+
+	if (fOutlineListView->CountItems() > 0)
+		fCardLayout->SetVisibleItem(int32(0));
+	else
+		fCardLayout->SetVisibleItem(int32(2));
 }
 
 
