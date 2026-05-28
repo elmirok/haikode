@@ -368,9 +368,11 @@ EditorTabView::GetToolTipText(GTabEditor* tab)
 		label << editor->FilePath();
 		ProjectFolder* project = editor->GetProjectFolder();
 		if (project != nullptr) {
-			if (label.StartsWith(project->Path()))
+			if (label.StartsWith(project->Path())) {
 				label.Remove(0, project->Path().Length() + 1);
 					// Length + 1 to also remove the path separator
+			}
+			label << " (" << editor->FileType().c_str() << ")";
 			label << "\n" << B_TRANSLATE("Project") << ": " << project->Name();
 			if (project->Active())
 				label << " (" << B_TRANSLATE("Active") << ")";
