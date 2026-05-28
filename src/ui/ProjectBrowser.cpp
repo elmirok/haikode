@@ -5,6 +5,7 @@
 
 #include "ProjectBrowser.h"
 
+#include <ControlLook.h>
 #include <algorithm>
 
 #include <Catalog.h>
