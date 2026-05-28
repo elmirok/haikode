@@ -41,6 +41,7 @@
 #include "Utils.h"
 #include "ProjectDropView.h"
 #include "FilterListItem.h"
+#include "PathFilters.h"
 
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "ProjectsFolderBrowser"
@@ -1050,6 +1051,9 @@ ProjectBrowser::_PopulateFilterResults()
 	BString filterLower(fFilterString);
 	filterLower.ToLower();
 
+	const char* locked = "/.,/generated,/objects.";
+	PathFilters pathFilter(locked);
+
 	const int32 count = fOutlineListView->FullListCountItems();
 	for (int32 i = 0; i < count; i++) {
 		ProjectItem* item = dynamic_cast<ProjectItem*>(
@@ -1074,6 +1078,14 @@ ProjectBrowser::_PopulateFilterResults()
 		relativePath.RemoveFirst(project->Path());
 		if (relativePath.StartsWith("/"))
 			relativePath.RemoveFirst("/");
+
+		// should filter also by "find_exclude_directory"
+		// and by "watch_nodes_filters" ?
+
+		//Simple watch_nodes_filtering:
+		BString addSlash = relativePath.Prepend("/");
+		if (pathFilter.IsFiltered(addSlash) == true)
+			continue;
 
 		FilterListItem* filterItem = new FilterListItem(*source->EntryRef(), relativePath);
 		fFilterListView->AddItem(filterItem);
