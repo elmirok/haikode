@@ -67,11 +67,7 @@ BuildProfileView::MessageReceived(BMessage* message)
 				case MSG_NOTIFY_PROJECT_SET_ACTIVE:
 				{
 					fProject = message->GetString("active_project_name");
-					BString label;
-					label.Append(fProject.String());
-					label.Append(" ");
-					label.Append(fBuildProfile.String());
-					SetLabel(label.String());
+					_UpdateLabel();
 					break;
 				}
 				case MSG_NOTIFY_PROJECT_BUILD_PROFILE_CHANGED:
@@ -79,11 +75,7 @@ BuildProfileView::MessageReceived(BMessage* message)
 					fBuildProfile = message->GetString("build_profile_name");
 					fBuildProfile.Prepend("(");
 					fBuildProfile.Append(")");
-					BString label;
-					label.Append(fProject.String());
-					label.Append(" ");
-					label.Append(fBuildProfile.String());
-					SetLabel(label.String());
+					_UpdateLabel();
 					break;
 				}
 				default:
@@ -126,4 +118,17 @@ BuildProfileView::MouseMoved(BPoint where, uint32 code,
 		fInside = false;
 	BButton::MouseMoved(where, code, dragMessage);
 	Invalidate();
+}
+
+
+void
+BuildProfileView::_UpdateLabel()
+{
+	BString label;
+	if (!fProject.IsEmpty()) {
+		label.Append(fProject.String());
+		label.Append(" ");
+		label.Append(fBuildProfile.String());
+	}
+	SetLabel(label.String());
 }

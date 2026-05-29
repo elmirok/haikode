@@ -22,6 +22,8 @@ public:
 					const BMessage* dragMessage) override;
 
 private:
+	void _UpdateLabel();
+
 	BString fProject;
 	BString fBuildProfile;
 	bool fInside;
