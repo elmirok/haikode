@@ -16,6 +16,7 @@
 #include "ProjectFolder.h"
 #include "ProjectItem.h"
 #include "PathFilters.h"
+#include "ToolBar.h"
 
 enum {
 	MSG_PROJECT_MENU_CLOSE				= 'pmcl',
@@ -33,7 +34,8 @@ enum {
 	MSG_PROJECT_ADD_ITEMS_BATCH			= 'paib',
 	MSG_PROJECT_BATCH_SYNC				= 'pbsy',
 
-	MSG_FILTER_TEXT_CHANGED				= 'ftch'
+	MSG_FILTER_TEXT_CHANGED				= 'ftch',
+	MSG_FILTER_TEXT_CLEAR				= 'ftcl'
 };
 
 // Batch size for adding items - tuned for performance vs responsiveness
@@ -125,6 +127,7 @@ private:
 	BLocker					fBatchLock;
 	std::map<ProjectFolder*, std::vector<AddItemCommand>>	fItemBatches;
 
+	ToolBar*				fToolBar;
 	BTextControl*			fFilterTextControl;
 	BListView*				fFilterListView;
 	BScrollView*			fFilterScrollView;

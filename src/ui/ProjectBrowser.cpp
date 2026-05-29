@@ -36,8 +36,8 @@
 #include "ProjectItem.h"
 #include "SpinningAnimation.h"
 #include "SwitchBranchMenu.h"
-#include "TemplateManager.h"
 #include "TemplatesMenu.h"
+#include "ToolBar.h"
 #include "Utils.h"
 #include "ProjectDropView.h"
 #include "FilterListItem.h"
@@ -45,6 +45,9 @@
 
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "ProjectsFolderBrowser"
+
+//TODO: move to a config?
+constexpr const char* gFilters = "/.,/generated,/objects.";
 
 
 class ProjectOutlineListView : public GOutlineListView {
@@ -74,7 +77,7 @@ ProjectBrowser::ProjectBrowser()
 	:
 	BView("Project browser", B_WILL_DRAW|B_FRAME_EVENTS),
 	fBatchLock("ProjectBrowser batch lock"),
-	fPathFilter("/.,/generated,/objects.")
+	fPathFilter(gFilters)
 {
 	fOutlineListView = new ProjectOutlineListView();
 	ProjectDropView* projectDropView = new ProjectDropView();
@@ -82,9 +85,16 @@ ProjectBrowser::ProjectBrowser()
 	BScrollView* scrollView = new BScrollView("scrollview", fOutlineListView,
 		B_FRAME_EVENTS | B_WILL_DRAW, true, true, B_FANCY_BORDER);
 
+
 	fFilterTextControl = new BTextControl("FilterField", "", "",
 		new BMessage(MSG_FILTER_TEXT_CHANGED));
 	fFilterTextControl->SetModificationMessage(new BMessage(MSG_FILTER_TEXT_CHANGED));
+
+	fToolBar = new ToolBar();
+	fToolBar->ChangeIconSize(16);
+	fToolBar->AddChild(fFilterTextControl);
+	fToolBar->AddAction(MSG_FILTER_TEXT_CLEAR, B_TRANSLATE("Clear filter"), "kIconClose", true);
+	fToolBar->SetActionEnabled(MSG_FILTER_TEXT_CLEAR, false);
 
 	fFilterListView = new BListView("FilterResults", B_SINGLE_SELECTION_LIST);
 	fFilterListView->SetInvocationMessage(new BMessage(MSG_PROJECT_MENU_OPEN_FILE));
@@ -100,7 +110,7 @@ ProjectBrowser::ProjectBrowser()
 	fCardLayout->SetVisibleItem(int32(0));
 
 	BLayoutBuilder::Group<>(this, B_VERTICAL, 0)
-		.Add(fFilterTextControl)
+		.Add(fToolBar)
 		.Add(cardView)
 	.End();
 
@@ -537,6 +547,12 @@ ProjectBrowser::MessageReceived(BMessage* message)
 			_ApplyFilter();
 			break;
 		}
+		case MSG_FILTER_TEXT_CLEAR:
+		{
+			fFilterString = "";
+			fFilterTextControl->SetText(fFilterString.String());
+			break;
+		}
 		case MSG_PROJECT_MENU_OPEN_FILE:
 		{
 			int32 index = fFilterListView->CurrentSelection();
@@ -688,6 +704,7 @@ ProjectBrowser::AttachedToWindow()
 
 	fFilterTextControl->SetTarget(this);
 	fFilterListView->SetTarget(this);
+	fToolBar->SetTarget(this);
 
 	if (Window()->LockLooper()) {
 		Window()->StartWatching(this, MSG_NOTIFY_EDITOR_FILE_OPENED);
@@ -1036,9 +1053,11 @@ ProjectBrowser::_ApplyFilter()
 
 	if (fFilterString.IsEmpty()) {
 		_ClearFilter();
+		fToolBar->SetActionEnabled(MSG_FILTER_TEXT_CLEAR, false);
 		return;
 	}
 
+	fToolBar->SetActionEnabled(MSG_FILTER_TEXT_CLEAR, true);
 	_PopulateFilterResults();
 	fCardLayout->SetVisibleItem(int32(1));
 }
