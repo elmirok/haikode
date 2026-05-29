@@ -2259,18 +2259,10 @@ GenioWindow::_HandleExternalMoveModification(entry_ref* oldRef, entry_ref* newRe
 
  	int32 choice = alert->Go();
 
-	if (choice == 0)
-		return;
-	else if (choice == 1) {
+	if (choice == 1) {
 		_FileRequestClose(editor);
 	} else if (choice == 2) {
-
 		_ReloadFileInEditor(editor, newRef);
-
-		BString notification;
-		notification << "File info: " << oldPath.Path()
-			<< " moved externally to " << newPath.Path();
-		LogInfo(notification.String());
 	}
 }
 
@@ -4732,4 +4724,5 @@ GenioWindow::_ReloadFileInEditor(IEditor* editor, entry_ref* ref)
 	_PreFileLoad(editor);
 	editor->LoadFromFile();
 	_PostFileLoad(editor);
+	fTabManager->SetTabLabel(editor, ref->name);
 }
