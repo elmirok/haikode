@@ -41,7 +41,7 @@
 #include "Utils.h"
 #include "ProjectDropView.h"
 #include "FilterListItem.h"
-#include "PathFilters.h"
+
 
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "ProjectsFolderBrowser"
@@ -73,7 +73,8 @@ private:
 ProjectBrowser::ProjectBrowser()
 	:
 	BView("Project browser", B_WILL_DRAW|B_FRAME_EVENTS),
-	fBatchLock("ProjectBrowser batch lock")
+	fBatchLock("ProjectBrowser batch lock"),
+	fPathFilter("/.,/generated,/objects.")
 {
 	fOutlineListView = new ProjectOutlineListView();
 	ProjectDropView* projectDropView = new ProjectDropView();
@@ -1051,9 +1052,6 @@ ProjectBrowser::_PopulateFilterResults()
 	BString filterLower(fFilterString);
 	filterLower.ToLower();
 
-	const char* locked = "/.,/generated,/objects.";
-	PathFilters pathFilter(locked);
-
 	const int32 count = fOutlineListView->FullListCountItems();
 	for (int32 i = 0; i < count; i++) {
 		ProjectItem* item = dynamic_cast<ProjectItem*>(
@@ -1079,12 +1077,9 @@ ProjectBrowser::_PopulateFilterResults()
 		if (relativePath.StartsWith("/"))
 			relativePath.RemoveFirst("/");
 
-		// should filter also by "find_exclude_directory"
-		// and by "watch_nodes_filters" ?
-
-		//Simple watch_nodes_filtering:
+		// FIX: Readding the "/" looks stupid..
 		BString addSlash = relativePath.Prepend("/");
-		if (pathFilter.IsFiltered(addSlash) == true)
+		if (fPathFilter.IsFiltered(addSlash) == true)
 			continue;
 
 		FilterListItem* filterItem = new FilterListItem(*source->EntryRef(), relativePath);

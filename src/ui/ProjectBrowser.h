@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2025, Andrea Anzani 
+ * Copyright 2023-2025, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #pragma once
@@ -15,7 +15,7 @@
 
 #include "ProjectFolder.h"
 #include "ProjectItem.h"
-
+#include "PathFilters.h"
 
 enum {
 	MSG_PROJECT_MENU_CLOSE				= 'pmcl',
@@ -130,4 +130,5 @@ private:
 	BScrollView*			fFilterScrollView;
 	BCardLayout*			fCardLayout;
 	BString					fFilterString;
+	PathFilters 			fPathFilter;
 };
