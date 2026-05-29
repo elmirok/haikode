@@ -1079,8 +1079,14 @@ ProjectBrowser::_PopulateFilterResults()
 			continue;
 
 		SourceItem* source = item->GetSourceItem();
-		if (source == nullptr || source->Type() != FileItem)
+		if (source == nullptr || source->Type() == FolderItem)
 			continue;
+
+		if (source->Type() == ProjectFolderItem) {
+			ProjectItem* item = new ProjectItem(source);
+			fFilterListView->AddItem(item);
+			continue;
+		};
 
 		BString name(source->EntryRef()->name);
 		BString nameLower(name);
