@@ -1240,6 +1240,13 @@ GenioWindow::SetActiveProject(ProjectFolder *project)
 
 	// Update menu state
 	_UpdateProjectMenuItemsState(project != nullptr);
+
+	BMessage noticeMessage(MSG_NOTIFY_PROJECT_SET_ACTIVE);
+	if (project != nullptr) {
+		noticeMessage.AddString("active_project_name", project->Name());
+		noticeMessage.AddString("active_project_path", project->Path());
+	}
+	SendNotices(MSG_NOTIFY_PROJECT_SET_ACTIVE, &noticeMessage);
 }
 
 
@@ -3541,11 +3548,6 @@ GenioWindow::_ProjectFolderActivate(ProjectFolder *project)
 	ASSERT(project != nullptr);
 
 	SetActiveProject(project);
-
-	BMessage noticeMessage(MSG_NOTIFY_PROJECT_SET_ACTIVE);
-	noticeMessage.AddString("active_project_name", project->Name());
-	noticeMessage.AddString("active_project_path", project->Path());
-	SendNotices(MSG_NOTIFY_PROJECT_SET_ACTIVE, &noticeMessage);
 
 	// Update run command working directory tooltip too
 	BString tooltip;
