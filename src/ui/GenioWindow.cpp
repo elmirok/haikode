@@ -544,6 +544,8 @@ GenioWindow::MessageReceived(BMessage* message)
 			// TODO: remove this if/when we introduce custom
 			// build profiles
 			ProjectFolder* project = GetActiveProject();
+			if (project == nullptr || project->IsBuilding())
+				break;
 			if (project->GetBuildMode() == BuildMode::DebugMode)
 				GetActiveProject()->SetBuildMode(BuildMode::ReleaseMode);
 			else
@@ -552,13 +554,19 @@ GenioWindow::MessageReceived(BMessage* message)
 		}
 		case MSG_BUILD_MODE_DEBUG:
 		{
-			GetActiveProject()->SetBuildMode(BuildMode::DebugMode);
+			ProjectFolder* project = GetActiveProject();
+			if (project == nullptr || project->IsBuilding())
+				break;
+			project->SetBuildMode(BuildMode::DebugMode);
 			_UpdateProjectMenuItemsState(true);
 			break;
 		}
 		case MSG_BUILD_MODE_RELEASE:
 		{
-			GetActiveProject()->SetBuildMode(BuildMode::ReleaseMode);
+			ProjectFolder* project = GetActiveProject();
+			if (project == nullptr || project->IsBuilding())
+				break;
+			project->SetBuildMode(BuildMode::ReleaseMode);
 			_UpdateProjectMenuItemsState(true);
 			break;
 		}
