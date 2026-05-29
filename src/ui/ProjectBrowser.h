@@ -79,6 +79,10 @@ public:
 	void			ExpandProjectCollapseOther(const BString& projectName);
 
 	void			InitRename(ProjectItem *item);
+
+	void			ClearFilter();
+	bool			IsFilterFocused() const;
+
 private:
 
 	ProjectItem*	GetProjectItemByPath(const BString& path) const;

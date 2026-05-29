@@ -96,7 +96,8 @@ ProjectBrowser::ProjectBrowser()
 	fToolBar->AddAction(MSG_FILTER_TEXT_CLEAR, B_TRANSLATE("Clear filter"), "kIconClose", true);
 	fToolBar->SetActionEnabled(MSG_FILTER_TEXT_CLEAR, false);
 
-	fFilterListView = new BListView("FilterResults", B_SINGLE_SELECTION_LIST);
+	fFilterListView = new BListView("FilterResults", B_SINGLE_SELECTION_LIST,
+		B_WILL_DRAW | B_FRAME_EVENTS | B_NAVIGABLE);
 	fFilterListView->SetInvocationMessage(new BMessage(MSG_PROJECT_MENU_OPEN_FILE));
 	fFilterScrollView = new BScrollView("filterscroll", fFilterListView,
 		B_FRAME_EVENTS | B_WILL_DRAW, false, true, B_FANCY_BORDER);
@@ -549,8 +550,7 @@ ProjectBrowser::MessageReceived(BMessage* message)
 		}
 		case MSG_FILTER_TEXT_CLEAR:
 		{
-			fFilterString = "";
-			fFilterTextControl->SetText(fFilterString.String());
+			ClearFilter();
 			break;
 		}
 		case MSG_PROJECT_MENU_OPEN_FILE:
@@ -1151,6 +1151,23 @@ ProjectBrowser::_ClearFilter()
 	else
 		fCardLayout->SetVisibleItem(int32(2));
 }
+
+
+void
+ProjectBrowser::ClearFilter()
+{
+	fFilterString = "";
+	fFilterTextControl->SetText(fFilterString.String());
+	fOutlineListView->MakeFocus(true);
+}
+
+
+bool
+ProjectBrowser::IsFilterFocused() const
+{
+	return fFilterTextControl->TextView()->IsFocus() || fFilterListView->IsFocus();
+}
+
 
 
 void

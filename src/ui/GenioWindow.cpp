@@ -350,6 +350,8 @@ GenioWindow::MessageReceived(BMessage* message)
 				_ShowView(fRunGroup, false);
 				fRunConsoleProgramText->MakeFocus(false);
 				ActionManager::SetPressed(MSG_RUN_CONSOLE_PROGRAM_SHOW, false);
+			}  else if (fProjectsFolderBrowser->IsFilterFocused()) {
+				fProjectsFolderBrowser->ClearFilter();
 			} else {
 #if 0
 				// test code: open an "empty" editor
