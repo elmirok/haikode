@@ -1071,6 +1071,9 @@ ProjectBrowser::_PopulateFilterResults()
 	BString filterLower(fFilterString);
 	filterLower.ToLower();
 
+	ProjectTitleItem* currentProjectItem = nullptr;
+	uint32	currentCountItems = 0;
+
 	const int32 count = fOutlineListView->FullListCountItems();
 	for (int32 i = 0; i < count; i++) {
 		ProjectItem* item = dynamic_cast<ProjectItem*>(
@@ -1083,8 +1086,16 @@ ProjectBrowser::_PopulateFilterResults()
 			continue;
 
 		if (source->Type() == ProjectFolderItem) {
-			ProjectItem* item = new ProjectItem(source);
-			fFilterListView->AddItem(item);
+			if (currentProjectItem != nullptr) {
+				BString count;
+				count << " (" << currentCountItems << ")";
+				currentProjectItem->SetExtraText(count);
+				currentProjectItem = nullptr;
+				currentCountItems = 0;
+			}
+			currentProjectItem = new ProjectTitleItem(source);
+			currentProjectItem->SetExtraText(" (?)");
+			fFilterListView->AddItem(currentProjectItem);
 			continue;
 		};
 
@@ -1109,6 +1120,15 @@ ProjectBrowser::_PopulateFilterResults()
 
 		FilterListItem* filterItem = new FilterListItem(*source->EntryRef(), relativePath);
 		fFilterListView->AddItem(filterItem);
+		currentCountItems++;
+	}
+
+	if (currentProjectItem != nullptr) {
+		BString count;
+		count << " (" << currentCountItems << ")";
+		currentProjectItem->SetExtraText(count);
+		currentProjectItem = nullptr;
+		currentCountItems = 0;
 	}
 }
 
