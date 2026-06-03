@@ -63,12 +63,12 @@ LSPPipeClient::_ReaderLoop()
 		while (fRunning.load()) {
 			fHandler.processIncomingMessages();
 		}
-	} catch (const lsp::ConnectionError&) {
-		// Pipe closed — normal shutdown path
-	} catch (const lsp::io::Error&) {
-		// Stream error — pipe broken
+	} catch (const lsp::ConnectionError& e) {
+		LogError("LSPPipeClient reader ConnectionError: %s", e.what());
+	} catch (const lsp::io::Error& e) {
+		LogError("LSPPipeClient reader io::Error: %s", e.what());
 	} catch (const std::exception& e) {
-		LogTrace("LSPPipeClient reader error: %s", e.what());
+		LogError("LSPPipeClient reader exception: %s", e.what());
 	}
 	fRunning.store(false);
 }

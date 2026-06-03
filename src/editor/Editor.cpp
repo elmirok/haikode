@@ -2571,7 +2571,7 @@ void
 Editor::SetCommentBlockTokens(const std::string& startBlock, const std::string& endBlock)
 {
 	// TODO:
-	LogInfo("Not implemented!!!");
+	LogInfoF("Not implemented!!! startBlock[%s] endBlock[%s]", startBlock.c_str(), endBlock.c_str());
 }
 
 

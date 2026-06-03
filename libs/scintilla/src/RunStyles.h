@@ -1,7 +1,7 @@
 /** @file RunStyles.h
  ** Data structure used to store sparse styles.
  **/
-// Copyright 1998-2007 by Neil Hodgson 
+// Copyright 1998-2007 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 /// Styling buffer using one element for each run rather than using

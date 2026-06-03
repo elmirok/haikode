@@ -2,11 +2,12 @@
 /** @file CellBuffer.cxx
  ** Manages a buffer of cells.
  **/
-// Copyright 1998-2001 by Neil Hodgson 
+// Copyright 1998-2001 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #include <cstddef>
 #include <cstdlib>
+#include <cstdint>
 #include <cassert>
 #include <cstring>
 #include <cstdio>
@@ -20,6 +21,7 @@
 #include <optional>
 #include <algorithm>
 #include <memory>
+#include <type_traits>
 
 #include "ScintillaTypes.h"
 
@@ -172,10 +174,6 @@ class LineVector : public ILineVector {
 		return static_cast<POS>(pos);
 	}
 
-	static constexpr POS* pos_cast(const Sci::Position* pos) noexcept {
-		return (POS*)(pos);
-	}
-
 	// line_from_pos_cast(): return 32-bit or 64-bit value as Sci::Line
 	// This avoids warnings from Visual C++ Code Analysis and shortens code
 	static constexpr Sci::Line line_from_pos_cast(POS line) noexcept {
@@ -218,8 +216,8 @@ public:
 	}
 	void InsertLines(Sci::Line line, const Sci::Position *positions, size_t lines, bool lineStart) override {
 		const POS lineAsPos = pos_cast(line);
-		if constexpr (sizeof(Sci::Position) == sizeof(POS)) {
-			starts.InsertPartitions(lineAsPos, pos_cast(positions), lines);
+		if constexpr (std::is_convertible_v<Sci::Position *, POS *>) {
+			starts.InsertPartitions(lineAsPos, positions, lines);
 		} else {
 			starts.InsertPartitionsWithCast(lineAsPos, positions, lines);
 		}
@@ -441,35 +439,90 @@ const char *CellBuffer::InsertString(Sci::Position position, const char *s, Sci:
 	return data;
 }
 
-bool CellBuffer::SetStyleAt(Sci::Position position, char styleValue) noexcept {
-	if (!hasStyles) {
-		return false;
+namespace {
+
+ChangedRange CopyBytes(char *p, const char *styles, Sci::Position length, Sci::Position offset) noexcept {
+	for (Sci::Position start = 0; start < length; start++) {
+		if (p[start] != styles[start]) {
+			for (Sci::Position end = length - 1; end >= 0; end--) {
+				if (p[end] != styles[end]) {
+					memcpy(p+start, styles+start, end-start+1);
+					return { start + offset, end + offset };
+				}
+			}
+		}
 	}
-	const char curVal = style.ValueAt(position);
-	if (curVal != styleValue) {
-		style.SetValueAt(position, styleValue);
-		return true;
-	} else {
-		return false;
-	}
+	return {};
 }
 
-bool CellBuffer::SetStyleFor(Sci::Position position, Sci::Position lengthStyle, char styleValue) noexcept {
-	if (!hasStyles) {
-		return false;
-	}
-	bool changed = false;
-	PLATFORM_ASSERT(lengthStyle == 0 ||
-		(lengthStyle > 0 && lengthStyle + position <= style.Length()));
-	while (lengthStyle--) {
-		const char curVal = style.ValueAt(position);
-		if (curVal != styleValue) {
-			style.SetValueAt(position, styleValue);
-			changed = true;
+ChangedRange SetBytes(char *p, char style, Sci::Position length, Sci::Position offset) noexcept {
+	for (Sci::Position start = 0; start < length; start++) {
+		if (p[start] != style) {
+			for (Sci::Position end = length - 1; end >= 0; end--) {
+				if (p[end] != style) {
+					memset(p+start, style, end-start+1);
+					return { start + offset, end + offset };
+				}
+			}
 		}
-		position++;
 	}
-	return changed;
+	return {};
+}
+
+struct Lengths {
+	Sci::Position length1;
+	Sci::Position length2;
+};
+
+Lengths SplitUpdate(const SplitVector<char> &style, Sci::Position position, Sci::Position length) noexcept {
+	length = std::min(length, style.Length() - position);
+
+	// Divide length into two parts if it overlaps the gap
+	const Sci::Position part1Length = style.GapPosition();
+
+	// If all after gap then place in length1 to avoid second call
+	if (position >= part1Length) {
+		return { length, 0 };
+	}
+	// If all before gap then place in length1
+	const Sci::Position beforeGap = part1Length - position;
+	if (length <= beforeGap) {
+		return { length, 0 };
+	}
+	// Some before gap and some after gap so put portion in length1 and rest in length2
+	return { beforeGap, length - beforeGap };
+}
+
+}
+
+ChangedRange CellBuffer::SetStyles(Sci::Position position, const char *styles, Sci::Position length) noexcept {
+	if (!hasStyles || (position < 0) || (length <= 0)) {
+		return {};
+	}
+
+	const Lengths lengths = SplitUpdate(style, position, length);
+	ChangedRange cr = CopyBytes(&style[position], styles, lengths.length1, position);
+	if (lengths.length2) {
+		const ChangedRange cr2 = CopyBytes(&style[position + lengths.length1], styles + lengths.length1,
+			lengths.length2, position + lengths.length1);
+		cr.Merge(cr2);
+	}
+	return cr;
+}
+
+ChangedRange CellBuffer::SetStyleFor(Sci::Position position, Sci::Position length, char value) noexcept {
+	if (!hasStyles || (position < 0) || (length <= 0)) {
+		return {};
+	}
+
+	const Lengths lengths = SplitUpdate(style, position, length);
+	ChangedRange cr = SetBytes(&style[position], value, lengths.length1, position);
+	if (lengths.length2) {
+		const ChangedRange cr2 = SetBytes(&style[position + lengths.length1], value,
+			lengths.length2, position + lengths.length1);
+		cr.Merge(cr2);
+	}
+	return cr;
 }
 
 // The char* returned is to an allocation owned by the undo history
@@ -1072,6 +1125,14 @@ void CellBuffer::BeginUndoAction(bool mayCoalesce) noexcept {
 
 void CellBuffer::EndUndoAction() noexcept {
 	uh->EndUndoAction();
+}
+
+int CellBuffer::UndoSequenceDepth() const noexcept {
+	return uh->UndoSequenceDepth();
+}
+
+bool CellBuffer::AfterUndoSequenceStart() const noexcept {
+	return uh->AfterUndoSequenceStart();
 }
 
 void CellBuffer::AddUndoAction(Sci::Position token, bool mayCoalesce) {

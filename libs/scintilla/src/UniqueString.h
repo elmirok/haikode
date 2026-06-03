@@ -5,7 +5,7 @@
  ** Define UniqueStringSet which holds a set of strings, used to avoid holding many copies
  ** of font names.
  **/
-// Copyright 2017 by Neil Hodgson 
+// Copyright 2017 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef UNIQUESTRING_H

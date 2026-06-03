@@ -2,7 +2,7 @@
 /** @file Partitioning.h
  ** Data structure used to partition an interval. Used for holding line start/end positions.
  **/
-// Copyright 1998-2007 by Neil Hodgson 
+// Copyright 1998-2007 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef PARTITIONING_H
@@ -182,7 +182,7 @@ public:
 		T upper = Partitions();
 		do {
 			const T middle = (upper + lower + 1) / 2; 	// Round high
-			T posMiddle = body.ValueAt(middle);
+			T posMiddle = body[middle];
 			if (middle > stepPartition)
 				posMiddle += stepLength;
 			if (pos < posMiddle) {

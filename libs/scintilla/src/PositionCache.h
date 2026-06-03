@@ -2,7 +2,7 @@
 /** @file PositionCache.h
  ** Classes for caching layout information.
  **/
-// Copyright 1998-2009 by Neil Hodgson 
+// Copyright 1998-2009 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef POSITIONCACHE_H
@@ -76,16 +76,9 @@ public:
 	XYPOSITION wrapIndent; // In pixels
 
 	LineLayout(Sci::Line lineNumber_, int maxLineLength_);
-	// Deleted so LineLayout objects can not be copied.
-	LineLayout(const LineLayout &) = delete;
-	LineLayout(LineLayout &&) = delete;
-	void operator=(const LineLayout &) = delete;
-	void operator=(LineLayout &&) = delete;
-	virtual ~LineLayout();
 	void Resize(int maxLineLength_);
 	void ReSet(Sci::Line lineNumber_, Sci::Position maxLineLength_);
 	void EnsureBidiData();
-	void Free() noexcept;
 	void ClearPositions();
 	void Invalidate(ValidLevel validity_) noexcept;
 	Sci::Line LineNumber() const noexcept;
@@ -108,6 +101,7 @@ public:
 	Interval Span(int start, int end) const noexcept;
 	Interval SpanByte(int index) const noexcept;
 	int EndLineStyle() const noexcept;
+	[[nodiscard]] int LastStyle() const noexcept;
 	void WrapLine(const Document *pdoc, Sci::Position posLineStart, Wrap wrapState, XYPOSITION wrapWidth);
 };
 
@@ -262,6 +256,8 @@ public:
 	TextSegment Next();
 	bool More() const noexcept;
 };
+
+constexpr size_t positionCacheDefaultSize = 0x400;
 
 class IPositionCache {
 public:

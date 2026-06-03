@@ -2,7 +2,7 @@
 /** @file LineMarker.h
  ** Defines the look of a line marker in the margin .
  **/
-// Copyright 1998-2011 by Neil Hodgson 
+// Copyright 1998-2011 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef LINEMARKER_H
@@ -24,7 +24,7 @@ public:
 	Scintilla::MarkerSymbol markType = Scintilla::MarkerSymbol::Circle;
 	ColourRGBA fore = black;
 	ColourRGBA back = white;
-	ColourRGBA backSelected = ColourRGBA(0xff, 0x00, 0x00);
+	ColourRGBA backSelected = ColourRGBA(maximumByte, 0, 0);	// Red default
 	Scintilla::Layer layer = Scintilla::Layer::Base;
 	Scintilla::Alpha alpha = Scintilla::Alpha::NoAlpha;
 	XYPOSITION strokeWidth = 1.0f;

@@ -2,7 +2,7 @@
 /** @file RESearch.h
  ** Interface to the regular expression search library.
  **/
-// Written by Neil Hodgson 
+// Written by Neil Hodgson <neilh@scintilla.org>
 // Based on the work of Ozan S. Yigit.
 // This file is in the public domain.
 

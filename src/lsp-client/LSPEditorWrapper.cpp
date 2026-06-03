@@ -469,8 +469,8 @@ LSPEditorWrapper::SelectedCompletion(const char* text)
 
 	flushChanges();
 
-	if (fCurrentCompletion.items.size() > 0) {
-		for (auto& item : fCurrentCompletion.items) {
+	if (fCurrentCompletion.size() > 0) {
+		for (auto& item : fCurrentCompletion) {
 			if (item.label.compare(std::string(text)) == 0) {
 				auto* te = _GetTextEdit(item);
 				if (!te) break;
@@ -523,7 +523,7 @@ LSPEditorWrapper::SelectedCompletion(const char* text)
 		}
 	}
 	fEditor->SendMessage(SCI_AUTOCCANCEL, 0, 0);
-	fCurrentCompletion = lsp::CompletionList{};
+	fCurrentCompletion = {};
 }
 
 
@@ -536,14 +536,14 @@ LSPEditorWrapper::StartCompletion()
 	flushChanges();
 
 	// let's check if a completion is ongoing
-	if (fCurrentCompletion.items.size() > 0) {
+	if (fCurrentCompletion.size() > 0) {
 		// let's close the current Scintilla listbox
 		fEditor->SendMessage(SCI_AUTOCCANCEL, 0, 0);
 		// let's cancel any previous request running on clangd
 		// --> TODO: cancel previous clangd request!
 
 		// let's clean-up current request details:
-		this->fCurrentCompletion = lsp::CompletionList{};
+		this->fCurrentCompletion = {};
 	}
 
 	lsp::Position position;
@@ -903,14 +903,14 @@ LSPEditorWrapper::OnCompletion(lsp::TextDocument_CompletionResult&& result)
 	}
 
 	if (list.length() > 0) {
-		fCurrentCompletion = *allItems; //uhm not sure here
+		fCurrentCompletion = *items;
 		fEditor->SendMessage(SCI_AUTOCSETSEPARATOR, (int) '\n', 0);
 		fEditor->SendMessage(SCI_AUTOCSETIGNORECASE, true);
 		fEditor->SendMessage(SCI_AUTOCGETCANCELATSTART, false);
 		fEditor->SendMessage(SCI_AUTOCSETORDER, SC_ORDER_CUSTOM, 0);
 
 		// whats' the text already selected so far?
-		auto* firstTe = _GetTextEdit(fCurrentCompletion.items[0]);
+		auto* firstTe = _GetTextEdit(fCurrentCompletion[0]);
 		if (firstTe) {
 			const Sci_Position s_pos = FromLSPPositionToSciPosition(&firstTe->range.start);
 			Sci_Position len = fCompletionPosition - s_pos;

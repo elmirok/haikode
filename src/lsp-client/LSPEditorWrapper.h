@@ -148,7 +148,7 @@ private:
 
 
 		Editor*				fEditor;
-		lsp::CompletionList	fCurrentCompletion;
+		lsp::Array<lsp::CompletionItem>	fCurrentCompletion;
 		Sci_Position		fCompletionPosition;
 		BTextToolTip* 		fToolTip;
 		LSPProjectWrapper*	fLSPProjectWrapper;

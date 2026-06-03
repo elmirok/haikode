@@ -3,7 +3,7 @@
  ** Interface for loading into a Scintilla document from a background thread.
  ** Interface for manipulating a document without a view.
  **/
-// Copyright 1998-2017 by Neil Hodgson 
+// Copyright 1998-2017 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef ILOADER_H
