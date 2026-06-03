@@ -18,7 +18,6 @@ public:
 	void MessageReceived(BMessage* message) override;
 	BSize MinSize() override;
 private:
-
 	BarberPole*		fBuildBarberPole;
 	BStringView*	fBuildStringView;
 	BMessageRunner*	fRunnerBuild;
