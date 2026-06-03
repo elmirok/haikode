@@ -147,5 +147,5 @@ BuildStatusView::MessageReceived(BMessage* message)
 BSize
 BuildStatusView::MinSize()
 {
-	return BSize(300, B_SIZE_UNSET);
+	return BSize(400, B_SIZE_UNSET);
 }

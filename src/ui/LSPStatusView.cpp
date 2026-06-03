@@ -27,7 +27,7 @@ LSPStatusView::LSPStatusView()
 	fLSPStatusBar = new BStatusBar("LSP_progressbar");
 
 	BLayoutBuilder::Group<>(this, B_HORIZONTAL)
-		.SetInsets(2, 0)
+		.SetInsets(0, 2)
 		.Add(fLSPStringView)
 		.Add(fLSPStatusBar)
 		.End();
@@ -35,7 +35,7 @@ LSPStatusView::LSPStatusView()
 	fLSPStatusBar->Hide();
 
 	fLSPStringView->SetExplicitMinSize(BSize(100, B_SIZE_UNSET));
-	fLSPStringView->SetExplicitAlignment(BAlignment(B_ALIGN_LEFT, B_ALIGN_VERTICAL_UNSET));
+	fLSPStringView->SetExplicitAlignment(BAlignment(B_ALIGN_RIGHT, B_ALIGN_VERTICAL_UNSET));
 
 	fLSPStatusBar->SetExplicitMaxSize(BSize(150, B_SIZE_UNSET));
 	fLSPStatusBar->SetExplicitAlignment(BAlignment(B_ALIGN_LEFT, B_ALIGN_VERTICAL_CENTER));
