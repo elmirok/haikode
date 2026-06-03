@@ -2,7 +2,7 @@
 /** @file Geometry.h
  ** Classes and functions for geometric and colour calculations.
  **/
-// Copyright 2020 by Neil Hodgson 
+// Copyright 2020 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef GEOMETRY_H
@@ -68,6 +68,9 @@ public:
 	}
 	constexpr Interval Offset(XYPOSITION offset) const noexcept {
 		return {left + offset, right + offset};
+	}
+	[[nodiscard]] static constexpr Interval FromLeftAndWidth(XYPOSITION left_, XYPOSITION width) {
+		return {left_, left_+width};
 	}
 };
 
@@ -182,7 +185,7 @@ public:
 	constexpr explicit ColourRGBA(int co_ = 0) noexcept : co(co_) {
 	}
 
-	constexpr ColourRGBA(unsigned int red, unsigned int green, unsigned int blue, unsigned int alpha= maximumByte) noexcept :
+	constexpr ColourRGBA(unsigned int red, unsigned int green, unsigned int blue, unsigned int alpha=maximumByte) noexcept :
 		ColourRGBA(red | (green << 8) | (blue << 16) | (alpha << 24)) {
 	}
 
@@ -192,6 +195,10 @@ public:
 
 	static constexpr ColourRGBA FromRGB(int co_) noexcept {
 		return ColourRGBA(co_ | (maximumByte << 24));
+	}
+
+	static constexpr ColourRGBA Grey(unsigned int grey, unsigned int alpha=maximumByte) noexcept {
+		return ColourRGBA(grey, grey, grey, alpha);
 	}
 
 	static constexpr ColourRGBA FromIpRGB(intptr_t co_) noexcept {

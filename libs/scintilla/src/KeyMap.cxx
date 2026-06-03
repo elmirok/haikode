@@ -2,10 +2,11 @@
 /** @file KeyMap.cxx
  ** Defines a mapping between keystrokes and commands.
  **/
-// Copyright 1998-2003 by Neil Hodgson 
+// Copyright 1998-2003 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #include <cstdlib>
+#include <cstdint>
 
 #include <stdexcept>
 #include <string_view>

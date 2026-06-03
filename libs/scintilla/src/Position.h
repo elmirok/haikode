@@ -2,7 +2,7 @@
 /** @file Position.h
  ** Defines global type name Position in the Sci internal namespace.
  **/
-// Copyright 2015 by Neil Hodgson 
+// Copyright 2015 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef POSITION_H

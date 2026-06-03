@@ -2,7 +2,7 @@
 /** @file ChangeHistory.h
  ** Manages a history of changes in a document.
  **/
-// Copyright 2022 by Neil Hodgson 
+// Copyright 2022 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef CHANGEHISTORY_H

@@ -2,10 +2,11 @@
 /** @file PerLine.cxx
  ** Manages data associated with each line of the document
  **/
-// Copyright 1998-2009 by Neil Hodgson 
+// Copyright 1998-2009 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #include <cstddef>
+#include <cstdint>
 #include <cassert>
 #include <cstring>
 
