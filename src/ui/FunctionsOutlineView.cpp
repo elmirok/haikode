@@ -35,17 +35,20 @@
 #define B_TRANSLATION_CONTEXT "FunctionsOutlineView"
 
 
-const int32 kMsgGoToSymbol		= 'gots';
-const int32 kMsgSort			= 'sort';
-const int32 kMsgCollapseAll		= 'coll';
-const int32 kMsgRenameSymbol	= 'rens';
+constexpr int32 kMsgGoToSymbol		= 'gots';
+constexpr int32 kMsgSort			= 'sort';
+constexpr int32 kMsgCollapseAll		= 'coll';
+constexpr int32 kMsgRenameSymbol	= 'rens';
+constexpr int32 kMsgFilterTextChanged = 'ftch';
+constexpr int32 kMsgFilterTextClear	  = 'ftcl';
+
 
 static bool sSortedByName = false;
 static bool sCollapsed = false;
 
 class SymbolListItem: public StyledItem {
 public:
-		SymbolListItem(BMessage& details)
+		SymbolListItem(const BMessage& details)
 			:
 			StyledItem(details.GetString("name")),
 			fDetails(details),
@@ -363,18 +366,42 @@ FunctionsOutlineView::FunctionsOutlineView()
 	fListView = new SymbolOutlineListView("listview");
 	fScrollView = new BScrollView("scrollview", fListView,
 		B_FRAME_EVENTS | B_WILL_DRAW, true, true, B_FANCY_BORDER);
+
+	fFilterTextControl = new BTextControl("FilterField", "", "",
+		new BMessage(kMsgFilterTextChanged));
+	fFilterTextControl->SetModificationMessage(new BMessage(kMsgFilterTextChanged));
+
 	fToolBar = new ToolBar();
 	fToolBar->ChangeIconSize(16);
-	// TODO: other actions
 	fToolBar->AddAction(kMsgSort, B_TRANSLATE("Sort"), "kIconOutlineSort", true);
+	fToolBar->AddChild(fFilterTextControl);
+	fToolBar->AddAction(kMsgFilterTextClear, B_TRANSLATE("Clear filter"), "kIconClose", true);
+	fToolBar->SetActionEnabled(kMsgFilterTextClear, false);
+
 	fToolBar->SetExplicitMinSize(BSize(250, B_SIZE_UNSET));
 	fToolBar->SetExplicitMaxSize(BSize(B_SIZE_UNLIMITED, B_SIZE_UNSET));
+
+	fFilterListView = new BListView("FilterResults", B_SINGLE_SELECTION_LIST,
+		B_WILL_DRAW | B_FRAME_EVENTS | B_NAVIGABLE);
+	BMessage* invoke =new BMessage(kMsgGoToSymbol);
+	invoke->AddBool("is_filter", true);
+	fFilterListView->SetInvocationMessage(invoke);
+	fFilterScrollView = new BScrollView("filterscroll", fFilterListView,
+		B_FRAME_EVENTS | B_WILL_DRAW, false, true, B_FANCY_BORDER);
+
+	BView* cardView = new BView("cards", 0);
+	fCardLayout = new BCardLayout();
+	cardView->SetLayout(fCardLayout);
+	fCardLayout->AddView(fScrollView);
+	fCardLayout->AddView(fFilterScrollView);
+	fCardLayout->SetVisibleItem(int32(0));
+
 	BLayoutBuilder::Group<>(this, B_VERTICAL, 0)
 		.AddGroup(B_VERTICAL, 0)
 			.Add(fToolBar)
 			.AddGroup(B_VERTICAL, 0)
 				.SetInsets(-2, -2, -2, -2)
-				.Add(fScrollView)
+				.Add(cardView)
 				.End()
 		.End();
 }
@@ -386,6 +413,8 @@ FunctionsOutlineView::AttachedToWindow()
 {
 	BView::AttachedToWindow();
 	fToolBar->SetTarget(this);
+	fFilterTextControl->SetTarget(this);
+	fFilterListView->SetTarget(this);
 	if (gMainWindow->LockLooper()) {
 		gMainWindow->StartWatching(this, MSG_NOTIFY_EDITOR_SYMBOLS_UPDATED);
 		gMainWindow->StartWatching(this, MSG_NOTIFY_EDITOR_POSITION_CHANGED);
@@ -503,6 +532,16 @@ FunctionsOutlineView::MessageReceived(BMessage* msg)
 				fListView->Expand(nullptr);
 			break;
 		}
+		case kMsgFilterTextChanged:
+		{
+			_ApplyFilter();
+			break;
+		}
+		case kMsgFilterTextClear:
+		{
+			ClearFilter();
+			break;
+		}
 		default:
 			BView::MessageReceived(msg);
 			break;
@@ -556,15 +595,25 @@ FunctionsOutlineView::_UpdateDocumentSymbols(const BMessage& msg, const entry_re
 	const int32 status = msg.GetInt32("status", IEditor::STATUS_UNKNOWN);
 	switch (status) {
 		case IEditor::STATUS_UNKNOWN:
+			//TODO move to a method and avoid duplications:
 			fListView->MakeEmpty();
+			fFilterTextControl->SetEnabled(false);
+			fToolBar->SetActionEnabled(kMsgFilterTextClear, false);
+			fToolBar->SetActionEnabled(kMsgSort, false);
 			return;
 		case IEditor::STATUS_NO_CAPABILITY:
 			fListView->MakeEmpty();
+			fFilterTextControl->SetEnabled(false);
+			fToolBar->SetActionEnabled(kMsgFilterTextClear, false);
+			fToolBar->SetActionEnabled(kMsgSort, false);
 			fListView->AddItem(new BStringItem(B_TRANSLATE("No outline available")));
 			return;
 		case IEditor::STATUS_REQUESTED:
 		{
 			fListView->MakeEmpty();
+			fFilterTextControl->SetEnabled(false);
+			fToolBar->SetActionEnabled(kMsgFilterTextClear, false);
+			fToolBar->SetActionEnabled(kMsgSort, false);
 			BListItem* item = new PendingListItem(B_TRANSLATE("Creating outline"));
 			fListView->AddItem(item);
 			SpinningAnimation::RegisterItem(fListView, item);
@@ -573,6 +622,10 @@ FunctionsOutlineView::_UpdateDocumentSymbols(const BMessage& msg, const entry_re
 		default:
 			break;
 	}
+
+	fFilterTextControl->SetEnabled(true);
+	fToolBar->SetActionEnabled(kMsgFilterTextClear, true);
+	fToolBar->SetActionEnabled(kMsgSort, true);
 
 	// Save selected item
 	const SymbolListItem* selected = dynamic_cast<SymbolListItem*>(fListView->ItemAt(fListView->CurrentSelection()));
@@ -626,6 +679,8 @@ FunctionsOutlineView::_UpdateDocumentSymbols(const BMessage& msg, const entry_re
 
 	fListView->SetInvocationMessage(new BMessage(kMsgGoToSymbol));
 	fListView->SetTarget(this);
+
+	_ApplyFilter();
 }
 
 
@@ -659,7 +714,13 @@ FunctionsOutlineView::_GoToSymbol(BMessage *msg)
 	status_t status = B_ERROR;
 	const int32 index = msg->GetInt32("index", -1);
 	if (index > -1) {
-		const SymbolListItem* sym = dynamic_cast<SymbolListItem*>(fListView->ItemAt(index));
+		const SymbolListItem* sym = nullptr;
+
+		if (msg->GetBool("is_filter", false) == true)
+			sym = dynamic_cast<SymbolListItem*>(fFilterListView->ItemAt(index));
+		else
+			sym = dynamic_cast<SymbolListItem*>(fListView->ItemAt(index));
+
 		if (sym != nullptr) {
 			BMessage go = sym->Details();
 			go.what = B_REFS_RECEIVED;
@@ -678,4 +739,71 @@ FunctionsOutlineView::_RenameSymbol(BMessage *msg)
 	BMessage go = *msg;
 	go.what = MSG_RENAME;
 	gMainWindow->PostMessage(&go);
+}
+
+
+
+void
+FunctionsOutlineView::_ApplyFilter()
+{
+	fFilterString = fFilterTextControl->Text();
+
+	if (fFilterString.IsEmpty()) {
+		_ClearFilter();
+		fToolBar->SetActionEnabled(kMsgFilterTextClear, false);
+		return;
+	}
+
+	fToolBar->SetActionEnabled(kMsgFilterTextClear, true);
+	_PopulateFilterResults();
+	fCardLayout->SetVisibleItem(int32(1));
+}
+
+void
+FunctionsOutlineView::_ClearFilter()
+{
+	fFilterString = "";
+	fFilterListView->MakeEmpty();
+
+	fCardLayout->SetVisibleItem(int32(0));
+}
+
+
+void
+FunctionsOutlineView::_PopulateFilterResults()
+{
+	fFilterListView->MakeEmpty();
+
+	BString filterLower(fFilterString);
+	filterLower.ToLower();
+
+	const int32 count = fListView->FullListCountItems();
+	for (int32 i = 0; i < count; i++) {
+		SymbolListItem* item = dynamic_cast<SymbolListItem*>(
+			fListView->FullListItemAt(i));
+		if (item == nullptr)
+			continue;
+
+		BString nameLower(item->Text());
+		nameLower.ToLower();
+
+		if (nameLower.FindFirst(filterLower) < 0)
+			continue;
+
+		SymbolListItem*	copyItem = new SymbolListItem(item->Details());
+		fFilterListView->AddItem(copyItem);
+	}
+}
+
+bool
+FunctionsOutlineView::_IsFilterActive() const
+{
+	return !fFilterString.IsEmpty();
+}
+
+void
+FunctionsOutlineView::ClearFilter()
+{
+	fFilterTextControl->SetText("");
+	fListView->MakeFocus(true);
 }

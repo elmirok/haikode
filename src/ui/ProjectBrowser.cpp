@@ -1156,8 +1156,7 @@ ProjectBrowser::_ClearFilter()
 void
 ProjectBrowser::ClearFilter()
 {
-	fFilterString = "";
-	fFilterTextControl->SetText(fFilterString.String());
+	fFilterTextControl->SetText("");
 	fOutlineListView->MakeFocus(true);
 }
 

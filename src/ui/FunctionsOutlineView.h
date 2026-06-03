@@ -4,6 +4,9 @@
  */
 #pragma once
 
+#include <CardLayout.h>
+#include <ListView.h>
+#include <TextControl.h>
 #include <View.h>
 
 
@@ -23,6 +26,7 @@ public:
 	void	AttachedToWindow() override;
 	void	DetachedFromWindow() override;
 	void	MessageReceived(BMessage* msg) override;
+	void	ClearFilter();
 
 private:
 	BListItem*  _RecursiveSymbolByCaretPosition(int32 position, BListItem* parent);
@@ -32,9 +36,20 @@ private:
 	void        _RenameSymbol(BMessage *msg);
 	void		_SelectSymbolByCaretPosition(int32 position);
 
+
+	void			_ApplyFilter();
+	void			_ClearFilter();
+	void			_PopulateFilterResults();
+	bool			_IsFilterActive() const;
+
 	BOutlineListView* fListView;
 	BScrollView* fScrollView;
 	ToolBar*	fToolBar;
 	Symbol		fSelectedSymbol;
 	entry_ref	fCurrentRef;
+	BTextControl*	fFilterTextControl;
+	BListView*		fFilterListView;
+	BScrollView*	fFilterScrollView;
+	BCardLayout*	fCardLayout;
+	BString			fFilterString;
 };
