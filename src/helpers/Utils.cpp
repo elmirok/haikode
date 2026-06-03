@@ -16,6 +16,7 @@
 #include <FindDirectory.h>
 #include <IconUtils.h>
 #include <MessageFilter.h>
+#include <MessageRunner.h>
 #include <Path.h>
 #include <RadioButton.h>
 #include <Resources.h>
@@ -578,6 +579,24 @@ GetVersion()
 	}
 
 	return NULL;
+}
+
+
+void
+StartMessageRunner(BMessageRunner** runner, const BMessenger& target,
+	uint32 what, bigtime_t timeout)
+{
+	*runner = new BMessageRunner(target, new BMessage(what), timeout, 1);
+}
+
+
+void
+DeleteMessageRunner(BMessageRunner** runner)
+{
+	if (*runner != nullptr) {
+		delete *runner;
+		*runner = nullptr;
+	}
 }
 
 

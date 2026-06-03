@@ -69,6 +69,10 @@ void OKAlert(const char* title, const char* message,
 
 BString	ReadFileContent(const char* filename, off_t maxSize);
 
+void	StartMessageRunner(BMessageRunner** runner, const BMessenger& target,
+							uint32 what, bigtime_t timeout);
+void	DeleteMessageRunner(BMessageRunner**  runner);
+
 // Encoding/Decoding
 std::string Base64Encode(const std::string& string);
 void Base64Decode(const std::string& string, unsigned char*& outDecoded, size_t& outLength);

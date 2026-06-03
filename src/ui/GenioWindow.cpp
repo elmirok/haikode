@@ -539,15 +539,34 @@ GenioWindow::MessageReceived(BMessage* message)
 			}
 			break;
 		}
+		case MSG_BUILD_MODE_TOGGLE:
+		{
+			// TODO: remove this if/when we introduce custom
+			// build profiles
+			ProjectFolder* project = GetActiveProject();
+			if (project == nullptr || project->IsBuilding())
+				break;
+			if (project->GetBuildMode() == BuildMode::DebugMode)
+				GetActiveProject()->SetBuildMode(BuildMode::ReleaseMode);
+			else
+				GetActiveProject()->SetBuildMode(BuildMode::DebugMode);
+			break;
+		}
 		case MSG_BUILD_MODE_DEBUG:
 		{
-			GetActiveProject()->SetBuildMode(BuildMode::DebugMode);
+			ProjectFolder* project = GetActiveProject();
+			if (project == nullptr || project->IsBuilding())
+				break;
+			project->SetBuildMode(BuildMode::DebugMode);
 			_UpdateProjectMenuItemsState(true);
 			break;
 		}
 		case MSG_BUILD_MODE_RELEASE:
 		{
-			GetActiveProject()->SetBuildMode(BuildMode::ReleaseMode);
+			ProjectFolder* project = GetActiveProject();
+			if (project == nullptr || project->IsBuilding())
+				break;
+			project->SetBuildMode(BuildMode::ReleaseMode);
 			_UpdateProjectMenuItemsState(true);
 			break;
 		}
@@ -1221,6 +1240,13 @@ GenioWindow::SetActiveProject(ProjectFolder *project)
 
 	// Update menu state
 	_UpdateProjectMenuItemsState(project != nullptr);
+
+	BMessage noticeMessage(MSG_NOTIFY_PROJECT_SET_ACTIVE);
+	if (project != nullptr) {
+		noticeMessage.AddString("active_project_name", project->Name());
+		noticeMessage.AddString("active_project_path", project->Path());
+	}
+	SendNotices(MSG_NOTIFY_PROJECT_SET_ACTIVE, &noticeMessage);
 }
 
 
@@ -3515,11 +3541,6 @@ GenioWindow::_ProjectFolderActivate(ProjectFolder *project)
 
 	SetActiveProject(project);
 
-	BMessage noticeMessage(MSG_NOTIFY_PROJECT_SET_ACTIVE);
-	noticeMessage.AddString("active_project_name", project->Name());
-	noticeMessage.AddString("active_project_path", project->Path());
-	SendNotices(MSG_NOTIFY_PROJECT_SET_ACTIVE, &noticeMessage);
-
 	// Update run command working directory tooltip too
 	BString tooltip;
 	tooltip << "cwd: " << project->Path();
@@ -4328,6 +4349,10 @@ GenioWindow::_UpdateProjectMenuItemsState(bool enable)
 		ActionManager::SetEnabled(MSG_DEBUG_PROJECT, !releaseMode);
 		ActionManager::SetEnabled(MSG_PROJECT_SETTINGS, true);
 
+		BMessage noticeMessage;
+		noticeMessage.AddString("project_name", GetActiveProject()->Name());
+		noticeMessage.AddString("build_profile_name", releaseMode ? "release" : "debug");
+		SendNotices(MSG_NOTIFY_PROJECT_BUILD_PROFILE_CHANGED, &noticeMessage);
 	} else {
 		fGitMenu->SetEnabled(false);
 		ActionManager::SetEnabled(MSG_DEBUG_PROJECT, false);

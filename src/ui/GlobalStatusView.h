@@ -20,15 +20,10 @@ public:
 	virtual void MessageReceived(BMessage *message);
 
 private:
-			void	_ResetRunner(BMessageRunner**  runner);
-			void	_StartRunner(BMessageRunner** runner, uint32 what);
-
-	BarberPole*		fBuildBarberPole;
-	BStringView*	fBuildStringView;
-	BStringView*	fLSPStringView;
-	BStatusBar*		fLSPStatusBar;
+	BView*			fBuildStatusView;
+	BView*			fLSPStatusView;
 	BStringView*	fLastFindStatus;
+	BView*			fBuildProfileView;
 	bigtime_t		fLastStatusChange;
-	BMessageRunner* fRunnerBuild;
 	BMessageRunner* fRunnerFind;
 };
