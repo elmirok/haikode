@@ -2,7 +2,7 @@
 /** @file MarginView.h
  ** Defines the appearance of the editor margin.
  **/
-// Copyright 1998-2014 by Neil Hodgson 
+// Copyright 1998-2014 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef MARGINVIEW_H

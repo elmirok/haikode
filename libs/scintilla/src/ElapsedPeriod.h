@@ -2,7 +2,7 @@
 /** @file ElapsedPeriod.h
  ** Encapsulate C++ <chrono> to simplify use.
  **/
-// Copyright 2018 by Neil Hodgson 
+// Copyright 2018 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef ELAPSEDPERIOD_H

@@ -2,7 +2,7 @@
 /** @file ILexer.h
  ** Interface between Scintilla and lexers.
  **/
-// Copyright 1998-2010 by Neil Hodgson 
+// Copyright 1998-2010 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef ILEXER_H

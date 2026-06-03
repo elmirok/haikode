@@ -2,7 +2,7 @@
 /** @file ViewStyle.h
  ** Store information on how the document is to be viewed.
  **/
-// Copyright 1998-2001 by Neil Hodgson 
+// Copyright 1998-2001 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef VIEWSTYLE_H
@@ -179,6 +179,7 @@ public:
 	int marginNumberPadding; // the right-side padding of the number margin
 	int ctrlCharPadding; // the padding around control character text blobs
 	int lastSegItalicsOffset; // the offset so as not to clip italic characters at EOLs
+	int autocStyle;
 
 	using ElementMap = std::map<Scintilla::Element, ColourOptional>;
 	ElementMap elementColours;

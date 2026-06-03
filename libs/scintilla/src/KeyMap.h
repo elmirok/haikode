@@ -2,7 +2,7 @@
 /** @file KeyMap.h
  ** Defines a mapping between keystrokes and commands.
  **/
-// Copyright 1998-2001 by Neil Hodgson 
+// Copyright 1998-2001 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef KEYMAP_H

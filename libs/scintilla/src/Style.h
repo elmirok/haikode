@@ -2,7 +2,7 @@
 /** @file Style.h
  ** Defines the font and colour style for a class of text.
  **/
-// Copyright 1998-2001 by Neil Hodgson 
+// Copyright 1998-2001 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
 #ifndef STYLE_H
@@ -15,6 +15,7 @@ struct FontSpecification {
 	const char *fontName;
 	int size;
 	Scintilla::FontWeight weight = Scintilla::FontWeight::Normal;
+	Scintilla::FontStretch stretch = Scintilla::FontStretch::Normal;
 	bool italic = false;
 	Scintilla::CharacterSet characterSet = Scintilla::CharacterSet::Default;
 	Scintilla::FontQuality extraFontFlag = Scintilla::FontQuality::QualityDefault;
