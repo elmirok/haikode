@@ -46,9 +46,6 @@
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "ProjectsFolderBrowser"
 
-//TODO: move to a config?
-constexpr const char* gFilters = "/.,/generated,/objects.";
-
 
 class ProjectOutlineListView : public GOutlineListView {
 public:
@@ -76,9 +73,10 @@ private:
 ProjectBrowser::ProjectBrowser()
 	:
 	BView("Project browser", B_WILL_DRAW|B_FRAME_EVENTS),
-	fBatchLock("ProjectBrowser batch lock"),
-	fPathFilter(gFilters)
+	fBatchLock("ProjectBrowser batch lock")
 {
+	BString config = gCFG["project_browser_file_filter"];
+	fPathFilter = PathFilters(config.String());
 	fOutlineListView = new ProjectOutlineListView();
 	ProjectDropView* projectDropView = new ProjectDropView();
 

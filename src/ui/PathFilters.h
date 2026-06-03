@@ -12,8 +12,12 @@
 
 class PathFilters {
 public:
-		PathFilters(const char* filters);
+				PathFilters(const char* filters);
+				PathFilters();
+
+		void	SetFilters(const char* filters);
 		bool	IsFiltered(BString& fullPath);
+
 private:
 		std::vector<std::string>	fFilters;
 };

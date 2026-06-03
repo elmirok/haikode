@@ -7,7 +7,17 @@
 #include "Log.h"
 #include <sstream>
 
+PathFilters::PathFilters()
+{
+}
+
 PathFilters::PathFilters(const char* filters)
+{
+	SetFilters(filters);
+}
+
+void
+PathFilters::SetFilters(const char* filters)
 {
 	std::stringstream ss(filters);
 	std::string item;
