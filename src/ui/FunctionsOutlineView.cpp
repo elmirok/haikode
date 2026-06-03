@@ -597,12 +597,14 @@ FunctionsOutlineView::_UpdateDocumentSymbols(const BMessage& msg, const entry_re
 		case IEditor::STATUS_UNKNOWN:
 			//TODO move to a method and avoid duplications:
 			fListView->MakeEmpty();
+			fFilterListView->MakeEmpty();
 			fFilterTextControl->SetEnabled(false);
 			fToolBar->SetActionEnabled(kMsgFilterTextClear, false);
 			fToolBar->SetActionEnabled(kMsgSort, false);
 			return;
 		case IEditor::STATUS_NO_CAPABILITY:
 			fListView->MakeEmpty();
+			fFilterListView->MakeEmpty();
 			fFilterTextControl->SetEnabled(false);
 			fToolBar->SetActionEnabled(kMsgFilterTextClear, false);
 			fToolBar->SetActionEnabled(kMsgSort, false);
@@ -611,6 +613,7 @@ FunctionsOutlineView::_UpdateDocumentSymbols(const BMessage& msg, const entry_re
 		case IEditor::STATUS_REQUESTED:
 		{
 			fListView->MakeEmpty();
+			fFilterListView->MakeEmpty();
 			fFilterTextControl->SetEnabled(false);
 			fToolBar->SetActionEnabled(kMsgFilterTextClear, false);
 			fToolBar->SetActionEnabled(kMsgSort, false);
@@ -642,6 +645,8 @@ FunctionsOutlineView::_UpdateDocumentSymbols(const BMessage& msg, const entry_re
 	Window()->DisableUpdates();
 
 	fListView->MakeEmpty();
+	fFilterListView->MakeEmpty();
+
 	_RecursiveAddSymbols(nullptr, &msg);
 
 	// Collapse items
@@ -680,7 +685,7 @@ FunctionsOutlineView::_UpdateDocumentSymbols(const BMessage& msg, const entry_re
 	fListView->SetInvocationMessage(new BMessage(kMsgGoToSymbol));
 	fListView->SetTarget(this);
 
-	_ApplyFilter();
+	_ApplyFilter(true);
 }
 
 
@@ -744,8 +749,11 @@ FunctionsOutlineView::_RenameSymbol(BMessage *msg)
 
 
 void
-FunctionsOutlineView::_ApplyFilter()
+FunctionsOutlineView::_ApplyFilter(bool force)
 {
+	if (force == false && fFilterString.Compare(fFilterTextControl->Text()) == 0)
+		return;
+
 	fFilterString = fFilterTextControl->Text();
 
 	if (fFilterString.IsEmpty()) {

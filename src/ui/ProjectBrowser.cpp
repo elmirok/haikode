@@ -1047,6 +1047,9 @@ ProjectBrowser::_ProcessItemBatch(BMessage* message)
 void
 ProjectBrowser::_ApplyFilter()
 {
+	if (fFilterString.Compare(fFilterTextControl->Text()) == 0)
+		return;
+
 	fFilterString = fFilterTextControl->Text();
 
 	if (fFilterString.IsEmpty()) {

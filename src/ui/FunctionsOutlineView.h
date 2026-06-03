@@ -37,7 +37,7 @@ private:
 	void		_SelectSymbolByCaretPosition(int32 position);
 
 
-	void			_ApplyFilter();
+	void			_ApplyFilter(bool force = false);
 	void			_ClearFilter();
 	void			_PopulateFilterResults();
 	bool			_IsFilterActive() const;
