@@ -9,9 +9,7 @@
 #include <PathMonitor.h>
 
 #include <cstdio>
-#include <sstream>
-#include <string>
-#include <vector>
+#include "PathFilters.h"
 
 #include "Log.h"
 
@@ -22,15 +20,8 @@
 class GenioWatchingFilter : public BPrivate::BPathMonitor::BWatchingInterface {
 public:
 	GenioWatchingFilter(const char* watchNodesFilters)
+		: fFilters(watchNodesFilters)
 	{
-		std::stringstream ss(watchNodesFilters);
-		std::string item;
-		while (std::getline(ss, item, ',')) {
-			if (!item.empty()) {
-				fFilters.push_back(item);
-				LogTraceF("Using filter [%s]\n", item.c_str());
-			}
-		}
 	}
 
 	status_t WatchNode(const node_ref* node, uint32 flags, const BHandler* handler,
@@ -53,12 +44,8 @@ public:
 		BString fullPath = path.Path();
 
 		// Let's filter useless directories.
-		for (auto& filter : fFilters) {
-			if (fullPath.FindFirst(filter.c_str()) != B_ERROR) {
-				LogTraceF("Filtering %s", fullPath.String());
-				return B_OK;
-			}
-		}
+		if (fFilters.IsFiltered(fullPath) == true)
+			return B_OK;
 
 		status = BPrivate::BPathMonitor::BWatchingInterface::WatchNode(node, flags, handler, looper);
 		if (status != B_OK && flags != B_STOP_WATCHING) {
@@ -80,5 +67,5 @@ public:
 
 private:
 		uint32	fWatchedNodes = 0L;
-		std::vector<std::string>	fFilters;
+		PathFilters	fFilters;
 };

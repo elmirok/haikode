@@ -1,17 +1,22 @@
 /*
- * Copyright 2023-2025, Andrea Anzani 
+ * Copyright 2023-2025, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #pragma once
 
 #include <map>
 
+#include <CardLayout.h>
+#include <ListView.h>
 #include <Locker.h>
+#include <ScrollView.h>
+#include <TextControl.h>
 #include <View.h>
 
 #include "ProjectFolder.h"
 #include "ProjectItem.h"
-
+#include "PathFilters.h"
+#include "ToolBar.h"
 
 enum {
 	MSG_PROJECT_MENU_CLOSE				= 'pmcl',
@@ -27,7 +32,10 @@ enum {
 
 	MSG_BROWSER_SELECT_ITEM				= 'sele',
 	MSG_PROJECT_ADD_ITEMS_BATCH			= 'paib',
-	MSG_PROJECT_BATCH_SYNC				= 'pbsy'
+	MSG_PROJECT_BATCH_SYNC				= 'pbsy',
+
+	MSG_FILTER_TEXT_CHANGED				= 'ftch',
+	MSG_FILTER_TEXT_CLEAR				= 'ftcl'
 };
 
 // Batch size for adding items - tuned for performance vs responsiveness
@@ -71,6 +79,10 @@ public:
 	void			ExpandProjectCollapseOther(const BString& projectName);
 
 	void			InitRename(ProjectItem *item);
+
+	void			ClearFilter();
+	bool			IsFilterFocused() const;
+
 private:
 
 	ProjectItem*	GetProjectItemByPath(const BString& path) const;
@@ -102,6 +114,11 @@ private:
 	void			_FlushItemBatchLocked(ProjectFolder* project, bool synchronous);
 	void			_ProcessItemBatch(BMessage* message);
 
+	void			_ApplyFilter();
+	void			_ClearFilter();
+	void			_PopulateFilterResults();
+	bool			_IsFilterActive() const;
+
 private:
 	ProjectOutlineListView*	fOutlineListView;
 	GenioWatchingFilter*	fGenioWatchingFilter;
@@ -113,4 +130,12 @@ private:
 	// Each project has its own batch of commands to prevent mixing
 	BLocker					fBatchLock;
 	std::map<ProjectFolder*, std::vector<AddItemCommand>>	fItemBatches;
+
+	ToolBar*				fToolBar;
+	BTextControl*			fFilterTextControl;
+	BListView*				fFilterListView;
+	BScrollView*			fFilterScrollView;
+	BCardLayout*			fCardLayout;
+	BString					fFilterString;
+	PathFilters 			fPathFilter;
 };
