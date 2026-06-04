@@ -7,8 +7,8 @@ TYPE := APP
 
 APP_MIME_SIG := "application/x-vnd.Genio"
 
+# Debug configuration
 debug ?= 0
-
 ifneq ($(debug), 0)
 	DEBUGGER := TRUE
 endif
@@ -43,32 +43,19 @@ SRCS := $(foreach dir, $(SRC_DIRS), $(wildcard $(dir)/*.cpp))
 
 RDEFS := Genio.rdef Spinner.rdef
 
-LIBS  = be shared translation tracker game localestub $(STDCPPLIBS)
-LIBS += columnlistview
-LIBS += editorconfig
-LIBS += git2
+LIBS  = be localestub game shared translation tracker $(STDCPPLIBS)
+LIBS += columnlistview crypto editorconfig lsp git2 yaml-cpp
 LIBS += libs/scintilla/bin/libscintilla.a
-LIBS += crypto
-LIBS += yaml-cpp
-LIBS += lsp
 
-SYSTEM_INCLUDE_PATHS  = $(shell findpaths -e B_FIND_PATH_HEADERS_DIRECTORY private/interface)
-SYSTEM_INCLUDE_PATHS += $(shell findpaths -e B_FIND_PATH_HEADERS_DIRECTORY private/shared)
-SYSTEM_INCLUDE_PATHS += $(shell findpaths -e B_FIND_PATH_HEADERS_DIRECTORY private/storage)
-SYSTEM_INCLUDE_PATHS += $(shell findpaths -e B_FIND_PATH_HEADERS_DIRECTORY private/support)
-SYSTEM_INCLUDE_PATHS += $(shell findpaths -e B_FIND_PATH_HEADERS_DIRECTORY private/tracker)
-SYSTEM_INCLUDE_PATHS += $(shell findpaths -e B_FIND_PATH_HEADERS_DIRECTORY private/locale)
+PRIVATE_HEADERS = interface locale shared storage support tracker
+SYSTEM_INCLUDE_PATHS  = $(foreach header,$(PRIVATE_HEADERS),$(shell findpaths -e B_FIND_PATH_HEADERS_DIRECTORY private/$(header)))
 SYSTEM_INCLUDE_PATHS += $(shell findpaths -a $(platform) -e B_FIND_PATH_HEADERS_DIRECTORY lexilla)
 SYSTEM_INCLUDE_PATHS += $(shell findpaths -a $(platform) -e B_FIND_PATH_HEADERS_DIRECTORY lsp)
-SYSTEM_INCLUDE_PATHS += libs
-SYSTEM_INCLUDE_PATHS += libs/json
-SYSTEM_INCLUDE_PATHS += libs/scintilla/haiku
-SYSTEM_INCLUDE_PATHS += libs/scintilla/include
+SYSTEM_INCLUDE_PATHS += libs libs/json libs/scintilla/haiku libs/scintilla/include
 
 
 ## clang build flag ############################################################
 BUILD_WITH_CLANG ?= 0
-################################################################################
 ifeq ($(BUILD_WITH_CLANG), 1)
 	# clang build
 	CC  := clang
@@ -98,7 +85,7 @@ deps:
 	$(MAKE) -C libs/scintilla/haiku
 	$(MAKE) -C libs/terminal -f Makefile.addon DEBUGGER=$(DEBUGGER)
 
-.PHONY: clean deps
+.PHONY: clean cleanall deps
 
 cleanall: clean
 	$(MAKE) clean -C libs/scintilla/haiku
