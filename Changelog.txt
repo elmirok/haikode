@@ -1,16 +1,20 @@
 v6.0 (not released)
 	- Completely rewrote LSP handling, improving performance.
 	- Added "Find references".
+	- Added live filtering in Project Browser and Class outline.
+	- Added build profile indication in status bar.
+	- Added file type in editor tooltip.
 	- Implemented template placeholders (project name, author, and others).
 	- Moved LSP servers configuration to yaml so it's no longer hardcoded.
 	- Made languages configuration easier to extend with external files.
 	- Made renaming symbols more robust.
 	- Jump history now also saves the cursor position.
+	- Class outline: added function parameters.
 	- Fixed auto completion not triggering in some cases.
 	- Fixed status view not updating when changing editors in some cases.
 	- Fixed project browser not selecting the active file in some cases.
 	- Fixed cloning a git repository using ssh authentication through an agent.
-	- Class outline: added function parameters.
+	- Updated Scintilla to version 5.6.2.
 ---
 v5.1
 	- Fixed performance regression.
