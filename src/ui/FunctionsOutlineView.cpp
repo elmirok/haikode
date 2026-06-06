@@ -550,13 +550,10 @@ FunctionsOutlineView::MessageReceived(BMessage* msg)
 
 
 void
-FunctionsOutlineView::_SelectSymbolByCaretPosition(int32 position)
+FunctionsOutlineView::ClearFilter()
 {
-	BListItem* sym = _RecursiveSymbolByCaretPosition(position, nullptr);
-	if (sym != nullptr && !sym->IsSelected()) {
-		fListView->Select(fListView->IndexOf(sym));
-		fListView->ScrollToSelection();
-	}
+	fFilterTextControl->SetText("");
+	fListView->MakeFocus(true);
 }
 
 
@@ -747,6 +744,16 @@ FunctionsOutlineView::_RenameSymbol(BMessage *msg)
 }
 
 
+void
+FunctionsOutlineView::_SelectSymbolByCaretPosition(int32 position)
+{
+	BListItem* sym = _RecursiveSymbolByCaretPosition(position, nullptr);
+	if (sym != nullptr && !sym->IsSelected()) {
+		fListView->Select(fListView->IndexOf(sym));
+		fListView->ScrollToSelection();
+	}
+}
+
 
 void
 FunctionsOutlineView::_ApplyFilter(bool force)
@@ -766,6 +773,7 @@ FunctionsOutlineView::_ApplyFilter(bool force)
 	_PopulateFilterResults();
 	fCardLayout->SetVisibleItem(int32(1));
 }
+
 
 void
 FunctionsOutlineView::_ClearFilter()
@@ -803,15 +811,9 @@ FunctionsOutlineView::_PopulateFilterResults()
 	}
 }
 
+
 bool
 FunctionsOutlineView::_IsFilterActive() const
 {
 	return !fFilterString.IsEmpty();
-}
-
-void
-FunctionsOutlineView::ClearFilter()
-{
-	fFilterTextControl->SetText("");
-	fListView->MakeFocus(true);
 }
