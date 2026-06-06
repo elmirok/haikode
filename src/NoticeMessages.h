@@ -4,6 +4,25 @@
  */
 #pragma once
 
+// TODO: file_ref vs ref
+// TODO: Use these defines instead of the values
+#define MSG_FIELD_FILENAME			"file_name"
+#define MSG_FIELD_FILEREF			"file_ref"
+#define MSG_FIELD_LINE				"line"
+#define MSG_FIELD_NEEDSSAVE			"needs_save"
+#define MSG_FIELD_REF				"ref"
+#define MSG_FIELD_SYMBOLS			"symbols"
+#define MSG_FIELD_STATUS			"status"
+#define MSG_FIELD_BUILDING			"building"
+#define MSG_FIELD_BUILDCMDTYPE		"cmd_type"
+#define MSG_FIELD_BUILDPROFILENAME	"build_profile_name"
+#define MSG_FIELD_PROJECTNAME		"project_name"
+#define MSG_FIELD_PROJECTPATH		"project_path"
+#define MSG_FIELD_CURRENTBRANCH		"current_branch"
+#define MSG_FIELD_ACTIVEPROJECTNAME	"active_project_name"
+#define MSG_FIELD_ACTIVEPROJECTPATH	"active_project_path"
+
+
 // "notification" messages
 enum {
 	// editor
