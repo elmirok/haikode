@@ -108,6 +108,9 @@ LSPStatusView::MessageReceived(BMessage* message)
 					fLSPStringView->SetText(text.String());
 					break;
 				}
+				default:
+					BView::MessageReceived(message);
+					break;
 			}
 		default:
 			BView::MessageReceived(message);

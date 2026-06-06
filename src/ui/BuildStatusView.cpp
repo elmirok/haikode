@@ -130,15 +130,20 @@ BuildStatusView::MessageReceived(BMessage* message)
 						// On fail
 						fBuildStringView->SetHighColor(ui_color(B_FAILURE_COLOR));
 						// beep();
-					} else
+					} else {
 						fBuildStringView->SetHighColor(ui_color(B_CONTROL_TEXT_COLOR));
+					}
 					break;
 				}
+				default:
+					BView::MessageReceived(message);
+					break;
 			}
+			break;
+		}
 		default:
 			BView::MessageReceived(message);
 			break;
-		}
 	}
 }
 
