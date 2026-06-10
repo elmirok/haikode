@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024, Andrea Anzani 
+ * Copyright 2023-2024, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 
@@ -82,10 +82,11 @@ ActionManager::RegisterAction(int32   msgWhat,
 status_t
 ActionManager::AddItem(int32 msgWhat, BMenu* menu, BMessage* extraFields)
 {
-	if (sInstance.fActionMap.find(msgWhat) == sInstance.fActionMap.end())
+	ActionMap::iterator iterator = sInstance.fActionMap.find(msgWhat);
+	if (iterator == sInstance.fActionMap.end())
 		return B_ERROR;
 
-	Action* action = sInstance.fActionMap[msgWhat];
+	Action* action = iterator->second;
 	if (extraFields == nullptr) {
 		extraFields = new BMessage(msgWhat);
 	}
@@ -102,10 +103,11 @@ ActionManager::AddItem(int32 msgWhat, BMenu* menu, BMessage* extraFields)
 status_t
 ActionManager::AddItem(int32 msgWhat, ToolBar* bar, BMessage* extraFields)
 {
-	if (sInstance.fActionMap.find(msgWhat) == sInstance.fActionMap.end())
+	ActionMap::iterator iterator = sInstance.fActionMap.find(msgWhat);
+	if (iterator == sInstance.fActionMap.end())
 		return B_ERROR;
 
-	Action* action = sInstance.fActionMap[msgWhat];
+	Action* action = iterator->second;
 	if (extraFields == nullptr) {
 		extraFields = new BMessage(msgWhat);
 	}
@@ -122,7 +124,11 @@ ActionManager::AddItem(int32 msgWhat, ToolBar* bar, BMessage* extraFields)
 void
 ActionManager::RemoveItem(int32 msgWhat, BMenu* menu)
 {
-	Action* action = sInstance.fActionMap[msgWhat];
+	ActionMap::iterator iterator = sInstance.fActionMap.find(msgWhat);
+	if (iterator == sInstance.fActionMap.end())
+		return;
+
+	Action* action = iterator->second;
 	BMenuItem* item = menu->FindItem(msgWhat);
 	std::vector<ActionMenuItem*> &v = action->menuItemList;
 	std::erase(v, item);
@@ -134,10 +140,11 @@ ActionManager::RemoveItem(int32 msgWhat, BMenu* menu)
 status_t
 ActionManager::SetEnabled(int32 msgWhat, bool enabled)
 {
-	if (sInstance.fActionMap.find(msgWhat) == sInstance.fActionMap.end())
+	ActionMap::iterator iterator = sInstance.fActionMap.find(msgWhat);
+	if (iterator == sInstance.fActionMap.end())
 		return B_ERROR;
 
-	Action* action = sInstance.fActionMap[msgWhat];
+	Action* action = iterator->second;
 	action->enabled = enabled;
 
 	for (auto menuItem : action->menuItemList)
@@ -152,10 +159,11 @@ ActionManager::SetEnabled(int32 msgWhat, bool enabled)
 status_t
 ActionManager::SetPressed(int32 msgWhat, bool pressed)
 {
-	if (sInstance.fActionMap.find(msgWhat) == sInstance.fActionMap.end())
+	ActionMap::iterator iterator = sInstance.fActionMap.find(msgWhat);
+	if (iterator == sInstance.fActionMap.end())
 		return B_ERROR;
 
-	Action* action = sInstance.fActionMap[msgWhat];
+	Action* action = iterator->second;
 	action->pressed = pressed;
 
 	for (auto menuItem : action->menuItemList)
@@ -171,10 +179,11 @@ ActionManager::SetPressed(int32 msgWhat, bool pressed)
 status_t
 ActionManager::SetToolTip(int32 msgWhat, const char* tooltip)
 {
-	if (sInstance.fActionMap.find(msgWhat) == sInstance.fActionMap.end())
+	ActionMap::iterator iterator = sInstance.fActionMap.find(msgWhat);
+	if (iterator == sInstance.fActionMap.end())
 		return B_ERROR;
 
-	Action* action = sInstance.fActionMap[msgWhat];
+	Action* action = iterator->second;
 	action->toolTip = tooltip;
 
 	for (auto toolBar : action->toolBarList) {
@@ -190,10 +199,11 @@ ActionManager::SetToolTip(int32 msgWhat, const char* tooltip)
 bool
 ActionManager::IsPressed(int32 msgWhat)
 {
-	if (sInstance.fActionMap.find(msgWhat) == sInstance.fActionMap.end())
+	ActionMap::iterator iterator = sInstance.fActionMap.find(msgWhat);
+	if (iterator == sInstance.fActionMap.end())
 		return false;
 
-	Action* action = sInstance.fActionMap[msgWhat];
+	Action* action = iterator->second;
 	return action->pressed;
 }
 
@@ -201,10 +211,11 @@ ActionManager::IsPressed(int32 msgWhat)
 bool
 ActionManager::IsEnabled(int32 msgWhat)
 {
-	if (sInstance.fActionMap.find(msgWhat) == sInstance.fActionMap.end())
+	ActionMap::iterator iterator = sInstance.fActionMap.find(msgWhat);
+	if (iterator == sInstance.fActionMap.end())
 		return false;
 
-	Action* action = sInstance.fActionMap[msgWhat];
+	Action* action = iterator->second;
 	return action->enabled;
 }
 
@@ -213,10 +224,11 @@ ActionManager::IsEnabled(int32 msgWhat)
 BMessage*
 ActionManager::GetMessage(int32 msgWhat, BMenu* menu)
 {
-	if (sInstance.fActionMap.find(msgWhat) == sInstance.fActionMap.end())
+	ActionMap::iterator iterator = sInstance.fActionMap.find(msgWhat);
+	if (iterator == sInstance.fActionMap.end())
 		return nullptr;
 
-	Action* action = sInstance.fActionMap[msgWhat];
+	Action* action = iterator->second;
 	for (auto menuItem : action->menuItemList)
 		if (menuItem->Menu() == menu)
 			return menuItem->Message();

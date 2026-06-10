@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024, Andrea Anzani 
+ * Copyright 2023-2024, Andrea Anzani
  * All rights reserved. Distributed under the terms of the MIT license.
  */
 #pragma once
@@ -46,7 +46,7 @@ public:
 
 private:
 	typedef std::map<int32, Action*> ActionMap;
-	ActionMap	fActionMap;
+	ActionMap fActionMap;
 
 	static ActionManager sInstance;
 
