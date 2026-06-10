@@ -269,51 +269,6 @@ find_value<B_REF_TYPE>(BMessage* message, const std::string& name, int32 index)
 }
 
 
-template<type_code BType>
-class message_property {
-private:
-	BMessage* message_;
-	std::string prop_name_;
-
-public:
-	class iterator {
-	private:
-		int index_;
-		BMessage* message_;
-		std::string prop_name_;
-	public:
-		iterator(BMessage* message, const std::string& prop_name, int index = 0)
-			: index_(index), message_(message), prop_name_(prop_name) {}
-		bool operator==(const iterator &rhs) {
-			return index_ == rhs.index_ &&
-				message_ == rhs.message_ &&
-				prop_name_ == rhs.prop_name_;
-		}
-		bool operator!=(const iterator &rhs) { return !(*this == rhs); }
-		iterator &operator++() { ++index_; return *this; }
-		iterator operator++(int) {
-			iterator clone(*this);
-			++index_;
-			return clone;
-		}
-		typename property_type<BType>::type operator*() {
-			return find_value<BType>(message_, prop_name_, index_);
-		}
-	};
-	message_property(BMessage* message, const std::string& prop_name)
-		: message_(message), prop_name_(prop_name) {}
-	iterator begin() { return iterator(message_, prop_name_, 0); }
-	iterator end() { return iterator(message_, prop_name_, size()); }
-	size_t size() {
-		int32 count;
-		if (message_->GetInfo(prop_name_.c_str(), nullptr, &count) == B_OK) {
-			return static_cast<size_t>(count);
-		}
-		return 0; // FIXME: throw an exception here
-	}
-};
-
-
 #define FIND_IN_ARRAY(ARRAY, VALUE) (std::find(std::begin(ARRAY), std::end(ARRAY), VALUE) != std::end(ARRAY));
 
 
@@ -420,6 +375,7 @@ GetDataDirectoryByWhich(directory_which which)
 	return "";
 }
 
+
 BPath
 GetDataDirectory()
 {
@@ -461,6 +417,7 @@ GetNearbyDataDirectory()
 	return genioPath;
 }
 
+
 void
 DoInAllDataDirectories(std::function<void(const BPath&)> func)
 {
@@ -470,6 +427,7 @@ DoInAllDataDirectories(std::function<void(const BPath&)> func)
 	func(GetDataDirectoryByWhich(B_SYSTEM_NONPACKAGED_DATA_DIRECTORY));
 	func(GetDataDirectoryByWhich(B_SYSTEM_DATA_DIRECTORY));
 }
+
 
 void
 DoInAllLibDirectories(std::function<void(const BPath&)> func)
@@ -484,6 +442,7 @@ DoInAllLibDirectories(std::function<void(const BPath&)> func)
 	find_directory(B_USER_NONPACKAGED_LIB_DIRECTORY, &libPath);
 	func(libPath);
 }
+
 
 bool
 IsXMasPeriod()
