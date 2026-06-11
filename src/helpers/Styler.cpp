@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023, Andrea Anzani
  * Copyright 2014-2018 Kacper Kasper  (from Koder editor)
  * All rights reserved. Distributed under the terms of the MIT license.
  */
@@ -83,7 +83,8 @@ struct convert<Styler::Style> {
 
 }
 
-
+std::string						Styler::sCachedStyleName;
+YAML::Node						Styler::sCachedGlobal;
 std::unordered_map<int, Styler::Style>	Styler::sStylesMapping;
 
 
@@ -94,7 +95,9 @@ Styler::ApplyGlobal(BScintillaView* editor, const char* style, const BFont* font
 	DoInAllDataDirectories([&](const BPath& path) {
 		try {
 			_ApplyGlobal(editor, style, path, font);
+			return;
 		} catch (const YAML::BadFile &) {
+			LogTrace("Styler: BadFile exception! path [%s] style [%s]", path.Path(), style);
 		}
 	});
 }
@@ -103,11 +106,17 @@ Styler::ApplyGlobal(BScintillaView* editor, const char* style, const BFont* font
 /* static */ void
 Styler::_ApplyGlobal(BScintillaView* editor, const char* styleName, const BPath &path, const BFont* font)
 {
-	BString fullpath = _FullStylePath(styleName, path);
-	const YAML::Node styles = YAML::LoadFile(fullpath.String());
+	if (sCachedStyleName.compare(styleName) != 0 ) {
+		BString fullpath = _FullStylePath(styleName, path);
+		sCachedGlobal = YAML::LoadFile(fullpath.String());
+		sCachedStyleName = styleName;
+	} else {
+		LogTrace("Styler: cached style found! [%s]", styleName);
+	}
+
 	YAML::Node global;
-	if (styles["Global"]) {
-		global = styles["Global"];
+	if (sCachedGlobal["Global"]) {
+		global = sCachedGlobal["Global"];
 	}
 
 	_ApplyDefaultStyle(editor, global, font);
@@ -166,7 +175,7 @@ Styler::_ApplyGlobal(BScintillaView* editor, const char* styleName, const BPath 
 			}
 		}
 	}
-	for (const auto& style : styles) {
+	for (const auto& style : sCachedGlobal) {
 		if (style.first.as<std::string>() == "Global")
 			continue;
 		_GetAttributesFromNode(style.second, id, s);

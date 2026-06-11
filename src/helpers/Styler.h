@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, Andrea Anzani 
+ * Copyright 2023, Andrea Anzani
  * Copyright 2014-2018 Kacper Kasper  (from Koder editor)
  * All rights reserved. Distributed under the terms of the MIT license.
  */
@@ -49,6 +49,8 @@ private:
 	static  BString _FullStylePath(const char* style, const BPath &path);
 
 	static	std::unordered_map<int, Style>	sStylesMapping;
+	static	std::string						sCachedStyleName;
+	static	YAML::Node						sCachedGlobal;
 };
 
 
