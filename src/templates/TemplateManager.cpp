@@ -153,7 +153,7 @@ TemplateManager::CopyFileTemplate(const entry_ref* source, const entry_ref* dest
 
 status_t
 TemplateManager::CopyProjectTemplate(const entry_ref* source, const entry_ref* destination,
-										const char* name)
+										const char* name, entry_ref* newFolderRef)
 {
 	BPath sourcePath(source);
 	Entry sourceEntry(sourcePath.Path());
@@ -173,6 +173,9 @@ TemplateManager::CopyProjectTemplate(const entry_ref* source, const entry_ref* d
 		// TODO: Default templates in a tipical HPKG installation are readonly
 		// we are setting write permissions recursively here
 		FSMakeWritable(destPath.Path(), true);
+		if (newFolderRef != nullptr) {
+			BEntry(destPath.Path()).GetRef(newFolderRef);
+		}
 	}
 
 	return status;

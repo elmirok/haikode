@@ -25,9 +25,11 @@ public:
 	status_t GetTemplatesList(entry_list& templates);
 	status_t GetUserTemplatesList(entry_list& userTemplates);
 
- 	static status_t		CopyFileTemplate(const entry_ref* source, const entry_ref* destination, entry_ref* newFileRef);
+ 	static status_t		CopyFileTemplate(const entry_ref* source, const entry_ref* destination,
+										entry_ref* newFileRef);
 	static status_t		CopyProjectTemplate(const entry_ref* source, const entry_ref* destination,
-												const char* name = nullptr);
+												const char* name = nullptr,
+												entry_ref* newFolderRef = nullptr);
 	static status_t		CreateTemplate(const entry_ref* file);
 	static status_t		CreateNewFolder(const entry_ref* destination, entry_ref* newFolderRef);
 

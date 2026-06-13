@@ -826,12 +826,9 @@ GenioWindow::MessageReceived(BMessage* message)
 				LogError("Invalid destination name %s", name.String());
 				break;
 			}
-			if (TemplateManager::CopyProjectTemplate(&templateRef, &destRef, name.String()) == B_OK) {
-				BPath destPath(&destRef);
-				destPath.Append(name.String());
-				BEntry destEntry(destPath.Path());
-				entry_ref destination;
-				destEntry.GetRef(&destination);
+			entry_ref destination;
+			if (TemplateManager::CopyProjectTemplate(&templateRef, &destRef,
+													name.String(), &destination) == B_OK) {
 				_ProjectFolderOpen(destination);
 			} else {
 				LogError("TemplateManager: could create %s from %s to %s",
