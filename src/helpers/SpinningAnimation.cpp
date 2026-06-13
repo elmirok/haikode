@@ -151,7 +151,10 @@ SpinningAnimation::_AnimationThread(void* castToThis)
 		if (status != B_OK)
 			break;
 
-		sLocker.Lock();
+		if (sLocker.LockWithTimeout(200000L) != B_OK) {
+			release_sem(sSemaphore);
+			continue;
+		}
 
 		if (++sBuildAnimationIndex >= (int32)sBuildAnimationFrames.size())
 			sBuildAnimationIndex = 0;
