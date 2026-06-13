@@ -29,6 +29,9 @@ public:
 			 EditorTabView(BMessenger target, button_width tabWidth = B_WIDTH_AS_USUAL);
 			~EditorTabView();
 
+	void	AttachedToWindow() override;
+	void	MessageReceived(BMessage*) override;
+
 	void	AddEditor(const char* label, IEditor* editor, BMessage* info = nullptr, int32 index = -1);
 
 	IEditor* SelectedEditor() const;
@@ -50,6 +53,13 @@ public:
 	void	SelectNext();
 	void	SelectPrev();
 
+	void	ForEachEditor(const std::function<bool(IEditor*)>& op) const;
+	void 	ReverseForEachEditor(const std::function<bool(IEditor*)>& op) const;
+
+	IEditor*	EditorBy(const node_ref* nodeRef) const;
+	IEditor*	EditorBy(const entry_ref* ref) const;
+	IEditor*	EditorById(editor_id id) const;
+
 //deprecated :
 
 	deprecated_ int32	SelectedTabIndex() const;
@@ -57,17 +67,7 @@ public:
 	deprecated_ int32	CountTabs() const;
 
 	deprecated_ void	SelectTab(int32 index, BMessage* selInfo = nullptr);
-	deprecated_ IEditor* EditorAt(int32 index);
-
-				IEditor* EditorBy(const node_ref* nodeRef);
-				IEditor*	EditorBy(const entry_ref* ref);
-				IEditor*	EditorById(editor_id id);
-
-	void	ForEachEditor(const std::function<bool(IEditor*)>& op);
-	void 	ReverseForEachEditor(const std::function<bool(IEditor*)>& op);
-
-	void	AttachedToWindow() override;
-	void	MessageReceived(BMessage*) override;
+	deprecated_ IEditor* EditorAt(int32 index) const;
 
 protected:
 friend GTabEditor;

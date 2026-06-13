@@ -43,6 +43,40 @@ EditorTabView::~EditorTabView()
 
 
 void
+EditorTabView::AttachedToWindow()
+{
+	GTabView::AttachedToWindow();
+
+	// Shortcuts
+	for (int32 index = 1; index < 10; index++) {
+		constexpr auto kAsciiPos {48};
+		BMessage* selectTab = new BMessage(kSelectByKey);
+		selectTab->AddInt32("index", index - 1);
+		Window()->AddShortcut(index + kAsciiPos, B_COMMAND_KEY, selectTab, this);
+	}
+}
+
+
+void
+EditorTabView::MessageReceived(BMessage* message)
+{
+	switch (message->what) {
+		case kSelectByKey:
+			int32 index;
+			// Shortcut selection, be careful
+			if (message->FindInt32("index", &index) == B_OK) {
+				if (index < Container()->CountTabs())
+					SelectTab(index);
+			}
+			break;
+		default:
+			GTabView::MessageReceived(message);
+			break;
+	}
+}
+
+
+void
 EditorTabView::AddEditor(const char* label, IEditor* editor, BMessage* info, int32 index)
 {
 	// by default the new editor is placed next to the selected one.
@@ -50,7 +84,6 @@ EditorTabView::AddEditor(const char* label, IEditor* editor, BMessage* info, int
 		index = SelectedTabIndex() + 1;
 
 	GTabEditor*	tab = new GTabEditor(label, this, editor);
-
 
 	BMessage message;
 	if (info != nullptr)
@@ -64,18 +97,33 @@ EditorTabView::AddEditor(const char* label, IEditor* editor, BMessage* info, int
 
 
 IEditor*
-EditorTabView::EditorBy(const entry_ref* ref)
+EditorTabView::EditorBy(const entry_ref* ref) const
 {
 	return _GetEditor_(ref);
 }
 
 
 IEditor*
-EditorTabView::EditorBy(const node_ref* nodeRef)
+EditorTabView::EditorBy(const node_ref* nodeRef) const
 {
 	IEditor* found = nullptr;
 	ForEachEditor([&](IEditor* editor) {
 		if (editor->NodeRef() != nullptr && *editor->NodeRef() == *nodeRef) {
+			found = editor;
+			return false;
+		}
+		return true;
+	});
+	return found;
+}
+
+
+IEditor*
+EditorTabView::EditorById(editor_id id) const
+{
+	IEditor* found = nullptr;
+	ForEachEditor([&](IEditor* editor) {
+		if (editor->Id() == id) {
 			found = editor;
 			return false;
 		}
@@ -161,23 +209,8 @@ EditorTabView::SelectTab(IEditor* editor)
 }
 
 
-IEditor*
-EditorTabView::EditorById(editor_id id)
-{
-	IEditor* found = nullptr;
-	ForEachEditor([&](IEditor* editor) {
-		if (editor->Id() == id) {
-			found = editor;
-			return false;
-		}
-		return true;
-	});
-	return found;
-}
-
-
 void
-EditorTabView::ForEachEditor(const std::function<bool(IEditor*)>& op)
+EditorTabView::ForEachEditor(const std::function<bool(IEditor*)>& op) const
 {
 	for (int32 i = 0; i < Container()->CountTabs(); i++) {
 		const GTabEditor* tab = dynamic_cast<GTabEditor*>(Container()->TabAt(i));
@@ -191,7 +224,7 @@ EditorTabView::ForEachEditor(const std::function<bool(IEditor*)>& op)
 
 
 void
-EditorTabView::ReverseForEachEditor(const std::function<bool(IEditor*)>& op)
+EditorTabView::ReverseForEachEditor(const std::function<bool(IEditor*)>& op) const
 {
 	for (int32 i = Container()->CountTabs() - 1; i >= 0; i--) {
 		const GTabEditor* tab = dynamic_cast<GTabEditor*>(Container()->TabAt(i));
@@ -200,40 +233,6 @@ EditorTabView::ReverseForEachEditor(const std::function<bool(IEditor*)>& op)
 			if (!next)
 				return;
 		}
-	}
-}
-
-
-void
-EditorTabView::AttachedToWindow()
-{
-	GTabView::AttachedToWindow();
-
-	// Shortcuts
-	for (int32 index = 1; index < 10; index++) {
-		constexpr auto kAsciiPos {48};
-		BMessage* selectTab = new BMessage(kSelectByKey);
-		selectTab->AddInt32("index", index - 1);
-		Window()->AddShortcut(index + kAsciiPos, B_COMMAND_KEY, selectTab, this);
-	}
-}
-
-
-void
-EditorTabView::MessageReceived(BMessage* message)
-{
-	switch (message->what) {
-		case kSelectByKey:
-			int32 index;
-			// Shortcut selection, be careful
-			if (message->FindInt32("index", &index) == B_OK) {
-				if (index < Container()->CountTabs())
-					SelectTab(index);
-			}
-			break;
-		default:
-			GTabView::MessageReceived(message);
-			break;
 	}
 }
 
@@ -464,7 +463,7 @@ EditorTabView::SelectTab(int32 index, BMessage* selInfo)
 
 
 IEditor*
-EditorTabView::EditorAt(int32 index)
+EditorTabView::EditorAt(int32 index) const
 {
 	const GTabEditor* tab = dynamic_cast<GTabEditor*>(Container()->TabAt(index));
 	return tab ? tab->GetEditor() : nullptr;
