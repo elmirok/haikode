@@ -86,6 +86,7 @@ GenioApp::~GenioApp()
 	gCFG.SaveToFile({fConfigurationPath});
 	LSPServersManager::DisposeLSPServersConfig();
 	TemplateManager::Dispose();
+	delete fExtensionManager;
 }
 
 
