@@ -592,28 +592,15 @@ FunctionsOutlineView::_UpdateDocumentSymbols(const BMessage& msg, const entry_re
 	const int32 status = msg.GetInt32("status", IEditor::STATUS_UNKNOWN);
 	switch (status) {
 		case IEditor::STATUS_UNKNOWN:
-			//TODO move to a method and avoid duplications:
-			fListView->MakeEmpty();
-			fFilterListView->MakeEmpty();
-			fFilterTextControl->SetEnabled(false);
-			fToolBar->SetActionEnabled(kMsgFilterTextClear, false);
-			fToolBar->SetActionEnabled(kMsgSort, false);
+			_ClearListView();
 			return;
 		case IEditor::STATUS_NO_CAPABILITY:
-			fListView->MakeEmpty();
-			fFilterListView->MakeEmpty();
-			fFilterTextControl->SetEnabled(false);
-			fToolBar->SetActionEnabled(kMsgFilterTextClear, false);
-			fToolBar->SetActionEnabled(kMsgSort, false);
+			_ClearListView();
 			fListView->AddItem(new BStringItem(B_TRANSLATE("No outline available")));
 			return;
 		case IEditor::STATUS_REQUESTED:
 		{
-			fListView->MakeEmpty();
-			fFilterListView->MakeEmpty();
-			fFilterTextControl->SetEnabled(false);
-			fToolBar->SetActionEnabled(kMsgFilterTextClear, false);
-			fToolBar->SetActionEnabled(kMsgSort, false);
+			_ClearListView();
 			BListItem* item = new PendingListItem(B_TRANSLATE("Creating outline"));
 			fListView->AddItem(item);
 			SpinningAnimation::RegisterItem(fListView, item);
@@ -752,6 +739,17 @@ FunctionsOutlineView::_SelectSymbolByCaretPosition(int32 position)
 		fListView->Select(fListView->IndexOf(sym));
 		fListView->ScrollToSelection();
 	}
+}
+
+
+void
+FunctionsOutlineView::_ClearListView()
+{
+	fListView->MakeEmpty();
+	fFilterListView->MakeEmpty();
+	fFilterTextControl->SetEnabled(false);
+	fToolBar->SetActionEnabled(kMsgFilterTextClear, false);
+	fToolBar->SetActionEnabled(kMsgSort, false);
 }
 
 

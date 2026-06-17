@@ -35,7 +35,7 @@ private:
     status_t    _GoToSymbol(BMessage *msg);
 	void        _RenameSymbol(BMessage *msg);
 	void		_SelectSymbolByCaretPosition(int32 position);
-
+	void		_ClearListView();
 
 	void			_ApplyFilter(bool force = false);
 	void			_ClearFilter();
