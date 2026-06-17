@@ -67,7 +67,7 @@ public:
 private:
 	void ShowPopupMenu(BPoint where) override;
 
-	void _AddProjectFolderMenuItems(BMenu* projectMenu, ProjectFolder* project);
+	void _AddProjectFolderMenuItems(BMenu* projectMenu, const ProjectFolder* project);
 };
 
 ProjectBrowser::ProjectBrowser()
@@ -1503,7 +1503,7 @@ ProjectOutlineListView::ShowPopupMenu(BPoint where)
 
 
 void
-ProjectOutlineListView::_AddProjectFolderMenuItems(BMenu* projectMenu, ProjectFolder* project)
+ProjectOutlineListView::_AddProjectFolderMenuItems(BMenu* projectMenu, const ProjectFolder* project)
 {
 	BMessage* closePrj = new BMessage(MSG_PROJECT_MENU_CLOSE);
 	closePrj->AddPointer("project", project);
