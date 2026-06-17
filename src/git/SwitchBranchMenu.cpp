@@ -35,6 +35,7 @@ SwitchBranchMenu::SwitchBranchMenu(BHandler *target, const char* label,
 
 SwitchBranchMenu::~SwitchBranchMenu()
 {
+	delete fMessage;
 }
 
 
