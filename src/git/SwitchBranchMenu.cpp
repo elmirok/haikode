@@ -59,27 +59,6 @@ SwitchBranchMenu::AttachedToWindow()
 }
 
 
-void
-SwitchBranchMenu::DetachedFromWindow()
-{
-	BMenu::DetachedFromWindow();
-}
-
-
-void
-SwitchBranchMenu::MessageReceived(BMessage *message)
-{
-	BMenu::MessageReceived(message);
-}
-
-
-status_t
-SwitchBranchMenu::SetTargetForItems(BHandler* target)
-{
-	return BMenu::SetTargetForItems(target);
-}
-
-
 bool
 SwitchBranchMenu::_BuildMenu(const BString& projectPath)
 {

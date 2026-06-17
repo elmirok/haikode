@@ -19,10 +19,6 @@ public:
 	virtual 				~SwitchBranchMenu();
 
 	virtual void 			AttachedToWindow();
-	virtual void 			DetachedFromWindow();
-	virtual void 			MessageReceived(BMessage *message);
-
-	virtual status_t 		SetTargetForItems(BHandler* target);
 
 private:
 	bool 					_BuildMenu(const BString& projectPath);
