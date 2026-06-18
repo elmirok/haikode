@@ -914,10 +914,10 @@ BMessage
 Editor::GetVisibleLines()
 {
 	// Get the first visible line (0-based in Scintilla)
-	int32 firstVisibleLine = SendMessage(SCI_GETFIRSTVISIBLELINE, 0, 0);
+	int32 firstVisibleLine = SendMessage(SCI_GETFIRSTVISIBLELINE, UNSET, UNSET);
 
 	// Get the number of lines visible on screen
-	int32 linesOnScreen = SendMessage(SCI_LINESONSCREEN, 0, 0);
+	int32 linesOnScreen = SendMessage(SCI_LINESONSCREEN, UNSET, UNSET);
 
 	// Calculate the last visible line (0-based in Scintilla)
 	int32 lastVisibleLine = firstVisibleLine + linesOnScreen - 1;
@@ -938,7 +938,7 @@ Editor::GetScrollPosition()
 	int32 xOffset = SendMessage(SCI_GETXOFFSET, 0, 0);
 
 	// Get first visible line (0-based in Scintilla)
-	int32 firstVisibleLine = SendMessage(SCI_GETFIRSTVISIBLELINE, 0, 0);
+	int32 firstVisibleLine = SendMessage(SCI_GETFIRSTVISIBLELINE, UNSET, UNSET);
 
 	// Add to message (convert line to 1-based for consistency with other APIs)
 	BMessage scroll;
@@ -956,14 +956,14 @@ Editor::SetScrollPosition(int32 line)
 	int32 scintillaLine = line - 1;
 
 	// Ensure the line is within valid range
-	int32 lineCount = SendMessage(SCI_GETLINECOUNT, 0, 0);
+	int32 lineCount = CountLines();
 	if (scintillaLine < 0)
 		scintillaLine = 0;
 	else if (scintillaLine >= lineCount)
 		scintillaLine = lineCount - 1;
 
 	// Set the first visible line
-	SendMessage(SCI_SETFIRSTVISIBLELINE, scintillaLine, 0);
+	SendMessage(SCI_SETFIRSTVISIBLELINE, scintillaLine, UNSET);
 }
 
 
@@ -1396,6 +1396,9 @@ Editor::NotificationReceived(SCNotification* notification)
 				int32 position = SendMessage(SCI_GETCURRENTPOS, UNSET, UNSET);
 				int32 anchor = SendMessage(SCI_GETANCHOR, UNSET, UNSET);
 				if (anchor != position) {
+					// TODO: I don't understand this code:
+					// we check line against SCI_GETFIRSTVISIBLELINE then 
+					// is visible, then SCI_SETFIRSTVISIBLELINE if it is ?
 					int32 line = SendMessage(SCI_LINEFROMPOSITION, position, UNSET);
 					if (line == SendMessage(SCI_GETFIRSTVISIBLELINE, UNSET, UNSET))
 						SendMessage(SCI_SETFIRSTVISIBLELINE, line - 1, UNSET);
