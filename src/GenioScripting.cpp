@@ -397,8 +397,6 @@ GenioApp::_HandleScripting(BMessage* data)
 	}
 
 	data->SendReply(&reply);
-
-	return;
 }
 
 
