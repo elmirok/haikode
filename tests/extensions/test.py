@@ -501,6 +501,7 @@ def main():
     # Run all tests and track results
     print("\n--- Running Tests ---\n")
 
+    test_results["ScrollPosition"] = ScrollPosition()
     test_results["Selection"] = Selection()
     test_results["Line"] = Line()
     test_results["Undo (Line)"] = Undo()
@@ -512,7 +513,6 @@ def main():
     test_results["CaretPosition"] = CaretPosition()
     test_results["SelectionRange"] = SelectionRange()
     test_results["VisibleLines"] = VisibleLines()
-    test_results["ScrollPosition"] = ScrollPosition()
     test_results["DocumentInfo"] = DocumentInfo()
 
     # Make a modification to test the Modified property
