@@ -69,6 +69,8 @@ The Genio-based branch now adds:
   added/removed/context lines before any apply action.
 - A native selected patch-file field so a user can approve or reject one named
   file from a multi-file AI patch instead of blindly accepting the first file.
+- **Review patch** scopes the AI review prompt to the selected patch file when
+  the selected file field is set.
 - Project-local `.haikode/sessions/` records for successful AI exchanges,
   storing prompts, responses, provider metadata, active file, and pending
   actions without API keys or bearer tokens.

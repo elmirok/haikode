@@ -55,6 +55,7 @@ main()
 
 	request.mode = Haikode::AI::PromptMode::ReviewDiff;
 	request.userPrompt = "Please sanity-check this patch.";
+	request.pendingDiffPath = "src/main.cpp";
 	request.pendingDiff = "diff --git a/src/main.cpp b/src/main.cpp\n"
 		"--- a/src/main.cpp\n"
 		"+++ b/src/main.cpp\n"
@@ -63,6 +64,8 @@ main()
 		"+new\n";
 	const Haikode::AI::PromptBuildResult patchReview
 		= builder.Build(request, 1024, 10);
+	assert(patchReview.prompt.find("Selected patch file: src/main.cpp")
+		!= std::string::npos);
 	assert(patchReview.prompt.find("Pending unified diff:") != std::string::npos);
 	assert(patchReview.prompt.find("```diff") != std::string::npos);
 	assert(patchReview.prompt.find("-old") != std::string::npos);

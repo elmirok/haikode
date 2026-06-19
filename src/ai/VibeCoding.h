@@ -40,6 +40,7 @@ struct VibeCodingRequest {
 	std::vector<ProjectFileSummary> projectFiles;
 	size_t projectMapCandidateCount = 0;
 	std::string pendingDiff;
+	std::string pendingDiffPath;
 };
 
 struct PromptBuildResult {

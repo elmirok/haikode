@@ -416,7 +416,13 @@ AIChatPanel::MessageReceived(BMessage* message)
 		case kMsgReviewPatch:
 			if (fPendingDiff.IsEmpty() || fPendingRawDiff.IsEmpty())
 				_AppendOutput(B_TRANSLATE("No pending patch to review."));
-			else
+			else if (fPatchPath != nullptr
+				&& !BString(fPatchPath->Text()).IsEmpty()
+				&& fPendingDiff.ReviewTextForFile(fPatchPath->Text()).empty()) {
+				BString line(B_TRANSLATE("Pending patch does not contain selected file: "));
+				line << fPatchPath->Text();
+				_AppendOutput(line.String());
+			} else
 				_SendPrompt(Haikode::AI::PromptMode::ReviewDiff);
 			break;
 		case kMsgApplyPatch:
@@ -1469,8 +1475,20 @@ AIChatPanel::_RequestFromContext(Haikode::AI::PromptMode mode) const
 	request.projectFiles = Haikode::AI::BuildProjectMap(fProjectRoot.String(),
 		80, &projectMapCandidateCount);
 	request.projectMapCandidateCount = projectMapCandidateCount;
-	if (mode == Haikode::AI::PromptMode::ReviewDiff)
-		request.pendingDiff = fPendingRawDiff.String();
+	if (mode == Haikode::AI::PromptMode::ReviewDiff) {
+		const BString selectedPath = fPatchPath != nullptr
+			? BString(fPatchPath->Text()) : BString();
+		if (!selectedPath.IsEmpty()) {
+			const std::string selectedDiff
+				= fPendingDiff.ReviewTextForFile(selectedPath.String());
+			if (!selectedDiff.empty()) {
+				request.pendingDiffPath = selectedPath.String();
+				request.pendingDiff = selectedDiff;
+			}
+		}
+		if (request.pendingDiff.empty())
+			request.pendingDiff = fPendingRawDiff.String();
+	}
 
 	const std::string contextText = Haikode::AI::SelectContextText(
 		fSelection.String(), fFileText.String());

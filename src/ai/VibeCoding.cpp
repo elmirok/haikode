@@ -786,6 +786,8 @@ PromptBuilder::Build(const VibeCodingRequest& request, size_t maxBytesPerFile,
 	}
 
 	if (!request.pendingDiff.empty()) {
+		if (!request.pendingDiffPath.empty())
+			prompt << "Selected patch file: " << request.pendingDiffPath << "\n";
 		prompt
 			<< "Pending unified diff:\n"
 			<< "```diff\n"
