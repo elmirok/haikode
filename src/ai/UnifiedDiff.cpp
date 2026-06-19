@@ -381,6 +381,82 @@ TrimTrailingWhitespace(std::string value)
 
 
 bool
+ReadJsonString(const std::string& text, size_t& pos, std::string& value)
+{
+	value.clear();
+	if (pos >= text.size() || text[pos] != '"')
+		return false;
+	pos++;
+	while (pos < text.size()) {
+		const char c = text[pos++];
+		if (c == '"')
+			return true;
+		if (c == '\\' && pos < text.size()) {
+			const char escaped = text[pos++];
+			switch (escaped) {
+				case 'n':
+					value.push_back('\n');
+					break;
+				case 'r':
+					value.push_back('\r');
+					break;
+				case 't':
+					value.push_back('\t');
+					break;
+				default:
+					value.push_back(escaped);
+					break;
+			}
+		} else
+			value.push_back(c);
+	}
+	return false;
+}
+
+
+bool
+ExtractJsonStringField(const std::string& json, const std::string& key,
+	std::string& value)
+{
+	const std::string marker = "\"" + key + "\"";
+	size_t pos = json.find(marker);
+	if (pos == std::string::npos)
+		return false;
+	pos = json.find(':', pos + marker.size());
+	if (pos == std::string::npos)
+		return false;
+	pos++;
+	while (pos < json.size()
+		&& std::isspace(static_cast<unsigned char>(json[pos]))) {
+		pos++;
+	}
+	return ReadJsonString(json, pos, value);
+}
+
+
+bool
+ExtractJsonDiffBody(const std::string& text, std::string& rawDiff)
+{
+	const std::string trimmed = TrimTrailingWhitespace(text);
+	if (trimmed.size() < 2 || trimmed[0] != '{'
+		|| trimmed[trimmed.size() - 1] != '}') {
+		return false;
+	}
+
+	for (const std::string& key : {"unified_diff", "diff", "patch"}) {
+		std::string value;
+		if (ExtractJsonStringField(trimmed, key, value)
+			&& (value.find("--- ") != std::string::npos
+				|| value.find("diff --git ") != std::string::npos)) {
+			rawDiff = TrimTrailingWhitespace(value);
+			return true;
+		}
+	}
+	return false;
+}
+
+
+bool
 ExtractFencedDiffBody(const std::string& text, std::string& rawDiff)
 {
 	size_t search = 0;
@@ -479,6 +555,9 @@ bool
 UnifiedDiff::ExtractFromText(const std::string& text, UnifiedDiff& diff,
 	std::string& rawDiff, std::string& error)
 {
+	if (ExtractJsonDiffBody(text, rawDiff))
+		return Parse(rawDiff, diff, error);
+
 	if (ExtractFencedDiffBody(text, rawDiff))
 		return Parse(rawDiff, diff, error);
 

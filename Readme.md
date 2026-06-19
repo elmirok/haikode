@@ -214,6 +214,8 @@ When an AI response includes a unified diff, Haikode saves it under
 hunk headers, and explicit add/remove markers before any apply action.
 If the model wraps the diff in a fenced `diff` or `patch` code block, Haikode
 saves only the diff body, not the prose after the fence.
+If the model returns whole-response JSON with a `unified_diff`, `diff`, or
+`patch` string field, Haikode routes that diff into the same review/apply flow.
 
 AI patches cannot modify sensitive project metadata such as `.git/`,
 `.haikode/`, `.genio`, or Haikode/Genio settings files.

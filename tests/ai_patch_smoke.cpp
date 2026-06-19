@@ -171,6 +171,25 @@ main()
 	assert(fencedRawDiff.find("--- a/src/main.cpp") == 0);
 	assert(fencedRawDiff.find("+new") != std::string::npos);
 
+	const std::string jsonPatchResponse =
+		"{\"summary\":\"Small replacement\","
+		"\"unified_diff\":\"--- a/src/main.cpp\\n"
+		"+++ b/src/main.cpp\\n"
+		"@@ -1,3 +1,3 @@\\n"
+		" one\\n"
+		"-old\\n"
+		"+new\\n"
+		" three\\n\"}";
+	Haikode::AI::UnifiedDiff jsonPatch;
+	std::string jsonRawDiff;
+	assert(Haikode::AI::UnifiedDiff::ExtractFromText(jsonPatchResponse,
+		jsonPatch, jsonRawDiff, error));
+	assert(jsonPatch.ChangedPaths().size() == 1);
+	assert(jsonPatch.ChangedPaths()[0] == "src/main.cpp");
+	assert(jsonRawDiff.find("--- a/src/main.cpp") == 0);
+	assert(jsonRawDiff.find("\\n") == std::string::npos);
+	assert(jsonRawDiff.find("+new") != std::string::npos);
+
 	WriteFile(root / "src" / "main.cpp", "one\nold\nthree\nkeep\nlast\n");
 	const std::string hunkDiff =
 		"diff --git a/src/main.cpp b/src/main.cpp\n"

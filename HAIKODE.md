@@ -77,6 +77,8 @@ The Genio-based branch now adds:
   approval, so rejected and partially applied proposals still have an audit file.
 - Fenced AI diff responses are extracted as the diff body only, so trailing
   model commentary after the code fence is not saved into patch audit files.
+- Whole-response JSON patch objects with `unified_diff`, `diff`, or `patch`
+  string fields are accepted and routed into the same review/apply flow.
 - Explicit AI command request parsing with separate **Run command** and
   **Reject command** approval buttons.
 - Generic fenced JSON blocks with both `summary` and `argv` are also surfaced
