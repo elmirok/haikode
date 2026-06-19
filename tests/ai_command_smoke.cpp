@@ -168,6 +168,31 @@ main()
 	assert(pendingText.find("Commands: 1 pending") != std::string::npos);
 	assert(pendingText.find("Run unit tests: make test") != std::string::npos);
 
+	const std::string approvalText = Haikode::AI::FormatCommandApprovalPrompt(
+		commands[0], "/boot/home/projects/Haikode");
+	assert(approvalText.find("Run this AI-requested command?") != std::string::npos);
+	assert(approvalText.find("make test") != std::string::npos);
+	assert(approvalText.find("/boot/home/projects/Haikode") != std::string::npos);
+	assert(approvalText.find("Haikode will execute argv directly without a shell")
+		!= std::string::npos);
+	assert(approvalText.find("No files are changed unless this command changes them")
+		!= std::string::npos);
+
+	Haikode::AI::CommandRequest blockedCommand;
+	blockedCommand.summary = "Manual shell command";
+	blockedCommand.argv = {"sh", "-c", "make test"};
+	blockedCommand.dangerous = true;
+	blockedCommand.runnable = false;
+	blockedCommand.warning = "Command uses a shell interpreter with -c.";
+	const std::string blockedApproval
+		= Haikode::AI::FormatCommandApprovalPrompt(blockedCommand,
+			"/boot/home/projects/Haikode");
+	assert(blockedApproval.find("Haikode will not run this command")
+		!= std::string::npos);
+	assert(blockedApproval.find("Manual shell review is required")
+		!= std::string::npos);
+	assert(blockedApproval.find(blockedCommand.warning) != std::string::npos);
+
 	const fs::path root = fs::temp_directory_path() / "haikode-command-smoke";
 	fs::remove_all(root);
 	fs::create_directories(root);

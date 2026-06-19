@@ -106,6 +106,8 @@ bool SaveCommandRequests(const std::string& projectRoot,
 	const std::vector<CommandRequest>& commands, std::string& savedPath,
 	std::string& error);
 std::string CommandDisplayString(const CommandRequest& command);
+std::string FormatCommandApprovalPrompt(const CommandRequest& command,
+	const std::string& projectRoot);
 std::string FormatPendingActions(const PendingActionSummary& summary);
 bool SaveAiSession(const std::string& projectRoot,
 	const AiSessionRecord& session, std::string& savedPath,

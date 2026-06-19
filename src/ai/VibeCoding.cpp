@@ -888,6 +888,30 @@ CommandDisplayString(const CommandRequest& command)
 
 
 std::string
+FormatCommandApprovalPrompt(const CommandRequest& command,
+	const std::string& projectRoot)
+{
+	std::ostringstream prompt;
+	prompt << "Run this AI-requested command?\n\n";
+	if (!command.summary.empty())
+		prompt << command.summary << "\n";
+	prompt << CommandDisplayString(command) << "\n\n";
+	if (!projectRoot.empty())
+		prompt << "Project: " << projectRoot << "\n";
+	prompt << "Haikode will execute argv directly without a shell.\n";
+	prompt << "No files are changed unless this command changes them.\n";
+	if (command.dangerous && !command.warning.empty())
+		prompt << "\nWarning: " << command.warning << "\n";
+	if (!command.runnable) {
+		prompt
+			<< "\nHaikode will not run this command.\n"
+			<< "Manual shell review is required before running it outside Haikode.\n";
+	}
+	return prompt.str();
+}
+
+
+std::string
 FormatPendingActions(const PendingActionSummary& summary)
 {
 	std::ostringstream text;

@@ -2291,14 +2291,8 @@ AIChatPanel::_RunPendingCommand()
 		return;
 	}
 
-	BString prompt(B_TRANSLATE("Run this AI-requested command in the active project?"));
-	prompt << "\n\n" << display.c_str();
-	if (command.dangerous)
-		prompt << "\n\n" << B_TRANSLATE("Warning: ") << command.warning.c_str();
-	if (!command.runnable) {
-		prompt << "\n\n"
-			<< B_TRANSLATE("Haikode will not run this command because it needs shell-style interpretation. Review and run it manually if you trust it.");
-	}
+	BString prompt(Haikode::AI::FormatCommandApprovalPrompt(command,
+		fProjectRoot.String()).c_str());
 
 	BAlert* alert = new BAlert("HaikodeRunCommand", prompt.String(),
 		B_TRANSLATE("Cancel"), command.runnable ? B_TRANSLATE("Run")
