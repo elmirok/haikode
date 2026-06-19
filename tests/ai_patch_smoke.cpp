@@ -62,6 +62,28 @@ main()
 	assert(ReadFile(fs::path(result.backupDirectory) / "src" / "main.cpp")
 		== "one\nold\nthree\n");
 
+	const std::string newFileDiff =
+		"diff --git a/src/new_feature.cpp b/src/new_feature.cpp\n"
+		"new file mode 100644\n"
+		"--- /dev/null\n"
+		"+++ b/src/new_feature.cpp\n"
+		"@@ -0,0 +1,4 @@\n"
+		"+#include <iostream>\n"
+		"+int answer() {\n"
+		"+\treturn 42;\n"
+		"+}\n";
+	Haikode::AI::UnifiedDiff newFilePatch;
+	assert(Haikode::AI::UnifiedDiff::Parse(newFileDiff, newFilePatch, error));
+	assert(newFilePatch.Apply(root.string(), result, error));
+	assert(ReadFile(root / "src" / "new_feature.cpp")
+		== "#include <iostream>\nint answer() {\n\treturn 42;\n}\n");
+
+	Haikode::AI::UnifiedDiff duplicateNewFilePatch;
+	assert(Haikode::AI::UnifiedDiff::Parse(newFileDiff, duplicateNewFilePatch,
+		error));
+	assert(!duplicateNewFilePatch.Apply(root.string(), result, error));
+	assert(error.find("already exists") != std::string::npos);
+
 	const std::string wrappedResponse =
 		"Here is the patch:\n\n```diff\n" + diff + "```\n";
 	Haikode::AI::UnifiedDiff wrapped;

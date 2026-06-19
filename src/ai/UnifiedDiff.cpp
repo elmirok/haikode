@@ -154,6 +154,24 @@ ApplyHunks(const std::vector<std::string>& original,
 	return true;
 }
 
+bool
+BuildNewFileContents(const std::vector<PatchHunk>& hunks,
+	std::vector<std::string>& contents, std::string& error)
+{
+	contents.clear();
+	for (const PatchHunk& hunk : hunks) {
+		for (const PatchHunkLine& line : hunk.lines) {
+			if (line.kind == '-') {
+				error = "New-file patch cannot delete existing lines.";
+				return false;
+			}
+			if (line.kind == '+' || line.kind == ' ')
+				contents.push_back(line.text);
+		}
+	}
+	return true;
+}
+
 } // namespace
 
 bool
@@ -292,30 +310,43 @@ UnifiedDiff::Apply(const std::string& projectRoot, PatchApplyResult& result,
 				error = "Unsafe patch path: " + file.newPath;
 				return false;
 			}
-			if (file.oldPath == "/dev/null") {
-				error = "New-file patches are not enabled yet.";
+			if (file.newPath == "/dev/null") {
+				error = "File deletion patches are not enabled yet.";
 				return false;
 			}
 		}
 
 		for (const PatchFile& file : fFiles) {
-			const fs::path target = fs::weakly_canonical(root / file.newPath);
+			const fs::path target = file.oldPath == "/dev/null"
+				? fs::weakly_canonical((root / file.newPath).parent_path())
+					/ fs::path(file.newPath).filename()
+				: fs::weakly_canonical(root / file.newPath);
 			if (!IsInsideDirectory(target, root)) {
 				error = "Unsafe patch path: " + file.newPath;
 				return false;
 			}
 
-			std::vector<std::string> original;
-			if (!ReadTextFile(target, original, error))
-				return false;
-
 			std::vector<std::string> patched;
-			if (!ApplyHunks(original, file.hunks, patched, error))
-				return false;
+			if (file.oldPath == "/dev/null") {
+				if (fs::exists(target)) {
+					error = "New-file patch target already exists: " + file.newPath;
+					return false;
+				}
+				if (!BuildNewFileContents(file.hunks, patched, error))
+					return false;
+			} else {
+				std::vector<std::string> original;
+				if (!ReadTextFile(target, original, error))
+					return false;
 
-			const fs::path backup = backupRoot / file.newPath;
-			fs::create_directories(backup.parent_path());
-			fs::copy_file(target, backup, fs::copy_options::overwrite_existing);
+				if (!ApplyHunks(original, file.hunks, patched, error))
+					return false;
+
+				const fs::path backup = backupRoot / file.newPath;
+				fs::create_directories(backup.parent_path());
+				fs::copy_file(target, backup, fs::copy_options::overwrite_existing);
+			}
+			fs::create_directories(target.parent_path());
 			if (!WriteTextFile(target, patched, error))
 				return false;
 
