@@ -490,13 +490,18 @@ ExtractCommandRequests(const std::string& text,
 	error.clear();
 	size_t pos = 0;
 	while (true) {
-		const size_t fence = text.find("```haikode-command", pos);
+		const size_t fence = text.find("```", pos);
 		if (fence == std::string::npos)
 			return true;
 		const size_t bodyStart = text.find('\n', fence);
 		if (bodyStart == std::string::npos) {
-			error = "Command request fence has no body.";
-			return false;
+			return true;
+		}
+		const std::string fenceInfo = ToLower(Trim(text.substr(fence + 3,
+			bodyStart - fence - 3)));
+		if (fenceInfo != "haikode-command") {
+			pos = bodyStart + 1;
+			continue;
 		}
 		const size_t bodyEnd = text.find("```", bodyStart + 1);
 		if (bodyEnd == std::string::npos) {

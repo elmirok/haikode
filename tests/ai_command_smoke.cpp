@@ -48,6 +48,22 @@ main()
 	assert(!commands[0].dangerous);
 	assert(Haikode::AI::CommandDisplayString(commands[0]) == "make test");
 
+	const std::string tolerantFence =
+		"```json\n"
+		"{\"argv\":[\"ignored\"]}\n"
+		"```\n"
+		"```Haikode-Command   \n"
+		"{\"summary\":\"List\",\"argv\":[\"ls\",\"-la\"]}\n"
+		"```\n";
+	std::vector<Haikode::AI::CommandRequest> tolerantCommands;
+	assert(Haikode::AI::ExtractCommandRequests(tolerantFence, tolerantCommands,
+		error));
+	assert(tolerantCommands.size() == 1);
+	assert(tolerantCommands[0].summary == "List");
+	assert(tolerantCommands[0].argv.size() == 2);
+	assert(tolerantCommands[0].argv[0] == "ls");
+	assert(tolerantCommands[0].argv[1] == "-la");
+
 	Haikode::AI::CommandRequest spaced;
 	spaced.argv = {"python3", "script with spaces.py", "it's ok"};
 	assert(Haikode::AI::CommandDisplayString(spaced)
