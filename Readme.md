@@ -200,7 +200,9 @@ shell command strings.
 Command requests can be returned in a fenced `haikode-command` block or in a
 generic fenced `json` block containing both `summary` and an `argv` string
 array. Generic JSON may also contain a `commands` array of `{summary, argv}`
-objects. Either way, they are only queued for explicit review and approval.
+objects. The same JSON shapes are accepted when returned as the whole response
+without a Markdown fence. Either way, they are only queued for explicit review
+and approval.
 
 Use **Recent records** in the AI panel to pick from recent `.haikode/sessions`,
 `.haikode/logs`, `.haikode/patches`, and `.haikode/commands` files for the

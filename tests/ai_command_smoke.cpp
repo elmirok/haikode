@@ -99,6 +99,29 @@ main()
 	assert(genericJsonArrayCommands[1].argv[0] == "make");
 	assert(genericJsonArrayCommands[1].argv[1] == "test");
 
+	const std::string bareJsonCommand =
+		"{\"summary\":\"Build without fences\",\"argv\":[\"make\"]}";
+	std::vector<Haikode::AI::CommandRequest> bareJsonCommands;
+	assert(Haikode::AI::ExtractCommandRequests(bareJsonCommand,
+		bareJsonCommands, error));
+	assert(bareJsonCommands.size() == 1);
+	assert(bareJsonCommands[0].summary == "Build without fences");
+	assert(bareJsonCommands[0].argv.size() == 1);
+	assert(bareJsonCommands[0].argv[0] == "make");
+
+	const std::string bareJsonCommandArray =
+		"{\"commands\":["
+		"{\"summary\":\"Build\",\"argv\":[\"make\"]},"
+		"{\"summary\":\"Test\",\"argv\":[\"make\",\"test\"]}"
+		"]}";
+	std::vector<Haikode::AI::CommandRequest> bareJsonArrayCommands;
+	assert(Haikode::AI::ExtractCommandRequests(bareJsonCommandArray,
+		bareJsonArrayCommands, error));
+	assert(bareJsonArrayCommands.size() == 2);
+	assert(bareJsonArrayCommands[0].summary == "Build");
+	assert(bareJsonArrayCommands[1].summary == "Test");
+	assert(bareJsonArrayCommands[1].argv.size() == 2);
+
 	const std::string shellFence =
 		"Try these commands:\n"
 		"```sh\n"

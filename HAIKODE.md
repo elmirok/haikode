@@ -84,6 +84,8 @@ The Genio-based branch now adds:
   need Haikode's custom fence label to remain reviewable.
 - Generic JSON blocks may also contain a `commands` array of `{summary, argv}`
   objects; each entry becomes a separate pending command request.
+- Whole-response JSON command objects and `commands` arrays are accepted too
+  when the model returns structured output without a Markdown fence.
 - Shell-interpreter command requests such as `sh -c ...` are flagged as not
   runnable inside Haikode and must be reviewed/run manually.
 - Destructive argv-native requests such as recursive forced `rm` and disk

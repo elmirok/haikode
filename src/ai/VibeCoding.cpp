@@ -794,6 +794,25 @@ AppendCommandRequestsFromJsonArray(const std::string& json,
 	}
 }
 
+
+void
+AppendCommandRequestsFromJson(const std::string& json,
+	std::vector<CommandRequest>& commands)
+{
+	std::vector<CommandRequest> arrayCommands;
+	AppendCommandRequestsFromJsonArray(json, arrayCommands);
+	if (!arrayCommands.empty()) {
+		commands.insert(commands.end(), arrayCommands.begin(),
+			arrayCommands.end());
+		return;
+	}
+
+	CommandRequest command;
+	std::string jsonError;
+	if (ParseCommandRequestJson(json, command, jsonError, true))
+		commands.push_back(command);
+}
+
 } // namespace
 
 std::string
@@ -811,6 +830,13 @@ ExtractCommandRequests(const std::string& text,
 {
 	commands.clear();
 	error.clear();
+	const std::string trimmedText = Trim(text);
+	if (trimmedText.size() >= 2 && trimmedText[0] == '{'
+		&& trimmedText[trimmedText.size() - 1] == '}') {
+		AppendCommandRequestsFromJson(trimmedText, commands);
+		return true;
+	}
+
 	size_t pos = 0;
 	while (true) {
 		const size_t fence = text.find("```", pos);
@@ -839,17 +865,7 @@ ExtractCommandRequests(const std::string& text,
 			commands.push_back(command);
 		} else if (FenceLanguage(fenceInfo) == "json") {
 			const std::string json = Trim(body);
-			std::vector<CommandRequest> arrayCommands;
-			AppendCommandRequestsFromJsonArray(json, arrayCommands);
-			if (!arrayCommands.empty()) {
-				commands.insert(commands.end(), arrayCommands.begin(),
-					arrayCommands.end());
-			} else {
-				CommandRequest command;
-				std::string jsonError;
-				if (ParseCommandRequestJson(json, command, jsonError, true))
-					commands.push_back(command);
-			}
+			AppendCommandRequestsFromJson(json, commands);
 		} else if (IsShellCommandFence(fenceInfo)) {
 			AppendShellCommandSuggestions(body, commands);
 		}
