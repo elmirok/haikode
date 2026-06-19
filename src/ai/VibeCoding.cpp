@@ -657,9 +657,12 @@ SaveAiSession(const std::string& projectRoot, const AiSessionRecord& session,
 
 
 std::vector<ProjectFileSummary>
-BuildProjectMap(const std::string& projectRoot, size_t maxFiles)
+BuildProjectMap(const std::string& projectRoot, size_t maxFiles,
+	size_t* candidateCount)
 {
 	std::vector<ProjectFileSummary> files;
+	if (candidateCount != nullptr)
+		*candidateCount = 0;
 	if (projectRoot.empty() || maxFiles == 0)
 		return files;
 
@@ -683,12 +686,13 @@ BuildProjectMap(const std::string& projectRoot, size_t maxFiles)
 		std::sort(paths.begin(), paths.end());
 
 		for (const fs::path& relative : paths) {
-			if (files.size() >= maxFiles)
-				break;
-
 			const fs::path absolute = root / relative;
 			std::string text;
 			if (!ReadSmallTextFile(absolute, text))
+				continue;
+			if (candidateCount != nullptr)
+				(*candidateCount)++;
+			if (files.size() >= maxFiles)
 				continue;
 
 			ProjectFileSummary summary;
@@ -752,6 +756,12 @@ PromptBuilder::Build(const VibeCodingRequest& request, size_t maxBytesPerFile,
 		request.projectFiles.size());
 	if (request.projectFiles.size() > maxProjectFiles) {
 		result.warnings.push_back("Some project-map entries were omitted from AI context.");
+	}
+	if (request.projectMapCandidateCount > request.projectFiles.size()) {
+		std::ostringstream warning;
+		warning << "project-map context included " << request.projectFiles.size()
+			<< " of " << request.projectMapCandidateCount << " discovered file(s).";
+		result.warnings.push_back(warning.str());
 	}
 	if (projectFileCount > 0) {
 		prompt << "Project map:\n";

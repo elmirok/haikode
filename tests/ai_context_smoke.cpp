@@ -66,6 +66,19 @@ main()
 	assert(map[1].language == "C++");
 	assert(map[1].hasTodo);
 	assert(map[1].summary.find("4 line(s)") != std::string::npos);
+	size_t totalProjectFiles = 0;
+	const std::vector<Haikode::AI::ProjectFileSummary> limitedMap
+		= Haikode::AI::BuildProjectMap(root.string(), 1, &totalProjectFiles);
+	assert(limitedMap.size() == 1);
+	assert(totalProjectFiles == 2);
+	Haikode::AI::VibeCodingRequest mapLimitedRequest;
+	mapLimitedRequest.projectRoot = root.string();
+	mapLimitedRequest.projectFiles = limitedMap;
+	mapLimitedRequest.projectMapCandidateCount = totalProjectFiles;
+	const Haikode::AI::PromptBuildResult mapLimitedPrompt
+		= builder.Build(mapLimitedRequest, 1024, 10);
+	assert(!mapLimitedPrompt.warnings.empty());
+	assert(mapLimitedPrompt.warnings[0].find("project-map") != std::string::npos);
 	fs::remove_all(root);
 
 	std::cout << "ai-context-smoke-ok\n";

@@ -37,6 +37,7 @@ struct VibeCodingRequest {
 	std::string userPrompt;
 	std::vector<ContextFile> files;
 	std::vector<ProjectFileSummary> projectFiles;
+	size_t projectMapCandidateCount = 0;
 };
 
 struct PromptBuildResult {
@@ -91,7 +92,7 @@ bool SaveAiSession(const std::string& projectRoot,
 	const AiSessionRecord& session, std::string& savedPath,
 	std::string& error);
 std::vector<ProjectFileSummary> BuildProjectMap(const std::string& projectRoot,
-	size_t maxFiles);
+	size_t maxFiles, size_t* candidateCount = nullptr);
 
 class PromptBuilder {
 public:

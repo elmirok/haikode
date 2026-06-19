@@ -833,9 +833,10 @@ AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 		return;
 	}
 
+	Haikode::AI::VibeCodingRequest request = _RequestFromContext(mode);
 	Haikode::AI::PromptBuilder builder;
-	Haikode::AI::PromptBuildResult result = builder.Build(
-		_RequestFromContext(mode), 200 * 1024, 10);
+	Haikode::AI::PromptBuildResult result = builder.Build(request, 200 * 1024,
+		10);
 	_SaveProviderToConfig();
 	Haikode::AI::ProviderSettings provider = _ProviderFromFields();
 
@@ -853,6 +854,13 @@ AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 		<< Haikode::AI::ToString(provider.authMode)
 		<< (provider.HasUsableCredentials() ? " ready" : " missing");
 	_AppendOutput(credentialLine.String());
+
+	BString contextLine(B_TRANSLATE("Project-map context: "));
+	contextLine << request.projectFiles.size();
+	if (request.projectMapCandidateCount > 0)
+		contextLine << "/" << request.projectMapCandidateCount;
+	contextLine << B_TRANSLATE(" file(s).");
+	_AppendOutput(contextLine.String());
 
 	for (const std::string& warning : result.warnings)
 		_AppendOutput(warning.c_str());
@@ -1346,8 +1354,10 @@ AIChatPanel::_RequestFromContext(Haikode::AI::PromptMode mode) const
 	request.mode = mode;
 	request.projectRoot = fProjectRoot.String();
 	request.userPrompt = fPrompt->Text();
+	size_t projectMapCandidateCount = 0;
 	request.projectFiles = Haikode::AI::BuildProjectMap(fProjectRoot.String(),
-		80);
+		80, &projectMapCandidateCount);
+	request.projectMapCandidateCount = projectMapCandidateCount;
 
 	const std::string contextText = Haikode::AI::SelectContextText(
 		fSelection.String(), fFileText.String());
