@@ -41,6 +41,12 @@ main()
 	assert(prepared.url == "https://api.openai.com/v1/chat/completions");
 	assert(prepared.authorizationHeader == "Authorization: Bearer sk-pasted");
 	assert(prepared.body.find("\"model\":\"gpt-test\"") != std::string::npos);
+	const std::string pastedCredentialStatus
+		= pastedProvider.CredentialStatusLabel();
+	assert(pastedCredentialStatus.find("saved inside Haikode")
+		!= std::string::npos);
+	assert(pastedCredentialStatus.find("api-key") != std::string::npos);
+	assert(pastedCredentialStatus.find("sk-pasted") == std::string::npos);
 	assert(Haikode::AI::AuthModeFromString(" LOCAL ")
 		== Haikode::AI::AuthMode::Local);
 	assert(Haikode::AI::AuthModeFromString("OAuth")
@@ -121,6 +127,12 @@ main()
 	assert(oauthProvider.Validate(validationError));
 	prepared = Haikode::AI::OpenAICompatibleClient::Prepare(oauthProvider, request);
 	assert(prepared.authorizationHeader == "Authorization: Bearer oauth-token");
+	const std::string oauthCredentialStatus
+		= oauthProvider.CredentialStatusLabel();
+	assert(oauthCredentialStatus.find("saved inside Haikode")
+		!= std::string::npos);
+	assert(oauthCredentialStatus.find("OAuth") != std::string::npos);
+	assert(oauthCredentialStatus.find("oauth-token") == std::string::npos);
 
 	Haikode::AI::CancellationToken cancellation;
 	cancellation.Cancel();
@@ -134,6 +146,8 @@ main()
 	Haikode::AI::ProviderSettings missingApiKey;
 	assert(!missingApiKey.Validate(validationError));
 	assert(validationError.find("API key") != std::string::npos);
+	assert(missingApiKey.CredentialStatusLabel().find("AI Setup")
+		!= std::string::npos);
 
 	Haikode::AI::ProviderSettings unsafeScheme;
 	unsafeScheme.baseUrl = "file:///boot/home/config/settings";

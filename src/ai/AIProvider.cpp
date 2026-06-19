@@ -177,6 +177,25 @@ ProviderSettings::ChatCompletionsEndpoint() const
 }
 
 
+std::string
+ProviderSettings::CredentialStatusLabel() const
+{
+	if (authMode == AuthMode::Local)
+		return "local provider; no API key required";
+	if (authMode == AuthMode::ApiKey) {
+		if (TrimWhitespace(apiKey).empty())
+			return "api-key missing; open AI Setup";
+		return "api-key saved inside Haikode";
+	}
+	if (authMode == AuthMode::OAuth) {
+		if (TrimWhitespace(oauthToken).empty())
+			return "OAuth bearer token missing; open AI Setup";
+		return "OAuth bearer token saved inside Haikode";
+	}
+	return "AI auth disabled";
+}
+
+
 std::vector<std::string>
 ProviderSettings::ExtraHeaders() const
 {

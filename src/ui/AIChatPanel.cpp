@@ -1411,6 +1411,7 @@ AIChatPanel::_SaveProviderToConfig()
 	_UpdateReadinessStatus();
 
 	_AppendOutput(B_TRANSLATE("Provider settings saved inside Haikode."));
+	_AppendOutput(_ProviderFromFields().CredentialStatusLabel().c_str());
 #ifndef HAIKODE_AI_NETWORK
 	_AppendOutput(B_TRANSLATE("This binary was built without network AI support; rebuild with HAIKODE_AI_NETWORK=1 to send requests."));
 #endif
@@ -1782,9 +1783,8 @@ AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 	_AppendOutput(providerLine.String());
 
 	BString credentialLine;
-	credentialLine << B_TRANSLATE("Credential mode: ")
-		<< Haikode::AI::ToString(provider.authMode)
-		<< (provider.HasUsableCredentials() ? " ready" : " missing");
+	credentialLine << B_TRANSLATE("Credential: ")
+		<< provider.CredentialStatusLabel().c_str();
 	_AppendOutput(credentialLine.String());
 
 	BString contextLine(B_TRANSLATE("Project-map context: "));

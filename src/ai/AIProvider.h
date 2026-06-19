@@ -37,6 +37,7 @@ struct ProviderSettings {
 	bool HasUsableCredentials() const;
 	bool Validate(std::string& error) const;
 	std::string ChatCompletionsEndpoint() const;
+	std::string CredentialStatusLabel() const;
 	std::vector<std::string> ExtraHeaders() const;
 };
 
