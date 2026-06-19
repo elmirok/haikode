@@ -82,6 +82,8 @@ private:
 	void _RunPendingCommand();
 	void _RejectPendingCommand();
 	void _ClearPendingCommands();
+	void _ListRecentProjectRecords();
+	void _ShowSelectedProjectRecord();
 	void _UpdatePendingActions();
 	void _SaveSessionRecord(const BString& responseText);
 	void _AppendOutput(const char* text);
@@ -107,6 +109,7 @@ private:
 	BTextControl* fPrompt;
 	BTextControl* fPatchPath;
 	BTextControl* fPatchHunk;
+	BTextControl* fRecordPath;
 	BTextView* fPendingActions;
 	BTextView* fOutput;
 	BButton* fSaveProvider;
@@ -140,6 +143,8 @@ private:
 	BButton* fRejectPatchButton;
 	BButton* fRunCommandButton;
 	BButton* fRejectCommandButton;
+	BButton* fRecentRecordsButton;
+	BButton* fShowRecordButton;
 	bool fRequestRunning;
 	int64 fActiveRequestId;
 	std::shared_ptr<Haikode::AI::CancellationToken> fActiveCancellation;

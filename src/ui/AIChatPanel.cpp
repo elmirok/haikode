@@ -26,6 +26,7 @@
 #include <cerrno>
 #include <cstring>
 #include <cstdlib>
+#include <string>
 #include <thread>
 
 #ifdef HAIKODE_AI_NETWORK
@@ -88,6 +89,8 @@ const uint32 kMsgApplyPatch = 'hiap';
 const uint32 kMsgRejectPatch = 'hirp';
 const uint32 kMsgRunCommand = 'hirc';
 const uint32 kMsgRejectCommand = 'hirx';
+const uint32 kMsgListRecords = 'hilr';
+const uint32 kMsgShowRecord = 'hird';
 
 Haikode::AI::AuthMode
 AuthModeFromString(const BString& value)
@@ -470,6 +473,7 @@ AIChatPanel::AIChatPanel(PanelTabManager* panelTabManager, tab_id id)
 	fPrompt(nullptr),
 	fPatchPath(nullptr),
 	fPatchHunk(nullptr),
+	fRecordPath(nullptr),
 	fPendingActions(nullptr),
 	fOutput(nullptr),
 	fSaveProvider(nullptr),
@@ -503,6 +507,8 @@ AIChatPanel::AIChatPanel(PanelTabManager* panelTabManager, tab_id id)
 	fRejectPatchButton(nullptr),
 	fRunCommandButton(nullptr),
 	fRejectCommandButton(nullptr),
+	fRecentRecordsButton(nullptr),
+	fShowRecordButton(nullptr),
 	fRequestRunning(false),
 	fActiveRequestId(0),
 	fActiveCancellation(nullptr)
@@ -547,6 +553,8 @@ AIChatPanel::AttachedToWindow()
 	fRejectPatchButton->SetTarget(this);
 	fRunCommandButton->SetTarget(this);
 	fRejectCommandButton->SetTarget(this);
+	fRecentRecordsButton->SetTarget(this);
+	fShowRecordButton->SetTarget(this);
 	_LoadProviderFromConfig();
 	be_app->StartWatching(this, gCFG.UpdateMessageWhat());
 	SetTabLabel(B_TRANSLATE("Haikode AI"));
@@ -730,6 +738,12 @@ AIChatPanel::MessageReceived(BMessage* message)
 		case kMsgRejectCommand:
 			_RejectPendingCommand();
 			break;
+		case kMsgListRecords:
+			_ListRecentProjectRecords();
+			break;
+		case kMsgShowRecord:
+			_ShowSelectedProjectRecord();
+			break;
 		case B_OBSERVER_NOTICE_CHANGE:
 		{
 			int32 code;
@@ -811,6 +825,8 @@ AIChatPanel::_BuildInterface()
 	fPatchHunk = new BTextControl("haikode_ai_patch_hunk",
 		B_TRANSLATE("Hunk"), "1", nullptr);
 	fPatchHunk->SetEnabled(false);
+	fRecordPath = new BTextControl("haikode_ai_record_path",
+		B_TRANSLATE("Record"), "", nullptr);
 
 	fSaveProvider = new BButton("haikode_ai_save_provider",
 		B_TRANSLATE("Save provider"), new BMessage(kMsgSaveProvider));
@@ -888,6 +904,10 @@ AIChatPanel::_BuildInterface()
 	fRejectCommandButton = new BButton("haikode_ai_reject_command",
 		B_TRANSLATE("Reject command"), new BMessage(kMsgRejectCommand));
 	fRejectCommandButton->SetEnabled(false);
+	fRecentRecordsButton = new BButton("haikode_ai_recent_records",
+		B_TRANSLATE("Recent records"), new BMessage(kMsgListRecords));
+	fShowRecordButton = new BButton("haikode_ai_show_record",
+		B_TRANSLATE("Show record"), new BMessage(kMsgShowRecord));
 
 	fPendingActions = new BTextView("haikode_ai_pending_actions");
 	fPendingActions->MakeEditable(false);
@@ -972,6 +992,11 @@ AIChatPanel::_BuildInterface()
 			.Add(fRejectPatchButton)
 			.Add(fRunCommandButton)
 			.Add(fRejectCommandButton)
+		.End()
+		.AddGroup(B_HORIZONTAL, B_USE_DEFAULT_SPACING)
+			.Add(fRecordPath)
+			.Add(fRecentRecordsButton)
+			.Add(fShowRecordButton)
 		.End()
 		.Add(pendingScroll)
 		.Add(outputScroll);
@@ -1176,6 +1201,8 @@ AIChatPanel::_SetRequestControlsEnabled(bool enabled)
 	fCodexStatusButton->SetEnabled(enabled);
 	fCodexLoginButton->SetEnabled(enabled);
 	fCodexAskButton->SetEnabled(enabled);
+	fRecentRecordsButton->SetEnabled(enabled);
+	fShowRecordButton->SetEnabled(enabled);
 	fCancelButton->SetEnabled(!enabled);
 }
 
@@ -1826,6 +1853,64 @@ AIChatPanel::_ClearPendingCommands()
 	if (fRejectCommandButton != nullptr)
 		fRejectCommandButton->SetEnabled(false);
 	_UpdatePendingActions();
+}
+
+
+void
+AIChatPanel::_ListRecentProjectRecords()
+{
+	if (fProjectRoot.IsEmpty()) {
+		_AppendOutput(B_TRANSLATE("Open or activate a project before listing Haikode records."));
+		return;
+	}
+
+	const std::vector<Haikode::AI::ProjectRecordEntry> records
+		= Haikode::AI::ListProjectRecords(fProjectRoot.String(), 20);
+	if (records.empty()) {
+		_AppendOutput(B_TRANSLATE("No .haikode records found for this project yet."));
+		return;
+	}
+
+	_AppendOutput(B_TRANSLATE("Recent Haikode records:"));
+	for (const Haikode::AI::ProjectRecordEntry& record : records) {
+		BString line("  ");
+		line << record.type.c_str() << "  " << record.path.c_str()
+			<< "  (" << std::to_string(record.sizeBytes).c_str() << " bytes)";
+		_AppendOutput(line.String());
+	}
+	if (fRecordPath != nullptr)
+		fRecordPath->SetText(records.front().path.c_str());
+}
+
+
+void
+AIChatPanel::_ShowSelectedProjectRecord()
+{
+	if (fProjectRoot.IsEmpty()) {
+		_AppendOutput(B_TRANSLATE("Open or activate a project before showing a Haikode record."));
+		return;
+	}
+	if (fRecordPath == nullptr || BString(fRecordPath->Text()).IsEmpty()) {
+		_AppendOutput(B_TRANSLATE("Choose or paste a .haikode record path first."));
+		return;
+	}
+
+	std::string text;
+	std::string error;
+	if (!Haikode::AI::ReadProjectRecord(fProjectRoot.String(),
+			fRecordPath->Text(), 256 * 1024, text, error)) {
+		BString line(B_TRANSLATE("Could not read Haikode record: "));
+		line << error.c_str();
+		_AppendOutput(line.String());
+		return;
+	}
+
+	fOutput->SetText("");
+	BString line(B_TRANSLATE("Haikode record: "));
+	line << fRecordPath->Text();
+	_AppendOutput(line.String());
+	_AppendOutput("");
+	_AppendOutput(text.c_str());
 }
 
 

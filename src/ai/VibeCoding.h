@@ -82,6 +82,12 @@ struct AiSessionRecord {
 	std::string savedPatchPath;
 };
 
+struct ProjectRecordEntry {
+	std::string type;
+	std::string path;
+	size_t sizeBytes = 0;
+};
+
 std::string SelectContextText(const std::string& selection,
 	const std::string& fullFileText);
 bool ExtractCommandRequests(const std::string& text,
@@ -93,6 +99,11 @@ std::string CommandDisplayString(const CommandRequest& command);
 std::string FormatPendingActions(const PendingActionSummary& summary);
 bool SaveAiSession(const std::string& projectRoot,
 	const AiSessionRecord& session, std::string& savedPath,
+	std::string& error);
+std::vector<ProjectRecordEntry> ListProjectRecords(
+	const std::string& projectRoot, size_t maxRecords);
+bool ReadProjectRecord(const std::string& projectRoot,
+	const std::string& recordPath, size_t maxBytes, std::string& text,
 	std::string& error);
 std::vector<ProjectFileSummary> BuildProjectMap(const std::string& projectRoot,
 	size_t maxFiles, size_t* candidateCount = nullptr);

@@ -20,6 +20,14 @@ ReadFile(const fs::path& path)
 		std::istreambuf_iterator<char>());
 }
 
+static void
+WriteFile(const fs::path& path, const std::string& text)
+{
+	fs::create_directories(path.parent_path());
+	std::ofstream file(path, std::ios::binary | std::ios::trunc);
+	file << text;
+}
+
 int
 main()
 {
@@ -101,6 +109,37 @@ main()
 		!= std::string::npos);
 	assert(savedSession.find("api_key") == std::string::npos);
 	assert(savedSession.find("sk-") == std::string::npos);
+
+	WriteFile(root / ".haikode" / "logs" / "codex-demo.log",
+		"label: codex\n--- output ---\nhello from codex\n");
+	WriteFile(root / ".haikode" / "patches" / "patch-demo.diff",
+		"diff --git a/a.cpp b/a.cpp\n");
+	const std::vector<Haikode::AI::ProjectRecordEntry> records
+		= Haikode::AI::ListProjectRecords(root.string(), 10);
+	assert(records.size() >= 3);
+	bool sawSession = false;
+	bool sawLog = false;
+	bool sawPatch = false;
+	for (const Haikode::AI::ProjectRecordEntry& record : records) {
+		sawSession = sawSession || record.type == "session";
+		sawLog = sawLog || record.type == "log";
+		sawPatch = sawPatch || record.type == "patch";
+		assert(record.path.find(".haikode/") == 0);
+	}
+	assert(sawSession);
+	assert(sawLog);
+	assert(sawPatch);
+
+	std::string recordText;
+	assert(Haikode::AI::ReadProjectRecord(root.string(),
+		".haikode/logs/codex-demo.log", 1024, recordText, error));
+	assert(recordText.find("hello from codex") != std::string::npos);
+	assert(Haikode::AI::ReadProjectRecord(root.string(),
+		".haikode/logs/codex-demo.log", 12, recordText, error));
+	assert(recordText.find("truncated") != std::string::npos);
+	assert(!Haikode::AI::ReadProjectRecord(root.string(), "../outside.log",
+		1024, recordText, error));
+	assert(error.find("Unsafe") != std::string::npos);
 
 	const std::string dangerous =
 		"```haikode-command\n"

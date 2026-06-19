@@ -94,6 +94,21 @@ ToLower(std::string value)
 }
 
 
+std::string
+RecordTypeForDirectory(const std::string& directory)
+{
+	if (directory == "sessions")
+		return "session";
+	if (directory == "logs")
+		return "log";
+	if (directory == "patches")
+		return "patch";
+	if (directory == "commands")
+		return "command";
+	return directory;
+}
+
+
 bool
 ContainsTodoMarker(const std::string& text)
 {
@@ -667,6 +682,136 @@ SaveAiSession(const std::string& projectRoot, const AiSessionRecord& session,
 			<< "\"\n"
 			<< "}\n";
 		savedPath = sessionPath.string();
+		return true;
+	} catch (const std::exception& exception) {
+		error = exception.what();
+		return false;
+	}
+}
+
+
+std::vector<ProjectRecordEntry>
+ListProjectRecords(const std::string& projectRoot, size_t maxRecords)
+{
+	std::vector<ProjectRecordEntry> records;
+	if (projectRoot.empty() || maxRecords == 0)
+		return records;
+
+	try {
+		const fs::path root = fs::weakly_canonical(projectRoot);
+		const fs::path haikodeRoot = root / ".haikode";
+		const std::vector<std::string> directories = {
+			"sessions", "logs", "patches", "commands"
+		};
+
+		struct RecordWithTime {
+			ProjectRecordEntry record;
+			fs::file_time_type modified;
+		};
+		std::vector<RecordWithTime> withTimes;
+		for (const std::string& directory : directories) {
+			const fs::path recordRoot = haikodeRoot / directory;
+			std::error_code errorCode;
+			if (!fs::is_directory(recordRoot, errorCode))
+				continue;
+			for (const fs::directory_entry& entry
+					: fs::directory_iterator(recordRoot, errorCode)) {
+				if (errorCode)
+					break;
+				if (!entry.is_regular_file(errorCode))
+					continue;
+
+				const fs::path relative = fs::relative(entry.path(), root,
+					errorCode);
+				if (errorCode || relative.empty())
+					continue;
+				ProjectRecordEntry record;
+				record.type = RecordTypeForDirectory(directory);
+				record.path = relative.string();
+				record.sizeBytes = static_cast<size_t>(entry.file_size(
+					errorCode));
+				withTimes.push_back({
+					record,
+					entry.last_write_time(errorCode)
+				});
+			}
+		}
+
+		std::sort(withTimes.begin(), withTimes.end(),
+			[](const RecordWithTime& a, const RecordWithTime& b) {
+				return a.modified > b.modified;
+			});
+		for (const RecordWithTime& record : withTimes) {
+			if (records.size() >= maxRecords)
+				break;
+			records.push_back(record.record);
+		}
+	} catch (...) {
+	}
+	return records;
+}
+
+
+bool
+ReadProjectRecord(const std::string& projectRoot, const std::string& recordPath,
+	size_t maxBytes, std::string& text, std::string& error)
+{
+	text.clear();
+	error.clear();
+	try {
+		if (projectRoot.empty()) {
+			error = "No active project root.";
+			return false;
+		}
+		if (recordPath.empty()) {
+			error = "No project record path selected.";
+			return false;
+		}
+
+		const fs::path root = fs::weakly_canonical(projectRoot);
+		fs::path relative(recordPath);
+		if (relative.is_absolute()) {
+			error = "Project record path must be relative.";
+			return false;
+		}
+		for (const fs::path& part : relative) {
+			if (part == "..") {
+				error = "Unsafe project record path.";
+				return false;
+			}
+		}
+
+		const fs::path target = fs::weakly_canonical(root / relative);
+		if (!IsInsideDirectory(target, root)) {
+			error = "Project record path escapes the project.";
+			return false;
+		}
+		const fs::path expectedRoot = root / ".haikode";
+		if (!IsInsideDirectory(target, expectedRoot)) {
+			error = "Project record must be under .haikode.";
+			return false;
+		}
+		if (!fs::is_regular_file(target)) {
+			error = "Project record is not a file.";
+			return false;
+		}
+
+		std::ifstream file(target, std::ios::binary);
+		if (!file) {
+			error = "Could not open project record.";
+			return false;
+		}
+		std::string contents((std::istreambuf_iterator<char>(file)),
+			std::istreambuf_iterator<char>());
+		if (contents.find('\0') != std::string::npos) {
+			error = "Project record is binary.";
+			return false;
+		}
+		if (maxBytes > 0 && contents.size() > maxBytes) {
+			contents.resize(maxBytes);
+			contents += "\n\n[Haikode truncated this project record preview.]\n";
+		}
+		text = contents;
 		return true;
 	} catch (const std::exception& exception) {
 		error = exception.what();

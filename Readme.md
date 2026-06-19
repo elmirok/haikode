@@ -159,6 +159,10 @@ Codex output is parsed for unified diffs and command requests using the same
 explicit review/apply flow as direct provider responses. Captured Codex runs
 are also saved under `.haikode/logs/`.
 
+Use **Recent records** and **Show record** in the AI panel to inspect recent
+`.haikode/sessions`, `.haikode/logs`, `.haikode/patches`, and
+`.haikode/commands` files for the active project.
+
 If you would like to try a clang++ build:
 
 * Install `llvm17_clang` and `llvm17_lld` hpkgs from HaikuPorts
