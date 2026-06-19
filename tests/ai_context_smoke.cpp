@@ -61,6 +61,11 @@ main()
 	assert(result.prompt.find("Project map:") != std::string::npos);
 	assert(result.prompt.find("Application entry point") != std::string::npos);
 	assert(result.prompt.find("Response contract:") != std::string::npos);
+	assert(result.prompt.find("Patch paths must not be absolute")
+		!= std::string::npos);
+	assert(result.prompt.find(".haikode") != std::string::npos);
+	assert(result.prompt.find("Return at most one unified diff")
+		!= std::string::npos);
 	assert(result.prompt.find("```haikode-command") != std::string::npos);
 	assert(result.prompt.find("\"argv\":[\"make\",\"test\"]")
 		!= std::string::npos);
