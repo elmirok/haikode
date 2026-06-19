@@ -346,6 +346,156 @@ ExtractJsonStringArrayField(const std::string& json, const std::string& key,
 }
 
 
+bool
+ExtractJsonBoolField(const std::string& json, const std::string& key,
+	bool& value)
+{
+	const std::string marker = "\"" + key + "\"";
+	size_t pos = json.find(marker);
+	if (pos == std::string::npos)
+		return false;
+	pos = json.find(':', pos + marker.size());
+	if (pos == std::string::npos)
+		return false;
+	pos++;
+	while (pos < json.size()
+		&& std::isspace(static_cast<unsigned char>(json[pos]))) {
+		pos++;
+	}
+	if (json.compare(pos, 4, "true") == 0) {
+		value = true;
+		return true;
+	}
+	if (json.compare(pos, 5, "false") == 0) {
+		value = false;
+		return true;
+	}
+	return false;
+}
+
+
+bool
+ExtractJsonSizeField(const std::string& json, const std::string& key,
+	size_t& value)
+{
+	const std::string marker = "\"" + key + "\"";
+	size_t pos = json.find(marker);
+	if (pos == std::string::npos)
+		return false;
+	pos = json.find(':', pos + marker.size());
+	if (pos == std::string::npos)
+		return false;
+	pos++;
+	while (pos < json.size()
+		&& std::isspace(static_cast<unsigned char>(json[pos]))) {
+		pos++;
+	}
+	size_t parsed = 0;
+	bool sawDigit = false;
+	while (pos < json.size()
+		&& std::isdigit(static_cast<unsigned char>(json[pos]))) {
+		sawDigit = true;
+		parsed = parsed * 10 + static_cast<size_t>(json[pos] - '0');
+		pos++;
+	}
+	if (!sawDigit)
+		return false;
+	value = parsed;
+	return true;
+}
+
+
+bool
+ExtractJsonObjectAt(const std::string& json, size_t& pos, std::string& object)
+{
+	object.clear();
+	if (pos >= json.size() || json[pos] != '{')
+		return false;
+
+	const size_t start = pos;
+	int depth = 0;
+	bool inString = false;
+	bool escaping = false;
+	for (; pos < json.size(); pos++) {
+		const char c = json[pos];
+		if (inString) {
+			if (escaping) {
+				escaping = false;
+			} else if (c == '\\') {
+				escaping = true;
+			} else if (c == '"') {
+				inString = false;
+			}
+			continue;
+		}
+		if (c == '"') {
+			inString = true;
+			continue;
+		}
+		if (c == '{') {
+			depth++;
+			continue;
+		}
+		if (c == '}') {
+			depth--;
+			if (depth == 0) {
+				pos++;
+				object = json.substr(start, pos - start);
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
+bool
+ExtractJsonObjectArrayField(const std::string& json, const std::string& key,
+	std::vector<std::string>& objects)
+{
+	objects.clear();
+	const std::string marker = "\"" + key + "\"";
+	size_t pos = json.find(marker);
+	if (pos == std::string::npos)
+		return false;
+	pos = json.find(':', pos + marker.size());
+	if (pos == std::string::npos)
+		return false;
+	pos++;
+	while (pos < json.size()
+		&& std::isspace(static_cast<unsigned char>(json[pos]))) {
+		pos++;
+	}
+	if (pos >= json.size() || json[pos] != '[')
+		return false;
+	pos++;
+	while (pos < json.size()) {
+		while (pos < json.size()
+			&& std::isspace(static_cast<unsigned char>(json[pos]))) {
+			pos++;
+		}
+		if (pos < json.size() && json[pos] == ']')
+			return true;
+		std::string object;
+		if (!ExtractJsonObjectAt(json, pos, object))
+			return false;
+		objects.push_back(object);
+		while (pos < json.size()
+			&& std::isspace(static_cast<unsigned char>(json[pos]))) {
+			pos++;
+		}
+		if (pos < json.size() && json[pos] == ',') {
+			pos++;
+			continue;
+		}
+		if (pos < json.size() && json[pos] == ']')
+			return true;
+		return false;
+	}
+	return false;
+}
+
+
 std::string
 JoinedArgv(const std::vector<std::string>& argv)
 {
@@ -1099,6 +1249,79 @@ SaveProjectMemory(const std::string& projectRoot,
 		}
 		file << "\n  ]\n}\n";
 		savedPath = memoryPath.string();
+		return true;
+	} catch (const std::exception& exception) {
+		error = exception.what();
+		return false;
+	}
+}
+
+
+bool
+LoadProjectMemory(const std::string& projectRoot, size_t maxFiles,
+	std::vector<ProjectFileSummary>& files, size_t& candidateCount,
+	std::string& error)
+{
+	files.clear();
+	candidateCount = 0;
+	error.clear();
+	try {
+		if (projectRoot.empty()) {
+			error = "No active project root.";
+			return false;
+		}
+		if (maxFiles == 0) {
+			error = "Project memory file limit is zero.";
+			return false;
+		}
+
+		const fs::path root = fs::weakly_canonical(projectRoot);
+		if (!fs::is_directory(root)) {
+			error = "Active project root is not a directory.";
+			return false;
+		}
+
+		const fs::path memoryPath = root / ".haikode" / "project.json";
+		if (!IsInsideDirectory(memoryPath, root)) {
+			error = "Unsafe project memory path.";
+			return false;
+		}
+		std::ifstream file(memoryPath, std::ios::binary);
+		if (!file) {
+			error = "Project memory has not been created yet.";
+			return false;
+		}
+		std::string json((std::istreambuf_iterator<char>(file)),
+			std::istreambuf_iterator<char>());
+		if (json.find('\0') != std::string::npos) {
+			error = "Project memory is not text JSON.";
+			return false;
+		}
+
+		ExtractJsonSizeField(json, "candidate_count", candidateCount);
+		std::vector<std::string> objects;
+		if (!ExtractJsonObjectArrayField(json, "files", objects)) {
+			error = "Project memory has no readable files list.";
+			return false;
+		}
+
+		for (const std::string& object : objects) {
+			ProjectFileSummary summary;
+			if (!ExtractJsonStringField(object, "path", summary.path))
+				continue;
+			fs::path relative(summary.path);
+			if (!IsSafeRelativePath(relative) || ShouldSkipRelativePath(relative))
+				continue;
+			ExtractJsonStringField(object, "language", summary.language);
+			ExtractJsonStringField(object, "role", summary.role);
+			ExtractJsonStringField(object, "risk", summary.risk);
+			ExtractJsonStringField(object, "summary", summary.summary);
+			ExtractJsonBoolField(object, "todo", summary.hasTodo);
+			if (files.size() < maxFiles)
+				files.push_back(summary);
+		}
+		if (candidateCount == 0)
+			candidateCount = objects.size();
 		return true;
 	} catch (const std::exception& exception) {
 		error = exception.what();

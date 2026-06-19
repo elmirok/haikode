@@ -180,6 +180,22 @@ main()
 		!= std::string::npos);
 	assert(memory.find("\"default_test_command\":\"make test\"")
 		!= std::string::npos);
+	std::vector<Haikode::AI::ProjectFileSummary> rememberedFiles;
+	size_t rememberedCandidateCount = 0;
+	assert(Haikode::AI::LoadProjectMemory(root.string(), 10,
+		rememberedFiles, rememberedCandidateCount, loadError));
+	assert(rememberedCandidateCount == map.size());
+	assert(rememberedFiles.size() == map.size());
+	assert(rememberedFiles[1].path == "src/main.cpp");
+	assert(rememberedFiles[1].hasTodo);
+	Haikode::AI::VibeCodingRequest rememberedRequest;
+	rememberedRequest.projectRoot = root.string();
+	rememberedRequest.projectFiles = rememberedFiles;
+	rememberedRequest.projectMapCandidateCount = rememberedCandidateCount;
+	const Haikode::AI::PromptBuildResult rememberedPrompt
+		= builder.Build(rememberedRequest, 1024, 10);
+	assert(rememberedPrompt.prompt.find("src/main.cpp") != std::string::npos);
+	assert(rememberedPrompt.prompt.find("TODO marker") != std::string::npos);
 	Haikode::AI::ContextFile selectedFile;
 	assert(Haikode::AI::LoadProjectContextFile(root.string(), "src/main.cpp",
 		1024, selectedFile, loadError));

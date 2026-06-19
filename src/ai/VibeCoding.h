@@ -111,6 +111,9 @@ std::vector<ProjectFileSummary> BuildProjectMap(const std::string& projectRoot,
 bool SaveProjectMemory(const std::string& projectRoot,
 	const std::vector<ProjectFileSummary>& files, size_t candidateCount,
 	std::string& savedPath, std::string& error);
+bool LoadProjectMemory(const std::string& projectRoot, size_t maxFiles,
+	std::vector<ProjectFileSummary>& files, size_t& candidateCount,
+	std::string& error);
 bool LoadProjectContextFile(const std::string& projectRoot,
 	const std::string& relativePath, size_t maxBytes, ContextFile& file,
 	std::string& error);

@@ -167,7 +167,9 @@ context. This is also useful if the left project tree is collapsed, filtered,
 or not visibly populated yet. The scan also creates or refreshes
 `.haikode/project.json` with project-local memory: project name/root, default
 build/test commands, and source/docs/build file summaries. API keys and OAuth
-tokens are never written to this project memory file.
+tokens are never written to this project memory file. Later AI prompts reuse
+this saved project map when it exists and fall back to an offline scan when it
+does not.
 
 ### Optional Codex CLI bridge
 

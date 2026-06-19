@@ -109,6 +109,8 @@ The Genio-based branch now adds:
 - A project-local `.haikode/project.json` memory file generated from project
   scans, with project name/root, default build/test commands, discovered file
   language/role/risk/TODO summaries, and no credentials.
+- AI prompts reuse `.haikode/project.json` project-map memory when available
+  and fall back to an offline scan when memory has not been created yet.
 - A supervised Codex CLI bridge: **Codex status**, **Codex login**, and
   **Ask Codex** prepare argv-native commands for explicit approval. The bridge
   uses Codex's own login/session storage and never reads or persists Codex
