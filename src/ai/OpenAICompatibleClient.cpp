@@ -154,7 +154,10 @@ OpenAICompatibleClient::Prepare(const ProviderSettings& provider,
 	body
 		<< "{\"model\":\"" << EscapeJson(provider.model) << "\","
 		<< "\"messages\":[{\"role\":\"user\",\"content\":\""
-		<< EscapeJson(request.prompt) << "\"}]}";
+		<< EscapeJson(request.prompt) << "\"}]";
+	if (request.maxTokens > 0)
+		body << ",\"max_tokens\":" << request.maxTokens;
+	body << "}";
 	prepared.body = body.str();
 
 	if (provider.authMode == AuthMode::ApiKey && !provider.apiKey.empty())

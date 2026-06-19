@@ -12,6 +12,7 @@ namespace Haikode::AI {
 
 struct ChatRequest {
 	std::string prompt;
+	size_t maxTokens = 0;
 };
 
 struct ChatResponse {

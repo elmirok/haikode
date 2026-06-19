@@ -42,6 +42,8 @@ const uint32 kMsgSetupPresetLMStudio = 'hism';
 const uint32 kMsgPresetOpenAI = 'hpai';
 const uint32 kMsgPresetOllama = 'hpol';
 const uint32 kMsgPresetLMStudio = 'hplm';
+const uint32 kMsgTestProvider = 'hitp';
+const uint32 kMsgTestProviderResponse = 'hitr';
 const uint32 kMsgStartOAuth = 'hiox';
 const uint32 kMsgExchangeOAuth = 'hixo';
 const uint32 kMsgOAuthResponse = 'hior';
@@ -206,6 +208,7 @@ AIChatPanel::AIChatPanel(PanelTabManager* panelTabManager, tab_id id)
 	fOpenAIPresetButton(nullptr),
 	fOllamaPresetButton(nullptr),
 	fLMStudioPresetButton(nullptr),
+	fTestProviderButton(nullptr),
 	fStartOAuthButton(nullptr),
 	fExchangeOAuthButton(nullptr),
 	fAskButton(nullptr),
@@ -230,6 +233,7 @@ AIChatPanel::AttachedToWindow()
 	fOpenAIPresetButton->SetTarget(this);
 	fOllamaPresetButton->SetTarget(this);
 	fLMStudioPresetButton->SetTarget(this);
+	fTestProviderButton->SetTarget(this);
 	fStartOAuthButton->SetTarget(this);
 	fExchangeOAuthButton->SetTarget(this);
 	fAskButton->SetTarget(this);
@@ -277,6 +281,13 @@ AIChatPanel::MessageReceived(BMessage* message)
 			break;
 		case kMsgPresetLMStudio:
 			_ApplyProviderPreset(Haikode::AI::ProviderPreset::LMStudio);
+			break;
+		case kMsgTestProvider:
+			_TestProvider();
+			break;
+		case kMsgTestProviderResponse:
+			_FinishProviderTest(message->GetString("text", ""),
+				message->GetString("error", ""), message->GetInt64("status", 0));
 			break;
 		case kMsgStartOAuth:
 			_StartOAuth();
@@ -397,6 +408,8 @@ AIChatPanel::_BuildInterface()
 		B_TRANSLATE("Ollama"), new BMessage(kMsgPresetOllama));
 	fLMStudioPresetButton = new BButton("haikode_ai_preset_lmstudio",
 		B_TRANSLATE("LM Studio"), new BMessage(kMsgPresetLMStudio));
+	fTestProviderButton = new BButton("haikode_ai_test_provider",
+		B_TRANSLATE("Test provider"), new BMessage(kMsgTestProvider));
 	fStartOAuthButton = new BButton("haikode_ai_start_oauth",
 		B_TRANSLATE("Start OAuth"), new BMessage(kMsgStartOAuth));
 	fExchangeOAuthButton = new BButton("haikode_ai_exchange_oauth",
@@ -468,6 +481,7 @@ AIChatPanel::_BuildInterface()
 			.Add(fPrompt)
 			.Add(fSetupButton)
 			.Add(fSaveProvider)
+			.Add(fTestProviderButton)
 			.Add(fStartOAuthButton)
 			.Add(fExchangeOAuthButton)
 			.Add(fAskButton)
@@ -547,6 +561,89 @@ AIChatPanel::_OpenProviderSettings()
 
 
 void
+AIChatPanel::_TestProvider()
+{
+	if (fRequestRunning) {
+		_AppendOutput(B_TRANSLATE("An AI or OAuth request is already running."));
+		return;
+	}
+
+	_SaveProviderToConfig();
+	Haikode::AI::ProviderSettings provider = _ProviderFromFields();
+	std::string validationError;
+	if (!provider.Validate(validationError)) {
+		_AppendOutput(validationError.c_str());
+		_AppendOutput(B_TRANSLATE("Click AI Setup to configure the provider inside Haikode. No Terminal export is required."));
+		return;
+	}
+
+	fRequestRunning = true;
+	fAskButton->SetEnabled(false);
+	fPatchButton->SetEnabled(false);
+	fSaveProvider->SetEnabled(false);
+	fSetupButton->SetEnabled(false);
+	fTestProviderButton->SetEnabled(false);
+	fOpenAIPresetButton->SetEnabled(false);
+	fOllamaPresetButton->SetEnabled(false);
+	fLMStudioPresetButton->SetEnabled(false);
+	fStartOAuthButton->SetEnabled(false);
+	fExchangeOAuthButton->SetEnabled(false);
+
+	BString line(B_TRANSLATE("Testing provider endpoint: "));
+	line << provider.ChatCompletionsEndpoint().c_str();
+	_AppendOutput(line.String());
+
+	BMessenger messenger(this);
+	std::thread([messenger, provider]() mutable {
+		Haikode::AI::OpenAICompatibleClient client;
+		Haikode::AI::ChatRequest request;
+		request.prompt = "Reply with exactly: Haikode provider OK";
+		request.maxTokens = 32;
+		Haikode::AI::ChatResponse response;
+		std::string error;
+		const bool ok = client.Send(provider, request, response, error);
+
+		BMessage done(kMsgTestProviderResponse);
+		done.AddString("text", ok ? response.text.c_str() : "");
+		done.AddString("error", error.c_str());
+		done.AddInt64("status", response.httpStatus);
+		messenger.SendMessage(&done);
+	}).detach();
+}
+
+
+void
+AIChatPanel::_FinishProviderTest(const BString& text, const BString& error,
+	long status)
+{
+	fRequestRunning = false;
+	fAskButton->SetEnabled(true);
+	fPatchButton->SetEnabled(true);
+	fSaveProvider->SetEnabled(true);
+	fSetupButton->SetEnabled(true);
+	fTestProviderButton->SetEnabled(true);
+	fOpenAIPresetButton->SetEnabled(true);
+	fOllamaPresetButton->SetEnabled(true);
+	fLMStudioPresetButton->SetEnabled(true);
+	fStartOAuthButton->SetEnabled(true);
+	fExchangeOAuthButton->SetEnabled(true);
+
+	if (!error.IsEmpty()) {
+		BString line(B_TRANSLATE("Provider test failed"));
+		if (status != 0)
+			line << " (" << status << ")";
+		line << ": " << error;
+		_AppendOutput(line.String());
+		return;
+	}
+
+	BString line(B_TRANSLATE("Provider test succeeded: "));
+	line << text;
+	_AppendOutput(line.String());
+}
+
+
+void
 AIChatPanel::_StartOAuth()
 {
 	_SaveProviderToConfig();
@@ -595,6 +692,7 @@ AIChatPanel::_ExchangeOAuthCode()
 	fPatchButton->SetEnabled(false);
 	fSaveProvider->SetEnabled(false);
 	fSetupButton->SetEnabled(false);
+	fTestProviderButton->SetEnabled(false);
 	fOpenAIPresetButton->SetEnabled(false);
 	fOllamaPresetButton->SetEnabled(false);
 	fLMStudioPresetButton->SetEnabled(false);
@@ -627,6 +725,7 @@ AIChatPanel::_FinishOAuthExchange(const BString& token, const BString& error,
 	fPatchButton->SetEnabled(true);
 	fSaveProvider->SetEnabled(true);
 	fSetupButton->SetEnabled(true);
+	fTestProviderButton->SetEnabled(true);
 	fOpenAIPresetButton->SetEnabled(true);
 	fOllamaPresetButton->SetEnabled(true);
 	fLMStudioPresetButton->SetEnabled(true);
@@ -698,6 +797,7 @@ AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 	fPatchButton->SetEnabled(false);
 	fSaveProvider->SetEnabled(false);
 	fSetupButton->SetEnabled(false);
+	fTestProviderButton->SetEnabled(false);
 	fOpenAIPresetButton->SetEnabled(false);
 	fOllamaPresetButton->SetEnabled(false);
 	fLMStudioPresetButton->SetEnabled(false);
@@ -740,6 +840,7 @@ AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 	fPatchButton->SetEnabled(true);
 	fSaveProvider->SetEnabled(true);
 	fSetupButton->SetEnabled(true);
+	fTestProviderButton->SetEnabled(true);
 	fOpenAIPresetButton->SetEnabled(true);
 	fOllamaPresetButton->SetEnabled(true);
 	fLMStudioPresetButton->SetEnabled(true);

@@ -39,6 +39,9 @@ private:
 	void _SaveProviderToConfig();
 	void _ApplyProviderPreset(Haikode::AI::ProviderPreset preset);
 	void _OpenProviderSettings();
+	void _TestProvider();
+	void _FinishProviderTest(const BString& text, const BString& error,
+		long status);
 	void _StartOAuth();
 	void _ExchangeOAuthCode();
 	void _FinishOAuthExchange(const BString& token, const BString& error,
@@ -80,6 +83,7 @@ private:
 	BButton* fOpenAIPresetButton;
 	BButton* fOllamaPresetButton;
 	BButton* fLMStudioPresetButton;
+	BButton* fTestProviderButton;
 	BButton* fStartOAuthButton;
 	BButton* fExchangeOAuthButton;
 	BButton* fAskButton;

@@ -27,6 +27,10 @@ main()
 	assert(prepared.body.find("\"model\":\"test-model\"") != std::string::npos);
 	assert(prepared.body.find("Explain this file") != std::string::npos);
 
+	request.maxTokens = 32;
+	prepared = Haikode::AI::OpenAICompatibleClient::Prepare(apiKeyProvider, request);
+	assert(prepared.body.find("\"max_tokens\":32") != std::string::npos);
+
 	const Haikode::AI::ProviderSettings openaiPreset
 		= Haikode::AI::ProviderPresetSettings(
 			Haikode::AI::ProviderPreset::OpenAI);
