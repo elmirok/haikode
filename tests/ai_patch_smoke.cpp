@@ -214,6 +214,26 @@ main()
 	assert(jsonArrayRawDiff.find("--- a/src/other.cpp") != std::string::npos);
 	assert(jsonArrayRawDiff.find("\\n") == std::string::npos);
 
+	const std::string fencedJsonPatchResponse =
+		"Here is the structured patch:\n"
+		"```json\n"
+		"{\"patches\":[{\"summary\":\"Main replacement\","
+		"\"unified_diff\":\"--- a/src/main.cpp\\n"
+		"+++ b/src/main.cpp\\n"
+		"@@ -1,3 +1,3 @@\\n"
+		" one\\n-old\\n+new\\n three\\n\"}]}\n"
+		"```\n"
+		"Review it before applying.\n";
+	Haikode::AI::UnifiedDiff fencedJsonPatch;
+	std::string fencedJsonRawDiff;
+	assert(Haikode::AI::UnifiedDiff::ExtractFromText(fencedJsonPatchResponse,
+		fencedJsonPatch, fencedJsonRawDiff, error));
+	assert(fencedJsonPatch.ChangedPaths().size() == 1);
+	assert(fencedJsonPatch.ChangedPaths()[0] == "src/main.cpp");
+	assert(fencedJsonRawDiff.find("--- a/src/main.cpp") == 0);
+	assert(fencedJsonRawDiff.find("```") == std::string::npos);
+	assert(fencedJsonRawDiff.find("\\n") == std::string::npos);
+
 	WriteFile(root / "src" / "main.cpp", "one\nold\nthree\nkeep\nlast\n");
 	const std::string hunkDiff =
 		"diff --git a/src/main.cpp b/src/main.cpp\n"

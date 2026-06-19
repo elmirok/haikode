@@ -659,6 +659,46 @@ ExtractFencedDiffBody(const std::string& text, std::string& rawDiff)
 	return false;
 }
 
+
+bool
+ExtractFencedJsonDiffBody(const std::string& text, std::string& rawDiff)
+{
+	size_t search = 0;
+	while (search < text.size()) {
+		const size_t fenceStart = text.find("```", search);
+		if (fenceStart == std::string::npos)
+			return false;
+
+		const size_t infoStart = fenceStart + 3;
+		const size_t lineEnd = text.find('\n', infoStart);
+		if (lineEnd == std::string::npos)
+			return false;
+
+		std::string info = text.substr(infoStart, lineEnd - infoStart);
+		info.erase(std::remove_if(info.begin(), info.end(),
+			[](unsigned char c) { return std::isspace(c); }), info.end());
+		std::transform(info.begin(), info.end(), info.begin(),
+			[](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+		const size_t bodyStart = lineEnd + 1;
+		const size_t fenceEnd = text.find("```", bodyStart);
+		if (fenceEnd == std::string::npos)
+			return false;
+
+		const bool jsonLike = info == "json" || info == "haikode-patch"
+			|| info == "haikode-diff" || info == "haikode-edit";
+		if (jsonLike) {
+			const std::string body = TrimTrailingWhitespace(
+				text.substr(bodyStart, fenceEnd - bodyStart));
+			if (ExtractJsonDiffBody(body, rawDiff))
+				return true;
+		}
+
+		search = fenceEnd + 3;
+	}
+	return false;
+}
+
 } // namespace
 
 bool
@@ -723,6 +763,9 @@ UnifiedDiff::ExtractFromText(const std::string& text, UnifiedDiff& diff,
 	std::string& rawDiff, std::string& error)
 {
 	if (ExtractJsonDiffBody(text, rawDiff))
+		return Parse(rawDiff, diff, error);
+
+	if (ExtractFencedJsonDiffBody(text, rawDiff))
 		return Parse(rawDiff, diff, error);
 
 	if (ExtractFencedDiffBody(text, rawDiff))
