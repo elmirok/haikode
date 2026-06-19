@@ -80,6 +80,25 @@ main()
 	assert(!genericJsonCommands[0].dangerous);
 	assert(genericJsonCommands[0].runnable);
 
+	const std::string genericJsonCommandsArrayFence =
+		"```json\n"
+		"{\"commands\":["
+		"{\"summary\":\"Build project\",\"argv\":[\"make\"]},"
+		"{\"summary\":\"Run smoke tests\",\"argv\":[\"make\",\"test\"]}"
+		"]}\n"
+		"```\n";
+	std::vector<Haikode::AI::CommandRequest> genericJsonArrayCommands;
+	assert(Haikode::AI::ExtractCommandRequests(genericJsonCommandsArrayFence,
+		genericJsonArrayCommands, error));
+	assert(genericJsonArrayCommands.size() == 2);
+	assert(genericJsonArrayCommands[0].summary == "Build project");
+	assert(genericJsonArrayCommands[0].argv.size() == 1);
+	assert(genericJsonArrayCommands[0].argv[0] == "make");
+	assert(genericJsonArrayCommands[1].summary == "Run smoke tests");
+	assert(genericJsonArrayCommands[1].argv.size() == 2);
+	assert(genericJsonArrayCommands[1].argv[0] == "make");
+	assert(genericJsonArrayCommands[1].argv[1] == "test");
+
 	const std::string shellFence =
 		"Try these commands:\n"
 		"```sh\n"

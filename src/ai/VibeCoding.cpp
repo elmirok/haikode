@@ -777,6 +777,23 @@ ParseCommandRequestJson(const std::string& json, CommandRequest& command,
 	return true;
 }
 
+
+void
+AppendCommandRequestsFromJsonArray(const std::string& json,
+	std::vector<CommandRequest>& commands)
+{
+	std::vector<std::string> objects;
+	if (!ExtractJsonObjectArrayField(json, "commands", objects))
+		return;
+
+	for (const std::string& object : objects) {
+		CommandRequest command;
+		std::string objectError;
+		if (ParseCommandRequestJson(object, command, objectError, true))
+			commands.push_back(command);
+	}
+}
+
 } // namespace
 
 std::string
@@ -822,10 +839,17 @@ ExtractCommandRequests(const std::string& text,
 			commands.push_back(command);
 		} else if (FenceLanguage(fenceInfo) == "json") {
 			const std::string json = Trim(body);
-			CommandRequest command;
-			std::string jsonError;
-			if (ParseCommandRequestJson(json, command, jsonError, true))
-				commands.push_back(command);
+			std::vector<CommandRequest> arrayCommands;
+			AppendCommandRequestsFromJsonArray(json, arrayCommands);
+			if (!arrayCommands.empty()) {
+				commands.insert(commands.end(), arrayCommands.begin(),
+					arrayCommands.end());
+			} else {
+				CommandRequest command;
+				std::string jsonError;
+				if (ParseCommandRequestJson(json, command, jsonError, true))
+					commands.push_back(command);
+			}
 		} else if (IsShellCommandFence(fenceInfo)) {
 			AppendShellCommandSuggestions(body, commands);
 		}
