@@ -12,6 +12,14 @@
 
 namespace fs = std::filesystem;
 
+static std::string
+ReadFile(const fs::path& path)
+{
+	std::ifstream file(path, std::ios::binary);
+	return std::string(std::istreambuf_iterator<char>(file),
+		std::istreambuf_iterator<char>());
+}
+
 int
 main()
 {
@@ -32,6 +40,15 @@ main()
 	options.argv = {"/bin/echo", "argument with spaces", "semi;colon"};
 	assert(Haikode::AI::ProcessCapture::Run(options, result, error));
 	assert(result.output.find("argument with spaces semi;colon") != std::string::npos);
+	std::string savedPath;
+	std::string saveError;
+	assert(Haikode::AI::ProcessCapture::SaveLog(root.string(), "codex ask",
+		options, result, error, savedPath, saveError));
+	assert(savedPath.find(".haikode/logs/codex-ask-") != std::string::npos);
+	const std::string savedLog = ReadFile(savedPath);
+	assert(savedLog.find("label: codex ask") != std::string::npos);
+	assert(savedLog.find("[0] /bin/echo") != std::string::npos);
+	assert(savedLog.find("argument with spaces semi;colon") != std::string::npos);
 
 	options.argv = {"/bin/sh", "-c", "exit 7"};
 	assert(!Haikode::AI::ProcessCapture::Run(options, result, error));

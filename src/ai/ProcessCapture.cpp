@@ -8,6 +8,8 @@
 #include <chrono>
 #include <cstring>
 #include <filesystem>
+#include <fstream>
+#include <sstream>
 #include <thread>
 
 #include <errno.h>
@@ -54,6 +56,55 @@ AppendOutput(std::string& output, const char* buffer, ssize_t count,
 	const size_t available = maxOutputBytes - output.size();
 	output.append(buffer, static_cast<size_t>(count) > available
 		? available : static_cast<size_t>(count));
+}
+
+
+std::string
+Timestamp()
+{
+	const auto now = std::chrono::system_clock::now().time_since_epoch();
+	return std::to_string(std::chrono::duration_cast<std::chrono::nanoseconds>(
+		now).count());
+}
+
+
+bool
+IsInsideDirectory(const fs::path& child, const fs::path& parent)
+{
+	const fs::path relative = fs::relative(child, parent);
+	for (const fs::path& part : relative) {
+		if (part == "..")
+			return false;
+	}
+	return !relative.empty();
+}
+
+
+std::string
+SanitizeLabel(std::string label)
+{
+	if (label.empty())
+		label = "process";
+	for (char& c : label) {
+		const bool safe = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+			|| (c >= '0' && c <= '9') || c == '-' || c == '_';
+		if (!safe)
+			c = '-';
+	}
+	return label;
+}
+
+
+std::string
+DisplayArgv(const std::vector<std::string>& argv)
+{
+	std::ostringstream out;
+	for (size_t i = 0; i < argv.size(); i++) {
+		if (i > 0)
+			out << '\n';
+		out << "  [" << i << "] " << argv[i];
+	}
+	return out.str();
 }
 
 } // namespace
@@ -189,6 +240,57 @@ ProcessCapture::Run(const ProcessCaptureOptions& options,
 		error = "Process exited with status " + std::to_string(result.exitCode)
 			+ ".";
 	return result.exitCode == 0;
+}
+
+
+bool
+ProcessCapture::SaveLog(const std::string& projectRoot,
+	const std::string& label, const ProcessCaptureOptions& options,
+	const ProcessCaptureResult& result, const std::string& errorText,
+	std::string& savedPath, std::string& error)
+{
+	savedPath.clear();
+	error.clear();
+	try {
+		if (projectRoot.empty()) {
+			error = "No active project root.";
+			return false;
+		}
+
+		const fs::path root = fs::weakly_canonical(projectRoot);
+		const fs::path logsRoot = root / ".haikode" / "logs";
+		fs::create_directories(logsRoot);
+		const fs::path logPath = logsRoot
+			/ (SanitizeLabel(label) + "-" + Timestamp() + ".log");
+		if (!IsInsideDirectory(logPath, root)) {
+			error = "Unsafe process log path.";
+			return false;
+		}
+
+		std::ofstream file(logPath, std::ios::binary | std::ios::trunc);
+		if (!file) {
+			error = "Could not save process log.";
+			return false;
+		}
+
+		file
+			<< "label: " << label << "\n"
+			<< "working_directory: " << options.workingDirectory << "\n"
+			<< "exit_code: " << result.exitCode << "\n"
+			<< "timed_out: " << (result.timedOut ? "true" : "false") << "\n"
+			<< "cancelled: " << (result.cancelled ? "true" : "false") << "\n"
+			<< "error: " << errorText << "\n"
+			<< "argv:\n" << DisplayArgv(options.argv) << "\n"
+			<< "\n--- output ---\n"
+			<< result.output;
+		if (!result.output.empty() && result.output.back() != '\n')
+			file << "\n";
+		savedPath = logPath.string();
+		return true;
+	} catch (const std::exception& exception) {
+		error = exception.what();
+		return false;
+	}
 }
 
 } // namespace Haikode::AI

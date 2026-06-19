@@ -156,7 +156,8 @@ can prepare supervised Codex actions:
 Haikode does not read Codex token files. These actions are added to the pending
 command list and still require an explicit **Run command** click. Captured
 Codex output is parsed for unified diffs and command requests using the same
-explicit review/apply flow as direct provider responses.
+explicit review/apply flow as direct provider responses. Captured Codex runs
+are also saved under `.haikode/logs/`.
 
 If you would like to try a clang++ build:
 

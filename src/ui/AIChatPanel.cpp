@@ -643,7 +643,9 @@ AIChatPanel::MessageReceived(BMessage* message)
 					message->GetString("error", ""),
 					message->GetInt32("exit_code", -1),
 					message->GetBool("timed_out", false),
-					message->GetBool("cancelled", false));
+					message->GetBool("cancelled", false),
+					message->GetString("log_path", ""),
+					message->GetString("log_error", ""));
 			break;
 		case kMsgAIResponse:
 		{
@@ -1662,6 +1664,10 @@ AIChatPanel::_RunCodexCommandCaptured(const Haikode::AI::CommandRequest& command
 		std::string error;
 		const bool ok = Haikode::AI::ProcessCapture::Run(options, result,
 			error);
+		std::string savedLogPath;
+		std::string logError;
+		Haikode::AI::ProcessCapture::SaveLog(projectRoot, "codex-ask",
+			options, result, error, savedLogPath, logError);
 
 		BMessage done(kMsgCodexCaptureResponse);
 		done.AddInt64("request_id", requestId);
@@ -1670,6 +1676,8 @@ AIChatPanel::_RunCodexCommandCaptured(const Haikode::AI::CommandRequest& command
 		done.AddInt32("exit_code", result.exitCode);
 		done.AddBool("timed_out", result.timedOut);
 		done.AddBool("cancelled", result.cancelled);
+		done.AddString("log_path", savedLogPath.c_str());
+		done.AddString("log_error", logError.c_str());
 		messenger.SendMessage(&done);
 	}).detach();
 }
@@ -1677,8 +1685,19 @@ AIChatPanel::_RunCodexCommandCaptured(const Haikode::AI::CommandRequest& command
 
 void
 AIChatPanel::_FinishCodexCapture(const BString& output, const BString& error,
-	int32 exitCode, bool timedOut, bool cancelled)
+	int32 exitCode, bool timedOut, bool cancelled, const BString& logPath,
+	const BString& logError)
 {
+	if (!logPath.IsEmpty()) {
+		BString line(B_TRANSLATE("Saved Codex log: "));
+		line << logPath;
+		_AppendOutput(line.String());
+	} else if (!logError.IsEmpty()) {
+		BString line(B_TRANSLATE("Codex log save warning: "));
+		line << logError;
+		_AppendOutput(line.String());
+	}
+
 	if (cancelled) {
 		_FinishRequest();
 		_AppendOutput(B_TRANSLATE("Codex request cancelled."));

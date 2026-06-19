@@ -91,6 +91,8 @@ The Genio-based branch now adds:
 - Approved **Ask Codex** requests run through an argv-only capture path, return
   Codex output to the Haikode AI transcript, and reuse the existing diff and
   command proposal parsing flow.
+- Captured Codex runs are saved under `.haikode/logs/` with argv, cwd, exit
+  status, error, timeout/cancel flags, and output for later inspection.
 
 The panel sends prompts to cloud or local endpoints when built with
 `HAIKODE_AI_NETWORK=1`. API-key mode stores the key in Haikode settings and
@@ -103,4 +105,4 @@ You do not need to export an API key in Terminal. Then use **Test provider** to
 verify the endpoint before asking questions or proposing patches.
 
 The next slices should make the patch review more visual inside native controls
-and add persisted logs for captured Codex CLI sessions.
+and add a small in-app session/log browser for `.haikode/` records.

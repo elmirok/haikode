@@ -67,7 +67,8 @@ private:
 		const char* queuedText);
 	void _RunCodexCommandCaptured(const Haikode::AI::CommandRequest& command);
 	void _FinishCodexCapture(const BString& output, const BString& error,
-		int32 exitCode, bool timedOut, bool cancelled);
+		int32 exitCode, bool timedOut, bool cancelled, const BString& logPath,
+		const BString& logError);
 	void _SelectPatchFile(int32 delta);
 	void _SelectPatchHunk(int32 delta);
 	size_t _SelectedPatchHunkIndex(const std::string& path) const;

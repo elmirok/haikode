@@ -30,6 +30,10 @@ class ProcessCapture {
 public:
 	static bool Run(const ProcessCaptureOptions& options,
 		ProcessCaptureResult& result, std::string& error);
+	static bool SaveLog(const std::string& projectRoot,
+		const std::string& label, const ProcessCaptureOptions& options,
+		const ProcessCaptureResult& result, const std::string& errorText,
+		std::string& savedPath, std::string& error);
 };
 
 } // namespace Haikode::AI
