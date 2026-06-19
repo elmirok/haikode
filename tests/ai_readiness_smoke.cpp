@@ -54,10 +54,15 @@ main()
 	provider.baseUrl = " http://127.0.0.1:11434 ";
 	provider.model = " llama3.1 ";
 	status = Haikode::AI::EvaluateAIReadiness(provider, false);
+	assert(status.state == Haikode::AI::AIReadinessState::NetworkDisabled);
+	assert(!status.ready);
+	assert(status.summary.find("Network AI disabled") != std::string::npos);
+	assert(status.safeDetails.find("127.0.0.1") != std::string::npos);
+
+	status = Haikode::AI::EvaluateAIReadiness(provider, true);
 	assert(status.state == Haikode::AI::AIReadinessState::Ready);
 	assert(status.ready);
 	assert(status.summary.find("Ready") != std::string::npos);
-	assert(status.safeDetails.find("127.0.0.1") != std::string::npos);
 
 	provider.model = "   ";
 	status = Haikode::AI::EvaluateAIReadiness(provider, true);

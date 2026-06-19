@@ -125,7 +125,8 @@ The Genio-based branch now adds:
 The panel sends prompts to cloud or local endpoints when built with
 `HAIKODE_AI_NETWORK=1`. API-key mode stores the key in Haikode settings and
 sends `Authorization: Bearer ...`; OAuth mode stores the exchanged bearer token
-in Haikode settings; local mode sends no authorization header.
+in Haikode settings; local mode sends no authorization header. Local providers
+still require `HAIKODE_AI_NETWORK=1` because Haikode talks to them over HTTP.
 Use **Window > Haikode AI setup** or the **AI Setup** button to paste cloud API
 keys inside Haikode, choose a local provider, or configure OAuth token/PKCE
 endpoint fields. API key and OAuth token fields are masked in the native UI.
