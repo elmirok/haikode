@@ -47,8 +47,8 @@ The Genio-based branch now adds:
 - OpenAI-compatible HTTP requests for active project, selected file, and
   selected text.
 - Unified diff detection in AI responses.
-- Explicit **Apply patch** / **Reject patch** controls with path checks and
-  `.haikode/backups/` copies before writes.
+- Explicit **Apply first file**, **Apply patch**, and **Reject patch** controls
+  with path checks and `.haikode/backups/` copies before writes.
 - Explicit AI command request parsing and a separate **Run command** approval
   button.
 - A native pending-actions summary that lists pending patch files, hunks,

@@ -434,4 +434,34 @@ UnifiedDiff::Apply(const std::string& projectRoot, PatchApplyResult& result,
 	}
 }
 
+
+bool
+UnifiedDiff::ApplyFile(const std::string& projectRoot, const std::string& path,
+	PatchApplyResult& result, std::string& error) const
+{
+	for (const PatchFile& file : fFiles) {
+		if (file.newPath == path) {
+			UnifiedDiff singleFileDiff;
+			singleFileDiff.fFiles.push_back(file);
+			return singleFileDiff.Apply(projectRoot, result, error);
+		}
+	}
+
+	result = PatchApplyResult();
+	error = "Patch does not contain file: " + path;
+	return false;
+}
+
+
+bool
+UnifiedDiff::RemoveFile(const std::string& path)
+{
+	const auto oldSize = fFiles.size();
+	fFiles.erase(std::remove_if(fFiles.begin(), fFiles.end(),
+		[&path](const PatchFile& file) {
+			return file.newPath == path;
+		}), fFiles.end());
+	return fFiles.size() != oldSize;
+}
+
 } // namespace Haikode::AI

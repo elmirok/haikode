@@ -45,6 +45,7 @@ private:
 	void _SendPrompt(Haikode::AI::PromptMode mode);
 	void _FinishResponse(const BString& text, const BString& error, long status);
 	void _ApplyPendingDiff();
+	void _ApplyFirstPendingFile();
 	void _RejectPendingDiff();
 	void _RunPendingCommand();
 	void _ClearPendingCommands();
@@ -82,6 +83,7 @@ private:
 	BButton* fExchangeOAuthButton;
 	BButton* fAskButton;
 	BButton* fPatchButton;
+	BButton* fApplyFirstFileButton;
 	BButton* fApplyPatchButton;
 	BButton* fRejectPatchButton;
 	BButton* fRunCommandButton;

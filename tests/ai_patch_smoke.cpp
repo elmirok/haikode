@@ -70,6 +70,30 @@ main()
 	assert(ReadFile(fs::path(result.backupDirectory) / "src" / "main.cpp")
 		== "one\nold\nthree\n");
 
+	WriteFile(root / "src" / "main.cpp", "one\nold\nthree\n");
+	WriteFile(root / "src" / "other.cpp", "alpha\nbeta\n");
+	const std::string multiDiff =
+		diff
+		+ "diff --git a/src/other.cpp b/src/other.cpp\n"
+		+ "--- a/src/other.cpp\n"
+		+ "+++ b/src/other.cpp\n"
+		+ "@@ -1,2 +1,2 @@\n"
+		+ " alpha\n"
+		+ "-beta\n"
+		+ "+gamma\n";
+	Haikode::AI::UnifiedDiff multiPatch;
+	assert(Haikode::AI::UnifiedDiff::Parse(multiDiff, multiPatch, error));
+	assert(multiPatch.ChangedPaths().size() == 2);
+	assert(multiPatch.ApplyFile(root.string(), "src/main.cpp", result, error));
+	assert(ReadFile(root / "src" / "main.cpp") == "one\nnew\nthree\n");
+	assert(ReadFile(root / "src" / "other.cpp") == "alpha\nbeta\n");
+	assert(result.changedFiles.size() == 1);
+	assert(result.changedFiles[0] == "src/main.cpp");
+	assert(multiPatch.RemoveFile("src/main.cpp"));
+	assert(multiPatch.ChangedPaths().size() == 1);
+	assert(multiPatch.ChangedPaths()[0] == "src/other.cpp");
+	assert(!multiPatch.RemoveFile("missing.cpp"));
+
 	std::string savedPatchPath;
 	assert(Haikode::AI::UnifiedDiff::SavePatchText(root.string(), diff,
 		savedPatchPath, error));
