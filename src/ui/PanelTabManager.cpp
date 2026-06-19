@@ -448,6 +448,10 @@ PanelTabManager::DefaultConfig()
 	tab.ReplaceString("panel_group", kTabViewBottom);
 	tabConfig.AddMessage("tab", &tab);
 
+	tab.ReplaceInt32("id", kTabHaikodeAI);
+	tab.ReplaceString("panel_group", kTabViewBottom);
+	tabConfig.AddMessage("tab", &tab);
+
 	tab.ReplaceInt32("id", kTabProjectBrowser);
 	tab.ReplaceString("panel_group", kTabViewLeft);
 	tabConfig.AddMessage("tab", &tab);

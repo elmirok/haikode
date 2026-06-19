@@ -32,8 +32,16 @@ Haikode should feel like Codex/OpenCode for Haiku, but remain supervised:
 - `legacy/scratch-mvp`: backup of the scratch MVP.
 - `codex/genio-haikode`: Genio-based fork work.
 
-## First Integration Slice
+## Current Integration Slice
 
-The first Genio-based slice adds `src/ai/` as a pure C++ AI/vibecoding core.
-The next slice should connect it to a native panel in `src/ui/` and active
-project/editor context from `ProjectFolder` and `EditorTabView`.
+The Genio-based branch now adds:
+
+- `src/ai/` as a pure C++ AI/vibecoding core.
+- `src/ui/AIChatPanel.*` as a native bottom panel.
+- A **Window > Haikode AI** action that opens the panel.
+- Provider fields for base URL, model, auth mode, API key, and OAuth token.
+- Prompt preview for active project, selected file, and selected text.
+
+The panel currently previews the provider endpoint and generated prompt. The
+next slice should add the OpenAI-compatible HTTP transport for cloud and local
+providers, then connect responses to diff preview/apply.

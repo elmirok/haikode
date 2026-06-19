@@ -26,6 +26,7 @@ enum {
 	kTabOutputLog		= 'Tter',
 	kTabSearchResult	= 'Tsea',
 	kTabTerminal		= 'Tshe',
+	kTabHaikodeAI		= 'Thai',
 
 	kTabProjectBrowser	= 'Tprj',
 	kTabSourceControl	= 'Tsrc',

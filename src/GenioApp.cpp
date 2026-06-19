@@ -525,6 +525,18 @@ GenioApp::_PrepareConfig(ConfigManager& cfg)
 	cfg.AddConfig(sourceControl.String(), "repository_outline",
 		B_TRANSLATE("Show repository outline"), true);
 
+	BString ai(B_TRANSLATE("Haikode AI"));
+	cfg.AddConfig(ai.String(), "haikode_ai_base_url",
+		B_TRANSLATE("Base URL:"), "https://api.openai.com");
+	cfg.AddConfig(ai.String(), "haikode_ai_model",
+		B_TRANSLATE("Model:"), "gpt-4.1-mini");
+	cfg.AddConfig(ai.String(), "haikode_ai_auth_mode",
+		B_TRANSLATE("Auth mode:"), "api-key");
+	cfg.AddConfig(ai.String(), "haikode_ai_api_key",
+		B_TRANSLATE("API key:"), "");
+	cfg.AddConfig(ai.String(), "haikode_ai_oauth_token",
+		B_TRANSLATE("OAuth token:"), "");
+
 	cfg.AddConfig("Hidden", "ui_bounds", "ui_bounds", BRect(40, 40, 839, 639));
 	cfg.AddConfig("Hidden", "config_version", "config_version", "2.0");
 	cfg.AddConfig("Hidden", "run_without_buffering", "run_without_buffering", true);

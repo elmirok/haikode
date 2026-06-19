@@ -31,6 +31,7 @@
 #include <StringItem.h>
 
 #include "ActionManager.h"
+#include "AIChatPanel.h"
 #include "argv_split.h"
 #include "ConfigManager.h"
 #include "ConfigWindow.h"
@@ -190,6 +191,7 @@ GenioWindow::GenioWindow(BRect frame)
 	, fMTermView(nullptr)
 	, fGoToLineWindow(nullptr)
 	, fSearchResultTab(nullptr)
+	, fAIChatPanel(nullptr)
 	, fScreenMode(kDefault)
 	, fPanelTabManager(nullptr)
 	, fPanelsMenu(nullptr)
@@ -289,6 +291,9 @@ GenioWindow::MessageReceived(BMessage* message)
 		}
 		case MSG_PREPARE_WORKSPACE:
 			_PrepareWorkspace();
+			break;
+		case MSG_HAIKODE_AI_SHOW:
+			_ShowHaikodeAI();
 			break;
 		case kLSPWorkProgress:
 		{
@@ -3291,6 +3296,8 @@ GenioWindow::_InitMenu()
 
 	fPanelsMenu = new BMenu(B_TRANSLATE("Panels"));
 	windowMenu->AddItem(fPanelsMenu);
+	windowMenu->AddItem(new BMenuItem(B_TRANSLATE("Haikode AI"),
+		new BMessage(MSG_HAIKODE_AI_SHOW)));
 
 	windowMenu->AddSeparatorItem();
 
@@ -3408,12 +3415,14 @@ GenioWindow::_InitTabViews()
 	fMTermView = new ConsoleIOTabView(B_TRANSLATE("Console I/O"), BMessenger(this), theme);
 
 	fSearchResultTab = new SearchResultTab(fPanelTabManager, kTabSearchResult);
+	fAIChatPanel = new AIChatPanel(fPanelTabManager, kTabHaikodeAI);
 
 	fPanelTabManager->AddPanelByConfig(fProblemsPanel, kTabProblems);
 	fPanelTabManager->AddPanelByConfig(fBuildLogView, kTabBuildLog);
 	fPanelTabManager->AddPanelByConfig(fMTermView, kTabOutputLog);
 	fPanelTabManager->AddPanelByConfig(fSearchResultTab, kTabSearchResult);
 	fPanelTabManager->AddPanelByConfig(new TerminalTab(true), kTabTerminal);
+	fPanelTabManager->AddPanelByConfig(fAIChatPanel, kTabHaikodeAI);
 
 	//LEFT
 	fProjectsFolderBrowser = new ProjectBrowser();
@@ -4269,6 +4278,36 @@ void
 GenioWindow::_ShowOutputTab(tab_id id)
 {
 	fPanelTabManager->ShowTab(id);
+}
+
+
+void
+GenioWindow::_ShowHaikodeAI()
+{
+	_UpdateHaikodeAIContext();
+	fPanelTabManager->ShowTab(kTabHaikodeAI);
+}
+
+
+void
+GenioWindow::_UpdateHaikodeAIContext()
+{
+	if (fAIChatPanel == nullptr)
+		return;
+
+	BString projectRoot;
+	if (GetActiveProject() != nullptr)
+		projectRoot = GetActiveProject()->Path();
+
+	BString filePath;
+	BString selection;
+	IEditor* editor = fTabManager->SelectedEditor();
+	if (editor != nullptr) {
+		filePath = editor->FilePath();
+		selection = editor->Selection();
+	}
+
+	fAIChatPanel->SetActiveContext(projectRoot, filePath, selection);
 }
 
 

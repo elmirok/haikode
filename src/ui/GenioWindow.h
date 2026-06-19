@@ -17,6 +17,7 @@
 
 
 class ActionManager;
+class AIChatPanel;
 class BCheckBox;
 class BFilePanel;
 class BGroupLayout;
@@ -131,6 +132,8 @@ private:
 			void				_TemplateNewFile(BMessage* message);
 
 			void				_ShowDocumentation();
+			void				_ShowHaikodeAI();
+			void				_UpdateHaikodeAIContext();
 
 			// Project Folders (TODO: Rename to Project*, without "Folder")
 			void				_ProjectFolderClose(ProjectFolder *project);
@@ -256,6 +259,7 @@ private:
 			ConsoleIOTabView*	fMTermView;
 			GoToLineWindow*		fGoToLineWindow;
 			SearchResultTab*	fSearchResultTab;
+			AIChatPanel*		fAIChatPanel;
 
 			screen_mode			fScreenMode;
 			GMessage			fScreenModeSettings;
