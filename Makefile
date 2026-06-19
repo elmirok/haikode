@@ -1,7 +1,11 @@
 ## Genio - The Haiku IDE Makefile ##############################################
 COMPILER_FLAGS = -Werror -std=c++20
 WARNINGS = ALL
-HAIKODE_AI_NETWORK ?= 1
+ifdef AI_NETWORK
+	HAIKODE_AI_NETWORK ?= $(AI_NETWORK)
+else
+	HAIKODE_AI_NETWORK ?= 1
+endif
 
 TARGET_DIR := app
 TYPE := APP
