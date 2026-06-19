@@ -8,6 +8,7 @@
 #include <cctype>
 #include <algorithm>
 #include <sstream>
+#include <vector>
 
 #ifdef HAIKODE_AI_NETWORK
 #include <curl/curl.h>
@@ -188,6 +189,108 @@ ExtractObjectForField(const std::string& body, const std::string& field)
 
 
 std::string
+ExtractArrayForField(const std::string& body, const std::string& field)
+{
+	size_t pos = body.find("\"" + field + "\"");
+	if (pos == std::string::npos)
+		return "";
+	pos += field.size() + 2;
+
+	while (pos < body.size()
+		&& std::isspace(static_cast<unsigned char>(body[pos]))) {
+		++pos;
+	}
+	if (pos >= body.size() || body[pos] != ':')
+		return "";
+	++pos;
+	while (pos < body.size()
+		&& std::isspace(static_cast<unsigned char>(body[pos]))) {
+		++pos;
+	}
+	if (pos >= body.size() || body[pos] != '[')
+		return "";
+
+	size_t end = pos;
+	int depth = 0;
+	bool inString = false;
+	bool escaping = false;
+	for (; end < body.size(); ++end) {
+		const char c = body[end];
+		if (escaping) {
+			escaping = false;
+			continue;
+		}
+		if (c == '\\' && inString) {
+			escaping = true;
+			continue;
+		}
+		if (c == '"') {
+			inString = !inString;
+			continue;
+		}
+		if (inString)
+			continue;
+		if (c == '[')
+			depth++;
+		else if (c == ']') {
+			depth--;
+			if (depth == 0)
+				return body.substr(pos, end - pos + 1);
+		}
+	}
+	return "";
+}
+
+
+bool
+CollectJsonStringFields(const std::string& body, const std::string& field,
+	std::vector<std::string>& values)
+{
+	values.clear();
+	size_t search = 0;
+	while (search < body.size()) {
+		const size_t pos = body.find("\"" + field + "\"", search);
+		if (pos == std::string::npos)
+			break;
+
+		std::string value;
+		if (ExtractJsonStringField(body.substr(pos), field, value))
+			values.push_back(value);
+		search = pos + field.size() + 2;
+	}
+	return !values.empty();
+}
+
+
+bool
+ExtractMessageContent(const std::string& body, std::string& text)
+{
+	const std::string messageObject = ExtractObjectForField(body, "message");
+	if (!messageObject.empty()) {
+		if (ExtractJsonStringField(messageObject, "content", text))
+			return true;
+
+		const std::string contentArray = ExtractArrayForField(messageObject,
+			"content");
+		std::vector<std::string> parts;
+		if (!contentArray.empty()
+			&& CollectJsonStringFields(contentArray, "text", parts)) {
+			std::ostringstream joined;
+			for (size_t i = 0; i < parts.size(); ++i) {
+				if (i > 0)
+					joined << "\n";
+				joined << parts[i];
+			}
+			text = joined.str();
+			return true;
+		}
+	}
+
+	return ExtractJsonStringField(body, "content", text);
+}
+
+
+std::string
 TruncatedBody(const std::string& body)
 {
 	std::string truncated = body.substr(0, std::min<size_t>(body.size(), 300));
@@ -252,7 +355,13 @@ OpenAICompatibleClient::ExtractResponseText(const std::string& body,
 	text.clear();
 	error.clear();
 
-	if (ExtractJsonStringField(body, "content", text))
+	if (ExtractMessageContent(body, text))
+		return true;
+	if (ExtractJsonStringField(body, "output_text", text))
+		return true;
+	if (ExtractJsonStringField(body, "text", text))
+		return true;
+	if (ExtractJsonStringField(body, "response", text))
 		return true;
 
 	if (ExtractJsonStringField(body, "message", error))

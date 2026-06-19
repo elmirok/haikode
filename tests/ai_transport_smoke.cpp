@@ -126,6 +126,21 @@ main()
 		spacedResponse, text, error));
 	assert(text == "Hello with spaces");
 
+	const std::string contentArrayResponse =
+		"{\"choices\":[{\"message\":{\"content\":["
+		"{\"type\":\"text\",\"text\":\"first part\"},"
+		"{\"type\":\"text\",\"text\":\"second part\"}]}}]}";
+	assert(Haikode::AI::OpenAICompatibleClient::ExtractResponseText(
+		contentArrayResponse, text, error));
+	assert(text == "first part\nsecond part");
+
+	assert(Haikode::AI::OpenAICompatibleClient::ExtractResponseText(
+		"{\"text\":\"Local model text\"}", text, error));
+	assert(text == "Local model text");
+	assert(Haikode::AI::OpenAICompatibleClient::ExtractResponseText(
+		"{\"response\":\"Local model response\"}", text, error));
+	assert(text == "Local model response");
+
 	assert(Haikode::AI::OpenAICompatibleClient::ExtractErrorMessage(
 		"{\"error\":{\"message\":\"model not found\",\"type\":\"invalid_request\"}}")
 		== "model not found");
