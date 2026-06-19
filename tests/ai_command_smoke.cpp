@@ -99,6 +99,25 @@ main()
 	assert(genericJsonArrayCommands[1].argv[0] == "make");
 	assert(genericJsonArrayCommands[1].argv[1] == "test");
 
+	const std::string haikodeCommandArrayFence =
+		"```haikode-command\n"
+		"{\"commands\":["
+		"{\"summary\":\"Build first\",\"argv\":[\"make\"]},"
+		"{\"summary\":\"Then test\",\"argv\":[\"make\",\"test\"]}"
+		"]}\n"
+		"```\n";
+	std::vector<Haikode::AI::CommandRequest> haikodeArrayCommands;
+	assert(Haikode::AI::ExtractCommandRequests(haikodeCommandArrayFence,
+		haikodeArrayCommands, error));
+	assert(haikodeArrayCommands.size() == 2);
+	assert(haikodeArrayCommands[0].summary == "Build first");
+	assert(haikodeArrayCommands[0].argv.size() == 1);
+	assert(haikodeArrayCommands[0].argv[0] == "make");
+	assert(haikodeArrayCommands[1].summary == "Then test");
+	assert(haikodeArrayCommands[1].argv.size() == 2);
+	assert(haikodeArrayCommands[1].argv[0] == "make");
+	assert(haikodeArrayCommands[1].argv[1] == "test");
+
 	const std::string bareJsonCommand =
 		"{\"summary\":\"Build without fences\",\"argv\":[\"make\"]}";
 	std::vector<Haikode::AI::CommandRequest> bareJsonCommands;

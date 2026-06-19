@@ -1033,6 +1033,15 @@ ExtractCommandRequests(const std::string& text,
 			bodyEnd - bodyStart - 1);
 		if (fenceInfo == "haikode-command") {
 			const std::string json = Trim(body);
+			std::vector<CommandRequest> arrayCommands;
+			AppendCommandRequestsFromJsonArray(json, arrayCommands);
+			if (!arrayCommands.empty()) {
+				commands.insert(commands.end(), arrayCommands.begin(),
+					arrayCommands.end());
+				pos = bodyEnd + 3;
+				continue;
+			}
+
 			CommandRequest command;
 			if (!ParseCommandRequestJson(json, command, error, false)) {
 				return false;
