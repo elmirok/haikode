@@ -47,6 +47,7 @@ private:
 	void _ApplyProviderPreset(Haikode::AI::ProviderPreset preset);
 	void _OpenProviderSettings();
 	void _TestProvider();
+	void _StartProviderTestFromCurrentFields();
 	int64 _BeginRequest();
 	bool _IsCurrentRequest(BMessage* message, const char* label);
 	void _CancelRequest();

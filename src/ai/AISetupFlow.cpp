@@ -13,4 +13,11 @@ ShouldDeferSetupOpenAfterPanelShow(bool aiPanelHasWindow)
 	return !aiPanelHasWindow;
 }
 
+
+bool
+ShouldRunProviderTestAfterSetupSave(bool requested, bool requestRunning)
+{
+	return requested && !requestRunning;
+}
+
 } // namespace Haikode::AI
