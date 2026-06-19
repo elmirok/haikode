@@ -62,6 +62,9 @@ The Genio-based branch now adds:
   button.
 - Shell-interpreter command requests such as `sh -c ...` are flagged as not
   runnable inside Haikode and must be reviewed/run manually.
+- AI command requests containing shell control tokens or argv values that need
+  shell quoting are also review-only until Haikode grows a true argv-native
+  process runner.
 - A native pending-actions summary that lists pending patch files, hunks,
   additions/deletions, new-file markers, and command requests before the user
   approves anything.

@@ -141,6 +141,16 @@ main()
 	assert(!commands[0].runnable);
 	assert(commands[0].warning.find("shell control") != std::string::npos);
 
+	const std::string needsShellQuoting =
+		"```haikode-command\n"
+		"{\"summary\":\"Run script\",\"argv\":[\"python3\",\"script with spaces.py\"]}\n"
+		"```\n";
+	assert(Haikode::AI::ExtractCommandRequests(needsShellQuoting, commands, error));
+	assert(commands.size() == 1);
+	assert(commands[0].dangerous);
+	assert(!commands[0].runnable);
+	assert(commands[0].warning.find("shell quoting") != std::string::npos);
+
 	const std::string invalid =
 		"```haikode-command\n"
 		"{\"summary\":\"Broken\",\"argv\":\"make test\"}\n"
