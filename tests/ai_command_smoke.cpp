@@ -84,6 +84,7 @@ main()
 	session.activeFile = "src/main.cpp";
 	session.responseText = "Use BApplication and BWindow.";
 	session.pendingActions = pendingText;
+	session.savedPatchPath = ".haikode/patches/patch-demo.diff";
 	std::string sessionPath;
 	assert(Haikode::AI::SaveAiSession(root.string(), session, sessionPath,
 		error));
@@ -94,6 +95,8 @@ main()
 	assert(savedSession.find("\"provider_model\":\"gpt-4.1-mini\"")
 		!= std::string::npos);
 	assert(savedSession.find("Use BApplication and BWindow")
+		!= std::string::npos);
+	assert(savedSession.find("\"saved_patch_path\":\".haikode/patches/patch-demo.diff\"")
 		!= std::string::npos);
 	assert(savedSession.find("api_key") == std::string::npos);
 	assert(savedSession.find("sk-") == std::string::npos);

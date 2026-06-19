@@ -572,6 +572,7 @@ AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 	fRejectPatchButton->SetEnabled(false);
 	fPendingDiff = Haikode::AI::UnifiedDiff();
 	fPendingRawDiff = "";
+	fSavedPendingPatchPath = "";
 	_ClearPendingCommands();
 	_UpdatePendingActions();
 
@@ -628,6 +629,22 @@ AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 			parseError)) {
 		fPendingDiff = diff;
 		fPendingRawDiff = rawDiff.c_str();
+		fSavedPendingPatchPath = "";
+		if (!fProjectRoot.IsEmpty()) {
+			std::string savedPatchPath;
+			std::string saveError;
+			if (Haikode::AI::UnifiedDiff::SavePatchText(fProjectRoot.String(),
+					rawDiff, savedPatchPath, saveError)) {
+				fSavedPendingPatchPath = savedPatchPath.c_str();
+				BString savedLine(B_TRANSLATE("Saved proposed patch: "));
+				savedLine << savedPatchPath.c_str();
+				_AppendOutput(savedLine.String());
+			} else {
+				BString saveLine(B_TRANSLATE("Patch proposal save warning: "));
+				saveLine << saveError.c_str();
+				_AppendOutput(saveLine.String());
+			}
+		}
 		fApplyFirstFileButton->SetEnabled(true);
 		fApplyPatchButton->SetEnabled(true);
 		fRejectPatchButton->SetEnabled(true);
@@ -781,6 +798,7 @@ AIChatPanel::_SaveSessionRecord(const BString& responseText)
 	session.responseText = responseText.String();
 	if (fPendingActions != nullptr)
 		session.pendingActions = fPendingActions->Text();
+	session.savedPatchPath = fSavedPendingPatchPath.String();
 
 	std::string savedPath;
 	std::string error;
@@ -844,6 +862,7 @@ AIChatPanel::_ApplyFirstPendingFile()
 
 	if (fPendingDiff.IsEmpty()) {
 		fPendingRawDiff = "";
+		fSavedPendingPatchPath = "";
 		fApplyFirstFileButton->SetEnabled(false);
 		fApplyPatchButton->SetEnabled(false);
 		fRejectPatchButton->SetEnabled(false);
@@ -864,10 +883,11 @@ AIChatPanel::_ApplyPendingDiff()
 		return;
 	}
 
-	std::string savedPatchPath;
+	std::string savedPatchPath = fSavedPendingPatchPath.String();
 	if (!fPendingRawDiff.IsEmpty()) {
 		std::string saveError;
-		if (!Haikode::AI::UnifiedDiff::SavePatchText(fProjectRoot.String(),
+		if (savedPatchPath.empty()
+			&& !Haikode::AI::UnifiedDiff::SavePatchText(fProjectRoot.String(),
 				fPendingRawDiff.String(), savedPatchPath, saveError)) {
 			BString line(B_TRANSLATE("Patch apply failed: could not save patch: "));
 			line << saveError.c_str();
@@ -914,6 +934,7 @@ AIChatPanel::_RejectPendingDiff()
 {
 	fPendingDiff = Haikode::AI::UnifiedDiff();
 	fPendingRawDiff = "";
+	fSavedPendingPatchPath = "";
 	fApplyFirstFileButton->SetEnabled(false);
 	fApplyPatchButton->SetEnabled(false);
 	fRejectPatchButton->SetEnabled(false);

@@ -64,6 +64,7 @@ struct AiSessionRecord {
 	std::string activeFile;
 	std::string responseText;
 	std::string pendingActions;
+	std::string savedPatchPath;
 };
 
 std::string SelectContextText(const std::string& selection,

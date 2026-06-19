@@ -49,6 +49,8 @@ The Genio-based branch now adds:
 - Unified diff detection in AI responses.
 - Explicit **Apply first file**, **Apply patch**, and **Reject patch** controls
   with path checks and `.haikode/backups/` copies before writes.
+- Generated unified diffs are saved immediately under `.haikode/patches/` before
+  approval, so rejected and partially applied proposals still have an audit file.
 - Explicit AI command request parsing and a separate **Run command** approval
   button.
 - A native pending-actions summary that lists pending patch files, hunks,

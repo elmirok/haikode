@@ -90,6 +90,7 @@ private:
 	bool fRequestRunning;
 	Haikode::AI::UnifiedDiff fPendingDiff;
 	BString fPendingRawDiff;
+	BString fSavedPendingPatchPath;
 	std::vector<Haikode::AI::CommandRequest> fPendingCommands;
 
 	BString fProjectRoot;

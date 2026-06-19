@@ -483,6 +483,9 @@ SaveAiSession(const std::string& projectRoot, const AiSessionRecord& session,
 			<< "  \"response_text\":\"" << EscapeJson(session.responseText)
 			<< "\",\n"
 			<< "  \"pending_actions\":\"" << EscapeJson(session.pendingActions)
+			<< "\",\n"
+			<< "  \"saved_patch_path\":\""
+			<< EscapeJson(session.savedPatchPath)
 			<< "\"\n"
 			<< "}\n";
 		savedPath = sessionPath.string();
