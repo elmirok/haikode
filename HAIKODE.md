@@ -53,6 +53,9 @@ The Genio-based branch now adds:
   button.
 - A native pending-actions summary that lists pending patch files/hunks and
   command requests before the user approves anything.
+- Project-local `.haikode/sessions/` records for successful AI exchanges,
+  storing prompts, responses, provider metadata, active file, and pending
+  actions without API keys or bearer tokens.
 
 The panel sends prompts to cloud or local endpoints when built with
 `HAIKODE_AI_NETWORK=1`. API-key mode stores the key in Haikode settings and

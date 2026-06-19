@@ -545,6 +545,8 @@ AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 		return;
 	}
 
+	fLastUserPrompt = fPrompt->Text();
+	fLastProvider = provider;
 	fRequestRunning = true;
 	fAskButton->SetEnabled(false);
 	fPatchButton->SetEnabled(false);
@@ -670,6 +672,7 @@ AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 		_AppendOutput(line.String());
 	}
 	_UpdatePendingActions();
+	_SaveSessionRecord(text);
 }
 
 
@@ -739,6 +742,37 @@ AIChatPanel::_UpdatePendingActions()
 	}
 	summary.commands = fPendingCommands;
 	fPendingActions->SetText(Haikode::AI::FormatPendingActions(summary).c_str());
+}
+
+
+void
+AIChatPanel::_SaveSessionRecord(const BString& responseText)
+{
+	if (fProjectRoot.IsEmpty())
+		return;
+
+	Haikode::AI::AiSessionRecord session;
+	session.userPrompt = fLastUserPrompt.String();
+	session.providerBaseUrl = fLastProvider.baseUrl;
+	session.providerModel = fLastProvider.model;
+	session.authMode = Haikode::AI::ToString(fLastProvider.authMode);
+	session.activeFile = fFilePath.String();
+	session.responseText = responseText.String();
+	if (fPendingActions != nullptr)
+		session.pendingActions = fPendingActions->Text();
+
+	std::string savedPath;
+	std::string error;
+	if (Haikode::AI::SaveAiSession(fProjectRoot.String(), session, savedPath,
+			error)) {
+		BString line(B_TRANSLATE("Saved AI session: "));
+		line << savedPath.c_str();
+		_AppendOutput(line.String());
+	} else {
+		BString line(B_TRANSLATE("AI session save warning: "));
+		line << error.c_str();
+		_AppendOutput(line.String());
+	}
 }
 
 

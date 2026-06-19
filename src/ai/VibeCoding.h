@@ -47,6 +47,16 @@ struct PendingActionSummary {
 	std::vector<CommandRequest> commands;
 };
 
+struct AiSessionRecord {
+	std::string userPrompt;
+	std::string providerBaseUrl;
+	std::string providerModel;
+	std::string authMode;
+	std::string activeFile;
+	std::string responseText;
+	std::string pendingActions;
+};
+
 std::string SelectContextText(const std::string& selection,
 	const std::string& fullFileText);
 bool ExtractCommandRequests(const std::string& text,
@@ -56,6 +66,9 @@ bool SaveCommandRequests(const std::string& projectRoot,
 	std::string& error);
 std::string CommandDisplayString(const CommandRequest& command);
 std::string FormatPendingActions(const PendingActionSummary& summary);
+bool SaveAiSession(const std::string& projectRoot,
+	const AiSessionRecord& session, std::string& savedPath,
+	std::string& error);
 
 class PromptBuilder {
 public:

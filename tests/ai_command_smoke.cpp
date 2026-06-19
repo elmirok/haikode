@@ -70,6 +70,28 @@ main()
 	assert(saved.find("\"argv\":[\"make\",\"test\"]") != std::string::npos);
 	assert(saved.find("\"dangerous\":false") != std::string::npos);
 
+	Haikode::AI::AiSessionRecord session;
+	session.userPrompt = "Explain the current file";
+	session.providerBaseUrl = "https://api.openai.com";
+	session.providerModel = "gpt-4.1-mini";
+	session.authMode = "api-key";
+	session.activeFile = "src/main.cpp";
+	session.responseText = "Use BApplication and BWindow.";
+	session.pendingActions = pendingText;
+	std::string sessionPath;
+	assert(Haikode::AI::SaveAiSession(root.string(), session, sessionPath,
+		error));
+	assert(sessionPath.find(".haikode/sessions/session-") != std::string::npos);
+	const std::string savedSession = ReadFile(sessionPath);
+	assert(savedSession.find("\"user_prompt\":\"Explain the current file\"")
+		!= std::string::npos);
+	assert(savedSession.find("\"provider_model\":\"gpt-4.1-mini\"")
+		!= std::string::npos);
+	assert(savedSession.find("Use BApplication and BWindow")
+		!= std::string::npos);
+	assert(savedSession.find("api_key") == std::string::npos);
+	assert(savedSession.find("sk-") == std::string::npos);
+
 	const std::string dangerous =
 		"```haikode-command\n"
 		"{\"summary\":\"Cleanup\",\"argv\":[\"rm\",\"-rf\",\"build\"]}\n"

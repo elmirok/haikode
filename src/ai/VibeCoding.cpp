@@ -420,6 +420,60 @@ SaveCommandRequests(const std::string& projectRoot,
 }
 
 
+bool
+SaveAiSession(const std::string& projectRoot, const AiSessionRecord& session,
+	std::string& savedPath, std::string& error)
+{
+	savedPath.clear();
+	error.clear();
+	try {
+		if (projectRoot.empty()) {
+			error = "No active project root.";
+			return false;
+		}
+
+		const fs::path root = fs::weakly_canonical(projectRoot);
+		const fs::path sessionsRoot = root / ".haikode" / "sessions";
+		fs::create_directories(sessionsRoot);
+		const fs::path sessionPath = sessionsRoot
+			/ ("session-" + Timestamp() + ".json");
+		if (!IsInsideDirectory(sessionPath, root)) {
+			error = "Unsafe session save path.";
+			return false;
+		}
+
+		std::ofstream file(sessionPath, std::ios::binary | std::ios::trunc);
+		if (!file) {
+			error = "Could not save AI session.";
+			return false;
+		}
+
+		file
+			<< "{\n"
+			<< "  \"user_prompt\":\"" << EscapeJson(session.userPrompt)
+			<< "\",\n"
+			<< "  \"provider_base_url\":\""
+			<< EscapeJson(session.providerBaseUrl) << "\",\n"
+			<< "  \"provider_model\":\"" << EscapeJson(session.providerModel)
+			<< "\",\n"
+			<< "  \"auth_mode\":\"" << EscapeJson(session.authMode)
+			<< "\",\n"
+			<< "  \"active_file\":\"" << EscapeJson(session.activeFile)
+			<< "\",\n"
+			<< "  \"response_text\":\"" << EscapeJson(session.responseText)
+			<< "\",\n"
+			<< "  \"pending_actions\":\"" << EscapeJson(session.pendingActions)
+			<< "\"\n"
+			<< "}\n";
+		savedPath = sessionPath.string();
+		return true;
+	} catch (const std::exception& exception) {
+		error = exception.what();
+		return false;
+	}
+}
+
+
 std::string
 PromptBuilder::ModeInstruction(PromptMode mode) const
 {

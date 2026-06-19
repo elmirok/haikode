@@ -49,6 +49,7 @@ private:
 	void _RunPendingCommand();
 	void _ClearPendingCommands();
 	void _UpdatePendingActions();
+	void _SaveSessionRecord(const BString& responseText);
 	void _AppendOutput(const char* text);
 	Haikode::AI::ProviderSettings _ProviderFromFields() const;
 	Haikode::AI::OAuthSettings _OAuthSettingsFromFields() const;
@@ -93,4 +94,6 @@ private:
 	BString fFilePath;
 	BString fSelection;
 	BString fFileText;
+	BString fLastUserPrompt;
+	Haikode::AI::ProviderSettings fLastProvider;
 };
