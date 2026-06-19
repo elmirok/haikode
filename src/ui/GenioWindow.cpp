@@ -83,6 +83,7 @@ GenioWindow* gMainWindow = nullptr;
 namespace {
 
 constexpr int32 kHaikodeAIFileContextLimit = 200 * 1024;
+constexpr size_t kHaikodeAIMaxOpenContextFiles = 10;
 
 BString
 EditorTextForAI(IEditor* editor)
@@ -4386,9 +4387,49 @@ GenioWindow::_UpdateHaikodeAIContext()
 		selection = editor->Selection();
 		if (selection.IsEmpty())
 			fileText = EditorTextForAI(editor);
+		if (projectRoot.IsEmpty() && editor->GetProjectFolder() != nullptr)
+			projectRoot = editor->GetProjectFolder()->Path();
 	}
 
-	fAIChatPanel->SetActiveContext(projectRoot, filePath, selection, fileText);
+	std::vector<Haikode::AI::ContextFile> openFiles;
+	auto appendEditorContext = [&](IEditor* contextEditor,
+		const BString& preferredText) {
+		if (contextEditor == nullptr || openFiles.size()
+			>= kHaikodeAIMaxOpenContextFiles) {
+			return;
+		}
+		if (contextEditor->GetProjectFolder() == nullptr
+			|| contextEditor->GetProjectFolder()->Path().Compare(projectRoot)
+				!= 0) {
+			return;
+		}
+
+		const BString path = contextEditor->FilePath();
+		if (path.IsEmpty())
+			return;
+		for (const Haikode::AI::ContextFile& existing : openFiles) {
+			if (existing.path == path.String())
+				return;
+		}
+
+		BString text = preferredText;
+		if (text.IsEmpty())
+			text = EditorTextForAI(contextEditor);
+		bool truncated = text.Length() >= kHaikodeAIFileContextLimit;
+		if (text.Length() > kHaikodeAIFileContextLimit)
+			text.Truncate(kHaikodeAIFileContextLimit);
+		if (text.IsEmpty())
+			return;
+
+		openFiles.push_back({path.String(), text.String(), truncated});
+	};
+
+	appendEditorContext(editor, selection);
+	for (int32 tab = 0; tab < fTabManager->CountTabs(); tab++)
+		appendEditorContext(fTabManager->EditorAt(tab), BString());
+
+	fAIChatPanel->SetActiveContext(projectRoot, filePath, selection, fileText,
+		openFiles);
 }
 
 

@@ -493,12 +493,14 @@ AIChatPanel::MessageReceived(BMessage* message)
 
 void
 AIChatPanel::SetActiveContext(const BString& projectRoot, const BString& filePath,
-	const BString& selection, const BString& fileText)
+	const BString& selection, const BString& fileText,
+	const std::vector<Haikode::AI::ContextFile>& openFiles)
 {
 	fProjectRoot = projectRoot;
 	fFilePath = filePath;
 	fSelection = selection;
 	fFileText = fileText;
+	fOpenFiles = openFiles;
 }
 
 
@@ -1573,13 +1575,20 @@ AIChatPanel::_RequestFromContext(Haikode::AI::PromptMode mode) const
 			request.pendingDiff = fPendingRawDiff.String();
 	}
 
-	const std::string contextText = Haikode::AI::SelectContextText(
-		fSelection.String(), fFileText.String());
-	if (!fFilePath.IsEmpty() && !contextText.empty()) {
-		Haikode::AI::ContextFile file;
-		file.path = fFilePath.String();
-		file.text = contextText;
-		request.files.push_back(file);
+	if (!fOpenFiles.empty()) {
+		for (const Haikode::AI::ContextFile& file : fOpenFiles) {
+			if (!file.path.empty() && !file.text.empty())
+				request.files.push_back(file);
+		}
+	} else {
+		const std::string contextText = Haikode::AI::SelectContextText(
+			fSelection.String(), fFileText.String());
+		if (!fFilePath.IsEmpty() && !contextText.empty()) {
+			Haikode::AI::ContextFile file;
+			file.path = fFilePath.String();
+			file.text = contextText;
+			request.files.push_back(file);
+		}
 	}
 
 	return request;

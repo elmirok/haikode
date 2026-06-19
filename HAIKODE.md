@@ -45,8 +45,8 @@ The Genio-based branch now adds:
   llama.cpp.
 - A PKCE OAuth helper that can open a provider authorization URL and exchange a
   pasted authorization code or full callback URL for a bearer token.
-- OpenAI-compatible HTTP requests for active project, selected file, and
-  selected text.
+- OpenAI-compatible HTTP requests for the active project, active selection, and
+  up to 10 open project files, with the active file first.
 - A native **Explain file** action that sends the active file or selection with
   Haiku-specific explanation guidance.
 - Offline project-map context that summarizes source/docs/build files with

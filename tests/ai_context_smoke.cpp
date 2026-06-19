@@ -27,6 +27,11 @@ main()
 		Haikode::AI::SelectContextText("", "int main() { return 0; }\n"),
 		false
 	});
+	request.files.push_back({
+		"/boot/home/project/src/App.cpp",
+		"void App() {}\n",
+		false
+	});
 	request.projectFiles.push_back({"src/main.cpp", "C++", "source",
 		"high", true, "Application entry point"});
 	request.projectFiles.push_back({"Readme.md", "Markdown", "docs",
@@ -36,8 +41,18 @@ main()
 	const Haikode::AI::PromptBuildResult result = builder.Build(request, 1024, 10);
 	assert(result.prompt.find("src/main.cpp") != std::string::npos);
 	assert(result.prompt.find("int main()") != std::string::npos);
+	assert(result.prompt.find("src/App.cpp") != std::string::npos);
+	assert(result.prompt.find("void App()") != std::string::npos);
 	assert(result.prompt.find("Project map:") != std::string::npos);
 	assert(result.prompt.find("Application entry point") != std::string::npos);
+
+	const Haikode::AI::PromptBuildResult fileLimited
+		= builder.Build(request, 1024, 1);
+	assert(fileLimited.prompt.find("int main()") != std::string::npos);
+	assert(fileLimited.prompt.find("void App()") == std::string::npos);
+	assert(!fileLimited.warnings.empty());
+	assert(fileLimited.warnings[0].find("Some files were omitted")
+		!= std::string::npos);
 
 	const Haikode::AI::PromptBuildResult limited = builder.Build(request, 1024, 10,
 		1);

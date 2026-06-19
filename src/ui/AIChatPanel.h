@@ -29,7 +29,8 @@ public:
 	void MessageReceived(BMessage* message) override;
 
 	void SetActiveContext(const BString& projectRoot, const BString& filePath,
-		const BString& selection, const BString& fileText);
+		const BString& selection, const BString& fileText,
+		const std::vector<Haikode::AI::ContextFile>& openFiles = {});
 	void SetTabLabel(BString label);
 	void OpenProviderSettings();
 
@@ -110,6 +111,7 @@ private:
 	BString fFilePath;
 	BString fSelection;
 	BString fFileText;
+	std::vector<Haikode::AI::ContextFile> fOpenFiles;
 	BString fLastUserPrompt;
 	Haikode::AI::ProviderSettings fLastProvider;
 };
