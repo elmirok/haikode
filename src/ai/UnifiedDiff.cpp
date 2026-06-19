@@ -99,6 +99,27 @@ ValidatePatchPath(const std::string& path, bool allowDevNull, std::string& error
 }
 
 bool
+RejectSymlinkPathComponents(const fs::path& root, const std::string& path,
+	std::string& error)
+{
+	fs::path probe = root;
+	for (const fs::path& part : fs::path(path)) {
+		probe /= part;
+		std::error_code statusError;
+		const fs::file_status status = fs::symlink_status(probe, statusError);
+		if (statusError && status.type() != fs::file_type::not_found) {
+			error = "Could not inspect patch path: " + path;
+			return false;
+		}
+		if (!statusError && fs::is_symlink(status)) {
+			error = "Refusing to patch symbolic link path: " + path;
+			return false;
+		}
+	}
+	return true;
+}
+
+bool
 IsInsideDirectory(const fs::path& child, const fs::path& parent)
 {
 	const fs::path relative = fs::relative(child, parent);
@@ -595,6 +616,7 @@ UnifiedDiff::Apply(const std::string& projectRoot, PatchApplyResult& result,
 
 		const fs::path root = fs::weakly_canonical(projectRoot);
 		const fs::path backupRoot = root / ".haikode" / "backups" / Timestamp();
+		bool wroteBackup = false;
 
 		for (const PatchFile& file : fFiles) {
 			if (!ValidatePatchPath(file.oldPath, true, error))
@@ -608,6 +630,8 @@ UnifiedDiff::Apply(const std::string& projectRoot, PatchApplyResult& result,
 		}
 
 		for (const PatchFile& file : fFiles) {
+			if (!RejectSymlinkPathComponents(root, file.newPath, error))
+				return false;
 			const fs::path target = file.oldPath == "/dev/null"
 				? fs::weakly_canonical((root / file.newPath).parent_path())
 					/ fs::path(file.newPath).filename()
@@ -636,6 +660,7 @@ UnifiedDiff::Apply(const std::string& projectRoot, PatchApplyResult& result,
 				const fs::path backup = backupRoot / file.newPath;
 				fs::create_directories(backup.parent_path());
 				fs::copy_file(target, backup, fs::copy_options::overwrite_existing);
+				wroteBackup = true;
 			}
 			fs::create_directories(target.parent_path());
 			if (!WriteTextFile(target, patched, error))
@@ -644,7 +669,8 @@ UnifiedDiff::Apply(const std::string& projectRoot, PatchApplyResult& result,
 			result.changedFiles.push_back(file.newPath);
 		}
 
-		result.backupDirectory = backupRoot.string();
+		if (wroteBackup)
+			result.backupDirectory = backupRoot.string();
 		return true;
 	} catch (const std::exception& exception) {
 		error = exception.what();
@@ -721,6 +747,8 @@ UnifiedDiff::ApplyHunk(const std::string& projectRoot, const std::string& path,
 
 		const fs::path root = fs::weakly_canonical(projectRoot);
 		const fs::path backupRoot = root / ".haikode" / "backups" / Timestamp();
+		if (!RejectSymlinkPathComponents(root, path, error))
+			return false;
 		const fs::path target = patchFile->oldPath == "/dev/null"
 			? fs::weakly_canonical((root / path).parent_path())
 				/ fs::path(path).filename()
@@ -759,7 +787,8 @@ UnifiedDiff::ApplyHunk(const std::string& projectRoot, const std::string& path,
 			return false;
 
 		result.changedFiles.push_back(path);
-		result.backupDirectory = backupRoot.string();
+		if (patchFile->oldPath != "/dev/null")
+			result.backupDirectory = backupRoot.string();
 		return true;
 	} catch (const std::exception& exception) {
 		error = exception.what();

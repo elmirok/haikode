@@ -66,6 +66,8 @@ The Genio-based branch now adds:
   controls with path checks and `.haikode/backups/` copies before writes.
 - AI patch application refuses sensitive project metadata such as `.git/`,
   `.hg/`, `.svn/`, `.haikode/`, `.genio`, and Haikode/Genio settings files.
+- AI patch application refuses symbolic-link path components so a proposed
+  patch modifies the named project file instead of writing through a link.
 - Generated unified diffs are saved immediately under `.haikode/patches/` before
   approval, so rejected and partially applied proposals still have an audit file.
 - Explicit AI command request parsing with separate **Run command** and

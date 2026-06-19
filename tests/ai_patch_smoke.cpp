@@ -187,12 +187,40 @@ main()
 	assert(newFilePatch.Apply(root.string(), result, error));
 	assert(ReadFile(root / "src" / "new_feature.cpp")
 		== "#include <iostream>\nint answer() {\n\treturn 42;\n}\n");
+	assert(result.backupDirectory.empty());
 
 	Haikode::AI::UnifiedDiff duplicateNewFilePatch;
 	assert(Haikode::AI::UnifiedDiff::Parse(newFileDiff, duplicateNewFilePatch,
 		error));
 	assert(!duplicateNewFilePatch.Apply(root.string(), result, error));
 	assert(error.find("already exists") != std::string::npos);
+
+	WriteFile(root / "src" / "real.cpp", "one\nold\nthree\n");
+	const fs::path linkPath = root / "src" / "link.cpp";
+	std::error_code symlinkError;
+	fs::remove(linkPath, symlinkError);
+	symlinkError.clear();
+	fs::create_symlink(root / "src" / "real.cpp", linkPath, symlinkError);
+	if (!symlinkError) {
+		const std::string symlinkDiff =
+			"diff --git a/src/link.cpp b/src/link.cpp\n"
+			"--- a/src/link.cpp\n"
+			"+++ b/src/link.cpp\n"
+			"@@ -1,3 +1,3 @@\n"
+			" one\n"
+			"-old\n"
+			"+new\n"
+			" three\n";
+		Haikode::AI::UnifiedDiff symlinkPatch;
+		assert(Haikode::AI::UnifiedDiff::Parse(symlinkDiff, symlinkPatch,
+			error));
+		assert(!symlinkPatch.Apply(root.string(), result, error));
+		assert(error.find("symbolic link") != std::string::npos);
+		assert(ReadFile(root / "src" / "real.cpp") == "one\nold\nthree\n");
+		assert(!symlinkPatch.ApplyHunk(root.string(), "src/link.cpp", 0,
+			result, error));
+		assert(error.find("symbolic link") != std::string::npos);
+	}
 
 	const std::string wrappedResponse =
 		"Here is the patch:\n\n```diff\n" + diff + "```\n";
