@@ -73,7 +73,7 @@ private:
 	void _RunCommandCaptured(const Haikode::AI::CommandRequest& command);
 	void _FinishCodexCapture(const BString& output, const BString& error,
 		int32 exitCode, bool timedOut, bool cancelled, const BString& logPath,
-		const BString& logError);
+		const BString& logError, bool loginStatusCommand);
 	void _FinishCommandCapture(const BString& output, const BString& error,
 		int32 exitCode, bool timedOut, bool cancelled, const BString& logPath,
 		const BString& logError);

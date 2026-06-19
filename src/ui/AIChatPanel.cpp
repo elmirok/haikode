@@ -1038,7 +1038,8 @@ AIChatPanel::MessageReceived(BMessage* message)
 					message->GetBool("timed_out", false),
 					message->GetBool("cancelled", false),
 					message->GetString("log_path", ""),
-					message->GetString("log_error", ""));
+					message->GetString("log_error", ""),
+					message->GetBool("login_status_command", false));
 			break;
 		case kMsgCommandCaptureResponse:
 			if (_IsCurrentRequest(message, "command response"))
@@ -2186,7 +2187,10 @@ AIChatPanel::_RunCodexCommandCaptured(const Haikode::AI::CommandRequest& command
 	BMessenger messenger(this);
 	const std::vector<std::string> argv = command.argv;
 	const std::string projectRoot = fProjectRoot.String();
-	std::thread([messenger, argv, projectRoot, requestId, cancellation]() mutable {
+	const bool loginStatusCommand
+		= Haikode::AI::CodexBridge::IsLoginStatusCommand(command);
+	std::thread([messenger, argv, projectRoot, requestId, cancellation,
+			loginStatusCommand]() mutable {
 		Haikode::AI::ProcessCaptureOptions options;
 		options.argv = argv;
 		options.workingDirectory = projectRoot;
@@ -2212,6 +2216,7 @@ AIChatPanel::_RunCodexCommandCaptured(const Haikode::AI::CommandRequest& command
 		done.AddBool("cancelled", result.cancelled);
 		done.AddString("log_path", savedLogPath.c_str());
 		done.AddString("log_error", logError.c_str());
+		done.AddBool("login_status_command", loginStatusCommand);
 		messenger.SendMessage(&done);
 	}).detach();
 }
@@ -2280,7 +2285,7 @@ AIChatPanel::_RunCommandCaptured(const Haikode::AI::CommandRequest& command)
 void
 AIChatPanel::_FinishCodexCapture(const BString& output, const BString& error,
 	int32 exitCode, bool timedOut, bool cancelled, const BString& logPath,
-	const BString& logError)
+	const BString& logError, bool loginStatusCommand)
 {
 	if (!logPath.IsEmpty()) {
 		BString line(B_TRANSLATE("Saved Codex log: "));
@@ -2309,6 +2314,15 @@ AIChatPanel::_FinishCodexCapture(const BString& output, const BString& error,
 			line << " (" << exitCode << ")";
 		line << ": " << error;
 		_AppendOutput(line.String());
+		if (!output.IsEmpty())
+			_AppendOutput(output.String());
+		return;
+	}
+
+	if (loginStatusCommand) {
+		_FinishRequest();
+		_AppendOutput(Haikode::AI::CodexBridge::FormatLoginStatusSummary(
+			output.String()).c_str());
 		if (!output.IsEmpty())
 			_AppendOutput(output.String());
 		return;

@@ -185,6 +185,18 @@ CodexBridge::LoginStateLabel(CodexLoginState state)
 }
 
 
+std::string
+CodexBridge::FormatLoginStatusSummary(const std::string& output)
+{
+	const CodexLoginState state = ParseLoginStatus(output);
+	std::string summary = "Codex status: ";
+	summary += LoginStateLabel(state);
+	if (state == CodexLoginState::Unknown && !output.empty())
+		summary += " (raw output did not match known login states)";
+	return summary;
+}
+
+
 CommandRequest
 CodexBridge::LoginStatusCommand(const std::string& executable)
 {
@@ -194,6 +206,15 @@ CodexBridge::LoginStatusCommand(const std::string& executable)
 	command.dangerous = false;
 	command.runnable = true;
 	return command;
+}
+
+
+bool
+CodexBridge::IsLoginStatusCommand(const CommandRequest& command)
+{
+	return command.argv.size() >= 3
+		&& command.argv[1] == "login"
+		&& command.argv[2] == "status";
 }
 
 

@@ -32,9 +32,11 @@ public:
 		const std::string& pathEnv, std::string& error);
 	static CodexLoginState ParseLoginStatus(const std::string& output);
 	static const char* LoginStateLabel(CodexLoginState state);
+	static std::string FormatLoginStatusSummary(const std::string& output);
 
 	static CommandRequest LoginStatusCommand(const std::string& executable);
 	static CommandRequest DeviceLoginCommand(const std::string& executable);
+	static bool IsLoginStatusCommand(const CommandRequest& command);
 	static PromptBuildResult BuildReadOnlyPrompt(
 		const VibeCodingRequest& request, size_t maxBytesPerFile,
 		size_t maxFiles, size_t maxProjectFiles = 50);

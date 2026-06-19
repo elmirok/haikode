@@ -47,6 +47,14 @@ main()
 		"Not logged in") == Haikode::AI::CodexLoginState::LoggedOut);
 	assert(Haikode::AI::CodexBridge::LoginStateLabel(
 		Haikode::AI::CodexLoginState::LoggedIn) == std::string("Logged in"));
+	assert(Haikode::AI::CodexBridge::FormatLoginStatusSummary(
+		"Logged in using ChatGPT\n") == "Codex status: Logged in");
+	assert(Haikode::AI::CodexBridge::FormatLoginStatusSummary(
+		"Not logged in") == "Codex status: Logged out");
+	assert(Haikode::AI::CodexBridge::FormatLoginStatusSummary(
+		"codex: not found") == "Codex status: Not found");
+	assert(Haikode::AI::CodexBridge::FormatLoginStatusSummary(
+		"unexpected output").find("Unknown") != std::string::npos);
 
 	Haikode::AI::VibeCodingRequest codexRequest;
 	codexRequest.projectRoot = root.string();
@@ -84,6 +92,7 @@ main()
 	assert(status.argv[1] == "login");
 	assert(status.argv[2] == "status");
 	assert(status.runnable);
+	assert(Haikode::AI::CodexBridge::IsLoginStatusCommand(status));
 
 	Haikode::AI::CommandRequest login
 		= Haikode::AI::CodexBridge::DeviceLoginCommand("/bin/codex");
@@ -117,6 +126,7 @@ main()
 	assert(Haikode::AI::CommandDisplayString(ask).find("read-only")
 		!= std::string::npos);
 	assert(!Haikode::AI::CodexBridge::IsReadOnlyAskCommand(status));
+	assert(!Haikode::AI::CodexBridge::IsLoginStatusCommand(ask));
 
 	settings.localProvider = "ollama";
 	settings.useOss = true;
