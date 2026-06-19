@@ -56,6 +56,7 @@ private:
 	void _FinishProviderTest(const BString& text, const BString& error,
 		long status);
 	void _StartOAuth();
+	void _StartOAuthFromCurrentFields();
 	void _ExchangeOAuthCode();
 	void _FinishOAuthExchange(const BString& token, const BString& error,
 		long status);

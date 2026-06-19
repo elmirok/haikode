@@ -16,6 +16,9 @@ main()
 	assert(Haikode::AI::ShouldRunProviderTestAfterSetupSave(true, false));
 	assert(!Haikode::AI::ShouldRunProviderTestAfterSetupSave(false, false));
 	assert(!Haikode::AI::ShouldRunProviderTestAfterSetupSave(true, true));
+	assert(Haikode::AI::ShouldStartOAuthAfterSetupSave(true, false));
+	assert(!Haikode::AI::ShouldStartOAuthAfterSetupSave(false, false));
+	assert(!Haikode::AI::ShouldStartOAuthAfterSetupSave(true, true));
 
 	std::cout << "ai-setup-flow-smoke-ok\n";
 	return 0;

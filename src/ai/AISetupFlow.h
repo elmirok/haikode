@@ -8,5 +8,6 @@ namespace Haikode::AI {
 
 bool ShouldDeferSetupOpenAfterPanelShow(bool aiPanelHasWindow);
 bool ShouldRunProviderTestAfterSetupSave(bool requested, bool requestRunning);
+bool ShouldStartOAuthAfterSetupSave(bool requested, bool requestRunning);
 
 } // namespace Haikode::AI

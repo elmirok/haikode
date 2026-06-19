@@ -57,6 +57,7 @@ const uint32 kMsgSaveProvider = 'hisp';
 const uint32 kMsgOpenSetup = 'hios';
 const uint32 kMsgSetupSave = 'hiss';
 const uint32 kMsgSetupSaveAndTest = 'hist';
+const uint32 kMsgSetupSaveAndOAuth = 'hisa';
 const uint32 kMsgSetupCancel = 'hisc';
 const uint32 kMsgSetupSaved = 'hisd';
 const uint32 kMsgSetupPresetOpenAI = 'hiso';
@@ -641,6 +642,9 @@ public:
 			B_TRANSLATE("Save"), new BMessage(kMsgSetupSave));
 		BButton* saveAndTestButton = new BButton("setup_save_test",
 			B_TRANSLATE("Save & Test"), new BMessage(kMsgSetupSaveAndTest));
+		BButton* saveAndOAuthButton = new BButton("setup_save_oauth",
+			B_TRANSLATE("Save & Start OAuth"),
+			new BMessage(kMsgSetupSaveAndOAuth));
 		BStringView* networkStatus = new BStringView("setup_network_status",
 			SetupNetworkStatusText());
 		openAIButton->SetTarget(this);
@@ -652,6 +656,7 @@ public:
 		cancelButton->SetTarget(this);
 		saveButton->SetTarget(this);
 		saveAndTestButton->SetTarget(this);
+		saveAndOAuthButton->SetTarget(this);
 
 		BLayoutBuilder::Group<>(this, B_VERTICAL, B_USE_DEFAULT_SPACING)
 			.SetInsets(B_USE_WINDOW_SPACING)
@@ -692,6 +697,7 @@ public:
 				.Add(cancelButton)
 				.Add(saveButton)
 				.Add(saveAndTestButton)
+				.Add(saveAndOAuthButton)
 			.End();
 
 		saveAndTestButton->MakeDefault(true);
@@ -739,6 +745,7 @@ public:
 				break;
 			case kMsgSetupSave:
 			case kMsgSetupSaveAndTest:
+			case kMsgSetupSaveAndOAuth:
 			{
 				BMessage saved(kMsgSetupSaved);
 				saved.AddString("base_url", fBaseUrl->Text());
@@ -753,6 +760,8 @@ public:
 				saved.AddString("oauth_redirect_uri", fOAuthRedirectUri->Text());
 				saved.AddBool("test_provider",
 					message->what == kMsgSetupSaveAndTest);
+				saved.AddBool("start_oauth",
+					message->what == kMsgSetupSaveAndOAuth);
 				fTarget.SendMessage(&saved);
 				Quit();
 				break;
@@ -936,6 +945,13 @@ AIChatPanel::MessageReceived(BMessage* message)
 				_StartProviderTestFromCurrentFields();
 			} else if (message->GetBool("test_provider", false)) {
 				_AppendOutput(B_TRANSLATE("Provider test was not started because another AI or OAuth request is running."));
+			}
+			if (Haikode::AI::ShouldStartOAuthAfterSetupSave(
+					message->GetBool("start_oauth", false),
+					fRequestRunning)) {
+				_StartOAuthFromCurrentFields();
+			} else if (message->GetBool("start_oauth", false)) {
+				_AppendOutput(B_TRANSLATE("OAuth login was not started because another AI or OAuth request is running."));
 			}
 			break;
 		case kMsgPresetOpenAI:
@@ -1663,6 +1679,13 @@ void
 AIChatPanel::_StartOAuth()
 {
 	_SaveProviderToConfig();
+	_StartOAuthFromCurrentFields();
+}
+
+
+void
+AIChatPanel::_StartOAuthFromCurrentFields()
+{
 	Haikode::AI::OAuthSettings settings = _OAuthSettingsFromFields();
 	std::string validationError;
 	if (!Haikode::AI::OAuthClient::ValidateSettings(settings,

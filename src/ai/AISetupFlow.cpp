@@ -20,4 +20,11 @@ ShouldRunProviderTestAfterSetupSave(bool requested, bool requestRunning)
 	return requested && !requestRunning;
 }
 
+
+bool
+ShouldStartOAuthAfterSetupSave(bool requested, bool requestRunning)
+{
+	return requested && !requestRunning;
+}
+
 } // namespace Haikode::AI
