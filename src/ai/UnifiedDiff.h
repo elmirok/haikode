@@ -41,6 +41,22 @@ struct PatchFileStats {
 	bool newFile = false;
 };
 
+enum class PatchReviewRowKind {
+	File,
+	Hunk,
+	Context,
+	Addition,
+	Removal
+};
+
+struct PatchReviewRow {
+	PatchReviewRowKind kind = PatchReviewRowKind::Context;
+	std::string path;
+	int oldLine = 0;
+	int newLine = 0;
+	std::string text;
+};
+
 class UnifiedDiff {
 public:
 	static bool Parse(const std::string& text, UnifiedDiff& diff,
@@ -57,6 +73,8 @@ public:
 	int HunkCount() const;
 	std::string ReviewText() const;
 	std::string ReviewTextForFile(const std::string& path) const;
+	std::vector<PatchReviewRow> ReviewRowsForFile(
+		const std::string& path) const;
 
 	bool Apply(const std::string& projectRoot, PatchApplyResult& result,
 		std::string& error) const;

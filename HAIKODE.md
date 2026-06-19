@@ -95,6 +95,9 @@ The Genio-based branch now adds:
 - A structured patch preview that starts with a changed-file summary, then shows
   the selected file's hunk headers and added/removed/context lines before any
   apply action.
+- Selected-file patch previews now use structured review rows with old/new line
+  columns and explicit add/remove markers, giving the native panel a clearer
+  review model than raw diff text alone.
 - A native selected patch-file field so a user can approve or reject one named
   file from a multi-file AI patch instead of blindly accepting the first file.
 - Previous/next patch-file navigation immediately refreshes the selected-file
@@ -157,5 +160,5 @@ whether the current binary was built with network AI support. Then use
 **Save & Test** to verify the endpoint before asking questions or proposing
 patches.
 
-The next slices should make the patch review more visual inside native controls
-and add filtering/open-in-editor actions to the record browser.
+The next slices should add richer native filtering for project records and keep
+iterating on AI/provider setup ergonomics from Haiku QA feedback.

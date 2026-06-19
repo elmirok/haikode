@@ -323,6 +323,49 @@ ApplySingleHunkToLines(const std::vector<std::string>& original,
 	return true;
 }
 
+
+PatchFileStats
+StatsForFile(const PatchFile& file)
+{
+	PatchFileStats fileStats;
+	fileStats.path = file.newPath;
+	fileStats.hunkCount = file.hunks.size();
+	fileStats.newFile = file.oldPath == "/dev/null";
+	for (const PatchHunk& hunk : file.hunks) {
+		for (const PatchHunkLine& line : hunk.lines) {
+			if (line.kind == '+')
+				fileStats.additions++;
+			else if (line.kind == '-')
+				fileStats.deletions++;
+		}
+	}
+	return fileStats;
+}
+
+
+std::string
+FileSummaryText(const PatchFileStats& fileStats)
+{
+	std::ostringstream summary;
+	summary << fileStats.path << " (+" << fileStats.additions
+		<< " -" << fileStats.deletions << ", " << fileStats.hunkCount
+		<< " hunk(s)";
+	if (fileStats.newFile)
+		summary << ", new file";
+	summary << ")";
+	return summary.str();
+}
+
+
+std::string
+HunkHeaderText(const PatchHunk& hunk)
+{
+	std::ostringstream header;
+	header << "@@ -" << hunk.oldStart << "," << hunk.oldCount << " +"
+		<< hunk.newStart << "," << hunk.newCount << " @@";
+	return header.str();
+}
+
 } // namespace
 
 bool
@@ -477,21 +520,8 @@ UnifiedDiff::FileStats() const
 {
 	std::vector<PatchFileStats> stats;
 	stats.reserve(fFiles.size());
-	for (const PatchFile& file : fFiles) {
-		PatchFileStats fileStats;
-		fileStats.path = file.newPath;
-		fileStats.hunkCount = file.hunks.size();
-		fileStats.newFile = file.oldPath == "/dev/null";
-		for (const PatchHunk& hunk : file.hunks) {
-			for (const PatchHunkLine& line : hunk.lines) {
-				if (line.kind == '+')
-					fileStats.additions++;
-				else if (line.kind == '-')
-					fileStats.deletions++;
-			}
-		}
-		stats.push_back(fileStats);
-	}
+	for (const PatchFile& file : fFiles)
+		stats.push_back(StatsForFile(file));
 	return stats;
 }
 
@@ -511,21 +541,8 @@ BuildReviewText(const std::vector<PatchFile>& files)
 {
 	std::vector<PatchFileStats> stats;
 	stats.reserve(files.size());
-	for (const PatchFile& file : files) {
-		PatchFileStats fileStats;
-		fileStats.path = file.newPath;
-		fileStats.hunkCount = file.hunks.size();
-		fileStats.newFile = file.oldPath == "/dev/null";
-		for (const PatchHunk& hunk : file.hunks) {
-			for (const PatchHunkLine& line : hunk.lines) {
-				if (line.kind == '+')
-					fileStats.additions++;
-				else if (line.kind == '-')
-					fileStats.deletions++;
-			}
-		}
-		stats.push_back(fileStats);
-	}
+	for (const PatchFile& file : files)
+		stats.push_back(StatsForFile(file));
 
 	size_t additions = 0;
 	size_t deletions = 0;
@@ -542,16 +559,10 @@ BuildReviewText(const std::vector<PatchFile>& files)
 	for (size_t fileIndex = 0; fileIndex < files.size(); ++fileIndex) {
 		const PatchFile& file = files[fileIndex];
 		const PatchFileStats& fileStats = stats[fileIndex];
-		preview << "\n\n" << fileStats.path << " (+" << fileStats.additions
-			<< " -" << fileStats.deletions << ", " << fileStats.hunkCount
-			<< " hunk(s)";
-		if (fileStats.newFile)
-			preview << ", new file";
-		preview << ")";
+		preview << "\n\n" << FileSummaryText(fileStats);
 
 		for (const PatchHunk& hunk : file.hunks) {
-			preview << "\n@@ -" << hunk.oldStart << "," << hunk.oldCount
-				<< " +" << hunk.newStart << "," << hunk.newCount << " @@";
+			preview << "\n" << HunkHeaderText(hunk);
 			for (const PatchHunkLine& line : hunk.lines)
 				preview << "\n" << line.kind << line.text;
 		}
@@ -599,6 +610,57 @@ UnifiedDiff::ReviewTextForHunk(const std::string& path, size_t hunkIndex) const
 		}
 	}
 	return "";
+}
+
+
+std::vector<PatchReviewRow>
+UnifiedDiff::ReviewRowsForFile(const std::string& path) const
+{
+	for (const PatchFile& file : fFiles) {
+		if (file.newPath != path)
+			continue;
+
+		std::vector<PatchReviewRow> rows;
+		rows.push_back({
+			PatchReviewRowKind::File,
+			file.newPath,
+			0,
+			0,
+			FileSummaryText(StatsForFile(file))
+		});
+
+		for (const PatchHunk& hunk : file.hunks) {
+			rows.push_back({
+				PatchReviewRowKind::Hunk,
+				file.newPath,
+				hunk.oldStart,
+				hunk.newStart,
+				HunkHeaderText(hunk)
+			});
+
+			int oldLine = hunk.oldStart;
+			int newLine = hunk.newStart;
+			for (const PatchHunkLine& line : hunk.lines) {
+				PatchReviewRow row;
+				row.path = file.newPath;
+				row.text = line.text;
+				if (line.kind == '+') {
+					row.kind = PatchReviewRowKind::Addition;
+					row.newLine = newLine++;
+				} else if (line.kind == '-') {
+					row.kind = PatchReviewRowKind::Removal;
+					row.oldLine = oldLine++;
+				} else {
+					row.kind = PatchReviewRowKind::Context;
+					row.oldLine = oldLine++;
+					row.newLine = newLine++;
+				}
+				rows.push_back(row);
+			}
+		}
+		return rows;
+	}
+	return {};
 }
 
 

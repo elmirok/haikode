@@ -32,6 +32,8 @@
 #include <cerrno>
 #include <cstring>
 #include <cstdlib>
+#include <iomanip>
+#include <sstream>
 #include <string>
 #include <thread>
 
@@ -136,6 +138,52 @@ NetworkAIEnabled()
 #else
 	return false;
 #endif
+}
+
+
+const char*
+PatchReviewMarker(Haikode::AI::PatchReviewRowKind kind)
+{
+	switch (kind) {
+		case Haikode::AI::PatchReviewRowKind::Addition:
+			return "+";
+		case Haikode::AI::PatchReviewRowKind::Removal:
+			return "-";
+		case Haikode::AI::PatchReviewRowKind::Context:
+			return " ";
+		case Haikode::AI::PatchReviewRowKind::File:
+		case Haikode::AI::PatchReviewRowKind::Hunk:
+			return "";
+	}
+	return "";
+}
+
+
+std::string
+FormatPatchReviewRows(const std::vector<Haikode::AI::PatchReviewRow>& rows)
+{
+	std::ostringstream preview;
+	preview << "old  new  change\n";
+	for (const Haikode::AI::PatchReviewRow& row : rows) {
+		if (row.kind == Haikode::AI::PatchReviewRowKind::File
+			|| row.kind == Haikode::AI::PatchReviewRowKind::Hunk) {
+			preview << "\n" << row.text << "\n";
+			continue;
+		}
+
+		if (row.oldLine > 0)
+			preview << std::setw(3) << row.oldLine;
+		else
+			preview << "   ";
+		preview << "  ";
+		if (row.newLine > 0)
+			preview << std::setw(3) << row.newLine;
+		else
+			preview << "   ";
+		preview << "  " << PatchReviewMarker(row.kind) << " " << row.text
+			<< "\n";
+	}
+	return preview.str();
 }
 
 #ifdef HAIKODE_AI_NETWORK
@@ -2620,7 +2668,13 @@ AIChatPanel::_AppendPatchFilePreview(const std::string& path)
 	if (path.empty())
 		return;
 
-	const std::string preview = fPendingDiff.ReviewTextForFile(path);
+	const std::vector<Haikode::AI::PatchReviewRow> rows
+		= fPendingDiff.ReviewRowsForFile(path);
+	std::string preview;
+	if (!rows.empty())
+		preview = FormatPatchReviewRows(rows);
+	else
+		preview = fPendingDiff.ReviewTextForFile(path);
 	if (preview.empty()) {
 		BString line(B_TRANSLATE("Pending patch does not contain selected file: "));
 		line << path.c_str();

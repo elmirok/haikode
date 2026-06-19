@@ -203,6 +203,10 @@ Use **Recent records** in the AI panel to pick from recent `.haikode/sessions`,
 active project. **Show record** previews the path currently shown in the record
 field. **Open record file** opens that saved record in Genio's editor.
 
+When an AI response includes a unified diff, Haikode saves it under
+`.haikode/patches/` and shows a selected-file review with old/new line columns,
+hunk headers, and explicit add/remove markers before any apply action.
+
 AI patches cannot modify sensitive project metadata such as `.git/`,
 `.haikode/`, `.genio`, or Haikode/Genio settings files.
 

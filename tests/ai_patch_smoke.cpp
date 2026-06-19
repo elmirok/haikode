@@ -72,6 +72,30 @@ main()
 	assert(parsed.ReviewTextForFile("src/main.cpp").find(
 		"src/main.cpp (+1 -1, 1 hunk(s))") != std::string::npos);
 	assert(parsed.ReviewTextForFile("missing.cpp").empty());
+	const std::vector<Haikode::AI::PatchReviewRow> reviewRows
+		= parsed.ReviewRowsForFile("src/main.cpp");
+	assert(reviewRows.size() == 6);
+	assert(reviewRows[0].kind == Haikode::AI::PatchReviewRowKind::File);
+	assert(reviewRows[0].path == "src/main.cpp");
+	assert(reviewRows[0].text == "src/main.cpp (+1 -1, 1 hunk(s))");
+	assert(reviewRows[1].kind == Haikode::AI::PatchReviewRowKind::Hunk);
+	assert(reviewRows[1].text == "@@ -1,3 +1,3 @@");
+	assert(reviewRows[2].kind == Haikode::AI::PatchReviewRowKind::Context);
+	assert(reviewRows[2].oldLine == 1);
+	assert(reviewRows[2].newLine == 1);
+	assert(reviewRows[2].text == "one");
+	assert(reviewRows[3].kind == Haikode::AI::PatchReviewRowKind::Removal);
+	assert(reviewRows[3].oldLine == 2);
+	assert(reviewRows[3].newLine == 0);
+	assert(reviewRows[3].text == "old");
+	assert(reviewRows[4].kind == Haikode::AI::PatchReviewRowKind::Addition);
+	assert(reviewRows[4].oldLine == 0);
+	assert(reviewRows[4].newLine == 2);
+	assert(reviewRows[4].text == "new");
+	assert(reviewRows[5].kind == Haikode::AI::PatchReviewRowKind::Context);
+	assert(reviewRows[5].oldLine == 3);
+	assert(reviewRows[5].newLine == 3);
+	assert(parsed.ReviewRowsForFile("missing.cpp").empty());
 
 	Haikode::AI::PatchApplyResult result;
 	assert(parsed.Apply(root.string(), result, error));
