@@ -110,6 +110,9 @@ Open **Window > Haikode AI** after launch. Credentials are stored in Haikode's
 machine-local settings, not in the project and not through exported shell
 variables.
 
+Use the **OpenAI**, **Ollama**, or **LM Studio** buttons to fill the common
+base URL, model, and auth mode defaults, then adjust the model if needed.
+
 For OpenAI-compatible cloud providers, set:
 
 * Base URL: `https://api.openai.com` or the provider endpoint.

@@ -27,6 +27,26 @@ main()
 	assert(prepared.body.find("\"model\":\"test-model\"") != std::string::npos);
 	assert(prepared.body.find("Explain this file") != std::string::npos);
 
+	const Haikode::AI::ProviderSettings openaiPreset
+		= Haikode::AI::ProviderPresetSettings(
+			Haikode::AI::ProviderPreset::OpenAI);
+	assert(openaiPreset.baseUrl == "https://api.openai.com");
+	assert(openaiPreset.model == "gpt-4.1-mini");
+	assert(openaiPreset.authMode == Haikode::AI::AuthMode::ApiKey);
+
+	const Haikode::AI::ProviderSettings ollamaPreset
+		= Haikode::AI::ProviderPresetSettings(
+			Haikode::AI::ProviderPreset::Ollama);
+	assert(ollamaPreset.baseUrl == "http://127.0.0.1:11434");
+	assert(ollamaPreset.model == "llama3.1");
+	assert(ollamaPreset.authMode == Haikode::AI::AuthMode::Local);
+
+	const Haikode::AI::ProviderSettings lmStudioPreset
+		= Haikode::AI::ProviderPresetSettings(
+			Haikode::AI::ProviderPreset::LMStudio);
+	assert(lmStudioPreset.baseUrl == "http://127.0.0.1:1234");
+	assert(lmStudioPreset.authMode == Haikode::AI::AuthMode::Local);
+
 	Haikode::AI::ProviderSettings localProvider;
 	localProvider.baseUrl = "http://127.0.0.1:11434";
 	localProvider.authMode = Haikode::AI::AuthMode::Local;

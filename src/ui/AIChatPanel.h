@@ -36,6 +36,7 @@ private:
 	void _BuildInterface();
 	void _LoadProviderFromConfig();
 	void _SaveProviderToConfig();
+	void _ApplyProviderPreset(Haikode::AI::ProviderPreset preset);
 	void _OpenProviderSettings();
 	void _StartOAuth();
 	void _ExchangeOAuthCode();
@@ -71,6 +72,9 @@ private:
 	BTextView* fOutput;
 	BButton* fSaveProvider;
 	BButton* fSetupButton;
+	BButton* fOpenAIPresetButton;
+	BButton* fOllamaPresetButton;
+	BButton* fLMStudioPresetButton;
 	BButton* fStartOAuthButton;
 	BButton* fExchangeOAuthButton;
 	BButton* fAskButton;

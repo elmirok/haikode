@@ -33,6 +33,9 @@ namespace {
 
 const uint32 kMsgSaveProvider = 'hisp';
 const uint32 kMsgOpenSetup = 'hios';
+const uint32 kMsgPresetOpenAI = 'hpai';
+const uint32 kMsgPresetOllama = 'hpol';
+const uint32 kMsgPresetLMStudio = 'hplm';
 const uint32 kMsgStartOAuth = 'hiso';
 const uint32 kMsgExchangeOAuth = 'hixo';
 const uint32 kMsgOAuthResponse = 'hior';
@@ -77,6 +80,9 @@ AIChatPanel::AIChatPanel(PanelTabManager* panelTabManager, tab_id id)
 	fOutput(nullptr),
 	fSaveProvider(nullptr),
 	fSetupButton(nullptr),
+	fOpenAIPresetButton(nullptr),
+	fOllamaPresetButton(nullptr),
+	fLMStudioPresetButton(nullptr),
 	fStartOAuthButton(nullptr),
 	fExchangeOAuthButton(nullptr),
 	fAskButton(nullptr),
@@ -97,6 +103,9 @@ AIChatPanel::AttachedToWindow()
 	fPrompt->SetTarget(this);
 	fSaveProvider->SetTarget(this);
 	fSetupButton->SetTarget(this);
+	fOpenAIPresetButton->SetTarget(this);
+	fOllamaPresetButton->SetTarget(this);
+	fLMStudioPresetButton->SetTarget(this);
 	fStartOAuthButton->SetTarget(this);
 	fExchangeOAuthButton->SetTarget(this);
 	fAskButton->SetTarget(this);
@@ -127,6 +136,15 @@ AIChatPanel::MessageReceived(BMessage* message)
 			break;
 		case kMsgOpenSetup:
 			_OpenProviderSettings();
+			break;
+		case kMsgPresetOpenAI:
+			_ApplyProviderPreset(Haikode::AI::ProviderPreset::OpenAI);
+			break;
+		case kMsgPresetOllama:
+			_ApplyProviderPreset(Haikode::AI::ProviderPreset::Ollama);
+			break;
+		case kMsgPresetLMStudio:
+			_ApplyProviderPreset(Haikode::AI::ProviderPreset::LMStudio);
 			break;
 		case kMsgStartOAuth:
 			_StartOAuth();
@@ -231,6 +249,12 @@ AIChatPanel::_BuildInterface()
 		B_TRANSLATE("Save provider"), new BMessage(kMsgSaveProvider));
 	fSetupButton = new BButton("haikode_ai_setup",
 		B_TRANSLATE("AI Setup"), new BMessage(kMsgOpenSetup));
+	fOpenAIPresetButton = new BButton("haikode_ai_preset_openai",
+		B_TRANSLATE("OpenAI"), new BMessage(kMsgPresetOpenAI));
+	fOllamaPresetButton = new BButton("haikode_ai_preset_ollama",
+		B_TRANSLATE("Ollama"), new BMessage(kMsgPresetOllama));
+	fLMStudioPresetButton = new BButton("haikode_ai_preset_lmstudio",
+		B_TRANSLATE("LM Studio"), new BMessage(kMsgPresetLMStudio));
 	fStartOAuthButton = new BButton("haikode_ai_start_oauth",
 		B_TRANSLATE("Start OAuth"), new BMessage(kMsgStartOAuth));
 	fExchangeOAuthButton = new BButton("haikode_ai_exchange_oauth",
@@ -280,6 +304,12 @@ AIChatPanel::_BuildInterface()
 			.Add(fOAuthRedirectUri->CreateTextViewLayoutItem(), 1, 6)
 			.Add(fOAuthCode->CreateLabelLayoutItem(), 2, 6)
 			.Add(fOAuthCode->CreateTextViewLayoutItem(), 3, 6)
+		.End()
+		.AddGroup(B_HORIZONTAL, B_USE_DEFAULT_SPACING)
+			.Add(fOpenAIPresetButton)
+			.Add(fOllamaPresetButton)
+			.Add(fLMStudioPresetButton)
+			.AddGlue()
 		.End()
 		.AddGroup(B_HORIZONTAL, B_USE_DEFAULT_SPACING)
 			.Add(fPrompt)
@@ -332,6 +362,22 @@ AIChatPanel::_SaveProviderToConfig()
 	gCFG["haikode_ai_oauth_redirect_uri"] = fOAuthRedirectUri->Text();
 
 	_AppendOutput(B_TRANSLATE("Provider settings saved."));
+}
+
+
+void
+AIChatPanel::_ApplyProviderPreset(Haikode::AI::ProviderPreset preset)
+{
+	const Haikode::AI::ProviderSettings settings
+		= Haikode::AI::ProviderPresetSettings(preset);
+	fBaseUrl->SetText(settings.baseUrl.c_str());
+	fModel->SetText(settings.model.c_str());
+	fAuthMode->SetText(Haikode::AI::ToString(settings.authMode));
+	_SaveProviderToConfig();
+
+	BString line(B_TRANSLATE("Applied provider preset: "));
+	line << settings.name.c_str();
+	_AppendOutput(line.String());
 }
 
 
@@ -393,6 +439,9 @@ AIChatPanel::_ExchangeOAuthCode()
 	fPatchButton->SetEnabled(false);
 	fSaveProvider->SetEnabled(false);
 	fSetupButton->SetEnabled(false);
+	fOpenAIPresetButton->SetEnabled(false);
+	fOllamaPresetButton->SetEnabled(false);
+	fLMStudioPresetButton->SetEnabled(false);
 	fStartOAuthButton->SetEnabled(false);
 	fExchangeOAuthButton->SetEnabled(false);
 
@@ -422,6 +471,9 @@ AIChatPanel::_FinishOAuthExchange(const BString& token, const BString& error,
 	fPatchButton->SetEnabled(true);
 	fSaveProvider->SetEnabled(true);
 	fSetupButton->SetEnabled(true);
+	fOpenAIPresetButton->SetEnabled(true);
+	fOllamaPresetButton->SetEnabled(true);
+	fLMStudioPresetButton->SetEnabled(true);
 	fStartOAuthButton->SetEnabled(true);
 	fExchangeOAuthButton->SetEnabled(true);
 
@@ -488,6 +540,9 @@ AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 	fPatchButton->SetEnabled(false);
 	fSaveProvider->SetEnabled(false);
 	fSetupButton->SetEnabled(false);
+	fOpenAIPresetButton->SetEnabled(false);
+	fOllamaPresetButton->SetEnabled(false);
+	fLMStudioPresetButton->SetEnabled(false);
 	fStartOAuthButton->SetEnabled(false);
 	fExchangeOAuthButton->SetEnabled(false);
 	fApplyPatchButton->SetEnabled(false);
@@ -524,6 +579,9 @@ AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 	fPatchButton->SetEnabled(true);
 	fSaveProvider->SetEnabled(true);
 	fSetupButton->SetEnabled(true);
+	fOpenAIPresetButton->SetEnabled(true);
+	fOllamaPresetButton->SetEnabled(true);
+	fLMStudioPresetButton->SetEnabled(true);
 	fStartOAuthButton->SetEnabled(true);
 	fExchangeOAuthButton->SetEnabled(true);
 

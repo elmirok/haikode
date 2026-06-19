@@ -102,4 +102,32 @@ ToString(AuthMode mode)
 	return "unknown";
 }
 
+
+ProviderSettings
+ProviderPresetSettings(ProviderPreset preset)
+{
+	ProviderSettings settings;
+	switch (preset) {
+		case ProviderPreset::OpenAI:
+			settings.name = "OpenAI";
+			settings.baseUrl = "https://api.openai.com";
+			settings.model = "gpt-4.1-mini";
+			settings.authMode = AuthMode::ApiKey;
+			break;
+		case ProviderPreset::Ollama:
+			settings.name = "Ollama";
+			settings.baseUrl = "http://127.0.0.1:11434";
+			settings.model = "llama3.1";
+			settings.authMode = AuthMode::Local;
+			break;
+		case ProviderPreset::LMStudio:
+			settings.name = "LM Studio";
+			settings.baseUrl = "http://127.0.0.1:1234";
+			settings.model = "local-model";
+			settings.authMode = AuthMode::Local;
+			break;
+	}
+	return settings;
+}
+
 } // namespace Haikode::AI
