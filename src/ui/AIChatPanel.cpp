@@ -16,9 +16,9 @@
 #include <ScrollView.h>
 #include <TextControl.h>
 #include <TextView.h>
+#include <Window.h>
 
 #include "ConfigManager.h"
-#include "ConfigWindow.h"
 #include "GenioWindowMessages.h"
 
 #include <cstring>
@@ -33,10 +33,16 @@ namespace {
 
 const uint32 kMsgSaveProvider = 'hisp';
 const uint32 kMsgOpenSetup = 'hios';
+const uint32 kMsgSetupSave = 'hiss';
+const uint32 kMsgSetupCancel = 'hisc';
+const uint32 kMsgSetupSaved = 'hisd';
+const uint32 kMsgSetupPresetOpenAI = 'hiso';
+const uint32 kMsgSetupPresetOllama = 'hisl';
+const uint32 kMsgSetupPresetLMStudio = 'hism';
 const uint32 kMsgPresetOpenAI = 'hpai';
 const uint32 kMsgPresetOllama = 'hpol';
 const uint32 kMsgPresetLMStudio = 'hplm';
-const uint32 kMsgStartOAuth = 'hiso';
+const uint32 kMsgStartOAuth = 'hiox';
 const uint32 kMsgExchangeOAuth = 'hixo';
 const uint32 kMsgOAuthResponse = 'hior';
 const uint32 kMsgAsk = 'hiak';
@@ -58,6 +64,121 @@ AuthModeFromString(const BString& value)
 		return Haikode::AI::AuthMode::None;
 	return Haikode::AI::AuthMode::ApiKey;
 }
+
+class AIProviderSetupWindow : public BWindow {
+public:
+	AIProviderSetupWindow(BMessenger target, const char* baseUrl,
+		const char* model, const char* authMode, const char* apiKey)
+		:
+		BWindow(BRect(), B_TRANSLATE("Haikode AI setup"),
+			B_TITLED_WINDOW_LOOK, B_MODAL_APP_WINDOW_FEEL,
+			B_ASYNCHRONOUS_CONTROLS | B_AUTO_UPDATE_SIZE_LIMITS
+				| B_CLOSE_ON_ESCAPE),
+		fTarget(target)
+	{
+		fBaseUrl = new BTextControl("setup_base_url", B_TRANSLATE("Base URL"),
+			baseUrl != nullptr && baseUrl[0] != '\0' ? baseUrl
+				: "https://api.openai.com",
+			nullptr);
+		fModel = new BTextControl("setup_model", B_TRANSLATE("Model"),
+			model != nullptr && model[0] != '\0' ? model : "gpt-4.1-mini",
+			nullptr);
+		fAuthMode = new BTextControl("setup_auth_mode",
+			B_TRANSLATE("Auth mode"),
+			authMode != nullptr && authMode[0] != '\0' ? authMode : "api-key",
+			nullptr);
+		fApiKey = new BTextControl("setup_api_key", B_TRANSLATE("API key"),
+			apiKey != nullptr ? apiKey : "", nullptr);
+
+		BButton* openAIButton = new BButton("setup_openai",
+			B_TRANSLATE("OpenAI"), new BMessage(kMsgSetupPresetOpenAI));
+		BButton* ollamaButton = new BButton("setup_ollama",
+			B_TRANSLATE("Ollama"), new BMessage(kMsgSetupPresetOllama));
+		BButton* lmStudioButton = new BButton("setup_lmstudio",
+			B_TRANSLATE("LM Studio"), new BMessage(kMsgSetupPresetLMStudio));
+		BButton* cancelButton = new BButton("setup_cancel",
+			B_TRANSLATE("Cancel"), new BMessage(kMsgSetupCancel));
+		BButton* saveButton = new BButton("setup_save",
+			B_TRANSLATE("Save"), new BMessage(kMsgSetupSave));
+		openAIButton->SetTarget(this);
+		ollamaButton->SetTarget(this);
+		lmStudioButton->SetTarget(this);
+		cancelButton->SetTarget(this);
+		saveButton->SetTarget(this);
+
+		BLayoutBuilder::Group<>(this, B_VERTICAL, B_USE_DEFAULT_SPACING)
+			.SetInsets(B_USE_WINDOW_SPACING)
+			.AddGrid(B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING)
+				.Add(fBaseUrl->CreateLabelLayoutItem(), 0, 0)
+				.Add(fBaseUrl->CreateTextViewLayoutItem(), 1, 0)
+				.Add(fModel->CreateLabelLayoutItem(), 0, 1)
+				.Add(fModel->CreateTextViewLayoutItem(), 1, 1)
+				.Add(fAuthMode->CreateLabelLayoutItem(), 0, 2)
+				.Add(fAuthMode->CreateTextViewLayoutItem(), 1, 2)
+				.Add(fApiKey->CreateLabelLayoutItem(), 0, 3)
+				.Add(fApiKey->CreateTextViewLayoutItem(), 1, 3)
+			.End()
+			.AddGroup(B_HORIZONTAL, B_USE_DEFAULT_SPACING)
+				.Add(openAIButton)
+				.Add(ollamaButton)
+				.Add(lmStudioButton)
+				.AddGlue()
+			.End()
+			.AddGroup(B_HORIZONTAL, B_USE_DEFAULT_SPACING)
+				.AddGlue()
+				.Add(cancelButton)
+				.Add(saveButton)
+			.End();
+
+		saveButton->MakeDefault(true);
+		CenterOnScreen();
+	}
+
+	void MessageReceived(BMessage* message) override
+	{
+		switch (message->what) {
+			case kMsgSetupPresetOpenAI:
+				fBaseUrl->SetText("https://api.openai.com");
+				fModel->SetText("gpt-4.1-mini");
+				fAuthMode->SetText("api-key");
+				break;
+			case kMsgSetupPresetOllama:
+				fBaseUrl->SetText("http://127.0.0.1:11434");
+				fModel->SetText("llama3.1");
+				fAuthMode->SetText("local");
+				break;
+			case kMsgSetupPresetLMStudio:
+				fBaseUrl->SetText("http://127.0.0.1:1234");
+				fModel->SetText("local-model");
+				fAuthMode->SetText("local");
+				break;
+			case kMsgSetupSave:
+			{
+				BMessage saved(kMsgSetupSaved);
+				saved.AddString("base_url", fBaseUrl->Text());
+				saved.AddString("model", fModel->Text());
+				saved.AddString("auth_mode", fAuthMode->Text());
+				saved.AddString("api_key", fApiKey->Text());
+				fTarget.SendMessage(&saved);
+				Quit();
+				break;
+			}
+			case kMsgSetupCancel:
+				Quit();
+				break;
+			default:
+				BWindow::MessageReceived(message);
+				break;
+		}
+	}
+
+private:
+	BMessenger fTarget;
+	BTextControl* fBaseUrl;
+	BTextControl* fModel;
+	BTextControl* fAuthMode;
+	BTextControl* fApiKey;
+};
 
 } // namespace
 
@@ -141,6 +262,13 @@ AIChatPanel::MessageReceived(BMessage* message)
 		case kMsgOpenSetup:
 			_OpenProviderSettings();
 			break;
+		case kMsgSetupSaved:
+			fBaseUrl->SetText(message->GetString("base_url", ""));
+			fModel->SetText(message->GetString("model", ""));
+			fAuthMode->SetText(message->GetString("auth_mode", ""));
+			fApiKey->SetText(message->GetString("api_key", ""));
+			_SaveProviderToConfig();
+			break;
 		case kMsgPresetOpenAI:
 			_ApplyProviderPreset(Haikode::AI::ProviderPreset::OpenAI);
 			break;
@@ -221,6 +349,13 @@ AIChatPanel::SetTabLabel(BString label)
 {
 	if (fPanelTabManager != nullptr)
 		fPanelTabManager->SetLabelForTab(fTabId, label);
+}
+
+
+void
+AIChatPanel::OpenProviderSettings()
+{
+	_OpenProviderSettings();
 }
 
 
@@ -404,9 +539,10 @@ AIChatPanel::_ApplyProviderPreset(Haikode::AI::ProviderPreset preset)
 void
 AIChatPanel::_OpenProviderSettings()
 {
-	ConfigWindow* window = new ConfigWindow(gCFG);
+	AIProviderSetupWindow* window = new AIProviderSetupWindow(BMessenger(this),
+		fBaseUrl->Text(), fModel->Text(), fAuthMode->Text(), fApiKey->Text());
 	window->Show();
-	_AppendOutput(B_TRANSLATE("Opened Haikode settings. Select the Haikode AI section, paste your API key, and close the settings window to save it."));
+	_AppendOutput(B_TRANSLATE("Opened Haikode AI setup. Paste an API key there; no Terminal export is required."));
 }
 
 

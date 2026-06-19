@@ -31,6 +31,7 @@ public:
 	void SetActiveContext(const BString& projectRoot, const BString& filePath,
 		const BString& selection, const BString& fileText);
 	void SetTabLabel(BString label);
+	void OpenProviderSettings();
 
 private:
 	void _BuildInterface();

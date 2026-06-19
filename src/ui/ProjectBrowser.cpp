@@ -918,9 +918,11 @@ ProjectBrowser::_ProjectFolderScan(const entry_ref* ref, ProjectItem* parentItem
 		_AddItemCommandToBatch(newItem, parentItem, projectFolder);
 	} else if (LockLooper()) {
 		// Add the item directly
-		fOutlineListView->AddUnder(newItem, parentItem);
-		if (parentItem != nullptr)
+		if (parentItem != nullptr) {
+			fOutlineListView->AddUnder(newItem, parentItem);
 			fOutlineListView->Collapse(newItem);
+		} else
+			fOutlineListView->AddItem(newItem);
 		UnlockLooper();
 	}
 

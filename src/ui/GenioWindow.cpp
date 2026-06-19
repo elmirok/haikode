@@ -324,8 +324,8 @@ GenioWindow::MessageReceived(BMessage* message)
 		case MSG_HAIKODE_AI_SETUP:
 		{
 			_ShowHaikodeAI();
-			ConfigWindow* window = new ConfigWindow(gCFG);
-			window->Show();
+			if (fAIChatPanel != nullptr)
+				fAIChatPanel->OpenProviderSettings();
 			break;
 		}
 		case MSG_HAIKODE_AI_PATCH_APPLIED:
