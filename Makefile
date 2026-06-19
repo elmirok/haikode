@@ -1,6 +1,7 @@
 ## Genio - The Haiku IDE Makefile ##############################################
 COMPILER_FLAGS = -Werror -std=c++20
 WARNINGS = ALL
+HAIKODE_AI_NETWORK ?= 1
 
 TARGET_DIR := app
 TYPE := APP
@@ -46,6 +47,11 @@ RDEFS := Genio.rdef Spinner.rdef
 LIBS  = be localestub game shared translation tracker $(STDCPPLIBS)
 LIBS += columnlistview crypto editorconfig lsp git2 yaml-cpp
 LIBS += libs/scintilla/bin/libscintilla.a
+
+ifeq ($(HAIKODE_AI_NETWORK), 1)
+	COMPILER_FLAGS += -DHAIKODE_AI_NETWORK=1
+	LIBS += curl network
+endif
 
 PRIVATE_HEADERS = interface locale shared storage support tracker
 SYSTEM_INCLUDE_PATHS  = $(foreach header,$(PRIVATE_HEADERS),$(shell findpaths -e B_FIND_PATH_HEADERS_DIRECTORY private/$(header)))

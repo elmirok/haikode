@@ -92,6 +92,18 @@ and `editorconfig_core_c_devel` respectively. To install, open a terminal and ty
 pkgman install libgit2_1.9_devel lexilla_devel yaml_cpp0.8_devel editorconfig_core_c_devel openssl3_devel lsp_framework
 ```
 
+Haikode's AI provider transport is enabled by default and also requires curl:
+
+```bash
+pkgman install curl_devel
+```
+
+For an offline build without AI HTTP transport:
+
+```bash
+make HAIKODE_AI_NETWORK=0
+```
+
 If you would like to try a clang++ build:
 
 * Install `llvm17_clang` and `llvm17_lld` hpkgs from HaikuPorts

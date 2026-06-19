@@ -8,6 +8,7 @@
 #include <String.h>
 
 #include "AIProvider.h"
+#include "OpenAICompatibleClient.h"
 #include "PanelTabManager.h"
 #include "VibeCoding.h"
 
@@ -30,7 +31,8 @@ private:
 	void _BuildInterface();
 	void _LoadProviderFromConfig();
 	void _SaveProviderToConfig();
-	void _BuildPrompt(Haikode::AI::PromptMode mode);
+	void _SendPrompt(Haikode::AI::PromptMode mode);
+	void _FinishResponse(const BString& text, const BString& error, long status);
 	void _AppendOutput(const char* text);
 	Haikode::AI::ProviderSettings _ProviderFromFields() const;
 	Haikode::AI::VibeCodingRequest _RequestFromContext(
@@ -49,6 +51,7 @@ private:
 	BButton* fSaveProvider;
 	BButton* fAskButton;
 	BButton* fPatchButton;
+	bool fRequestRunning;
 
 	BString fProjectRoot;
 	BString fFilePath;

@@ -40,8 +40,12 @@ The Genio-based branch now adds:
 - `src/ui/AIChatPanel.*` as a native bottom panel.
 - A **Window > Haikode AI** action that opens the panel.
 - Provider fields for base URL, model, auth mode, API key, and OAuth token.
-- Prompt preview for active project, selected file, and selected text.
+- OpenAI-compatible HTTP requests for active project, selected file, and
+  selected text.
 
-The panel currently previews the provider endpoint and generated prompt. The
-next slice should add the OpenAI-compatible HTTP transport for cloud and local
-providers, then connect responses to diff preview/apply.
+The panel sends prompts to cloud or local endpoints when built with
+`HAIKODE_AI_NETWORK=1`. API-key and OAuth modes send
+`Authorization: Bearer ...`; local mode sends no authorization header.
+
+The next slice should connect unified-diff responses to a native review/apply
+flow.

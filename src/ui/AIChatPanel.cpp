@@ -9,11 +9,14 @@
 #include <Catalog.h>
 #include <LayoutBuilder.h>
 #include <Message.h>
+#include <Messenger.h>
 #include <ScrollView.h>
 #include <TextControl.h>
 #include <TextView.h>
 
 #include "ConfigManager.h"
+
+#include <thread>
 
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "AIChatPanel"
@@ -25,6 +28,7 @@ namespace {
 const uint32 kMsgSaveProvider = 'hisp';
 const uint32 kMsgAsk = 'hiak';
 const uint32 kMsgProposePatch = 'hipa';
+const uint32 kMsgAIResponse = 'hirs';
 
 Haikode::AI::AuthMode
 AuthModeFromString(const BString& value)
@@ -54,7 +58,8 @@ AIChatPanel::AIChatPanel(PanelTabManager* panelTabManager, tab_id id)
 	fOutput(nullptr),
 	fSaveProvider(nullptr),
 	fAskButton(nullptr),
-	fPatchButton(nullptr)
+	fPatchButton(nullptr),
+	fRequestRunning(false)
 {
 	_BuildInterface();
 }
@@ -77,11 +82,17 @@ AIChatPanel::MessageReceived(BMessage* message)
 			_SaveProviderToConfig();
 			break;
 		case kMsgAsk:
-			_BuildPrompt(Haikode::AI::PromptMode::Ask);
+			_SendPrompt(Haikode::AI::PromptMode::Ask);
 			break;
 		case kMsgProposePatch:
-			_BuildPrompt(Haikode::AI::PromptMode::ProposePatch);
+			_SendPrompt(Haikode::AI::PromptMode::ProposePatch);
 			break;
+		case kMsgAIResponse:
+		{
+			_FinishResponse(message->GetString("text", ""),
+				message->GetString("error", ""), message->GetInt64("status", 0));
+			break;
+		}
 		default:
 			BGroupView::MessageReceived(message);
 			break;
@@ -180,22 +191,27 @@ AIChatPanel::_SaveProviderToConfig()
 	gCFG["haikode_ai_api_key"] = fApiKey->Text();
 	gCFG["haikode_ai_oauth_token"] = fOAuthToken->Text();
 
-	_AppendOutput(B_TRANSLATE("Provider settings saved. Network transport is the next integration slice."));
+	_AppendOutput(B_TRANSLATE("Provider settings saved."));
 }
 
 
 void
-AIChatPanel::_BuildPrompt(Haikode::AI::PromptMode mode)
+AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 {
+	if (fRequestRunning) {
+		_AppendOutput(B_TRANSLATE("An AI request is already running."));
+		return;
+	}
+
 	Haikode::AI::PromptBuilder builder;
 	Haikode::AI::PromptBuildResult result = builder.Build(
 		_RequestFromContext(mode), 200 * 1024, 10);
+	Haikode::AI::ProviderSettings provider = _ProviderFromFields();
 
 	fOutput->SetText("");
-	_AppendOutput(B_TRANSLATE("Prompt preview. Haikode will send this to the configured provider once the transport is enabled."));
+	_AppendOutput(B_TRANSLATE("Sending prompt to configured provider."));
 	_AppendOutput("");
 
-	Haikode::AI::ProviderSettings provider = _ProviderFromFields();
 	BString providerLine;
 	providerLine << B_TRANSLATE("Provider endpoint: ")
 		<< provider.ChatCompletionsEndpoint().c_str();
@@ -211,7 +227,51 @@ AIChatPanel::_BuildPrompt(Haikode::AI::PromptMode mode)
 		_AppendOutput(warning.c_str());
 
 	_AppendOutput("");
-	_AppendOutput(result.prompt.c_str());
+
+	fRequestRunning = true;
+	fAskButton->SetEnabled(false);
+	fPatchButton->SetEnabled(false);
+	fSaveProvider->SetEnabled(false);
+
+	BMessenger messenger(this);
+	std::string prompt = result.prompt;
+	std::thread([messenger, provider, prompt]() mutable {
+		Haikode::AI::OpenAICompatibleClient client;
+		Haikode::AI::ChatRequest request;
+		request.prompt = prompt;
+		Haikode::AI::ChatResponse response;
+		std::string error;
+		const bool ok = client.Send(provider, request, response, error);
+
+		BMessage done(kMsgAIResponse);
+		done.AddString("text", ok ? response.text.c_str() : "");
+		done.AddString("error", error.c_str());
+		done.AddInt64("status", response.httpStatus);
+		messenger.SendMessage(&done);
+	}).detach();
+}
+
+
+void
+AIChatPanel::_FinishResponse(const BString& text, const BString& error,
+	long status)
+{
+	fRequestRunning = false;
+	fAskButton->SetEnabled(true);
+	fPatchButton->SetEnabled(true);
+	fSaveProvider->SetEnabled(true);
+
+	if (!error.IsEmpty()) {
+		BString line(B_TRANSLATE("AI request failed"));
+		if (status != 0)
+			line << " (" << status << ")";
+		line << ": " << error;
+		_AppendOutput(line.String());
+		return;
+	}
+
+	_AppendOutput(B_TRANSLATE("AI response:"));
+	_AppendOutput(text.String());
 }
 
 
