@@ -48,6 +48,35 @@ main()
 	assert(Haikode::AI::CodexBridge::LoginStateLabel(
 		Haikode::AI::CodexLoginState::LoggedIn) == std::string("Logged in"));
 
+	Haikode::AI::VibeCodingRequest codexRequest;
+	codexRequest.projectRoot = root.string();
+	codexRequest.userPrompt = "Explain the app startup path";
+	codexRequest.defaultBuildCommand = "make";
+	codexRequest.defaultTestCommand = "make test";
+	codexRequest.files.push_back({
+		"src/main.cpp",
+		"int main() { return 0; }\n",
+		false,
+		"deac66ccb79f6d31c0fa7d358de48e083c15c02ff50ec1ebd4b64314b9e6e196"
+	});
+	codexRequest.projectFiles.push_back({"src/main.cpp", "C++", "source",
+		"high", false, "Application entry point"});
+	const Haikode::AI::PromptBuildResult codexPrompt
+		= Haikode::AI::CodexBridge::BuildReadOnlyPrompt(codexRequest, 1024,
+			10, 10);
+	assert(codexPrompt.prompt.find("Codex CLI bridge") != std::string::npos);
+	assert(codexPrompt.prompt.find("read-only sandbox") != std::string::npos);
+	assert(codexPrompt.prompt.find("Do not write files") != std::string::npos);
+	assert(codexPrompt.prompt.find("Explain the app startup path")
+		!= std::string::npos);
+	assert(codexPrompt.prompt.find("Project map:") != std::string::npos);
+	assert(codexPrompt.prompt.find("src/main.cpp [C++] role=source risk=high")
+		!= std::string::npos);
+	assert(codexPrompt.prompt.find("Build: make") != std::string::npos);
+	assert(codexPrompt.prompt.find("Test: make test") != std::string::npos);
+	assert(codexPrompt.prompt.find("int main()") != std::string::npos);
+	assert(codexPrompt.prompt.find("haikode-command") != std::string::npos);
+
 	Haikode::AI::CommandRequest status
 		= Haikode::AI::CodexBridge::LoginStatusCommand("/bin/codex");
 	assert(status.argv.size() == 3);

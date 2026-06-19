@@ -210,6 +210,25 @@ CodexBridge::DeviceLoginCommand(const std::string& executable)
 }
 
 
+PromptBuildResult
+CodexBridge::BuildReadOnlyPrompt(const VibeCodingRequest& request,
+	size_t maxBytesPerFile, size_t maxFiles, size_t maxProjectFiles)
+{
+	PromptBuildResult result = PromptBuilder().Build(request, maxBytesPerFile,
+		maxFiles, maxProjectFiles);
+	result.prompt =
+		"You are being launched through the Haikode Codex CLI bridge in a "
+		"read-only sandbox.\n"
+		"Do not write files, do not run build/test commands, and do not claim "
+		"that anything changed on disk. If changes would help, propose a "
+		"unified diff or haikode-edit block for Haikode review. If commands "
+		"would help, propose haikode-command JSON blocks only; Haikode will "
+		"ask the user before running anything.\n\n"
+		+ result.prompt;
+	return result;
+}
+
+
 bool
 CodexBridge::BuildReadOnlyAskCommand(const CodexBridgeSettings& settings,
 	const std::string& prompt, CommandRequest& command, std::string& error)

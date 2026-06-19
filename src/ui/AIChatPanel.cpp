@@ -2070,12 +2070,17 @@ AIChatPanel::_QueueCodexReadOnlyAsk()
 	if (prompt.IsEmpty())
 		prompt = B_TRANSLATE("Explain this Haiku project and suggest the next safe change.");
 
-	BString codexPrompt(B_TRANSLATE("You are helping in Haikode, a native Haiku IDE fork of Genio. Run read-only. Do not write files or run build/test commands. Answer with guidance or a unified diff proposal only after explaining the change.\n\nUser prompt: "));
-	codexPrompt << prompt;
-	if (!fFilePath.IsEmpty())
-		codexPrompt << "\n\nActive file: " << fFilePath;
-	if (!fSelection.IsEmpty())
-		codexPrompt << "\n\nSelected text:\n" << fSelection;
+	Haikode::AI::VibeCodingRequest request
+		= _RequestFromContext(Haikode::AI::PromptMode::Ask);
+	request.userPrompt = prompt.String();
+	const Haikode::AI::PromptBuildResult codexPrompt
+		= Haikode::AI::CodexBridge::BuildReadOnlyPrompt(request, 200 * 1024,
+			10, 80);
+	for (const std::string& warning : codexPrompt.warnings) {
+		BString line(B_TRANSLATE("Codex context warning: "));
+		line << warning.c_str();
+		_AppendOutput(line.String());
+	}
 
 	Haikode::AI::CodexBridgeSettings settings;
 	settings.executable = executable;
@@ -2084,7 +2089,7 @@ AIChatPanel::_QueueCodexReadOnlyAsk()
 
 	Haikode::AI::CommandRequest command;
 	if (!Haikode::AI::CodexBridge::BuildReadOnlyAskCommand(settings,
-			codexPrompt.String(), command, error)) {
+			codexPrompt.prompt, command, error)) {
 		BString line(B_TRANSLATE("Could not prepare Codex request: "));
 		line << error.c_str();
 		_AppendOutput(line.String());

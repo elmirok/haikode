@@ -35,6 +35,9 @@ public:
 
 	static CommandRequest LoginStatusCommand(const std::string& executable);
 	static CommandRequest DeviceLoginCommand(const std::string& executable);
+	static PromptBuildResult BuildReadOnlyPrompt(
+		const VibeCodingRequest& request, size_t maxBytesPerFile,
+		size_t maxFiles, size_t maxProjectFiles = 50);
 	static bool BuildReadOnlyAskCommand(const CodexBridgeSettings& settings,
 		const std::string& prompt, CommandRequest& command,
 		std::string& error);
