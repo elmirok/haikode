@@ -38,6 +38,7 @@ public:
 	static bool BuildReadOnlyAskCommand(const CodexBridgeSettings& settings,
 		const std::string& prompt, CommandRequest& command,
 		std::string& error);
+	static bool IsReadOnlyAskCommand(const CommandRequest& command);
 };
 
 } // namespace Haikode::AI

@@ -84,8 +84,10 @@ main()
 	assert(ask.argv.back() == "Explain this Haiku project");
 	assert(!ask.dangerous);
 	assert(ask.runnable);
+	assert(Haikode::AI::CodexBridge::IsReadOnlyAskCommand(ask));
 	assert(Haikode::AI::CommandDisplayString(ask).find("read-only")
 		!= std::string::npos);
+	assert(!Haikode::AI::CodexBridge::IsReadOnlyAskCommand(status));
 
 	settings.localProvider = "ollama";
 	settings.useOss = true;

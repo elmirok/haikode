@@ -73,6 +73,7 @@ const uint32 kMsgProposePatch = 'hipa';
 const uint32 kMsgCodexStatus = 'hicd';
 const uint32 kMsgCodexLogin = 'hicl';
 const uint32 kMsgCodexAsk = 'hica';
+const uint32 kMsgCodexCaptureResponse = 'hicr';
 const uint32 kMsgAIResponse = 'hirs';
 const uint32 kMsgPreviousPatchFile = 'hipv';
 const uint32 kMsgNextPatchFile = 'hinx';
@@ -635,6 +636,14 @@ AIChatPanel::MessageReceived(BMessage* message)
 			break;
 		case kMsgCodexAsk:
 			_QueueCodexReadOnlyAsk();
+			break;
+		case kMsgCodexCaptureResponse:
+			if (_IsCurrentRequest(message, "Codex response"))
+				_FinishCodexCapture(message->GetString("output", ""),
+					message->GetString("error", ""),
+					message->GetInt32("exit_code", -1),
+					message->GetBool("timed_out", false),
+					message->GetBool("cancelled", false));
 			break;
 		case kMsgAIResponse:
 		{
@@ -1613,6 +1622,90 @@ AIChatPanel::_QueueCodexReadOnlyAsk()
 
 
 void
+AIChatPanel::_RunCodexCommandCaptured(const Haikode::AI::CommandRequest& command)
+{
+	if (fRequestRunning) {
+		_AppendOutput(B_TRANSLATE("An AI or Codex request is already running."));
+		return;
+	}
+	if (fProjectRoot.IsEmpty()) {
+		_AppendOutput(B_TRANSLATE("Open or activate a project before running Codex."));
+		return;
+	}
+
+	fLastUserPrompt = fPrompt->Text();
+	fLastProvider = Haikode::AI::ProviderSettings();
+	fLastProvider.name = "Codex CLI";
+	fLastProvider.baseUrl = "codex-cli";
+	fLastProvider.model = "codex";
+	fLastProvider.authMode = Haikode::AI::AuthMode::None;
+
+	const int64 requestId = _BeginRequest();
+	std::shared_ptr<Haikode::AI::CancellationToken> cancellation
+		= fActiveCancellation;
+
+	_AppendOutput(B_TRANSLATE("Running approved read-only Codex request. Output will return here."));
+	_AppendOutput(Haikode::AI::CommandDisplayString(command).c_str());
+
+	BMessenger messenger(this);
+	const std::vector<std::string> argv = command.argv;
+	const std::string projectRoot = fProjectRoot.String();
+	std::thread([messenger, argv, projectRoot, requestId, cancellation]() mutable {
+		Haikode::AI::ProcessCaptureOptions options;
+		options.argv = argv;
+		options.workingDirectory = projectRoot;
+		options.timeoutSeconds = 600;
+		options.maxOutputBytes = 2 * 1024 * 1024;
+		options.cancellation = cancellation.get();
+
+		Haikode::AI::ProcessCaptureResult result;
+		std::string error;
+		const bool ok = Haikode::AI::ProcessCapture::Run(options, result,
+			error);
+
+		BMessage done(kMsgCodexCaptureResponse);
+		done.AddInt64("request_id", requestId);
+		done.AddString("output", result.output.c_str());
+		done.AddString("error", ok ? "" : error.c_str());
+		done.AddInt32("exit_code", result.exitCode);
+		done.AddBool("timed_out", result.timedOut);
+		done.AddBool("cancelled", result.cancelled);
+		messenger.SendMessage(&done);
+	}).detach();
+}
+
+
+void
+AIChatPanel::_FinishCodexCapture(const BString& output, const BString& error,
+	int32 exitCode, bool timedOut, bool cancelled)
+{
+	if (cancelled) {
+		_FinishRequest();
+		_AppendOutput(B_TRANSLATE("Codex request cancelled."));
+		return;
+	}
+	if (timedOut) {
+		_FinishRequest();
+		_AppendOutput(B_TRANSLATE("Codex request timed out."));
+		return;
+	}
+	if (!error.IsEmpty()) {
+		_FinishRequest();
+		BString line(B_TRANSLATE("Codex request failed"));
+		if (exitCode >= 0)
+			line << " (" << exitCode << ")";
+		line << ": " << error;
+		_AppendOutput(line.String());
+		if (!output.IsEmpty())
+			_AppendOutput(output.String());
+		return;
+	}
+
+	_FinishResponse(output, "", exitCode);
+}
+
+
+void
 AIChatPanel::_RunPendingCommand()
 {
 	if (fPendingCommands.empty()) {
@@ -1648,6 +1741,19 @@ AIChatPanel::_RunPendingCommand()
 		fRunCommandButton->SetEnabled(!fPendingCommands.empty());
 		fRejectCommandButton->SetEnabled(!fPendingCommands.empty());
 		_UpdatePendingActions();
+		return;
+	}
+
+	if (Haikode::AI::CodexBridge::IsReadOnlyAskCommand(command)) {
+		if (fRequestRunning) {
+			_AppendOutput(B_TRANSLATE("An AI or Codex request is already running."));
+			return;
+		}
+		fPendingCommands.erase(fPendingCommands.begin());
+		fRunCommandButton->SetEnabled(!fPendingCommands.empty());
+		fRejectCommandButton->SetEnabled(!fPendingCommands.empty());
+		_UpdatePendingActions();
+		_RunCodexCommandCaptured(command);
 		return;
 	}
 

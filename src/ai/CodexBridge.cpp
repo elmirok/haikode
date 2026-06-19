@@ -206,4 +206,24 @@ CodexBridge::BuildReadOnlyAskCommand(const CodexBridgeSettings& settings,
 	return true;
 }
 
+
+bool
+CodexBridge::IsReadOnlyAskCommand(const CommandRequest& command)
+{
+	if (command.argv.size() < 8)
+		return false;
+	if (command.argv[1] != "exec")
+		return false;
+	auto sandbox = std::find(command.argv.begin(), command.argv.end(),
+		"--sandbox");
+	if (sandbox == command.argv.end() || sandbox + 1 == command.argv.end()
+		|| *(sandbox + 1) != "read-only") {
+		return false;
+	}
+	auto approval = std::find(command.argv.begin(), command.argv.end(),
+		"--ask-for-approval");
+	return approval != command.argv.end() && approval + 1 != command.argv.end()
+		&& *(approval + 1) == "never";
+}
+
 } // namespace Haikode::AI

@@ -150,10 +150,13 @@ can prepare supervised Codex actions:
 
 * **Codex status** queues `codex login status`.
 * **Codex login** queues `codex login --device-auth`.
-* **Ask Codex** queues a read-only `codex exec` request for the active project.
+* **Ask Codex** queues a read-only `codex exec` request for the active project,
+  then captures the approved command output back into the Haikode AI transcript.
 
 Haikode does not read Codex token files. These actions are added to the pending
-command list and still require an explicit **Run command** click.
+command list and still require an explicit **Run command** click. Captured
+Codex output is parsed for unified diffs and command requests using the same
+explicit review/apply flow as direct provider responses.
 
 If you would like to try a clang++ build:
 

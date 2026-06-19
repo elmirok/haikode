@@ -16,6 +16,7 @@
 #include "OAuthClient.h"
 #include "OpenAICompatibleClient.h"
 #include "PanelTabManager.h"
+#include "ProcessCapture.h"
 #include "UnifiedDiff.h"
 #include "VibeCoding.h"
 
@@ -64,6 +65,9 @@ private:
 	bool _FindCodexExecutable(std::string& executable, std::string& error) const;
 	void _QueueCodexCommand(const Haikode::AI::CommandRequest& command,
 		const char* queuedText);
+	void _RunCodexCommandCaptured(const Haikode::AI::CommandRequest& command);
+	void _FinishCodexCapture(const BString& output, const BString& error,
+		int32 exitCode, bool timedOut, bool cancelled);
 	void _SelectPatchFile(int32 delta);
 	void _SelectPatchHunk(int32 delta);
 	size_t _SelectedPatchHunkIndex(const std::string& path) const;
