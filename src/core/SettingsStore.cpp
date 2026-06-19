@@ -92,6 +92,12 @@ SettingsStore::CodexPath() const
 	return fDirectoryPath + "/codex.conf";
 }
 
+std::string
+SettingsStore::ApiKeyPath() const
+{
+	return fDirectoryPath + "/api_key.conf";
+}
+
 bool
 SettingsStore::EnsureDirectory(std::string& error) const
 {
@@ -215,4 +221,26 @@ SettingsStore::SaveCodexPath(const std::string& codexPath,
 	std::ostringstream text;
 	text << "codex_path=" << (codexPath.empty() ? "codex" : codexPath) << "\n";
 	return writeTextFilePrivate(CodexPath(), text.str(), error);
+}
+
+bool
+SettingsStore::LoadApiKey(std::string& apiKey) const
+{
+	std::map<std::string, std::string> values;
+	if (!readKeyValues(ApiKeyPath(), values))
+		return false;
+
+	apiKey = values["api_key"];
+	return !apiKey.empty();
+}
+
+bool
+SettingsStore::SaveApiKey(const std::string& apiKey, std::string& error) const
+{
+	if (!EnsureDirectory(error))
+		return false;
+
+	std::ostringstream text;
+	text << "api_key=" << apiKey << "\n";
+	return writeTextFilePrivate(ApiKeyPath(), text.str(), error);
 }

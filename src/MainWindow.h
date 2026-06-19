@@ -93,6 +93,7 @@ private:
 	BTextView* fPreviewView;
 	BTextView* fOutputView;
 	BTextControl* fChatInput;
+	BTextControl* fApiKeyInput;
 	BStringView* fProjectLabel;
 	BStringView* fAuthLabel;
 	BButton* fFolderButton;

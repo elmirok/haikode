@@ -10,6 +10,7 @@ struct ProviderSettings {
 	std::string tokenUrl;
 	std::string clientId;
 	std::string scope = "openid profile email";
+	std::string apiKey;
 	int redirectPort = 17654;
 };
 
@@ -31,4 +32,3 @@ public:
 };
 
 #endif
-

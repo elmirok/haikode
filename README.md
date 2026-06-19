@@ -54,9 +54,13 @@ Optional OpenAI-compatible network build:
 pkgman install curl_devel jsoncpp_devel openssl_devel
 make clean
 make AI_NETWORK=1
-export HAIKODE_API_KEY=your_api_key
 make run
 ```
+
+Then paste your API key into the **API Key** field in Haikode and click
+**Save AI Key**. Haikode stores it locally under
+`~/config/settings/Haikode/api_key.conf` with owner-only permissions. Keys are
+not written to `.haikode/project.json` or command logs.
 
 Optional Codex bridge build:
 

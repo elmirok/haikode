@@ -44,6 +44,7 @@
 
 #include <ctime>
 #include <cstdlib>
+#include <cctype>
 #include <sstream>
 
 #include <thread>
@@ -116,6 +117,22 @@ hasPrefix(const char* text, const char* prefix)
 	return true;
 }
 
+std::string
+trim(std::string value)
+{
+	size_t start = 0;
+	while (start < value.size()
+		&& std::isspace(static_cast<unsigned char>(value[start]))) {
+		++start;
+	}
+	size_t end = value.size();
+	while (end > start
+		&& std::isspace(static_cast<unsigned char>(value[end - 1]))) {
+		--end;
+	}
+	return value.substr(start, end - start);
+}
+
 BMessage*
 radarMessage(int32 filter)
 {
@@ -144,6 +161,7 @@ MainWindow::MainWindow()
 	fPreviewView(nullptr),
 	fOutputView(nullptr),
 	fChatInput(nullptr),
+	fApiKeyInput(nullptr),
 	fProjectLabel(nullptr),
 	fAuthLabel(nullptr),
 	fFolderButton(nullptr),
@@ -168,6 +186,7 @@ MainWindow::MainWindow()
 	fSettingsStore.EnsureDirectory(error);
 	if (!fSettingsStore.LoadProvider(fSettings))
 		fSettingsStore.SaveProvider(fSettings, error);
+	fSettingsStore.LoadApiKey(fSettings.apiKey);
 	fSettingsStore.LoadToken(fToken);
 #ifdef HAIKODE_CODEX_BRIDGE
 	std::string codexPath;
@@ -341,6 +360,8 @@ MainWindow::BuildInterface()
 	fLoginButton = new BButton("login",
 #ifdef HAIKODE_CODEX_BRIDGE
 		"Codex Login",
+#elif defined(HAIKODE_AI_NETWORK)
+		"Save AI Key",
 #else
 		"AI Setup",
 #endif
@@ -375,6 +396,11 @@ MainWindow::BuildInterface()
 	fChatInput = new BTextControl("chat_input", nullptr, "",
 		new BMessage(kMsgSendChat));
 	fChatInput->SetExplicitMinSize(BSize(320, B_SIZE_UNSET));
+#ifdef HAIKODE_AI_NETWORK
+	fApiKeyInput = new BTextControl("api_key", "API Key", "",
+		new BMessage(kMsgLogin));
+	fApiKeyInput->SetExplicitMinSize(BSize(260, B_SIZE_UNSET));
+#endif
 	fSendButton = new BButton("send", "Send", new BMessage(kMsgSendChat));
 	fApplyButton = new BButton("apply", "Apply Proposed Edit",
 		new BMessage(kMsgApplyProposal));
@@ -446,6 +472,9 @@ MainWindow::BuildInterface()
 		.AddGroup(B_HORIZONTAL, B_USE_DEFAULT_SPACING)
 			.Add(fFolderButton)
 			.Add(fScanButton)
+#ifdef HAIKODE_AI_NETWORK
+			.Add(fApiKeyInput)
+#endif
 			.Add(fLoginButton)
 #ifdef HAIKODE_CODEX_BRIDGE
 			.Add(fStopButton)
@@ -680,21 +709,16 @@ MainWindow::ShowScannedFilesInTree()
 
 	fFileTree->MakeEmpty();
 
-	BString rootLabel("Scanned files: ");
-	rootLabel << static_cast<int32>(fLastScan.files.size());
-	PathItem* rootItem = new PathItem(rootLabel.String(), fProject.RootPath().c_str(),
-		true);
-	fFileTree->AddItem(rootItem);
-
 	for (const ProjectFileMetadata& file : fLastScan.files) {
 		PathItem* item = new PathItem(file.relativePath.c_str(), file.path.c_str(),
 			false);
-		fFileTree->AddUnder(item, rootItem);
+		fFileTree->AddItem(item);
 	}
 
-	fFileTree->Expand(rootItem);
 	if (!fLastScan.files.empty()) {
-		BString hint("Scanned files are now listed in the left pane. Select one to preview it.");
+		fFileTree->Select(0);
+		HandleFileSelected();
+		BString hint("Scanned files are listed in the left pane.");
 		AppendLog(hint.String());
 	} else {
 		AppendLog("Scan found no text/source files. Hidden, generated, binary, and oversized files are skipped.");
@@ -797,9 +821,31 @@ MainWindow::StartLogin()
 	AppendLog("pkgman install curl_devel jsoncpp_devel openssl_devel");
 	AppendLog("make clean");
 	AppendLog("make AI_NETWORK=1");
-	AppendLog("Then set an API key before running Haikode:");
-	AppendLog("export HAIKODE_API_KEY=your_api_key");
+	AppendLog("Then paste your API key into the in-app API Key field and click Save AI Key.");
 #else
+	const char* typedKey = fApiKeyInput == nullptr ? nullptr : fApiKeyInput->Text();
+	const std::string apiKey = trim(typedKey == nullptr ? "" : typedKey);
+	if (!apiKey.empty()) {
+		std::string error;
+		if (!fSettingsStore.SaveApiKey(apiKey, error)) {
+			BString log("Could not save API key: ");
+			log << error.c_str();
+			AppendLog(log.String());
+			return;
+		}
+		fSettings.apiKey = apiKey;
+		if (fApiKeyInput != nullptr)
+			fApiKeyInput->SetText("");
+		UpdateAuthLabel();
+		AppendLog("AI API key saved in Haikode settings. Select a file, type a prompt, and click Send.");
+		return;
+	}
+
+	if (!fSettings.apiKey.empty()) {
+		AppendLog("AI API key is already saved. Select a file, type a prompt, and click Send.");
+		return;
+	}
+
 	const char* haikodeKey = getenv("HAIKODE_API_KEY");
 	const char* openaiKey = getenv("OPENAI_API_KEY");
 	if ((haikodeKey != nullptr && haikodeKey[0] != '\0')
@@ -809,8 +855,7 @@ MainWindow::StartLogin()
 	}
 
 	AppendLog("AI network support is enabled, but no API key was found.");
-	AppendLog("Set HAIKODE_API_KEY or OPENAI_API_KEY before launching Haikode.");
-	AppendLog("Example: export HAIKODE_API_KEY=your_api_key");
+	AppendLog("Paste your API key into the API Key field and click Save AI Key.");
 	AppendLog("Optional provider defaults are read from:");
 	AppendLog(fSettingsStore.ProviderPath().c_str());
 	return;
@@ -1348,7 +1393,8 @@ MainWindow::UpdateAuthLabel()
 #else
 	const char* haikodeKey = getenv("HAIKODE_API_KEY");
 	const char* openaiKey = getenv("OPENAI_API_KEY");
-	if ((haikodeKey != nullptr && haikodeKey[0] != '\0')
+	if (!fSettings.apiKey.empty()
+		|| (haikodeKey != nullptr && haikodeKey[0] != '\0')
 		|| (openaiKey != nullptr && openaiKey[0] != '\0'))
 		fAuthLabel->SetText("AI ready");
 	else

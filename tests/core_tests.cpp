@@ -13,12 +13,15 @@
 #include "core/ProcessRunner.h"
 #include "core/ProjectMemory.h"
 #include "core/ProjectModel.h"
+#include "core/SettingsStore.h"
 
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <iterator>
 #include <string>
+#include <sys/stat.h>
 
 namespace fs = std::filesystem;
 
@@ -244,6 +247,29 @@ testCommandPolicyRequiresExplicitApproval()
 }
 
 static void
+testSettingsStoreSavesApiKeyPrivately()
+{
+	const fs::path home = fs::temp_directory_path() / "haikode-settings-home";
+	fs::remove_all(home);
+	fs::create_directories(home);
+	setenv("HOME", home.string().c_str(), 1);
+
+	SettingsStore store;
+	std::string error;
+	CHECK(store.SaveApiKey("sk-test-key", error));
+
+	std::string apiKey;
+	CHECK(store.LoadApiKey(apiKey));
+	CHECK(apiKey == "sk-test-key");
+
+	struct stat info;
+	CHECK(stat(store.ApiKeyPath().c_str(), &info) == 0);
+	CHECK((info.st_mode & (S_IRWXG | S_IRWXO)) == 0);
+
+	fs::remove_all(home);
+}
+
+static void
 testCodexBridgeReportsMissingCliCleanly()
 {
 	CodexBridge bridge("/path/to/missing/haikode-codex");
@@ -437,6 +463,7 @@ main()
 	testChatRequestIncludesSelectedContext();
 	testProcessRunnerRejectsShellStringsAndUnsafeWorkingDirectory();
 	testCommandPolicyRequiresExplicitApproval();
+	testSettingsStoreSavesApiKeyPrivately();
 	testCodexBridgeReportsMissingCliCleanly();
 	testDiffProposalRejectsPathsOutsideProject();
 	testIgnoreRulesSkipsDefaultGeneratedPaths();

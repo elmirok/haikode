@@ -22,6 +22,8 @@ OpenAICompatibleProvider::Send(const ProviderSettings& settings,
 	std::string& error) const
 {
 	ChatClient client;
-	return client.SendWithApiKey(settings, ReadApiKeyFromEnvironment(), request,
-		responseText, error);
+	std::string apiKey = settings.apiKey;
+	if (apiKey.empty())
+		apiKey = ReadApiKeyFromEnvironment();
+	return client.SendWithApiKey(settings, apiKey, request, responseText, error);
 }

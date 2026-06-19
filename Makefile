@@ -54,6 +54,7 @@ TEST_SRCS := $(TEST_DIR)/core_tests.cpp \
 	$(SRC_DIR)/core/ProjectMemory.cpp \
 	$(SRC_DIR)/core/ProjectModel.cpp \
 	$(SRC_DIR)/core/ProjectScanner.cpp \
+	$(SRC_DIR)/core/SettingsStore.cpp \
 	$(SRC_DIR)/core/TimeUtils.cpp \
 	$(SRC_DIR)/core/ChatRequest.cpp \
 	$(SRC_DIR)/core/EditProposal.cpp

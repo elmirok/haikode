@@ -13,6 +13,7 @@ public:
 	std::string ProviderPath() const;
 	std::string TokenPath() const;
 	std::string CodexPath() const;
+	std::string ApiKeyPath() const;
 
 	bool EnsureDirectory(std::string& error) const;
 	bool LoadProvider(ProviderSettings& settings) const;
@@ -21,6 +22,8 @@ public:
 	bool SaveToken(const OAuthToken& token, std::string& error) const;
 	bool LoadCodexPath(std::string& codexPath) const;
 	bool SaveCodexPath(const std::string& codexPath, std::string& error) const;
+	bool LoadApiKey(std::string& apiKey) const;
+	bool SaveApiKey(const std::string& apiKey, std::string& error) const;
 
 private:
 	std::string fDirectoryPath;
