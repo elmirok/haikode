@@ -90,7 +90,7 @@ public:
 		const char* oauthTokenUrl, const char* oauthClientId,
 		const char* oauthScope, const char* oauthRedirectUri)
 		:
-		BWindow(BRect(), B_TRANSLATE("Haikode AI setup"),
+		BWindow(BRect(100, 100, 780, 620), B_TRANSLATE("Haikode AI setup"),
 			B_TITLED_WINDOW_LOOK, B_MODAL_APP_WINDOW_FEEL,
 			B_ASYNCHRONOUS_CONTROLS | B_AUTO_UPDATE_SIZE_LIMITS
 				| B_CLOSE_ON_ESCAPE),
@@ -681,7 +681,17 @@ AIChatPanel::_ApplyProviderPreset(Haikode::AI::ProviderPreset preset)
 void
 AIChatPanel::_OpenProviderSettings()
 {
-	AIProviderSetupWindow* window = new AIProviderSetupWindow(BMessenger(this),
+	status_t messengerStatus = B_OK;
+	BMessenger target(this, Looper(), &messengerStatus);
+	if (messengerStatus != B_OK) {
+		BString text(B_TRANSLATE("Haikode could not open AI Setup because the AI panel is not ready yet."));
+		text << "\n\n" << B_TRANSLATE("Open the Haikode AI panel, then click AI Setup again.");
+		(new BAlert("Haikode AI setup", text.String(), B_TRANSLATE("OK"),
+			nullptr, nullptr, B_WIDTH_AS_USUAL, B_WARNING_ALERT))->Go();
+		return;
+	}
+
+	AIProviderSetupWindow* window = new AIProviderSetupWindow(target,
 		fBaseUrl->Text(), fModel->Text(), fAuthMode->Text(), fApiKey->Text(),
 		fOAuthToken->Text(), fOAuthAuthUrl->Text(), fOAuthTokenUrl->Text(),
 		fOAuthClientId->Text(), fOAuthScope->Text(), fOAuthRedirectUri->Text());

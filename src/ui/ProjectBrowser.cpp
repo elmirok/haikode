@@ -798,7 +798,18 @@ ProjectBrowser::ProjectFolderPopulate(ProjectFolder* project)
 	BMessage syncMessage(MSG_PROJECT_BATCH_SYNC);
 	BMessage syncReply;
 	bigtime_t syncStartTime = system_time();
-	BMessenger(this).SendMessage(&syncMessage, &syncReply);
+	status_t messengerStatus = B_OK;
+	BMessenger browserMessenger(this, Looper(), &messengerStatus);
+	if (messengerStatus == B_OK) {
+		status_t syncStatus = browserMessenger.SendMessage(&syncMessage, &syncReply);
+		if (syncStatus != B_OK) {
+			LogErrorF("ProjectBrowser: tree synchronization failed: %s",
+				::strerror(syncStatus));
+		}
+	} else {
+		LogErrorF("ProjectBrowser: cannot synchronize project tree: %s",
+			::strerror(messengerStatus));
+	}
 	bigtime_t syncEndTime = system_time();
 
 	LockLooper();
@@ -1005,15 +1016,32 @@ ProjectBrowser::_FlushItemBatchLocked(ProjectFolder* project, bool synchronous)
 	// Clear the batch before sending
 	projectBatch.clear();
 
-	// Send to our own looper for processing
+	// Send to our own looper for processing. This function can be called from
+	// the background project opener task, so build the messenger with the
+	// explicit browser looper instead of relying on thread-local handler lookup.
+	status_t messengerStatus = B_OK;
+	BMessenger browserMessenger(this, Looper(), &messengerStatus);
+	if (messengerStatus != B_OK) {
+		LogErrorF("ProjectBrowser: cannot deliver project tree batch: %s",
+			::strerror(messengerStatus));
+		return;
+	}
 	if (synchronous) {
 		// Synchronous: wait for processing to complete
 		BMessage reply;
-		BMessenger(this).SendMessage(&batchMessage, &reply);
+		status_t status = browserMessenger.SendMessage(&batchMessage, &reply);
+		if (status != B_OK) {
+			LogErrorF("ProjectBrowser: synchronous tree batch failed: %s",
+				::strerror(status));
+		}
 	} else {
 		// Asynchronous: queue for processing
 		// Messages will be processed in FIFO order, maintaining sequence
-		BMessenger(this).SendMessage(&batchMessage);
+		status_t status = browserMessenger.SendMessage(&batchMessage);
+		if (status != B_OK) {
+			LogErrorF("ProjectBrowser: asynchronous tree batch failed: %s",
+				::strerror(status));
+		}
 	}
 }
 
