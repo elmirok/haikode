@@ -787,8 +787,9 @@ ProjectBrowser::ProjectFolderPopulate(ProjectFolder* project)
 
 	ASSERT(projectItem != nullptr);
 
-	// Flush any remaining items in the batch for this specific project
-	_FlushItemBatch(project, false);
+	// Flush remaining items synchronously so sorting and selection see the
+	// complete tree before the project-open task reports completion.
+	_FlushItemBatch(project, true);
 
 	// Wait for all batch messages to be processed before continuing
 	// This ensures all items are in the tree before we sort
@@ -802,6 +803,9 @@ ProjectBrowser::ProjectFolderPopulate(ProjectFolder* project)
 
 	// TODO: here we are ordering ALL the elements (maybe and option could prevent ordering the projects)
 	fOutlineListView->SortItemsUnder(nullptr, false, ProjectOutlineListView::CompareProjectItems);
+	fOutlineListView->Expand(projectItem);
+	fOutlineListView->Select(fOutlineListView->IndexOf(projectItem));
+	fOutlineListView->ScrollToSelection();
 
 	const BString projectPath = project->Path();
 	update_mime_info(projectPath, true, false, B_UPDATE_MIME_INFO_NO_FORCE);

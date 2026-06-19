@@ -22,6 +22,7 @@ public:
 	AIChatPanel(PanelTabManager* panelTabManager, tab_id id);
 
 	void AttachedToWindow() override;
+	void DetachedFromWindow() override;
 	void MessageReceived(BMessage* message) override;
 
 	void SetActiveContext(const BString& projectRoot, const BString& filePath,
@@ -32,6 +33,7 @@ private:
 	void _BuildInterface();
 	void _LoadProviderFromConfig();
 	void _SaveProviderToConfig();
+	void _OpenProviderSettings();
 	void _SendPrompt(Haikode::AI::PromptMode mode);
 	void _FinishResponse(const BString& text, const BString& error, long status);
 	void _ApplyPendingDiff();
@@ -52,6 +54,7 @@ private:
 	BTextControl* fPrompt;
 	BTextView* fOutput;
 	BButton* fSaveProvider;
+	BButton* fSetupButton;
 	BButton* fAskButton;
 	BButton* fPatchButton;
 	BButton* fApplyPatchButton;

@@ -5,6 +5,7 @@
 
 #include "AIChatPanel.h"
 
+#include <Application.h>
 #include <Button.h>
 #include <Catalog.h>
 #include <LayoutBuilder.h>
@@ -15,6 +16,7 @@
 #include <TextView.h>
 
 #include "ConfigManager.h"
+#include "ConfigWindow.h"
 
 #include <thread>
 
@@ -26,6 +28,7 @@ extern ConfigManager gCFG;
 namespace {
 
 const uint32 kMsgSaveProvider = 'hisp';
+const uint32 kMsgOpenSetup = 'hios';
 const uint32 kMsgAsk = 'hiak';
 const uint32 kMsgProposePatch = 'hipa';
 const uint32 kMsgAIResponse = 'hirs';
@@ -59,6 +62,7 @@ AIChatPanel::AIChatPanel(PanelTabManager* panelTabManager, tab_id id)
 	fPrompt(nullptr),
 	fOutput(nullptr),
 	fSaveProvider(nullptr),
+	fSetupButton(nullptr),
 	fAskButton(nullptr),
 	fPatchButton(nullptr),
 	fApplyPatchButton(nullptr),
@@ -74,7 +78,16 @@ AIChatPanel::AttachedToWindow()
 {
 	BGroupView::AttachedToWindow();
 	_LoadProviderFromConfig();
+	be_app->StartWatching(this, gCFG.UpdateMessageWhat());
 	SetTabLabel(B_TRANSLATE("Haikode AI"));
+}
+
+
+void
+AIChatPanel::DetachedFromWindow()
+{
+	be_app->StopWatching(this, gCFG.UpdateMessageWhat());
+	BGroupView::DetachedFromWindow();
 }
 
 
@@ -84,6 +97,9 @@ AIChatPanel::MessageReceived(BMessage* message)
 	switch (message->what) {
 		case kMsgSaveProvider:
 			_SaveProviderToConfig();
+			break;
+		case kMsgOpenSetup:
+			_OpenProviderSettings();
 			break;
 		case kMsgAsk:
 			_SendPrompt(Haikode::AI::PromptMode::Ask);
@@ -104,6 +120,17 @@ AIChatPanel::MessageReceived(BMessage* message)
 			_RejectPendingDiff();
 			_AppendOutput(B_TRANSLATE("Pending patch rejected."));
 			break;
+		case B_OBSERVER_NOTICE_CHANGE:
+		{
+			int32 code;
+			if (message->FindInt32(B_OBSERVE_WHAT_CHANGE, &code) == B_OK
+				&& code == gCFG.UpdateMessageWhat()) {
+				BString key(message->GetString("key", ""));
+				if (key.StartsWith("haikode_ai_"))
+					_LoadProviderFromConfig();
+			}
+			break;
+		}
 		default:
 			BGroupView::MessageReceived(message);
 			break;
@@ -147,6 +174,8 @@ AIChatPanel::_BuildInterface()
 
 	fSaveProvider = new BButton("haikode_ai_save_provider",
 		B_TRANSLATE("Save provider"), new BMessage(kMsgSaveProvider));
+	fSetupButton = new BButton("haikode_ai_setup",
+		B_TRANSLATE("AI Setup"), new BMessage(kMsgOpenSetup));
 	fAskButton = new BButton("haikode_ai_ask", B_TRANSLATE("Ask"),
 		new BMessage(kMsgAsk));
 	fPatchButton = new BButton("haikode_ai_patch", B_TRANSLATE("Propose patch"),
@@ -180,6 +209,7 @@ AIChatPanel::_BuildInterface()
 		.End()
 		.AddGroup(B_HORIZONTAL, B_USE_DEFAULT_SPACING)
 			.Add(fPrompt)
+			.Add(fSetupButton)
 			.Add(fSaveProvider)
 			.Add(fAskButton)
 			.Add(fPatchButton)
@@ -215,6 +245,15 @@ AIChatPanel::_SaveProviderToConfig()
 
 
 void
+AIChatPanel::_OpenProviderSettings()
+{
+	ConfigWindow* window = new ConfigWindow(gCFG);
+	window->Show();
+	_AppendOutput(B_TRANSLATE("Opened Haikode settings. Select the Haikode AI section, paste your API key, and close the settings window to save it."));
+}
+
+
+void
 AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 {
 	if (fRequestRunning) {
@@ -225,6 +264,7 @@ AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 	Haikode::AI::PromptBuilder builder;
 	Haikode::AI::PromptBuildResult result = builder.Build(
 		_RequestFromContext(mode), 200 * 1024, 10);
+	_SaveProviderToConfig();
 	Haikode::AI::ProviderSettings provider = _ProviderFromFields();
 
 	fOutput->SetText("");
@@ -247,10 +287,22 @@ AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 
 	_AppendOutput("");
 
+	if (!provider.HasUsableCredentials()) {
+		if (provider.authMode == Haikode::AI::AuthMode::ApiKey) {
+			_AppendOutput(B_TRANSLATE("Paste your OpenAI-compatible API key into the API key field or click AI Setup. Haikode stores it in the app settings, so no Terminal export is required."));
+		} else if (provider.authMode == Haikode::AI::AuthMode::OAuth) {
+			_AppendOutput(B_TRANSLATE("Paste an OAuth bearer token into the OAuth token field or click AI Setup."));
+		} else {
+			_AppendOutput(B_TRANSLATE("Choose api-key, oauth, or local auth and fill the matching provider field."));
+		}
+		return;
+	}
+
 	fRequestRunning = true;
 	fAskButton->SetEnabled(false);
 	fPatchButton->SetEnabled(false);
 	fSaveProvider->SetEnabled(false);
+	fSetupButton->SetEnabled(false);
 	fApplyPatchButton->SetEnabled(false);
 	fRejectPatchButton->SetEnabled(false);
 	fPendingDiff = Haikode::AI::UnifiedDiff();
@@ -283,6 +335,7 @@ AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 	fAskButton->SetEnabled(true);
 	fPatchButton->SetEnabled(true);
 	fSaveProvider->SetEnabled(true);
+	fSetupButton->SetEnabled(true);
 
 	if (!error.IsEmpty()) {
 		BString line(B_TRANSLATE("AI request failed"));

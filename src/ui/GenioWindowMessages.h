@@ -141,6 +141,7 @@ enum {
 	MSG_HELP_DOCS					= 'hdoc',
 
 	MSG_HAIKODE_AI_SHOW			= 'hais',
+	MSG_HAIKODE_AI_SETUP			= 'hise',
 
 	MSG_WHEEL_WITH_COMMAND_KEY		= 'waco',
 

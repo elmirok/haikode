@@ -295,6 +295,13 @@ GenioWindow::MessageReceived(BMessage* message)
 		case MSG_HAIKODE_AI_SHOW:
 			_ShowHaikodeAI();
 			break;
+		case MSG_HAIKODE_AI_SETUP:
+		{
+			_ShowHaikodeAI();
+			ConfigWindow* window = new ConfigWindow(gCFG);
+			window->Show();
+			break;
+		}
 		case kLSPWorkProgress:
 		{
 			ProjectFolder* active = GetActiveProject();
@@ -3298,6 +3305,8 @@ GenioWindow::_InitMenu()
 	windowMenu->AddItem(fPanelsMenu);
 	windowMenu->AddItem(new BMenuItem(B_TRANSLATE("Haikode AI"),
 		new BMessage(MSG_HAIKODE_AI_SHOW)));
+	windowMenu->AddItem(new BMenuItem(B_TRANSLATE("Haikode AI setup" B_UTF8_ELLIPSIS),
+		new BMessage(MSG_HAIKODE_AI_SETUP)));
 
 	windowMenu->AddSeparatorItem();
 
@@ -4024,6 +4033,7 @@ GenioWindow::_ProjectFolderOpenCompleted(ProjectFolder* project,
 
 	// final touch, let's be sure the folder is added to the recent files.
 	be_roster->AddToRecentFolders(&ref, GenioNames::kApplicationSignature);
+	_ShowPanelTabView(kTabViewLeft, true, MSG_SHOW_HIDE_LEFT_PANE);
 }
 
 
