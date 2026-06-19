@@ -31,6 +31,17 @@ main()
 	prepared = Haikode::AI::OpenAICompatibleClient::Prepare(apiKeyProvider, request);
 	assert(prepared.body.find("\"max_tokens\":32") != std::string::npos);
 
+	Haikode::AI::ProviderSettings pastedProvider;
+	pastedProvider.baseUrl = "  https://api.openai.com/v1/  ";
+	pastedProvider.model = "  gpt-test  ";
+	pastedProvider.apiKey = "  sk-pasted  ";
+	assert(pastedProvider.Validate(validationError));
+	prepared = Haikode::AI::OpenAICompatibleClient::Prepare(pastedProvider,
+		request);
+	assert(prepared.url == "https://api.openai.com/v1/chat/completions");
+	assert(prepared.authorizationHeader == "Authorization: Bearer sk-pasted");
+	assert(prepared.body.find("\"model\":\"gpt-test\"") != std::string::npos);
+
 	const Haikode::AI::ProviderSettings openaiPreset
 		= Haikode::AI::ProviderPresetSettings(
 			Haikode::AI::ProviderPreset::OpenAI);

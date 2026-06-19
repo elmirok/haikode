@@ -19,6 +19,23 @@ namespace Haikode::AI {
 namespace {
 
 std::string
+TrimWhitespace(std::string value)
+{
+	size_t start = 0;
+	while (start < value.size()
+		&& std::isspace(static_cast<unsigned char>(value[start]))) {
+		start++;
+	}
+	size_t end = value.size();
+	while (end > start
+		&& std::isspace(static_cast<unsigned char>(value[end - 1]))) {
+		end--;
+	}
+	return value.substr(start, end - start);
+}
+
+
+std::string
 EscapeJson(const std::string& value)
 {
 	std::ostringstream out;
@@ -328,10 +345,11 @@ OpenAICompatibleClient::Prepare(const ProviderSettings& provider,
 {
 	PreparedChatRequest prepared;
 	prepared.url = provider.ChatCompletionsEndpoint();
+	const std::string model = TrimWhitespace(provider.model);
 
 	std::ostringstream body;
 	body
-		<< "{\"model\":\"" << EscapeJson(provider.model) << "\","
+		<< "{\"model\":\"" << EscapeJson(model) << "\","
 		<< "\"messages\":[{\"role\":\"user\",\"content\":\""
 		<< EscapeJson(request.prompt) << "\"}]";
 	if (request.maxTokens > 0)
@@ -339,10 +357,12 @@ OpenAICompatibleClient::Prepare(const ProviderSettings& provider,
 	body << "}";
 	prepared.body = body.str();
 
-	if (provider.authMode == AuthMode::ApiKey && !provider.apiKey.empty())
-		prepared.authorizationHeader = "Authorization: Bearer " + provider.apiKey;
-	else if (provider.authMode == AuthMode::OAuth && !provider.oauthToken.empty())
-		prepared.authorizationHeader = "Authorization: Bearer " + provider.oauthToken;
+	const std::string apiKey = TrimWhitespace(provider.apiKey);
+	const std::string oauthToken = TrimWhitespace(provider.oauthToken);
+	if (provider.authMode == AuthMode::ApiKey && !apiKey.empty())
+		prepared.authorizationHeader = "Authorization: Bearer " + apiKey;
+	else if (provider.authMode == AuthMode::OAuth && !oauthToken.empty())
+		prepared.authorizationHeader = "Authorization: Bearer " + oauthToken;
 
 	return prepared;
 }

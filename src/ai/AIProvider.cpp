@@ -5,9 +5,28 @@
 
 #include "AIProvider.h"
 
+#include <cctype>
+
 namespace Haikode::AI {
 
 namespace {
+
+std::string
+TrimWhitespace(std::string value)
+{
+	size_t start = 0;
+	while (start < value.size()
+		&& std::isspace(static_cast<unsigned char>(value[start]))) {
+		start++;
+	}
+	size_t end = value.size();
+	while (end > start
+		&& std::isspace(static_cast<unsigned char>(value[end - 1]))) {
+		end--;
+	}
+	return value.substr(start, end - start);
+}
+
 
 bool
 EndsWithSlash(const std::string& value)
@@ -52,11 +71,11 @@ bool
 ProviderSettings::HasUsableCredentials() const
 {
 	if (authMode == AuthMode::ApiKey)
-		return !apiKey.empty();
+		return !TrimWhitespace(apiKey).empty();
 	if (authMode == AuthMode::OAuth)
-		return !oauthToken.empty();
+		return !TrimWhitespace(oauthToken).empty();
 	if (authMode == AuthMode::Local)
-		return !baseUrl.empty();
+		return !TrimWhitespace(baseUrl).empty();
 	return false;
 }
 
@@ -65,22 +84,22 @@ bool
 ProviderSettings::Validate(std::string& error) const
 {
 	error.clear();
-	if (baseUrl.empty()) {
+	if (TrimWhitespace(baseUrl).empty()) {
 		error = "Provider base URL is required.";
 		return false;
 	}
 
-	if (model.empty()) {
+	if (TrimWhitespace(model).empty()) {
 		error = "Provider model is required.";
 		return false;
 	}
 
-	if (authMode == AuthMode::ApiKey && apiKey.empty()) {
+	if (authMode == AuthMode::ApiKey && TrimWhitespace(apiKey).empty()) {
 		error = "API key auth selected, but no API key is configured.";
 		return false;
 	}
 
-	if (authMode == AuthMode::OAuth && oauthToken.empty()) {
+	if (authMode == AuthMode::OAuth && TrimWhitespace(oauthToken).empty()) {
 		error = "OAuth auth selected, but no OAuth bearer token is configured.";
 		return false;
 	}
@@ -97,15 +116,16 @@ ProviderSettings::Validate(std::string& error) const
 std::string
 ProviderSettings::ChatCompletionsEndpoint() const
 {
-	const std::string base = TrimTrailingSlashes(baseUrl);
+	const std::string trimmedUrl = TrimWhitespace(baseUrl);
+	const std::string base = TrimTrailingSlashes(trimmedUrl);
 	if (EndsWith(base, "/v1/chat/completions")
 		|| EndsWith(base, "/chat/completions")) {
 		return base;
 	}
 	if (EndsWith(base, "/v1"))
 		return base + "/chat/completions";
-	if (EndsWithSlash(baseUrl))
-		return baseUrl + "v1/chat/completions";
+	if (EndsWithSlash(trimmedUrl))
+		return trimmedUrl + "v1/chat/completions";
 	return base + "/v1/chat/completions";
 }
 
