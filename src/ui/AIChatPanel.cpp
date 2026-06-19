@@ -58,6 +58,7 @@ const uint32 kMsgOpenSetup = 'hios';
 const uint32 kMsgSetupSave = 'hiss';
 const uint32 kMsgSetupSaveAndTest = 'hist';
 const uint32 kMsgSetupSaveAndOAuth = 'hisa';
+const uint32 kMsgSetupSaveAndExchangeOAuth = 'hixc';
 const uint32 kMsgSetupCancel = 'hisc';
 const uint32 kMsgSetupSaved = 'hisd';
 const uint32 kMsgSetupPresetOpenAI = 'hiso';
@@ -580,7 +581,8 @@ public:
 		const char* model, const char* authMode, const char* apiKey,
 		const char* oauthToken, const char* oauthAuthUrl,
 		const char* oauthTokenUrl, const char* oauthClientId,
-		const char* oauthScope, const char* oauthRedirectUri)
+		const char* oauthScope, const char* oauthRedirectUri,
+		const char* oauthCode)
 		:
 		BWindow(BRect(100, 100, 780, 620), B_TRANSLATE("Haikode AI setup"),
 			B_TITLED_WINDOW_LOOK, B_MODAL_APP_WINDOW_FEEL,
@@ -623,6 +625,9 @@ public:
 			oauthRedirectUri != nullptr && oauthRedirectUri[0] != '\0'
 				? oauthRedirectUri : "http://127.0.0.1:8765/callback",
 			nullptr);
+		fOAuthCode = new BTextControl("setup_oauth_code",
+			B_TRANSLATE("OAuth code"), oauthCode != nullptr ? oauthCode : "",
+			nullptr);
 
 		BButton* openAIButton = new BButton("setup_openai",
 			B_TRANSLATE("OpenAI"), new BMessage(kMsgSetupPresetOpenAI));
@@ -645,6 +650,9 @@ public:
 		BButton* saveAndOAuthButton = new BButton("setup_save_oauth",
 			B_TRANSLATE("Save & Start OAuth"),
 			new BMessage(kMsgSetupSaveAndOAuth));
+		BButton* saveAndExchangeOAuthButton = new BButton(
+			"setup_save_exchange_oauth", B_TRANSLATE("Save & Exchange Code"),
+			new BMessage(kMsgSetupSaveAndExchangeOAuth));
 		BStringView* networkStatus = new BStringView("setup_network_status",
 			SetupNetworkStatusText());
 		openAIButton->SetTarget(this);
@@ -657,6 +665,7 @@ public:
 		saveButton->SetTarget(this);
 		saveAndTestButton->SetTarget(this);
 		saveAndOAuthButton->SetTarget(this);
+		saveAndExchangeOAuthButton->SetTarget(this);
 
 		BLayoutBuilder::Group<>(this, B_VERTICAL, B_USE_DEFAULT_SPACING)
 			.SetInsets(B_USE_WINDOW_SPACING)
@@ -682,6 +691,8 @@ public:
 				.Add(fOAuthScope->CreateTextViewLayoutItem(), 1, 8)
 				.Add(fOAuthRedirectUri->CreateLabelLayoutItem(), 0, 9)
 				.Add(fOAuthRedirectUri->CreateTextViewLayoutItem(), 1, 9)
+				.Add(fOAuthCode->CreateLabelLayoutItem(), 0, 10)
+				.Add(fOAuthCode->CreateTextViewLayoutItem(), 1, 10)
 			.End()
 			.AddGroup(B_HORIZONTAL, B_USE_DEFAULT_SPACING)
 				.Add(openAIButton)
@@ -698,6 +709,7 @@ public:
 				.Add(saveButton)
 				.Add(saveAndTestButton)
 				.Add(saveAndOAuthButton)
+				.Add(saveAndExchangeOAuthButton)
 			.End();
 
 		saveAndTestButton->MakeDefault(true);
@@ -746,6 +758,7 @@ public:
 			case kMsgSetupSave:
 			case kMsgSetupSaveAndTest:
 			case kMsgSetupSaveAndOAuth:
+			case kMsgSetupSaveAndExchangeOAuth:
 			{
 				BMessage saved(kMsgSetupSaved);
 				saved.AddString("base_url", fBaseUrl->Text());
@@ -758,10 +771,13 @@ public:
 				saved.AddString("oauth_client_id", fOAuthClientId->Text());
 				saved.AddString("oauth_scope", fOAuthScope->Text());
 				saved.AddString("oauth_redirect_uri", fOAuthRedirectUri->Text());
+				saved.AddString("oauth_code", fOAuthCode->Text());
 				saved.AddBool("test_provider",
 					message->what == kMsgSetupSaveAndTest);
 				saved.AddBool("start_oauth",
 					message->what == kMsgSetupSaveAndOAuth);
+				saved.AddBool("exchange_oauth",
+					message->what == kMsgSetupSaveAndExchangeOAuth);
 				fTarget.SendMessage(&saved);
 				Quit();
 				break;
@@ -787,6 +803,7 @@ private:
 	BTextControl* fOAuthClientId;
 	BTextControl* fOAuthScope;
 	BTextControl* fOAuthRedirectUri;
+	BTextControl* fOAuthCode;
 };
 
 } // namespace
@@ -937,6 +954,7 @@ AIChatPanel::MessageReceived(BMessage* message)
 			fOAuthScope->SetText(message->GetString("oauth_scope", ""));
 			fOAuthRedirectUri->SetText(
 				message->GetString("oauth_redirect_uri", ""));
+			fOAuthCode->SetText(message->GetString("oauth_code", ""));
 			_SaveProviderToConfig();
 			_AppendOutput(B_TRANSLATE("AI provider settings saved inside Haikode."));
 			if (Haikode::AI::ShouldRunProviderTestAfterSetupSave(
@@ -952,6 +970,13 @@ AIChatPanel::MessageReceived(BMessage* message)
 				_StartOAuthFromCurrentFields();
 			} else if (message->GetBool("start_oauth", false)) {
 				_AppendOutput(B_TRANSLATE("OAuth login was not started because another AI or OAuth request is running."));
+			}
+			if (Haikode::AI::ShouldExchangeOAuthAfterSetupSave(
+					message->GetBool("exchange_oauth", false),
+					fRequestRunning)) {
+				_ExchangeOAuthCodeFromCurrentFields();
+			} else if (message->GetBool("exchange_oauth", false)) {
+				_AppendOutput(B_TRANSLATE("OAuth code exchange was not started because another AI or OAuth request is running."));
 			}
 			break;
 		case kMsgPresetOpenAI:
@@ -1503,7 +1528,8 @@ AIChatPanel::_OpenProviderSettings()
 	AIProviderSetupWindow* window = new AIProviderSetupWindow(target,
 		fBaseUrl->Text(), fModel->Text(), fAuthMode->Text(), fApiKey->Text(),
 		fOAuthToken->Text(), fOAuthAuthUrl->Text(), fOAuthTokenUrl->Text(),
-		fOAuthClientId->Text(), fOAuthScope->Text(), fOAuthRedirectUri->Text());
+		fOAuthClientId->Text(), fOAuthScope->Text(), fOAuthRedirectUri->Text(),
+		fOAuthCode->Text());
 	if (Window() != nullptr)
 		window->AddToSubset(Window());
 	window->Show();
@@ -1742,6 +1768,13 @@ AIChatPanel::_ExchangeOAuthCode()
 	}
 
 	_SaveProviderToConfig();
+	_ExchangeOAuthCodeFromCurrentFields();
+}
+
+
+void
+AIChatPanel::_ExchangeOAuthCodeFromCurrentFields()
+{
 	Haikode::AI::OAuthSettings settings = _OAuthSettingsFromFields();
 	std::string validationError;
 	if (!Haikode::AI::OAuthClient::ValidateSettings(settings,

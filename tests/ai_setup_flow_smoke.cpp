@@ -19,6 +19,9 @@ main()
 	assert(Haikode::AI::ShouldStartOAuthAfterSetupSave(true, false));
 	assert(!Haikode::AI::ShouldStartOAuthAfterSetupSave(false, false));
 	assert(!Haikode::AI::ShouldStartOAuthAfterSetupSave(true, true));
+	assert(Haikode::AI::ShouldExchangeOAuthAfterSetupSave(true, false));
+	assert(!Haikode::AI::ShouldExchangeOAuthAfterSetupSave(false, false));
+	assert(!Haikode::AI::ShouldExchangeOAuthAfterSetupSave(true, true));
 
 	std::cout << "ai-setup-flow-smoke-ok\n";
 	return 0;

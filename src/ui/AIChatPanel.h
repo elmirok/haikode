@@ -58,6 +58,7 @@ private:
 	void _StartOAuth();
 	void _StartOAuthFromCurrentFields();
 	void _ExchangeOAuthCode();
+	void _ExchangeOAuthCodeFromCurrentFields();
 	void _FinishOAuthExchange(const BString& token, const BString& error,
 		long status);
 	void _SendPrompt(Haikode::AI::PromptMode mode);

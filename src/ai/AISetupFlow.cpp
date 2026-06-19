@@ -27,4 +27,11 @@ ShouldStartOAuthAfterSetupSave(bool requested, bool requestRunning)
 	return requested && !requestRunning;
 }
 
+
+bool
+ShouldExchangeOAuthAfterSetupSave(bool requested, bool requestRunning)
+{
+	return requested && !requestRunning;
+}
+
 } // namespace Haikode::AI
