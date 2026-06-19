@@ -723,6 +723,8 @@ PromptBuilder::ModeInstruction(PromptMode mode) const
 			return "Answer the user's question about this Haiku project.";
 		case PromptMode::ExplainSelection:
 			return "Explain the selected code and mention Haiku API details when relevant.";
+		case PromptMode::SummarizeProject:
+			return "Summarize this Haiku project using the project map. Identify the main components, likely build/test entry points, TODO hotspots, and high-risk files.";
 		case PromptMode::ProposePatch:
 			return "Propose a small unified diff. Do not include shell commands.";
 		case PromptMode::ReviewDiff:

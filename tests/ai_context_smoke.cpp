@@ -45,6 +45,14 @@ main()
 	assert(limited.prompt.find("Project documentation") == std::string::npos);
 	assert(!limited.warnings.empty());
 
+	request.mode = Haikode::AI::PromptMode::SummarizeProject;
+	request.userPrompt = "";
+	const Haikode::AI::PromptBuildResult projectSummary
+		= builder.Build(request, 1024, 10);
+	assert(projectSummary.prompt.find("Summarize this Haiku project")
+		!= std::string::npos);
+	assert(projectSummary.prompt.find("Project map:") != std::string::npos);
+
 	const fs::path root = fs::temp_directory_path() / "haikode-context-smoke";
 	fs::remove_all(root);
 	fs::create_directories(root / "src");

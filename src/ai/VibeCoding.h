@@ -12,6 +12,7 @@ namespace Haikode::AI {
 enum class PromptMode {
 	Ask,
 	ExplainSelection,
+	SummarizeProject,
 	ProposePatch,
 	ReviewDiff
 };

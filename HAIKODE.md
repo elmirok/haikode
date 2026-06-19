@@ -50,6 +50,8 @@ The Genio-based branch now adds:
   language, role, risk, line count, and TODO markers before sending prompts.
 - The AI output log shows how many project-map entries were included and warns
   when extra entries were omitted.
+- A **Summarize project** action that uses project-map context to produce a
+  project overview without requiring an active file.
 - Unified diff detection in AI responses.
 - Explicit **Apply first file**, **Reject first file**, **Apply patch**, and
   **Reject patch** controls with path checks and `.haikode/backups/` copies

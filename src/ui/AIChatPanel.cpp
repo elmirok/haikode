@@ -49,6 +49,7 @@ const uint32 kMsgStartOAuth = 'hiox';
 const uint32 kMsgExchangeOAuth = 'hixo';
 const uint32 kMsgOAuthResponse = 'hior';
 const uint32 kMsgAsk = 'hiak';
+const uint32 kMsgSummarizeProject = 'hisu';
 const uint32 kMsgProposePatch = 'hipa';
 const uint32 kMsgAIResponse = 'hirs';
 const uint32 kMsgApplyFirstFile = 'hiaf';
@@ -270,6 +271,7 @@ AIChatPanel::AIChatPanel(PanelTabManager* panelTabManager, tab_id id)
 	fStartOAuthButton(nullptr),
 	fExchangeOAuthButton(nullptr),
 	fAskButton(nullptr),
+	fSummarizeButton(nullptr),
 	fPatchButton(nullptr),
 	fApplyFirstFileButton(nullptr),
 	fRejectFirstFileButton(nullptr),
@@ -296,6 +298,7 @@ AIChatPanel::AttachedToWindow()
 	fStartOAuthButton->SetTarget(this);
 	fExchangeOAuthButton->SetTarget(this);
 	fAskButton->SetTarget(this);
+	fSummarizeButton->SetTarget(this);
 	fPatchButton->SetTarget(this);
 	fApplyFirstFileButton->SetTarget(this);
 	fRejectFirstFileButton->SetTarget(this);
@@ -364,6 +367,9 @@ AIChatPanel::MessageReceived(BMessage* message)
 			break;
 		case kMsgAsk:
 			_SendPrompt(Haikode::AI::PromptMode::Ask);
+			break;
+		case kMsgSummarizeProject:
+			_SendPrompt(Haikode::AI::PromptMode::SummarizeProject);
 			break;
 		case kMsgProposePatch:
 			_SendPrompt(Haikode::AI::PromptMode::ProposePatch);
@@ -486,6 +492,8 @@ AIChatPanel::_BuildInterface()
 		B_TRANSLATE("Exchange code"), new BMessage(kMsgExchangeOAuth));
 	fAskButton = new BButton("haikode_ai_ask", B_TRANSLATE("Ask"),
 		new BMessage(kMsgAsk));
+	fSummarizeButton = new BButton("haikode_ai_summarize_project",
+		B_TRANSLATE("Summarize project"), new BMessage(kMsgSummarizeProject));
 	fPatchButton = new BButton("haikode_ai_patch", B_TRANSLATE("Propose patch"),
 		new BMessage(kMsgProposePatch));
 	fApplyFirstFileButton = new BButton("haikode_ai_apply_first_file",
@@ -558,6 +566,7 @@ AIChatPanel::_BuildInterface()
 			.Add(fStartOAuthButton)
 			.Add(fExchangeOAuthButton)
 			.Add(fAskButton)
+			.Add(fSummarizeButton)
 			.Add(fPatchButton)
 			.Add(fApplyFirstFileButton)
 			.Add(fRejectFirstFileButton)
@@ -655,6 +664,7 @@ AIChatPanel::_TestProvider()
 
 	fRequestRunning = true;
 	fAskButton->SetEnabled(false);
+	fSummarizeButton->SetEnabled(false);
 	fPatchButton->SetEnabled(false);
 	fSaveProvider->SetEnabled(false);
 	fSetupButton->SetEnabled(false);
@@ -694,6 +704,7 @@ AIChatPanel::_FinishProviderTest(const BString& text, const BString& error,
 {
 	fRequestRunning = false;
 	fAskButton->SetEnabled(true);
+	fSummarizeButton->SetEnabled(true);
 	fPatchButton->SetEnabled(true);
 	fSaveProvider->SetEnabled(true);
 	fSetupButton->SetEnabled(true);
@@ -765,6 +776,7 @@ AIChatPanel::_ExchangeOAuthCode()
 
 	fRequestRunning = true;
 	fAskButton->SetEnabled(false);
+	fSummarizeButton->SetEnabled(false);
 	fPatchButton->SetEnabled(false);
 	fSaveProvider->SetEnabled(false);
 	fSetupButton->SetEnabled(false);
@@ -798,6 +810,7 @@ AIChatPanel::_FinishOAuthExchange(const BString& token, const BString& error,
 {
 	fRequestRunning = false;
 	fAskButton->SetEnabled(true);
+	fSummarizeButton->SetEnabled(true);
 	fPatchButton->SetEnabled(true);
 	fSaveProvider->SetEnabled(true);
 	fSetupButton->SetEnabled(true);
@@ -878,6 +891,7 @@ AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 	fLastProvider = provider;
 	fRequestRunning = true;
 	fAskButton->SetEnabled(false);
+	fSummarizeButton->SetEnabled(false);
 	fPatchButton->SetEnabled(false);
 	fSaveProvider->SetEnabled(false);
 	fSetupButton->SetEnabled(false);
@@ -922,6 +936,7 @@ AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 {
 	fRequestRunning = false;
 	fAskButton->SetEnabled(true);
+	fSummarizeButton->SetEnabled(true);
 	fPatchButton->SetEnabled(true);
 	fSaveProvider->SetEnabled(true);
 	fSetupButton->SetEnabled(true);
