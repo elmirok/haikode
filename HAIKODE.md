@@ -79,6 +79,8 @@ The Genio-based branch now adds:
   **Reject command** approval buttons.
 - Shell-interpreter command requests such as `sh -c ...` are flagged as not
   runnable inside Haikode and must be reviewed/run manually.
+- Destructive argv-native requests such as recursive forced `rm` are flagged
+  even when the model splits flags across arguments, for example `rm -r -f`.
 - Plain shell fenced blocks such as `sh`, `bash`, `shell`, or `console` are
   surfaced as pending manual-review command suggestions, not as runnable
   argv-native commands.

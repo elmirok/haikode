@@ -422,6 +422,39 @@ HasShellControlToken(const CommandRequest& command)
 
 
 bool
+IsRmRecursiveForceCommand(const std::vector<std::string>& argv)
+{
+	if (argv.empty() || argv[0] != "rm")
+		return false;
+
+	bool recursive = false;
+	bool force = false;
+	for (size_t i = 1; i < argv.size(); i++) {
+		const std::string& arg = argv[i];
+		if (arg == "--")
+			break;
+		if (arg == "--recursive") {
+			recursive = true;
+			continue;
+		}
+		if (arg == "--force") {
+			force = true;
+			continue;
+		}
+		if (arg.size() > 1 && arg[0] == '-' && arg[1] != '-') {
+			for (size_t flag = 1; flag < arg.size(); flag++) {
+				if (arg[flag] == 'r' || arg[flag] == 'R')
+					recursive = true;
+				else if (arg[flag] == 'f')
+					force = true;
+			}
+		}
+	}
+	return recursive && force;
+}
+
+
+bool
 NeedsShellQuotes(const std::string& value)
 {
 	if (value.empty())
@@ -470,9 +503,9 @@ ClassifyCommand(CommandRequest& command)
 		command.warning = "Command contains shell control-looking tokens; Haikode will run approved commands argv-native without shell interpretation.";
 		return;
 	}
-	if (joined.find("rm -rf") != std::string::npos) {
+	if (IsRmRecursiveForceCommand(command.argv)) {
 		command.dangerous = true;
-		command.warning = "Dangerous command pattern: rm -rf";
+		command.warning = "Dangerous command pattern: rm recursive force (rm -rf)";
 		return;
 	}
 	if (joined.find("sudo") != std::string::npos
