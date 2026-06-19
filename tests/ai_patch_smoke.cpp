@@ -62,6 +62,15 @@ main()
 	assert(ReadFile(fs::path(result.backupDirectory) / "src" / "main.cpp")
 		== "one\nold\nthree\n");
 
+	std::string savedPatchPath;
+	assert(Haikode::AI::UnifiedDiff::SavePatchText(root.string(), diff,
+		savedPatchPath, error));
+	assert(savedPatchPath.find(".haikode/patches/patch-") != std::string::npos);
+	assert(ReadFile(savedPatchPath) == diff);
+	assert(!Haikode::AI::UnifiedDiff::SavePatchText(root.string(), "",
+		savedPatchPath, error));
+	assert(error.find("empty") != std::string::npos);
+
 	const std::string newFileDiff =
 		"diff --git a/src/new_feature.cpp b/src/new_feature.cpp\n"
 		"new file mode 100644\n"

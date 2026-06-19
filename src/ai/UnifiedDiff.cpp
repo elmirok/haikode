@@ -116,6 +116,14 @@ Timestamp()
 		.count());
 }
 
+std::string
+PatchTimestamp()
+{
+	const auto now = std::chrono::system_clock::now().time_since_epoch();
+	return std::to_string(std::chrono::duration_cast<std::chrono::nanoseconds>(
+		now).count());
+}
+
 bool
 ApplyHunks(const std::vector<std::string>& original,
 	const std::vector<PatchHunk>& hunks, std::vector<std::string>& patched,
@@ -247,6 +255,47 @@ UnifiedDiff::ExtractFromText(const std::string& text, UnifiedDiff& diff,
 
 	rawDiff = text.substr(start);
 	return Parse(rawDiff, diff, error);
+}
+
+
+bool
+UnifiedDiff::SavePatchText(const std::string& projectRoot,
+	const std::string& rawDiff, std::string& savedPath, std::string& error)
+{
+	savedPath.clear();
+	error.clear();
+	try {
+		if (projectRoot.empty()) {
+			error = "No active project root.";
+			return false;
+		}
+		if (rawDiff.empty()) {
+			error = "Cannot save an empty patch.";
+			return false;
+		}
+
+		const fs::path root = fs::weakly_canonical(projectRoot);
+		const fs::path patchesRoot = root / ".haikode" / "patches";
+		fs::create_directories(patchesRoot);
+
+		const fs::path patchPath = patchesRoot / ("patch-" + PatchTimestamp() + ".diff");
+		if (!IsInsideDirectory(patchPath, root)) {
+			error = "Unsafe patch save path.";
+			return false;
+		}
+
+		std::ofstream file(patchPath, std::ios::binary | std::ios::trunc);
+		if (!file) {
+			error = "Could not save patch.";
+			return false;
+		}
+		file << rawDiff;
+		savedPath = patchPath.string();
+		return true;
+	} catch (const std::exception& exception) {
+		error = exception.what();
+		return false;
+	}
 }
 
 

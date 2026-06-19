@@ -383,6 +383,18 @@ AIChatPanel::_ApplyPendingDiff()
 		return;
 	}
 
+	std::string savedPatchPath;
+	if (!fPendingRawDiff.IsEmpty()) {
+		std::string saveError;
+		if (!Haikode::AI::UnifiedDiff::SavePatchText(fProjectRoot.String(),
+				fPendingRawDiff.String(), savedPatchPath, saveError)) {
+			BString line(B_TRANSLATE("Patch apply failed: could not save patch: "));
+			line << saveError.c_str();
+			_AppendOutput(line.String());
+			return;
+		}
+	}
+
 	Haikode::AI::PatchApplyResult result;
 	std::string error;
 	if (!fPendingDiff.Apply(fProjectRoot.String(), result, error)) {
@@ -395,6 +407,11 @@ AIChatPanel::_ApplyPendingDiff()
 	BString line(B_TRANSLATE("Patch applied. Backup: "));
 	line << result.backupDirectory.c_str();
 	_AppendOutput(line.String());
+	if (!savedPatchPath.empty()) {
+		line = B_TRANSLATE("Saved patch: ");
+		line << savedPatchPath.c_str();
+		_AppendOutput(line.String());
+	}
 	for (const std::string& file : result.changedFiles) {
 		BString fileLine("  ");
 		fileLine << file.c_str();
