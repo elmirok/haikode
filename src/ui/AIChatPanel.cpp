@@ -76,6 +76,7 @@ const uint32 kMsgReviewPatch = 'hivr';
 const uint32 kMsgApplyPatch = 'hiap';
 const uint32 kMsgRejectPatch = 'hirp';
 const uint32 kMsgRunCommand = 'hirc';
+const uint32 kMsgRejectCommand = 'hirx';
 
 Haikode::AI::AuthMode
 AuthModeFromString(const BString& value)
@@ -479,6 +480,7 @@ AIChatPanel::AIChatPanel(PanelTabManager* panelTabManager, tab_id id)
 	fApplyPatchButton(nullptr),
 	fRejectPatchButton(nullptr),
 	fRunCommandButton(nullptr),
+	fRejectCommandButton(nullptr),
 	fRequestRunning(false)
 {
 	_BuildInterface();
@@ -510,6 +512,7 @@ AIChatPanel::AttachedToWindow()
 	fApplyPatchButton->SetTarget(this);
 	fRejectPatchButton->SetTarget(this);
 	fRunCommandButton->SetTarget(this);
+	fRejectCommandButton->SetTarget(this);
 	_LoadProviderFromConfig();
 	be_app->StartWatching(this, gCFG.UpdateMessageWhat());
 	SetTabLabel(B_TRANSLATE("Haikode AI"));
@@ -644,6 +647,9 @@ AIChatPanel::MessageReceived(BMessage* message)
 		case kMsgRunCommand:
 			_RunPendingCommand();
 			break;
+		case kMsgRejectCommand:
+			_RejectPendingCommand();
+			break;
 		case B_OBSERVER_NOTICE_CHANGE:
 		{
 			int32 code;
@@ -769,6 +775,9 @@ AIChatPanel::_BuildInterface()
 	fRunCommandButton = new BButton("haikode_ai_run_command",
 		B_TRANSLATE("Run command"), new BMessage(kMsgRunCommand));
 	fRunCommandButton->SetEnabled(false);
+	fRejectCommandButton = new BButton("haikode_ai_reject_command",
+		B_TRANSLATE("Reject command"), new BMessage(kMsgRejectCommand));
+	fRejectCommandButton->SetEnabled(false);
 
 	fPendingActions = new BTextView("haikode_ai_pending_actions");
 	fPendingActions->MakeEditable(false);
@@ -838,6 +847,7 @@ AIChatPanel::_BuildInterface()
 			.Add(fApplyPatchButton)
 			.Add(fRejectPatchButton)
 			.Add(fRunCommandButton)
+			.Add(fRejectCommandButton)
 		.End()
 		.Add(pendingScroll)
 		.Add(outputScroll);
@@ -1341,6 +1351,7 @@ AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 		&& !commands.empty()) {
 		fPendingCommands = commands;
 		fRunCommandButton->SetEnabled(true);
+		fRejectCommandButton->SetEnabled(true);
 		_AppendOutput(B_TRANSLATE("Command request(s) detected. Haikode did not run them."));
 		for (const Haikode::AI::CommandRequest& command : commands) {
 			BString line("  ");
@@ -1427,6 +1438,7 @@ AIChatPanel::_RunPendingCommand()
 		_AppendOutput(B_TRANSLATE("Command was not run because it requires manual shell review."));
 		fPendingCommands.erase(fPendingCommands.begin());
 		fRunCommandButton->SetEnabled(!fPendingCommands.empty());
+		fRejectCommandButton->SetEnabled(!fPendingCommands.empty());
 		_UpdatePendingActions();
 		return;
 	}
@@ -1447,6 +1459,27 @@ AIChatPanel::_RunPendingCommand()
 
 	fPendingCommands.erase(fPendingCommands.begin());
 	fRunCommandButton->SetEnabled(!fPendingCommands.empty());
+	fRejectCommandButton->SetEnabled(!fPendingCommands.empty());
+	_UpdatePendingActions();
+}
+
+
+void
+AIChatPanel::_RejectPendingCommand()
+{
+	if (fPendingCommands.empty()) {
+		_AppendOutput(B_TRANSLATE("No pending command request to reject."));
+		return;
+	}
+
+	const Haikode::AI::CommandRequest command = fPendingCommands.front();
+	BString line(B_TRANSLATE("Rejected AI command request: "));
+	line << Haikode::AI::CommandDisplayString(command).c_str();
+	_AppendOutput(line.String());
+
+	fPendingCommands.erase(fPendingCommands.begin());
+	fRunCommandButton->SetEnabled(!fPendingCommands.empty());
+	fRejectCommandButton->SetEnabled(!fPendingCommands.empty());
 	_UpdatePendingActions();
 }
 
@@ -1457,6 +1490,8 @@ AIChatPanel::_ClearPendingCommands()
 	fPendingCommands.clear();
 	if (fRunCommandButton != nullptr)
 		fRunCommandButton->SetEnabled(false);
+	if (fRejectCommandButton != nullptr)
+		fRejectCommandButton->SetEnabled(false);
 	_UpdatePendingActions();
 }
 

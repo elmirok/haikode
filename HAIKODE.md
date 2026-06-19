@@ -61,8 +61,8 @@ The Genio-based branch now adds:
   `.haikode/backups/` copies before writes.
 - Generated unified diffs are saved immediately under `.haikode/patches/` before
   approval, so rejected and partially applied proposals still have an audit file.
-- Explicit AI command request parsing and a separate **Run command** approval
-  button.
+- Explicit AI command request parsing with separate **Run command** and
+  **Reject command** approval buttons.
 - Shell-interpreter command requests such as `sh -c ...` are flagged as not
   runnable inside Haikode and must be reviewed/run manually.
 - Approved AI command requests are passed to Genio's console as argv entries

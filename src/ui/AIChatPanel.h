@@ -54,6 +54,7 @@ private:
 	void _RejectFirstPendingFile();
 	void _RejectPendingDiff();
 	void _RunPendingCommand();
+	void _RejectPendingCommand();
 	void _ClearPendingCommands();
 	void _UpdatePendingActions();
 	void _SaveSessionRecord(const BString& responseText);
@@ -101,6 +102,7 @@ private:
 	BButton* fApplyPatchButton;
 	BButton* fRejectPatchButton;
 	BButton* fRunCommandButton;
+	BButton* fRejectCommandButton;
 	bool fRequestRunning;
 	Haikode::AI::UnifiedDiff fPendingDiff;
 	BString fPendingRawDiff;
