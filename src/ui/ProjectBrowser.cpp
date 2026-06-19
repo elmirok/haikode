@@ -779,37 +779,18 @@ ProjectBrowser::ProjectFolderPopulate(ProjectFolder* project)
 		UnlockLooper();
 	}
 
-	// Scan off the opener thread and replay additions on the browser looper.
-	// Direct per-item insertion from the opener task can leave the Haiku view
-	// looking empty on some systems even though the filesystem walk completed.
+	// Scan off the opener thread, but insert the initial tree synchronously on
+	// the browser looper. Queued pointer batches can leave the first project
+	// visually empty on some Haiku systems even though the filesystem walk
+	// completed; live filesystem updates still use the batch path.
 	bigtime_t scanStartTime = system_time();
 	ProjectItem *projectItem = _ProjectFolderScan(project->EntryRef(), nullptr,
-		project, true);
+		project, false);
 	bigtime_t scanEndTime = system_time();
 
 	ASSERT(projectItem != nullptr);
 
-	// Live filesystem updates still use the batch path; this is a no-op for the
-	// direct initial scan.
-	_FlushItemBatch(project, true);
-
-	// Wait for all batch messages to be processed before continuing
-	// This ensures all items are in the tree before we sort
-	BMessage syncMessage(MSG_PROJECT_BATCH_SYNC);
-	BMessage syncReply;
 	bigtime_t syncStartTime = system_time();
-	status_t messengerStatus = B_OK;
-	BMessenger browserMessenger(this, Looper(), &messengerStatus);
-	if (messengerStatus == B_OK) {
-		status_t syncStatus = browserMessenger.SendMessage(&syncMessage, &syncReply);
-		if (syncStatus != B_OK) {
-			LogErrorF("ProjectBrowser: tree synchronization failed: %s",
-				::strerror(syncStatus));
-		}
-	} else {
-		LogErrorF("ProjectBrowser: cannot synchronize project tree: %s",
-			::strerror(messengerStatus));
-	}
 	bigtime_t syncEndTime = system_time();
 
 	LockLooper();
