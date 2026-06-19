@@ -65,6 +65,7 @@ const uint32 kMsgStartOAuth = 'hiox';
 const uint32 kMsgExchangeOAuth = 'hixo';
 const uint32 kMsgOAuthResponse = 'hior';
 const uint32 kMsgOAuthCallback = 'hioc';
+const uint32 kMsgCancelRequest = 'hicx';
 const uint32 kMsgAsk = 'hiak';
 const uint32 kMsgExplainSelection = 'hiex';
 const uint32 kMsgSummarizeProject = 'hisu';
@@ -472,6 +473,7 @@ AIChatPanel::AIChatPanel(PanelTabManager* panelTabManager, tab_id id)
 	fTestProviderButton(nullptr),
 	fStartOAuthButton(nullptr),
 	fExchangeOAuthButton(nullptr),
+	fCancelButton(nullptr),
 	fAskButton(nullptr),
 	fExplainButton(nullptr),
 	fSummarizeButton(nullptr),
@@ -485,7 +487,8 @@ AIChatPanel::AIChatPanel(PanelTabManager* panelTabManager, tab_id id)
 	fRejectPatchButton(nullptr),
 	fRunCommandButton(nullptr),
 	fRejectCommandButton(nullptr),
-	fRequestRunning(false)
+	fRequestRunning(false),
+	fActiveRequestId(0)
 {
 	_BuildInterface();
 }
@@ -506,6 +509,7 @@ AIChatPanel::AttachedToWindow()
 	fTestProviderButton->SetTarget(this);
 	fStartOAuthButton->SetTarget(this);
 	fExchangeOAuthButton->SetTarget(this);
+	fCancelButton->SetTarget(this);
 	fAskButton->SetTarget(this);
 	fExplainButton->SetTarget(this);
 	fSummarizeButton->SetTarget(this);
@@ -577,8 +581,10 @@ AIChatPanel::MessageReceived(BMessage* message)
 			_TestProvider();
 			break;
 		case kMsgTestProviderResponse:
-			_FinishProviderTest(message->GetString("text", ""),
-				message->GetString("error", ""), message->GetInt64("status", 0));
+			if (_IsCurrentRequest(message, "provider test"))
+				_FinishProviderTest(message->GetString("text", ""),
+					message->GetString("error", ""),
+					message->GetInt64("status", 0));
 			break;
 		case kMsgStartOAuth:
 			_StartOAuth();
@@ -600,8 +606,10 @@ AIChatPanel::MessageReceived(BMessage* message)
 			break;
 		case kMsgAIResponse:
 		{
-			_FinishResponse(message->GetString("text", ""),
-				message->GetString("error", ""), message->GetInt64("status", 0));
+			if (_IsCurrentRequest(message, "AI response"))
+				_FinishResponse(message->GetString("text", ""),
+					message->GetString("error", ""),
+					message->GetInt64("status", 0));
 			break;
 		}
 		case kMsgPreviousPatchFile:
@@ -612,10 +620,15 @@ AIChatPanel::MessageReceived(BMessage* message)
 			break;
 		case kMsgOAuthResponse:
 		{
-			_FinishOAuthExchange(message->GetString("token", ""),
-				message->GetString("error", ""), message->GetInt64("status", 0));
+			if (_IsCurrentRequest(message, "OAuth response"))
+				_FinishOAuthExchange(message->GetString("token", ""),
+					message->GetString("error", ""),
+					message->GetInt64("status", 0));
 			break;
 		}
+		case kMsgCancelRequest:
+			_CancelRequest();
+			break;
 		case kMsgOAuthCallback:
 		{
 			const BString callback(message->GetString("callback", ""));
@@ -761,6 +774,9 @@ AIChatPanel::_BuildInterface()
 		B_TRANSLATE("Start OAuth"), new BMessage(kMsgStartOAuth));
 	fExchangeOAuthButton = new BButton("haikode_ai_exchange_oauth",
 		B_TRANSLATE("Exchange code"), new BMessage(kMsgExchangeOAuth));
+	fCancelButton = new BButton("haikode_ai_cancel_request",
+		B_TRANSLATE("Stop"), new BMessage(kMsgCancelRequest));
+	fCancelButton->SetEnabled(false);
 	fAskButton = new BButton("haikode_ai_ask", B_TRANSLATE("Ask"),
 		new BMessage(kMsgAsk));
 	fExplainButton = new BButton("haikode_ai_explain",
@@ -852,6 +868,7 @@ AIChatPanel::_BuildInterface()
 			.Add(fTestProviderButton)
 			.Add(fStartOAuthButton)
 			.Add(fExchangeOAuthButton)
+			.Add(fCancelButton)
 			.Add(fAskButton)
 			.Add(fExplainButton)
 			.Add(fSummarizeButton)
@@ -972,28 +989,14 @@ AIChatPanel::_TestProvider()
 		return;
 	}
 
-	fRequestRunning = true;
-	fAskButton->SetEnabled(false);
-	fExplainButton->SetEnabled(false);
-	fSummarizeButton->SetEnabled(false);
-	fPatchButton->SetEnabled(false);
-	fSaveProvider->SetEnabled(false);
-	fSetupButton->SetEnabled(false);
-	fTestProviderButton->SetEnabled(false);
-	fOpenAIPresetButton->SetEnabled(false);
-	fOllamaPresetButton->SetEnabled(false);
-	fLMStudioPresetButton->SetEnabled(false);
-	fOpenRouterPresetButton->SetEnabled(false);
-	fLlamaCppPresetButton->SetEnabled(false);
-	fStartOAuthButton->SetEnabled(false);
-	fExchangeOAuthButton->SetEnabled(false);
+	const int64 requestId = _BeginRequest();
 
 	BString line(B_TRANSLATE("Testing provider endpoint: "));
 	line << provider.ChatCompletionsEndpoint().c_str();
 	_AppendOutput(line.String());
 
 	BMessenger messenger(this);
-	std::thread([messenger, provider]() mutable {
+	std::thread([messenger, provider, requestId]() mutable {
 		Haikode::AI::OpenAICompatibleClient client;
 		Haikode::AI::ChatRequest request;
 		request.prompt = "Reply with exactly: Haikode provider OK";
@@ -1003,6 +1006,7 @@ AIChatPanel::_TestProvider()
 		const bool ok = client.Send(provider, request, response, error);
 
 		BMessage done(kMsgTestProviderResponse);
+		done.AddInt64("request_id", requestId);
 		done.AddString("text", ok ? response.text.c_str() : "");
 		done.AddString("error", error.c_str());
 		done.AddInt64("status", response.httpStatus);
@@ -1011,25 +1015,78 @@ AIChatPanel::_TestProvider()
 }
 
 
+int64
+AIChatPanel::_BeginRequest()
+{
+	fRequestRunning = true;
+	fActiveRequestId++;
+	_SetRequestControlsEnabled(false);
+	return fActiveRequestId;
+}
+
+
+bool
+AIChatPanel::_IsCurrentRequest(BMessage* message, const char* label)
+{
+	const int64 requestId = message->GetInt64("request_id", fActiveRequestId);
+	if (requestId == fActiveRequestId)
+		return true;
+
+	BString line(B_TRANSLATE("Ignored stale "));
+	line << (label == nullptr ? "AI request" : label) << ".";
+	_AppendOutput(line.String());
+	return false;
+}
+
+
+void
+AIChatPanel::_CancelRequest()
+{
+	if (!fRequestRunning) {
+		_AppendOutput(B_TRANSLATE("No AI request is running."));
+		return;
+	}
+
+	fActiveRequestId++;
+	_FinishRequest();
+	_AppendOutput(B_TRANSLATE("AI request stopped. Any late provider response will be ignored."));
+}
+
+
+void
+AIChatPanel::_FinishRequest()
+{
+	fRequestRunning = false;
+	_SetRequestControlsEnabled(true);
+}
+
+
+void
+AIChatPanel::_SetRequestControlsEnabled(bool enabled)
+{
+	fAskButton->SetEnabled(enabled);
+	fExplainButton->SetEnabled(enabled);
+	fSummarizeButton->SetEnabled(enabled);
+	fPatchButton->SetEnabled(enabled);
+	fSaveProvider->SetEnabled(enabled);
+	fSetupButton->SetEnabled(enabled);
+	fTestProviderButton->SetEnabled(enabled);
+	fOpenAIPresetButton->SetEnabled(enabled);
+	fOllamaPresetButton->SetEnabled(enabled);
+	fLMStudioPresetButton->SetEnabled(enabled);
+	fOpenRouterPresetButton->SetEnabled(enabled);
+	fLlamaCppPresetButton->SetEnabled(enabled);
+	fStartOAuthButton->SetEnabled(enabled);
+	fExchangeOAuthButton->SetEnabled(enabled);
+	fCancelButton->SetEnabled(!enabled);
+}
+
+
 void
 AIChatPanel::_FinishProviderTest(const BString& text, const BString& error,
 	long status)
 {
-	fRequestRunning = false;
-	fAskButton->SetEnabled(true);
-	fExplainButton->SetEnabled(true);
-	fSummarizeButton->SetEnabled(true);
-	fPatchButton->SetEnabled(true);
-	fSaveProvider->SetEnabled(true);
-	fSetupButton->SetEnabled(true);
-	fTestProviderButton->SetEnabled(true);
-	fOpenAIPresetButton->SetEnabled(true);
-	fOllamaPresetButton->SetEnabled(true);
-	fLMStudioPresetButton->SetEnabled(true);
-	fOpenRouterPresetButton->SetEnabled(true);
-	fLlamaCppPresetButton->SetEnabled(true);
-	fStartOAuthButton->SetEnabled(true);
-	fExchangeOAuthButton->SetEnabled(true);
+	_FinishRequest();
 
 	if (!error.IsEmpty()) {
 		BString line(B_TRANSLATE("Provider test failed"));
@@ -1115,24 +1172,10 @@ AIChatPanel::_ExchangeOAuthCode()
 	}
 	const std::string verifier = BString(gCFG["haikode_ai_oauth_verifier"]).String();
 
-	fRequestRunning = true;
-	fAskButton->SetEnabled(false);
-	fExplainButton->SetEnabled(false);
-	fSummarizeButton->SetEnabled(false);
-	fPatchButton->SetEnabled(false);
-	fSaveProvider->SetEnabled(false);
-	fSetupButton->SetEnabled(false);
-	fTestProviderButton->SetEnabled(false);
-	fOpenAIPresetButton->SetEnabled(false);
-	fOllamaPresetButton->SetEnabled(false);
-	fLMStudioPresetButton->SetEnabled(false);
-	fOpenRouterPresetButton->SetEnabled(false);
-	fLlamaCppPresetButton->SetEnabled(false);
-	fStartOAuthButton->SetEnabled(false);
-	fExchangeOAuthButton->SetEnabled(false);
+	const int64 requestId = _BeginRequest();
 
 	BMessenger messenger(this);
-	std::thread([messenger, settings, code, verifier]() mutable {
+	std::thread([messenger, settings, code, verifier, requestId]() mutable {
 		Haikode::AI::OAuthClient client;
 		Haikode::AI::OAuthTokenResponse response;
 		std::string error;
@@ -1140,6 +1183,7 @@ AIChatPanel::_ExchangeOAuthCode()
 			error);
 
 		BMessage done(kMsgOAuthResponse);
+		done.AddInt64("request_id", requestId);
 		done.AddString("token", ok ? response.accessToken.c_str() : "");
 		done.AddString("error", error.c_str());
 		done.AddInt64("status", response.httpStatus);
@@ -1152,21 +1196,7 @@ void
 AIChatPanel::_FinishOAuthExchange(const BString& token, const BString& error,
 	long status)
 {
-	fRequestRunning = false;
-	fAskButton->SetEnabled(true);
-	fExplainButton->SetEnabled(true);
-	fSummarizeButton->SetEnabled(true);
-	fPatchButton->SetEnabled(true);
-	fSaveProvider->SetEnabled(true);
-	fSetupButton->SetEnabled(true);
-	fTestProviderButton->SetEnabled(true);
-	fOpenAIPresetButton->SetEnabled(true);
-	fOllamaPresetButton->SetEnabled(true);
-	fLMStudioPresetButton->SetEnabled(true);
-	fOpenRouterPresetButton->SetEnabled(true);
-	fLlamaCppPresetButton->SetEnabled(true);
-	fStartOAuthButton->SetEnabled(true);
-	fExchangeOAuthButton->SetEnabled(true);
+	_FinishRequest();
 
 	if (!error.IsEmpty()) {
 		BString line(B_TRANSLATE("OAuth token exchange failed"));
@@ -1237,21 +1267,7 @@ AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 
 	fLastUserPrompt = fPrompt->Text();
 	fLastProvider = provider;
-	fRequestRunning = true;
-	fAskButton->SetEnabled(false);
-	fExplainButton->SetEnabled(false);
-	fSummarizeButton->SetEnabled(false);
-	fPatchButton->SetEnabled(false);
-	fSaveProvider->SetEnabled(false);
-	fSetupButton->SetEnabled(false);
-	fTestProviderButton->SetEnabled(false);
-	fOpenAIPresetButton->SetEnabled(false);
-	fOllamaPresetButton->SetEnabled(false);
-	fLMStudioPresetButton->SetEnabled(false);
-	fOpenRouterPresetButton->SetEnabled(false);
-	fLlamaCppPresetButton->SetEnabled(false);
-	fStartOAuthButton->SetEnabled(false);
-	fExchangeOAuthButton->SetEnabled(false);
+	const int64 requestId = _BeginRequest();
 	_SetPatchControlsEnabled(false);
 	const bool reviewingPatch = mode == Haikode::AI::PromptMode::ReviewDiff;
 	if (!reviewingPatch) {
@@ -1265,7 +1281,7 @@ AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 
 	BMessenger messenger(this);
 	std::string prompt = result.prompt;
-	std::thread([messenger, provider, prompt]() mutable {
+	std::thread([messenger, provider, prompt, requestId]() mutable {
 		Haikode::AI::OpenAICompatibleClient client;
 		Haikode::AI::ChatRequest request;
 		request.prompt = prompt;
@@ -1274,6 +1290,7 @@ AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 		const bool ok = client.Send(provider, request, response, error);
 
 		BMessage done(kMsgAIResponse);
+		done.AddInt64("request_id", requestId);
 		done.AddString("text", ok ? response.text.c_str() : "");
 		done.AddString("error", error.c_str());
 		done.AddInt64("status", response.httpStatus);
@@ -1286,21 +1303,7 @@ void
 AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 	long status)
 {
-	fRequestRunning = false;
-	fAskButton->SetEnabled(true);
-	fExplainButton->SetEnabled(true);
-	fSummarizeButton->SetEnabled(true);
-	fPatchButton->SetEnabled(true);
-	fSaveProvider->SetEnabled(true);
-	fSetupButton->SetEnabled(true);
-	fTestProviderButton->SetEnabled(true);
-	fOpenAIPresetButton->SetEnabled(true);
-	fOllamaPresetButton->SetEnabled(true);
-	fLMStudioPresetButton->SetEnabled(true);
-	fOpenRouterPresetButton->SetEnabled(true);
-	fLlamaCppPresetButton->SetEnabled(true);
-	fStartOAuthButton->SetEnabled(true);
-	fExchangeOAuthButton->SetEnabled(true);
+	_FinishRequest();
 
 	if (!error.IsEmpty()) {
 		BString line(B_TRANSLATE("AI request failed"));

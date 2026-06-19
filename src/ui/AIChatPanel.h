@@ -17,6 +17,7 @@
 #include "VibeCoding.h"
 
 class BButton;
+class BMessage;
 class BTextControl;
 class BTextView;
 
@@ -41,6 +42,11 @@ private:
 	void _ApplyProviderPreset(Haikode::AI::ProviderPreset preset);
 	void _OpenProviderSettings();
 	void _TestProvider();
+	int64 _BeginRequest();
+	bool _IsCurrentRequest(BMessage* message, const char* label);
+	void _CancelRequest();
+	void _FinishRequest();
+	void _SetRequestControlsEnabled(bool enabled);
 	void _FinishProviderTest(const BString& text, const BString& error,
 		long status);
 	void _StartOAuth();
@@ -94,6 +100,7 @@ private:
 	BButton* fTestProviderButton;
 	BButton* fStartOAuthButton;
 	BButton* fExchangeOAuthButton;
+	BButton* fCancelButton;
 	BButton* fAskButton;
 	BButton* fExplainButton;
 	BButton* fSummarizeButton;
@@ -108,6 +115,7 @@ private:
 	BButton* fRunCommandButton;
 	BButton* fRejectCommandButton;
 	bool fRequestRunning;
+	int64 fActiveRequestId;
 	Haikode::AI::UnifiedDiff fPendingDiff;
 	BString fPendingRawDiff;
 	BString fSavedPendingPatchPath;
