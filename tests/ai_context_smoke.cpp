@@ -34,6 +34,20 @@ main()
 	assert(Haikode::AI::SelectContextText("selected text", "full file")
 		== "selected text");
 	assert(Haikode::AI::SelectContextText("", "full file") == "full file");
+	std::string loadError;
+
+	const fs::path freshRoot = fs::temp_directory_path()
+		/ "haikode-fresh-command-smoke";
+	fs::remove_all(freshRoot);
+	fs::create_directories(freshRoot);
+	WriteFile(freshRoot / "Makefile",
+		"all:\n\t@echo build\n\ntest:\n\t@echo test\n");
+	Haikode::AI::ProjectMemory inferredMemory;
+	assert(Haikode::AI::InferProjectCommands(freshRoot.string(),
+		inferredMemory, loadError));
+	assert(inferredMemory.defaultBuildCommand == "make");
+	assert(inferredMemory.defaultTestCommand == "make test");
+	fs::remove_all(freshRoot);
 
 	Haikode::AI::VibeCodingRequest request;
 	request.projectRoot = "/boot/home/project";
@@ -159,7 +173,6 @@ main()
 	assert(map[1].language == "C++");
 	assert(map[1].hasTodo);
 	assert(map[1].summary.find("4 line(s)") != std::string::npos);
-	std::string loadError;
 	std::string memoryPath;
 	const fs::path canonicalRoot = fs::weakly_canonical(root);
 	assert(Haikode::AI::SaveProjectMemory(root.string(), map, map.size(),

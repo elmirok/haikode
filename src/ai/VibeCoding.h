@@ -125,6 +125,8 @@ bool LoadProjectMemory(const std::string& projectRoot, size_t maxFiles,
 	std::string& error);
 bool LoadProjectMemory(const std::string& projectRoot, size_t maxFiles,
 	ProjectMemory& memory, std::string& error);
+bool InferProjectCommands(const std::string& projectRoot,
+	ProjectMemory& memory, std::string& error);
 bool LoadProjectContextFile(const std::string& projectRoot,
 	const std::string& relativePath, size_t maxBytes, ContextFile& file,
 	std::string& error);

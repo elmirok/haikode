@@ -3153,6 +3153,13 @@ AIChatPanel::_RequestFromContext(Haikode::AI::PromptMode mode) const
 		request.projectFiles = Haikode::AI::BuildProjectMap(
 			fProjectRoot.String(), 80, &projectMapCandidateCount);
 		request.projectMapCandidateCount = projectMapCandidateCount;
+		Haikode::AI::ProjectMemory inferredMemory;
+		std::string inferError;
+		if (Haikode::AI::InferProjectCommands(fProjectRoot.String(),
+				inferredMemory, inferError)) {
+			request.defaultBuildCommand = inferredMemory.defaultBuildCommand;
+			request.defaultTestCommand = inferredMemory.defaultTestCommand;
+		}
 	}
 	if (mode == Haikode::AI::PromptMode::ReviewDiff) {
 		const BString selectedPath = fPatchPath != nullptr

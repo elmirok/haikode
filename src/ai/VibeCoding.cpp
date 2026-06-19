@@ -1347,6 +1347,51 @@ LoadProjectMemory(const std::string& projectRoot, size_t maxFiles,
 
 
 bool
+InferProjectCommands(const std::string& projectRoot, ProjectMemory& memory,
+	std::string& error)
+{
+	error.clear();
+	try {
+		if (projectRoot.empty()) {
+			error = "No active project root.";
+			return false;
+		}
+
+		const fs::path root = fs::weakly_canonical(projectRoot);
+		if (!fs::is_directory(root)) {
+			error = "Active project root is not a directory.";
+			return false;
+		}
+
+		const std::vector<std::string> makefileNames = {
+			"Makefile", "makefile", "GNUmakefile"
+		};
+		for (const std::string& name : makefileNames) {
+			const fs::path makefilePath = root / name;
+			std::error_code fsError;
+			if (!fs::is_regular_file(makefilePath, fsError))
+				continue;
+
+			memory.defaultBuildCommand = "make";
+			std::string text;
+			if (ReadSmallTextFile(makefilePath, text)
+				&& (text.rfind("test:", 0) == 0
+					|| text.find("\ntest:") != std::string::npos)) {
+				memory.defaultTestCommand = "make test";
+			}
+			return true;
+		}
+
+		error = "No known build command was inferred.";
+		return false;
+	} catch (const std::exception& exception) {
+		error = exception.what();
+		return false;
+	}
+}
+
+
+bool
 LoadProjectContextFile(const std::string& projectRoot,
 	const std::string& relativePath, size_t maxBytes, ContextFile& file,
 	std::string& error)

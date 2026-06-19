@@ -114,6 +114,9 @@ The Genio-based branch now adds:
 - Project memory command hints, currently defaulting to `make` and `make test`,
   are included in prompts so AI can propose relevant approved commands without
   claiming they were run.
+- Fresh projects without `.haikode/project.json` still infer simple Makefile
+  command hints for prompts, then fall back to the saved memory once a scan has
+  created it.
 - A supervised Codex CLI bridge: **Codex status**, **Codex login**, and
   **Ask Codex** prepare argv-native commands for explicit approval. The bridge
   uses Codex's own login/session storage and never reads or persists Codex
