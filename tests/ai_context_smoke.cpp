@@ -34,6 +34,19 @@ main()
 	assert(Haikode::AI::SelectContextText("selected text", "full file")
 		== "selected text");
 	assert(Haikode::AI::SelectContextText("", "full file") == "full file");
+	const std::vector<std::string> selectedPathList
+		= Haikode::AI::ParseProjectContextPathList(
+			" src/main.cpp ; Readme.md\nsrc/main.cpp, Makefile ", 10);
+	assert(selectedPathList.size() == 3);
+	assert(selectedPathList[0] == "src/main.cpp");
+	assert(selectedPathList[1] == "Readme.md");
+	assert(selectedPathList[2] == "Makefile");
+	const std::vector<std::string> limitedSelectedPathList
+		= Haikode::AI::ParseProjectContextPathList(
+			"one.cpp;two.cpp;three.cpp", 2);
+	assert(limitedSelectedPathList.size() == 2);
+	assert(limitedSelectedPathList[0] == "one.cpp");
+	assert(limitedSelectedPathList[1] == "two.cpp");
 	std::string loadError;
 
 	const fs::path freshRoot = fs::temp_directory_path()

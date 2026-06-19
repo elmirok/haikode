@@ -3310,23 +3310,28 @@ AIChatPanel::_RequestFromContext(Haikode::AI::PromptMode mode) const
 
 	if (fProjectFilePath != nullptr
 		&& !BString(fProjectFilePath->Text()).IsEmpty()) {
-		Haikode::AI::ContextFile selectedFile;
-		std::string loadError;
-		if (Haikode::AI::LoadProjectContextFile(fProjectRoot.String(),
-				fProjectFilePath->Text(), 200 * 1024, selectedFile,
-				loadError)) {
-			bool alreadyIncluded = false;
-			for (const Haikode::AI::ContextFile& file : request.files) {
-				if (file.path == selectedFile.path) {
-					alreadyIncluded = true;
-					break;
+		const std::vector<std::string> selectedPaths
+			= Haikode::AI::ParseProjectContextPathList(fProjectFilePath->Text(),
+				10);
+		for (const std::string& selectedPath : selectedPaths) {
+			Haikode::AI::ContextFile selectedFile;
+			std::string loadError;
+			if (Haikode::AI::LoadProjectContextFile(fProjectRoot.String(),
+					selectedPath, 200 * 1024, selectedFile, loadError)) {
+				bool alreadyIncluded = false;
+				for (const Haikode::AI::ContextFile& file : request.files) {
+					if (file.path == selectedFile.path) {
+						alreadyIncluded = true;
+						break;
+					}
 				}
+				if (!alreadyIncluded)
+					request.files.push_back(selectedFile);
+			} else {
+				request.contextWarnings.push_back(
+					"Selected project file was not included: "
+					+ selectedPath + ": " + loadError);
 			}
-			if (!alreadyIncluded)
-				request.files.push_back(selectedFile);
-		} else {
-			request.contextWarnings.push_back(
-				"Selected project file was not included: " + loadError);
 		}
 	}
 

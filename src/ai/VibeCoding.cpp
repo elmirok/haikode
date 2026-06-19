@@ -992,6 +992,32 @@ SelectContextText(const std::string& selection, const std::string& fullFileText)
 }
 
 
+std::vector<std::string>
+ParseProjectContextPathList(const std::string& text, size_t maxPaths)
+{
+	std::vector<std::string> paths;
+	if (maxPaths == 0)
+		return paths;
+
+	size_t start = 0;
+	while (start <= text.size()) {
+		const size_t end = text.find_first_of(";\n\r,", start);
+		const std::string path = Trim(text.substr(start,
+			end == std::string::npos ? std::string::npos : end - start));
+		if (!path.empty()
+			&& std::find(paths.begin(), paths.end(), path) == paths.end()) {
+			paths.push_back(path);
+			if (paths.size() >= maxPaths)
+				break;
+		}
+		if (end == std::string::npos)
+			break;
+		start = end + 1;
+	}
+	return paths;
+}
+
+
 std::string
 Sha256HexForText(const std::string& text)
 {

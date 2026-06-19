@@ -107,6 +107,8 @@ struct ProjectRecordEntry {
 
 std::string SelectContextText(const std::string& selection,
 	const std::string& fullFileText);
+std::vector<std::string> ParseProjectContextPathList(
+	const std::string& text, size_t maxPaths);
 std::string Sha256HexForText(const std::string& text);
 bool ExtractCommandRequests(const std::string& text,
 	std::vector<CommandRequest>& commands, std::string& error);
