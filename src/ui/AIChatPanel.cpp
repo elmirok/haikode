@@ -2499,13 +2499,7 @@ AIChatPanel::_RefreshProjectFileIndexIfNeeded()
 	if (fProjectFilePath != nullptr && !index.files.empty())
 		fProjectFilePath->SetText(index.files.front().path.c_str());
 
-	BString line(B_TRANSLATE("Haikode indexed project files: "));
-	line << std::to_string(index.files.size()).c_str();
-	if (index.candidateCount > index.files.size())
-		line << "/" << std::to_string(index.candidateCount).c_str();
-	line << B_TRANSLATE(" text/source file(s). First file: ");
-	line << index.files.front().path.c_str();
-	_AppendOutput(line.String());
+	_AppendOutput(Haikode::AI::FormatProjectFileIndexSummary(index, 8).c_str());
 
 	BString memoryLine(B_TRANSLATE("Project memory saved: "));
 	memoryLine << index.memoryPath.c_str();
@@ -2543,6 +2537,11 @@ AIChatPanel::_ListProjectFiles()
 	_AppendOutput(line.String());
 	if (fProjectFilePath != nullptr)
 		fProjectFilePath->SetText(files.front().path.c_str());
+
+	Haikode::AI::ProjectFileIndex index;
+	index.files = files;
+	index.candidateCount = candidateCount;
+	_AppendOutput(Haikode::AI::FormatProjectFileIndexSummary(index, 20).c_str());
 
 	std::string memoryPath;
 	std::string memoryError;

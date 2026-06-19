@@ -331,6 +331,15 @@ main()
 		== (canonicalRoot / ".haikode" / "project.json").string());
 	assert(refreshedIndex.files[0].path == "Makefile");
 	assert(refreshedIndex.files[2].path == "src/main.cpp");
+	const std::string indexSummary
+		= Haikode::AI::FormatProjectFileIndexSummary(refreshedIndex, 2);
+	assert(indexSummary.find("Haikode can see 3 text/source file(s)")
+		!= std::string::npos);
+	assert(indexSummary.find("- Makefile [Make, build, high]")
+		!= std::string::npos);
+	assert(indexSummary.find("- Readme.md [Markdown, docs, normal]")
+		!= std::string::npos);
+	assert(indexSummary.find("1 more file(s)") != std::string::npos);
 	fs::remove_all(root);
 
 	std::cout << "ai-context-smoke-ok\n";

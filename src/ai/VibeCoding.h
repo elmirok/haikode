@@ -131,6 +131,8 @@ std::vector<ProjectFileSummary> BuildProjectMap(const std::string& projectRoot,
 	size_t maxFiles, size_t* candidateCount = nullptr);
 bool RefreshProjectFileIndex(const std::string& projectRoot, size_t maxFiles,
 	ProjectFileIndex& index, std::string& error);
+std::string FormatProjectFileIndexSummary(const ProjectFileIndex& index,
+	size_t maxVisibleFiles);
 bool SaveProjectMemory(const std::string& projectRoot,
 	const std::vector<ProjectFileSummary>& files, size_t candidateCount,
 	std::string& savedPath, std::string& error);

@@ -1526,6 +1526,43 @@ RefreshProjectFileIndex(const std::string& projectRoot, size_t maxFiles,
 }
 
 
+std::string
+FormatProjectFileIndexSummary(const ProjectFileIndex& index,
+	size_t maxVisibleFiles)
+{
+	std::ostringstream summary;
+	if (index.files.empty()) {
+		summary << "Haikode cannot see any text/source files in this project "
+			"yet.";
+		return summary.str();
+	}
+
+	summary << "Haikode can see " << index.files.size();
+	if (index.candidateCount > index.files.size())
+		summary << "/" << index.candidateCount;
+	summary << " text/source file(s).";
+
+	const size_t visibleCount = std::min(maxVisibleFiles, index.files.size());
+	for (size_t i = 0; i < visibleCount; i++) {
+		const ProjectFileSummary& file = index.files[i];
+		summary << "\n- " << file.path << " [" << file.language << ", "
+			<< file.role << ", " << file.risk << "]";
+		if (file.hasTodo)
+			summary << " TODO";
+		if (!file.summary.empty())
+			summary << " - " << file.summary;
+	}
+
+	if (visibleCount < index.files.size()) {
+		summary << "\n... " << (index.files.size() - visibleCount)
+			<< " more file(s). Use Project files to browse the full "
+			"Haikode index.";
+	}
+
+	return summary.str();
+}
+
+
 bool
 SaveProjectMemory(const std::string& projectRoot,
 	const std::vector<ProjectFileSummary>& files, size_t candidateCount,
