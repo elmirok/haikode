@@ -79,10 +79,13 @@ The Genio-based branch now adds:
 - A native pending-actions summary that lists pending patch files, hunks,
   additions/deletions, new-file markers, and command requests before the user
   approves anything.
-- A structured patch preview that prints each changed file, hunk header, and
-  added/removed/context lines before any apply action.
+- A structured patch preview that starts with a changed-file summary, then shows
+  the selected file's hunk headers and added/removed/context lines before any
+  apply action.
 - A native selected patch-file field so a user can approve or reject one named
   file from a multi-file AI patch instead of blindly accepting the first file.
+- Previous/next patch-file navigation immediately refreshes the selected-file
+  preview, and hunk navigation can inspect one hunk at a time.
 - **Review patch** scopes the AI review prompt to the selected patch file when
   the selected file field is set.
 - Project-local `.haikode/sessions/` records for successful AI exchanges,

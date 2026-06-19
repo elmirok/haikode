@@ -73,6 +73,7 @@ private:
 	void _FinishCommandCapture(const BString& output, const BString& error,
 		int32 exitCode, bool timedOut, bool cancelled, const BString& logPath,
 		const BString& logError);
+	void _AppendPatchFilePreview(const std::string& path);
 	void _SelectPatchFile(int32 delta);
 	void _SelectPatchHunk(int32 delta);
 	size_t _SelectedPatchHunkIndex(const std::string& path) const;

@@ -1811,8 +1811,8 @@ AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 			pathLine << path.c_str();
 			_AppendOutput(pathLine.String());
 		}
-		_AppendOutput("");
-		_AppendOutput(diff.ReviewText().c_str());
+		if (!changedPaths.empty())
+			_AppendPatchFilePreview(changedPaths.front());
 		line = B_TRANSLATE("Review the response, then click Apply patch or Reject patch.");
 		_AppendOutput(line.String());
 	}
@@ -2561,6 +2561,30 @@ AIChatPanel::_SaveSessionRecord(const BString& responseText)
 
 
 void
+AIChatPanel::_AppendPatchFilePreview(const std::string& path)
+{
+	if (path.empty())
+		return;
+
+	const std::string preview = fPendingDiff.ReviewTextForFile(path);
+	if (preview.empty()) {
+		BString line(B_TRANSLATE("Pending patch does not contain selected file: "));
+		line << path.c_str();
+		_AppendOutput(line.String());
+		return;
+	}
+
+	_AppendOutput("");
+	BString line(B_TRANSLATE("Selected patch file preview: "));
+	line << path.c_str();
+	_AppendOutput(line.String());
+	_AppendOutput(preview.c_str());
+	if (fPendingDiff.HunkCountForFile(path) > 1)
+		_AppendOutput(B_TRANSLATE("Use Previous hunk / Next hunk to inspect this file one hunk at a time."));
+}
+
+
+void
 AIChatPanel::_SelectPatchFile(int32 delta)
 {
 	if (fPendingDiff.IsEmpty()) {
@@ -2595,6 +2619,7 @@ AIChatPanel::_SelectPatchFile(int32 delta)
 	BString line(B_TRANSLATE("Selected patch file: "));
 	line << paths[selected].c_str();
 	_AppendOutput(line.String());
+	_AppendPatchFilePreview(paths[selected]);
 }
 
 
