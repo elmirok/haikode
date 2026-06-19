@@ -51,6 +51,19 @@ main()
 	assert(lmStudioPreset.baseUrl == "http://127.0.0.1:1234");
 	assert(lmStudioPreset.authMode == Haikode::AI::AuthMode::Local);
 
+	const Haikode::AI::ProviderSettings openRouterPreset
+		= Haikode::AI::ProviderPresetSettings(
+			Haikode::AI::ProviderPreset::OpenRouter);
+	assert(openRouterPreset.baseUrl == "https://openrouter.ai/api");
+	assert(openRouterPreset.model == "openai/gpt-4.1-mini");
+	assert(openRouterPreset.authMode == Haikode::AI::AuthMode::ApiKey);
+
+	const Haikode::AI::ProviderSettings llamaCppPreset
+		= Haikode::AI::ProviderPresetSettings(
+			Haikode::AI::ProviderPreset::LlamaCpp);
+	assert(llamaCppPreset.baseUrl == "http://127.0.0.1:8080");
+	assert(llamaCppPreset.authMode == Haikode::AI::AuthMode::Local);
+
 	Haikode::AI::ProviderSettings localProvider;
 	localProvider.baseUrl = "http://127.0.0.1:11434";
 	localProvider.authMode = Haikode::AI::AuthMode::Local;

@@ -85,6 +85,8 @@ private:
 	BButton* fOpenAIPresetButton;
 	BButton* fOllamaPresetButton;
 	BButton* fLMStudioPresetButton;
+	BButton* fOpenRouterPresetButton;
+	BButton* fLlamaCppPresetButton;
 	BButton* fTestProviderButton;
 	BButton* fStartOAuthButton;
 	BButton* fExchangeOAuthButton;

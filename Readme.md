@@ -113,8 +113,9 @@ variables.
 Use **Window > Haikode AI setup** or the **AI Setup** button to paste the API
 key inside the app. You do not need to run `export OPENAI_API_KEY`.
 
-Use the **OpenAI**, **Ollama**, or **LM Studio** buttons to fill the common
-base URL, model, and auth mode defaults, then adjust the model if needed.
+Use the **OpenAI**, **OpenRouter**, **Ollama**, **LM Studio**, or **llama.cpp**
+buttons to fill the common base URL, model, and auth mode defaults, then adjust
+the model if needed.
 
 For OpenAI-compatible cloud providers, set:
 
@@ -123,7 +124,10 @@ For OpenAI-compatible cloud providers, set:
 * Auth: `api-key`.
 * API key: paste the provider key in the Haikode AI panel or in **AI Setup**.
 
-For local OpenAI-compatible servers such as Ollama or LM Studio, set:
+For OpenRouter, use the **OpenRouter** preset and paste your OpenRouter API key.
+
+For local OpenAI-compatible servers such as Ollama, LM Studio, or llama.cpp,
+set:
 
 * Base URL: the local server, for example `http://127.0.0.1:11434`.
 * Auth: `local`.

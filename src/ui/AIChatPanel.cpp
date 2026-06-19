@@ -40,10 +40,14 @@ const uint32 kMsgSetupSaved = 'hisd';
 const uint32 kMsgSetupPresetOpenAI = 'hiso';
 const uint32 kMsgSetupPresetOllama = 'hisl';
 const uint32 kMsgSetupPresetLMStudio = 'hism';
+const uint32 kMsgSetupPresetOpenRouter = 'hisr';
+const uint32 kMsgSetupPresetLlamaCpp = 'hslc';
 const uint32 kMsgSetupPresetOAuth = 'hioa';
 const uint32 kMsgPresetOpenAI = 'hpai';
 const uint32 kMsgPresetOllama = 'hpol';
 const uint32 kMsgPresetLMStudio = 'hplm';
+const uint32 kMsgPresetOpenRouter = 'hpor';
+const uint32 kMsgPresetLlamaCpp = 'hplc';
 const uint32 kMsgTestProvider = 'hitp';
 const uint32 kMsgTestProviderResponse = 'hitr';
 const uint32 kMsgStartOAuth = 'hiox';
@@ -139,6 +143,10 @@ public:
 			B_TRANSLATE("Ollama"), new BMessage(kMsgSetupPresetOllama));
 		BButton* lmStudioButton = new BButton("setup_lmstudio",
 			B_TRANSLATE("LM Studio"), new BMessage(kMsgSetupPresetLMStudio));
+		BButton* openRouterButton = new BButton("setup_openrouter",
+			B_TRANSLATE("OpenRouter"), new BMessage(kMsgSetupPresetOpenRouter));
+		BButton* llamaCppButton = new BButton("setup_llamacpp",
+			B_TRANSLATE("llama.cpp"), new BMessage(kMsgSetupPresetLlamaCpp));
 		BButton* oauthButton = new BButton("setup_oauth",
 			B_TRANSLATE("OAuth"), new BMessage(kMsgSetupPresetOAuth));
 		BButton* cancelButton = new BButton("setup_cancel",
@@ -148,6 +156,8 @@ public:
 		openAIButton->SetTarget(this);
 		ollamaButton->SetTarget(this);
 		lmStudioButton->SetTarget(this);
+		openRouterButton->SetTarget(this);
+		llamaCppButton->SetTarget(this);
 		oauthButton->SetTarget(this);
 		cancelButton->SetTarget(this);
 		saveButton->SetTarget(this);
@@ -180,6 +190,8 @@ public:
 				.Add(openAIButton)
 				.Add(ollamaButton)
 				.Add(lmStudioButton)
+				.Add(openRouterButton)
+				.Add(llamaCppButton)
 				.Add(oauthButton)
 				.AddGlue()
 			.End()
@@ -212,6 +224,16 @@ public:
 				break;
 			case kMsgSetupPresetLMStudio:
 				fBaseUrl->SetText("http://127.0.0.1:1234");
+				fModel->SetText("local-model");
+				fAuthMode->SetText("local");
+				break;
+			case kMsgSetupPresetOpenRouter:
+				fBaseUrl->SetText("https://openrouter.ai/api");
+				fModel->SetText("openai/gpt-4.1-mini");
+				fAuthMode->SetText("api-key");
+				break;
+			case kMsgSetupPresetLlamaCpp:
+				fBaseUrl->SetText("http://127.0.0.1:8080");
 				fModel->SetText("local-model");
 				fAuthMode->SetText("local");
 				break;
@@ -287,6 +309,8 @@ AIChatPanel::AIChatPanel(PanelTabManager* panelTabManager, tab_id id)
 	fOpenAIPresetButton(nullptr),
 	fOllamaPresetButton(nullptr),
 	fLMStudioPresetButton(nullptr),
+	fOpenRouterPresetButton(nullptr),
+	fLlamaCppPresetButton(nullptr),
 	fTestProviderButton(nullptr),
 	fStartOAuthButton(nullptr),
 	fExchangeOAuthButton(nullptr),
@@ -316,6 +340,8 @@ AIChatPanel::AttachedToWindow()
 	fOpenAIPresetButton->SetTarget(this);
 	fOllamaPresetButton->SetTarget(this);
 	fLMStudioPresetButton->SetTarget(this);
+	fOpenRouterPresetButton->SetTarget(this);
+	fLlamaCppPresetButton->SetTarget(this);
 	fTestProviderButton->SetTarget(this);
 	fStartOAuthButton->SetTarget(this);
 	fExchangeOAuthButton->SetTarget(this);
@@ -375,6 +401,12 @@ AIChatPanel::MessageReceived(BMessage* message)
 			break;
 		case kMsgPresetLMStudio:
 			_ApplyProviderPreset(Haikode::AI::ProviderPreset::LMStudio);
+			break;
+		case kMsgPresetOpenRouter:
+			_ApplyProviderPreset(Haikode::AI::ProviderPreset::OpenRouter);
+			break;
+		case kMsgPresetLlamaCpp:
+			_ApplyProviderPreset(Haikode::AI::ProviderPreset::LlamaCpp);
 			break;
 		case kMsgTestProvider:
 			_TestProvider();
@@ -528,6 +560,10 @@ AIChatPanel::_BuildInterface()
 		B_TRANSLATE("Ollama"), new BMessage(kMsgPresetOllama));
 	fLMStudioPresetButton = new BButton("haikode_ai_preset_lmstudio",
 		B_TRANSLATE("LM Studio"), new BMessage(kMsgPresetLMStudio));
+	fOpenRouterPresetButton = new BButton("haikode_ai_preset_openrouter",
+		B_TRANSLATE("OpenRouter"), new BMessage(kMsgPresetOpenRouter));
+	fLlamaCppPresetButton = new BButton("haikode_ai_preset_llamacpp",
+		B_TRANSLATE("llama.cpp"), new BMessage(kMsgPresetLlamaCpp));
 	fTestProviderButton = new BButton("haikode_ai_test_provider",
 		B_TRANSLATE("Test provider"), new BMessage(kMsgTestProvider));
 	fStartOAuthButton = new BButton("haikode_ai_start_oauth",
@@ -605,6 +641,8 @@ AIChatPanel::_BuildInterface()
 			.Add(fOpenAIPresetButton)
 			.Add(fOllamaPresetButton)
 			.Add(fLMStudioPresetButton)
+			.Add(fOpenRouterPresetButton)
+			.Add(fLlamaCppPresetButton)
 			.AddGlue()
 		.End()
 		.AddGroup(B_HORIZONTAL, B_USE_DEFAULT_SPACING)
@@ -737,6 +775,8 @@ AIChatPanel::_TestProvider()
 	fOpenAIPresetButton->SetEnabled(false);
 	fOllamaPresetButton->SetEnabled(false);
 	fLMStudioPresetButton->SetEnabled(false);
+	fOpenRouterPresetButton->SetEnabled(false);
+	fLlamaCppPresetButton->SetEnabled(false);
 	fStartOAuthButton->SetEnabled(false);
 	fExchangeOAuthButton->SetEnabled(false);
 
@@ -778,6 +818,8 @@ AIChatPanel::_FinishProviderTest(const BString& text, const BString& error,
 	fOpenAIPresetButton->SetEnabled(true);
 	fOllamaPresetButton->SetEnabled(true);
 	fLMStudioPresetButton->SetEnabled(true);
+	fOpenRouterPresetButton->SetEnabled(true);
+	fLlamaCppPresetButton->SetEnabled(true);
 	fStartOAuthButton->SetEnabled(true);
 	fExchangeOAuthButton->SetEnabled(true);
 
@@ -857,6 +899,8 @@ AIChatPanel::_ExchangeOAuthCode()
 	fOpenAIPresetButton->SetEnabled(false);
 	fOllamaPresetButton->SetEnabled(false);
 	fLMStudioPresetButton->SetEnabled(false);
+	fOpenRouterPresetButton->SetEnabled(false);
+	fLlamaCppPresetButton->SetEnabled(false);
 	fStartOAuthButton->SetEnabled(false);
 	fExchangeOAuthButton->SetEnabled(false);
 
@@ -892,6 +936,8 @@ AIChatPanel::_FinishOAuthExchange(const BString& token, const BString& error,
 	fOpenAIPresetButton->SetEnabled(true);
 	fOllamaPresetButton->SetEnabled(true);
 	fLMStudioPresetButton->SetEnabled(true);
+	fOpenRouterPresetButton->SetEnabled(true);
+	fLlamaCppPresetButton->SetEnabled(true);
 	fStartOAuthButton->SetEnabled(true);
 	fExchangeOAuthButton->SetEnabled(true);
 
@@ -974,6 +1020,8 @@ AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 	fOpenAIPresetButton->SetEnabled(false);
 	fOllamaPresetButton->SetEnabled(false);
 	fLMStudioPresetButton->SetEnabled(false);
+	fOpenRouterPresetButton->SetEnabled(false);
+	fLlamaCppPresetButton->SetEnabled(false);
 	fStartOAuthButton->SetEnabled(false);
 	fExchangeOAuthButton->SetEnabled(false);
 	fApplyFirstFileButton->SetEnabled(false);
@@ -1026,6 +1074,8 @@ AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 	fOpenAIPresetButton->SetEnabled(true);
 	fOllamaPresetButton->SetEnabled(true);
 	fLMStudioPresetButton->SetEnabled(true);
+	fOpenRouterPresetButton->SetEnabled(true);
+	fLlamaCppPresetButton->SetEnabled(true);
 	fStartOAuthButton->SetEnabled(true);
 	fExchangeOAuthButton->SetEnabled(true);
 

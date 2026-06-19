@@ -18,7 +18,9 @@ enum class AuthMode {
 enum class ProviderPreset {
 	OpenAI,
 	Ollama,
-	LMStudio
+	LMStudio,
+	OpenRouter,
+	LlamaCpp
 };
 
 struct ProviderSettings {

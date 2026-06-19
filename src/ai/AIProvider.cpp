@@ -126,6 +126,18 @@ ProviderPresetSettings(ProviderPreset preset)
 			settings.model = "local-model";
 			settings.authMode = AuthMode::Local;
 			break;
+		case ProviderPreset::OpenRouter:
+			settings.name = "OpenRouter";
+			settings.baseUrl = "https://openrouter.ai/api";
+			settings.model = "openai/gpt-4.1-mini";
+			settings.authMode = AuthMode::ApiKey;
+			break;
+		case ProviderPreset::LlamaCpp:
+			settings.name = "llama.cpp";
+			settings.baseUrl = "http://127.0.0.1:8080";
+			settings.model = "local-model";
+			settings.authMode = AuthMode::Local;
+			break;
 	}
 	return settings;
 }

@@ -41,7 +41,8 @@ The Genio-based branch now adds:
 - A **Window > Haikode AI** action that opens the panel.
 - Provider fields for base URL, model, auth mode, API key, local mode, and
   generic OAuth 2.0 settings.
-- Native provider preset buttons for OpenAI, Ollama, and LM Studio.
+- Native provider preset buttons for OpenAI, OpenRouter, Ollama, LM Studio, and
+  llama.cpp.
 - A PKCE OAuth helper that can open a provider authorization URL and exchange a
   pasted authorization code or full callback URL for a bearer token.
 - OpenAI-compatible HTTP requests for active project, selected file, and
