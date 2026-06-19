@@ -1169,8 +1169,10 @@ AIChatPanel::_RunPendingCommand()
 
 	BMessage run(MSG_RUN_CONSOLE_PROGRAM);
 	run.AddString("command", display.c_str());
+	for (const std::string& arg : command.argv)
+		run.AddString("argv", arg.c_str());
 	Window()->PostMessage(&run);
-	BString line(B_TRANSLATE("Approved command sent to Genio console: "));
+	BString line(B_TRANSLATE("Approved argv command sent to Genio console: "));
 	line << display.c_str();
 	_AppendOutput(line.String());
 

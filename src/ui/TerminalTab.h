@@ -7,6 +7,7 @@
 
 #include <GroupView.h>
 
+class BMessage;
 
 class TerminalTab : public BView {
 public:
@@ -24,8 +25,9 @@ public:
 virtual	void 	NotifyCommandQuit(bool exitNormal, int exitStatus);
 
 protected:
-		BView*	_FindTarget();
-		status_t _RunCommand(const char* cmd, bool clean);
+			BView*		_FindTarget();
+			status_t	_RunCommand(const char* cmd, bool clean);
+			status_t	_RunCommandArgv(const BMessage& command, bool clean);
 
 	BView*	fTermView;
 	BString fCommand;

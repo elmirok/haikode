@@ -1023,10 +1023,14 @@ GenioWindow::MessageReceived(BMessage* message)
 		}
 		case MSG_RUN_CONSOLE_PROGRAM:
 		{
-			BString command = message->GetString("command", fRunConsoleProgramText->Text());
-			if (!command.IsEmpty())
-				_RunInConsole(command);
-			if (!message->HasString("command"))
+			if (message->HasString("argv"))
+				_RunArgvInConsole(*message);
+			else {
+				BString command = message->GetString("command", fRunConsoleProgramText->Text());
+				if (!command.IsEmpty())
+					_RunInConsole(command);
+			}
+			if (!message->HasString("command") && !message->HasString("argv"))
 				fRunConsoleProgramText->SetText("");
 			break;
 		}
@@ -4243,6 +4247,41 @@ GenioWindow::_RunInConsole(const BString& command)
 	message.AddString("cmd_type", command);
 	message.AddString("project_name", activeProject ? activeProject->Name() : "");
 	message.AddString("project_path", activeProject ? activeProject->Path() : "");
+
+	return fMTermView->RunCommand(&message);
+}
+
+
+status_t
+GenioWindow::_RunArgvInConsole(const BMessage& command)
+{
+	ProjectFolder* activeProject = GetActiveProject();
+	if (activeProject == nullptr)
+		chdir(gCFG["projects_directory"]);
+	else
+		chdir(activeProject->Path());
+
+	_ShowOutputTab(kTabOutputLog);
+
+	BString display = command.GetString("command", "");
+	if (display.IsEmpty()) {
+		const char* arg = nullptr;
+		for (int32 index = 0; command.FindString("argv", index, &arg) == B_OK;
+				index++) {
+			if (index > 0)
+				display << " ";
+			display << arg;
+		}
+	}
+	if (!display.IsEmpty())
+		_UpdateRecentCommands(display);
+
+	BMessage message(command);
+	message.AddString("cmd", display);
+	message.AddString("cmd_type", display);
+	message.AddString("project_name", activeProject ? activeProject->Name() : "");
+	message.AddString("project_path", activeProject ? activeProject->Path() : "");
+	message.AddString("banner_claim", "AI command");
 
 	return fMTermView->RunCommand(&message);
 }

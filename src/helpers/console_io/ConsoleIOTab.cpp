@@ -64,6 +64,12 @@ ConsoleIOTab::Stop()
 status_t
 ConsoleIOTab::RunCommand(BMessage* message, bool clean, bool notifyMessage)
 {
+	if (message->HasString("argv")) {
+		if (notifyMessage)
+			fContextMessage = *message;
+		return _RunCommandArgv(*message, clean);
+	}
+
 	BString cmd;
 	if (notifyMessage) {
 		cmd << _BannerCommand(message->GetString("banner_claim", "command"), "started   ", false) << "\n";

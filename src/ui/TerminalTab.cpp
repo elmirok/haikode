@@ -7,6 +7,7 @@
 #include "TerminalTab.h"
 
 #include <Looper.h>
+#include <Message.h>
 #include <Messenger.h>
 
 #include <cstdio>
@@ -128,6 +129,26 @@ TerminalTab::_RunCommand(const char* cmd, bool clean)
 	exec.AddString("argv", "/bin/sh");
 	exec.AddString("argv", "-c");
 	exec.AddString("argv", cmd);
+	exec.AddBool("clear", clean);
+
+	return Looper()->PostMessage(&exec, target);
+}
+
+
+status_t
+TerminalTab::_RunCommandArgv(const BMessage& command, bool clean)
+{
+	BView* target = _FindTarget();
+	if (target == nullptr)
+		return B_ERROR;
+
+	BMessage exec(B_EXECUTE_PROPERTY);
+	exec.AddSpecifier("command");
+	const char* arg = nullptr;
+	for (int32 index = 0; command.FindString("argv", index, &arg) == B_OK;
+			index++) {
+		exec.AddString("argv", arg);
+	}
 	exec.AddBool("clear", clean);
 
 	return Looper()->PostMessage(&exec, target);

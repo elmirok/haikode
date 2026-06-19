@@ -377,17 +377,6 @@ NeedsShellQuotes(const std::string& value)
 }
 
 
-bool
-NeedsShellQuoting(const CommandRequest& command)
-{
-	for (const std::string& arg : command.argv) {
-		if (NeedsShellQuotes(arg))
-			return true;
-	}
-	return false;
-}
-
-
 std::string
 ShellQuote(const std::string& value)
 {
@@ -418,14 +407,7 @@ ClassifyCommand(CommandRequest& command)
 	}
 	if (HasShellControlToken(command)) {
 		command.dangerous = true;
-		command.runnable = false;
-		command.warning = "Command contains shell control tokens; review and run it manually outside Haikode.";
-		return;
-	}
-	if (NeedsShellQuoting(command)) {
-		command.dangerous = true;
-		command.runnable = false;
-		command.warning = "Command contains argv values that need shell quoting; review and run it manually outside Haikode.";
+		command.warning = "Command contains shell control-looking tokens; Haikode will run approved commands argv-native without shell interpretation.";
 		return;
 	}
 	if (joined.find("rm -rf") != std::string::npos) {

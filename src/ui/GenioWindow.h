@@ -162,6 +162,7 @@ private:
 			bool				_ReplaceAllow() const;
 			void				_ReplaceGroupShow(bool show);
 			status_t			_RunInConsole(const BString& command);
+			status_t			_RunArgvInConsole(const BMessage& command);
 			void				_RunTarget();
 
 			void				_ShowOutputTab(tab_id id);

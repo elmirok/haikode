@@ -138,7 +138,7 @@ main()
 	assert(Haikode::AI::ExtractCommandRequests(shellOperator, commands, error));
 	assert(commands.size() == 1);
 	assert(commands[0].dangerous);
-	assert(!commands[0].runnable);
+	assert(commands[0].runnable);
 	assert(commands[0].warning.find("shell control") != std::string::npos);
 
 	const std::string needsShellQuoting =
@@ -147,9 +147,8 @@ main()
 		"```\n";
 	assert(Haikode::AI::ExtractCommandRequests(needsShellQuoting, commands, error));
 	assert(commands.size() == 1);
-	assert(commands[0].dangerous);
-	assert(!commands[0].runnable);
-	assert(commands[0].warning.find("shell quoting") != std::string::npos);
+	assert(!commands[0].dangerous);
+	assert(commands[0].runnable);
 
 	const std::string invalid =
 		"```haikode-command\n"
