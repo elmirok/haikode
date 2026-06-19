@@ -25,6 +25,7 @@
 #include <TextView.h>
 #include <Window.h>
 
+#include "AIReadiness.h"
 #include "ConfigManager.h"
 #include "GenioWindowMessages.h"
 
@@ -123,6 +124,17 @@ SetupNetworkStatusText()
 	return B_TRANSLATE("Network AI is enabled in this build. Paste the API key here and press Save.");
 #else
 	return B_TRANSLATE("Network AI is disabled in this build. Settings can be saved here, but cloud AI needs a rebuild with HAIKODE_AI_NETWORK=1.");
+#endif
+}
+
+
+bool
+NetworkAIEnabled()
+{
+#ifdef HAIKODE_AI_NETWORK
+	return true;
+#else
+	return false;
 #endif
 }
 
@@ -732,6 +744,7 @@ AIChatPanel::AIChatPanel(PanelTabManager* panelTabManager, tab_id id)
 	fPatchPath(nullptr),
 	fPatchHunk(nullptr),
 	fRecordPath(nullptr),
+	fReadinessStatus(nullptr),
 	fPendingActions(nullptr),
 	fOutput(nullptr),
 	fSaveProvider(nullptr),
@@ -1124,6 +1137,8 @@ AIChatPanel::_BuildInterface()
 	fPatchHunk->SetEnabled(false);
 	fRecordPath = new BTextControl("haikode_ai_record_path",
 		B_TRANSLATE("Record"), "", nullptr);
+	fReadinessStatus = new BStringView("haikode_ai_readiness",
+		B_TRANSLATE("AI readiness: checking settings."));
 
 	fSaveProvider = new BButton("haikode_ai_save_provider",
 		B_TRANSLATE("Save provider"), new BMessage(kMsgSaveProvider));
@@ -1140,7 +1155,7 @@ AIChatPanel::_BuildInterface()
 	fLlamaCppPresetButton = new BButton("haikode_ai_preset_llamacpp",
 		B_TRANSLATE("llama.cpp"), new BMessage(kMsgPresetLlamaCpp));
 	fTestProviderButton = new BButton("haikode_ai_test_provider",
-		B_TRANSLATE("Test provider"), new BMessage(kMsgTestProvider));
+		B_TRANSLATE("Save & Test"), new BMessage(kMsgTestProvider));
 	fStartOAuthButton = new BButton("haikode_ai_start_oauth",
 		B_TRANSLATE("Start OAuth"), new BMessage(kMsgStartOAuth));
 	fExchangeOAuthButton = new BButton("haikode_ai_exchange_oauth",
@@ -1228,6 +1243,7 @@ AIChatPanel::_BuildInterface()
 
 	BLayoutBuilder::Group<>(this, B_VERTICAL, B_USE_DEFAULT_SPACING)
 		.SetInsets(B_USE_WINDOW_SPACING)
+		.Add(fReadinessStatus)
 		.AddGrid(B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING)
 			.Add(fBaseUrl->CreateLabelLayoutItem(), 0, 0)
 			.Add(fBaseUrl->CreateTextViewLayoutItem(), 1, 0)
@@ -1329,6 +1345,7 @@ AIChatPanel::_LoadProviderFromConfig()
 	fOAuthScope->SetText(BString(gCFG["haikode_ai_oauth_scope"]).String());
 	fOAuthRedirectUri->SetText(
 		BString(gCFG["haikode_ai_oauth_redirect_uri"]).String());
+	_UpdateReadinessStatus();
 }
 
 
@@ -1345,11 +1362,31 @@ AIChatPanel::_SaveProviderToConfig()
 	gCFG["haikode_ai_oauth_client_id"] = fOAuthClientId->Text();
 	gCFG["haikode_ai_oauth_scope"] = fOAuthScope->Text();
 	gCFG["haikode_ai_oauth_redirect_uri"] = fOAuthRedirectUri->Text();
+	_UpdateReadinessStatus();
 
 	_AppendOutput(B_TRANSLATE("Provider settings saved inside Haikode."));
 #ifndef HAIKODE_AI_NETWORK
 	_AppendOutput(B_TRANSLATE("This binary was built without network AI support; rebuild with HAIKODE_AI_NETWORK=1 to send requests."));
 #endif
+}
+
+
+void
+AIChatPanel::_UpdateReadinessStatus()
+{
+	if (fReadinessStatus == nullptr)
+		return;
+
+	const Haikode::AI::AIReadinessStatus status
+		= Haikode::AI::EvaluateAIReadiness(_ProviderFromFields(),
+			NetworkAIEnabled());
+	BString line(B_TRANSLATE("AI readiness: "));
+	line << status.summary.c_str();
+	if (!status.ready && !status.action.empty()) {
+		line << "  ";
+		line << status.action.c_str();
+	}
+	fReadinessStatus->SetText(line.String());
 }
 
 
@@ -1536,12 +1573,18 @@ AIChatPanel::_FinishProviderTest(const BString& text, const BString& error,
 			line << " (" << status << ")";
 		line << ": " << error;
 		_AppendOutput(line.String());
+		if (fReadinessStatus != nullptr)
+			fReadinessStatus->SetText(
+				B_TRANSLATE("AI readiness: Provider test failed."));
 		return;
 	}
 
 	BString line(B_TRANSLATE("Provider test succeeded: "));
 	line << text;
 	_AppendOutput(line.String());
+	if (fReadinessStatus != nullptr)
+		fReadinessStatus->SetText(
+			B_TRANSLATE("AI readiness: Ready and tested."));
 }
 
 
@@ -1656,6 +1699,7 @@ AIChatPanel::_FinishOAuthExchange(const BString& token, const BString& error,
 	fOAuthToken->SetText(token.String());
 	gCFG["haikode_ai_auth_mode"] = "oauth";
 	gCFG["haikode_ai_oauth_token"] = token.String();
+	_UpdateReadinessStatus();
 	_AppendOutput(B_TRANSLATE("OAuth token saved. Haikode will use oauth bearer auth for AI requests."));
 }
 

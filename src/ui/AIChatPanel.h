@@ -22,6 +22,7 @@
 
 class BButton;
 class BMessage;
+class BStringView;
 class BTextControl;
 class BTextView;
 
@@ -93,6 +94,7 @@ private:
 	void _ShowSelectedProjectRecord();
 	void _OpenSelectedProjectRecord();
 	void _UpdatePendingActions();
+	void _UpdateReadinessStatus();
 	void _SaveSessionRecord(const BString& responseText);
 	void _AppendOutput(const char* text);
 	Haikode::AI::ProviderSettings _ProviderFromFields() const;
@@ -119,6 +121,7 @@ private:
 	BTextControl* fPatchPath;
 	BTextControl* fPatchHunk;
 	BTextControl* fRecordPath;
+	BStringView* fReadinessStatus;
 	BTextView* fPendingActions;
 	BTextView* fOutput;
 	BButton* fSaveProvider;

@@ -44,6 +44,10 @@ The Genio-based branch now adds:
   generic OAuth 2.0 settings.
 - Native provider preset buttons for OpenAI, OpenRouter, Ollama, LM Studio, and
   llama.cpp.
+- A native AI readiness line plus **Save & Test** flow that tells users whether
+  Haikode is ready, missing credentials, built without network transport, or
+  failing against the configured provider without exposing API keys or OAuth
+  tokens.
 - A PKCE OAuth helper that can open a provider authorization URL and exchange a
   pasted authorization code or full callback URL for a bearer token.
 - OpenAI-compatible HTTP requests for the active project, active selection, and
@@ -127,7 +131,7 @@ keys inside Haikode, choose a local provider, or configure OAuth token/PKCE
 endpoint fields. API key and OAuth token fields are masked in the native UI.
 You do not need to export an API key in Terminal. The setup dialog also reports
 whether the current binary was built with network AI support. Then use
-**Test provider** to verify the endpoint before asking questions or proposing
+**Save & Test** to verify the endpoint before asking questions or proposing
 patches.
 
 The next slices should make the patch review more visual inside native controls

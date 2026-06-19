@@ -114,6 +114,10 @@ Use **Window > Haikode AI setup** or the **AI Setup** button to paste the API
 key inside the app. You do not need to run `export OPENAI_API_KEY`.
 The setup dialog shows whether the binary was built with network AI support;
 if it says network AI is disabled, rebuild with `HAIKODE_AI_NETWORK=1`.
+The AI panel also shows an **AI readiness** line. After entering settings,
+click **Save & Test**; the readiness line changes to ready, missing
+credential, network disabled, local server/provider failure, or ready and
+tested. This status never displays API keys or OAuth bearer tokens.
 
 Use the **OpenAI**, **OpenRouter**, **Ollama**, **LM Studio**, or **llama.cpp**
 buttons to fill the common base URL, model, and auth mode defaults, then adjust
