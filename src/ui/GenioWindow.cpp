@@ -1891,6 +1891,7 @@ GenioWindow::_FileOpen(BMessage* msg)
 	if (firstAdded.directory != 0) {
 		fTabManager->SelectTab(&firstAdded);
 	}
+	_UpdateHaikodeAIContext();
 
 	// reply to Editor create scripting
 	BMessage reply(B_REPLY);
@@ -4048,6 +4049,8 @@ GenioWindow::_ProjectFolderOpenCompleted(ProjectFolder* project,
 	if (editor != nullptr && editor->FileRef() != nullptr) {
 		GetProjectBrowser()->SelectItemByRef(project, *editor->FileRef());
 	}
+
+	_UpdateHaikodeAIContext();
 
 	// TODO: Move this elsewhere!
 	BString taskName;

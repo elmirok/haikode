@@ -112,6 +112,8 @@ variables.
 
 Use **Window > Haikode AI setup** or the **AI Setup** button to paste the API
 key inside the app. You do not need to run `export OPENAI_API_KEY`.
+The setup dialog shows whether the binary was built with network AI support;
+if it says network AI is disabled, rebuild with `HAIKODE_AI_NETWORK=1`.
 
 Use the **OpenAI**, **OpenRouter**, **Ollama**, **LM Studio**, or **llama.cpp**
 buttons to fill the common base URL, model, and auth mode defaults, then adjust
@@ -142,6 +144,14 @@ one localhost browser callback and exchanges the returned authorization code
 automatically when possible. If the browser callback fails, paste either the
 code or the full callback URL into **OAuth code** and click **Exchange code**.
 Haikode stores the resulting bearer token in its app settings.
+
+### Seeing project files in the AI panel
+
+After opening a project folder, use **Project files** in the Haikode AI panel
+to scan the active project for text/source files. Pick a file and press
+**Open**; Haikode opens it through Genio's normal editor path and uses it as AI
+context. This is also useful if the left project tree is collapsed, filtered,
+or not visibly populated yet.
 
 ### Optional Codex CLI bridge
 

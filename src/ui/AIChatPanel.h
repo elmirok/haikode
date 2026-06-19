@@ -82,6 +82,8 @@ private:
 	void _RunPendingCommand();
 	void _RejectPendingCommand();
 	void _ClearPendingCommands();
+	void _ListProjectFiles();
+	void _OpenSelectedProjectFile();
 	void _ListRecentProjectRecords();
 	void _ShowSelectedProjectRecord();
 	void _UpdatePendingActions();
@@ -107,6 +109,7 @@ private:
 	BTextControl* fOAuthRedirectUri;
 	BTextControl* fOAuthCode;
 	BTextControl* fPrompt;
+	BTextControl* fProjectFilePath;
 	BTextControl* fPatchPath;
 	BTextControl* fPatchHunk;
 	BTextControl* fRecordPath;
@@ -143,6 +146,8 @@ private:
 	BButton* fRejectPatchButton;
 	BButton* fRunCommandButton;
 	BButton* fRejectCommandButton;
+	BButton* fProjectFilesButton;
+	BButton* fOpenProjectFileButton;
 	BButton* fRecentRecordsButton;
 	BButton* fShowRecordButton;
 	bool fRequestRunning;

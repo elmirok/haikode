@@ -96,6 +96,9 @@ The Genio-based branch now adds:
 - A lightweight native `.haikode` record browser lists recent sessions, logs,
   patches, and command request files; selecting a row previews the record in
   the AI transcript.
+- A native **Project files** picker in the AI panel scans the active project for
+  text/source files and opens the selected file in Genio's editor, so users can
+  see and select files even if the regular project tree is collapsed or stale.
 
 The panel sends prompts to cloud or local endpoints when built with
 `HAIKODE_AI_NETWORK=1`. API-key mode stores the key in Haikode settings and
@@ -104,8 +107,10 @@ in Haikode settings; local mode sends no authorization header.
 Use **Window > Haikode AI setup** or the **AI Setup** button to paste cloud API
 keys inside Haikode, choose a local provider, or configure OAuth token/PKCE
 endpoint fields. API key and OAuth token fields are masked in the native UI.
-You do not need to export an API key in Terminal. Then use **Test provider** to
-verify the endpoint before asking questions or proposing patches.
+You do not need to export an API key in Terminal. The setup dialog also reports
+whether the current binary was built with network AI support. Then use
+**Test provider** to verify the endpoint before asking questions or proposing
+patches.
 
 The next slices should make the patch review more visual inside native controls
 and add filtering/open-in-editor actions to the record browser.

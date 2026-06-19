@@ -9,15 +9,18 @@
 #include <Alert.h>
 #include <Button.h>
 #include <Catalog.h>
+#include <Entry.h>
 #include <Layout.h>
 #include <LayoutBuilder.h>
 #include <ListView.h>
 #include <Looper.h>
 #include <Message.h>
 #include <Messenger.h>
+#include <Path.h>
 #include <Roster.h>
 #include <ScrollView.h>
 #include <StringItem.h>
+#include <StringView.h>
 #include <TextControl.h>
 #include <TextView.h>
 #include <Window.h>
@@ -91,6 +94,9 @@ const uint32 kMsgApplyPatch = 'hiap';
 const uint32 kMsgRejectPatch = 'hirp';
 const uint32 kMsgRunCommand = 'hirc';
 const uint32 kMsgRejectCommand = 'hirx';
+const uint32 kMsgListProjectFiles = 'hifl';
+const uint32 kMsgOpenProjectFile = 'hifo';
+const uint32 kMsgProjectFilePicked = 'hifp';
 const uint32 kMsgListRecords = 'hilr';
 const uint32 kMsgShowRecord = 'hird';
 const uint32 kMsgRecordPicked = 'hipr';
@@ -116,6 +122,17 @@ InitialAIStatusText()
 	return B_TRANSLATE("AI network transport is enabled. Use AI Setup to paste an API key inside Haikode, choose a local provider, or configure OAuth.");
 #else
 	return B_TRANSLATE("AI network transport is disabled in this build. Rebuild with HAIKODE_AI_NETWORK=1 and install curl_devel to use cloud AI. API keys are entered inside AI Setup; no Terminal export is required.");
+#endif
+}
+
+
+const char*
+SetupNetworkStatusText()
+{
+#ifdef HAIKODE_AI_NETWORK
+	return B_TRANSLATE("Network AI is enabled in this build. Paste the API key here and press Save.");
+#else
+	return B_TRANSLATE("Network AI is disabled in this build. Settings can be saved here, but cloud AI needs a rebuild with HAIKODE_AI_NETWORK=1.");
 #endif
 }
 
@@ -261,6 +278,135 @@ WaitForOAuthCallback(const std::string& redirectUri, std::string& callback,
 	return true;
 }
 #endif
+
+bool
+IsSafeRelativeProjectPath(const BString& path)
+{
+	if (path.IsEmpty() || path.StartsWith("/"))
+		return false;
+	if (path == "." || path == "..")
+		return false;
+	if (path.FindFirst("../") >= 0 || path.FindFirst("/../") >= 0
+		|| path.FindFirst("/..") == path.Length() - 3) {
+		return false;
+	}
+	return true;
+}
+
+
+class ProjectFileListItem : public BStringItem {
+public:
+	ProjectFileListItem(const Haikode::AI::ProjectFileSummary& file)
+		:
+		BStringItem(_Label(file).String()),
+		fPath(file.path.c_str())
+	{
+	}
+
+	const char* Path() const
+	{
+		return fPath.String();
+	}
+
+private:
+	static BString _Label(const Haikode::AI::ProjectFileSummary& file)
+	{
+		BString label;
+		label << file.path.c_str() << "  [" << file.language.c_str() << ", "
+			<< file.role.c_str() << ", " << file.risk.c_str() << "]";
+		if (file.hasTodo)
+			label << " TODO";
+		return label;
+	}
+
+	BString fPath;
+};
+
+
+class ProjectFileBrowserWindow : public BWindow {
+public:
+	ProjectFileBrowserWindow(BMessenger target,
+		const std::vector<Haikode::AI::ProjectFileSummary>& files)
+		:
+		BWindow(BRect(120, 120, 760, 520), B_TRANSLATE("Haikode project files"),
+			B_TITLED_WINDOW_LOOK, B_MODAL_APP_WINDOW_FEEL,
+			B_ASYNCHRONOUS_CONTROLS | B_AUTO_UPDATE_SIZE_LIMITS
+				| B_CLOSE_ON_ESCAPE),
+		fTarget(target)
+	{
+		fListView = new BListView("haikode_project_file_picker",
+			B_SINGLE_SELECTION_LIST);
+		fListView->SetInvocationMessage(new BMessage(kMsgProjectFilePicked));
+		fListView->SetTarget(this);
+		for (const Haikode::AI::ProjectFileSummary& file : files)
+			fListView->AddItem(new ProjectFileListItem(file));
+		if (fListView->CountItems() > 0)
+			fListView->Select(0);
+
+		BScrollView* scroll = new BScrollView(
+			"haikode_project_file_picker_scroll", fListView, B_FOLLOW_ALL, 0,
+			false, true);
+		scroll->SetExplicitMinSize(BSize(560, 260));
+
+		BButton* cancelButton = new BButton("haikode_project_file_cancel",
+			B_TRANSLATE("Cancel"), new BMessage(kMsgRecordCancel));
+		BButton* openButton = new BButton("haikode_project_file_open",
+			B_TRANSLATE("Open"), new BMessage(kMsgOpenProjectFile));
+		cancelButton->SetTarget(this);
+		openButton->SetTarget(this);
+
+		BLayoutBuilder::Group<>(this, B_VERTICAL, B_USE_DEFAULT_SPACING)
+			.SetInsets(B_USE_WINDOW_SPACING)
+			.Add(scroll)
+			.AddGroup(B_HORIZONTAL, B_USE_DEFAULT_SPACING)
+				.AddGlue()
+				.Add(cancelButton)
+				.Add(openButton)
+			.End();
+
+		openButton->MakeDefault(true);
+		if (GetLayout() != nullptr) {
+			const BSize size = GetLayout()->MinSize();
+			ResizeTo(size.width, size.height);
+		}
+		CenterOnScreen();
+	}
+
+	void MessageReceived(BMessage* message) override
+	{
+		switch (message->what) {
+			case kMsgProjectFilePicked:
+			case kMsgOpenProjectFile:
+				_SendSelectionAndQuit();
+				break;
+			case kMsgRecordCancel:
+				Quit();
+				break;
+			default:
+				BWindow::MessageReceived(message);
+				break;
+		}
+	}
+
+private:
+	void _SendSelectionAndQuit()
+	{
+		const int32 selection = fListView->CurrentSelection();
+		ProjectFileListItem* item = dynamic_cast<ProjectFileListItem*>(
+			fListView->ItemAt(selection));
+		if (item == nullptr)
+			return;
+
+		BMessage picked(kMsgProjectFilePicked);
+		picked.AddString("path", item->Path());
+		fTarget.SendMessage(&picked);
+		Quit();
+	}
+
+	BMessenger fTarget;
+	BListView* fListView;
+};
+
 
 class ProjectRecordListItem : public BStringItem {
 public:
@@ -439,6 +585,8 @@ public:
 			B_TRANSLATE("Cancel"), new BMessage(kMsgSetupCancel));
 		BButton* saveButton = new BButton("setup_save",
 			B_TRANSLATE("Save"), new BMessage(kMsgSetupSave));
+		BStringView* networkStatus = new BStringView("setup_network_status",
+			SetupNetworkStatusText());
 		openAIButton->SetTarget(this);
 		ollamaButton->SetTarget(this);
 		lmStudioButton->SetTarget(this);
@@ -450,6 +598,7 @@ public:
 
 		BLayoutBuilder::Group<>(this, B_VERTICAL, B_USE_DEFAULT_SPACING)
 			.SetInsets(B_USE_WINDOW_SPACING)
+			.Add(networkStatus)
 			.AddGrid(B_USE_DEFAULT_SPACING, B_USE_DEFAULT_SPACING)
 				.Add(fBaseUrl->CreateLabelLayoutItem(), 0, 0)
 				.Add(fBaseUrl->CreateTextViewLayoutItem(), 1, 0)
@@ -587,6 +736,7 @@ AIChatPanel::AIChatPanel(PanelTabManager* panelTabManager, tab_id id)
 	fOAuthRedirectUri(nullptr),
 	fOAuthCode(nullptr),
 	fPrompt(nullptr),
+	fProjectFilePath(nullptr),
 	fPatchPath(nullptr),
 	fPatchHunk(nullptr),
 	fRecordPath(nullptr),
@@ -623,6 +773,8 @@ AIChatPanel::AIChatPanel(PanelTabManager* panelTabManager, tab_id id)
 	fRejectPatchButton(nullptr),
 	fRunCommandButton(nullptr),
 	fRejectCommandButton(nullptr),
+	fProjectFilesButton(nullptr),
+	fOpenProjectFileButton(nullptr),
 	fRecentRecordsButton(nullptr),
 	fShowRecordButton(nullptr),
 	fRequestRunning(false),
@@ -669,6 +821,8 @@ AIChatPanel::AttachedToWindow()
 	fRejectPatchButton->SetTarget(this);
 	fRunCommandButton->SetTarget(this);
 	fRejectCommandButton->SetTarget(this);
+	fProjectFilesButton->SetTarget(this);
+	fOpenProjectFileButton->SetTarget(this);
 	fRecentRecordsButton->SetTarget(this);
 	fShowRecordButton->SetTarget(this);
 	_LoadProviderFromConfig();
@@ -854,6 +1008,16 @@ AIChatPanel::MessageReceived(BMessage* message)
 		case kMsgRejectCommand:
 			_RejectPendingCommand();
 			break;
+		case kMsgListProjectFiles:
+			_ListProjectFiles();
+			break;
+		case kMsgOpenProjectFile:
+			_OpenSelectedProjectFile();
+			break;
+		case kMsgProjectFilePicked:
+			fProjectFilePath->SetText(message->GetString("path", ""));
+			_OpenSelectedProjectFile();
+			break;
 		case kMsgListRecords:
 			_ListRecentProjectRecords();
 			break;
@@ -939,6 +1103,8 @@ AIChatPanel::_BuildInterface()
 		B_TRANSLATE("OAuth code"), "", nullptr);
 	fPrompt = new BTextControl("haikode_ai_prompt", B_TRANSLATE("Prompt"), "",
 		new BMessage(kMsgAsk));
+	fProjectFilePath = new BTextControl("haikode_ai_project_file",
+		B_TRANSLATE("File"), "", nullptr);
 	fPatchPath = new BTextControl("haikode_ai_patch_path",
 		B_TRANSLATE("Patch file"), "", nullptr);
 	fPatchPath->SetEnabled(false);
@@ -1024,6 +1190,10 @@ AIChatPanel::_BuildInterface()
 	fRejectCommandButton = new BButton("haikode_ai_reject_command",
 		B_TRANSLATE("Reject command"), new BMessage(kMsgRejectCommand));
 	fRejectCommandButton->SetEnabled(false);
+	fProjectFilesButton = new BButton("haikode_ai_project_files",
+		B_TRANSLATE("Project files"), new BMessage(kMsgListProjectFiles));
+	fOpenProjectFileButton = new BButton("haikode_ai_open_project_file",
+		B_TRANSLATE("Open file"), new BMessage(kMsgOpenProjectFile));
 	fRecentRecordsButton = new BButton("haikode_ai_recent_records",
 		B_TRANSLATE("Recent records"), new BMessage(kMsgListRecords));
 	fShowRecordButton = new BButton("haikode_ai_show_record",
@@ -1114,6 +1284,11 @@ AIChatPanel::_BuildInterface()
 			.Add(fRejectCommandButton)
 		.End()
 		.AddGroup(B_HORIZONTAL, B_USE_DEFAULT_SPACING)
+			.Add(fProjectFilePath)
+			.Add(fProjectFilesButton)
+			.Add(fOpenProjectFileButton)
+		.End()
+		.AddGroup(B_HORIZONTAL, B_USE_DEFAULT_SPACING)
 			.Add(fRecordPath)
 			.Add(fRecentRecordsButton)
 			.Add(fShowRecordButton)
@@ -1157,7 +1332,10 @@ AIChatPanel::_SaveProviderToConfig()
 	gCFG["haikode_ai_oauth_scope"] = fOAuthScope->Text();
 	gCFG["haikode_ai_oauth_redirect_uri"] = fOAuthRedirectUri->Text();
 
-	_AppendOutput(B_TRANSLATE("Provider settings saved."));
+	_AppendOutput(B_TRANSLATE("Provider settings saved inside Haikode."));
+#ifndef HAIKODE_AI_NETWORK
+	_AppendOutput(B_TRANSLATE("This binary was built without network AI support; rebuild with HAIKODE_AI_NETWORK=1 to send requests."));
+#endif
 }
 
 
@@ -1180,10 +1358,9 @@ AIChatPanel::_ApplyProviderPreset(Haikode::AI::ProviderPreset preset)
 void
 AIChatPanel::_OpenProviderSettings()
 {
-	BLooper* looper = Looper();
-	if (looper == nullptr && Window() != nullptr)
-		looper = Window();
-
+	BLooper* looper = Window();
+	if (looper == nullptr)
+		looper = Looper();
 	status_t messengerStatus = B_OK;
 	BMessenger target(this, looper, &messengerStatus);
 	if (messengerStatus != B_OK) {
@@ -1199,6 +1376,7 @@ AIChatPanel::_OpenProviderSettings()
 		fOAuthToken->Text(), fOAuthAuthUrl->Text(), fOAuthTokenUrl->Text(),
 		fOAuthClientId->Text(), fOAuthScope->Text(), fOAuthRedirectUri->Text());
 	window->Show();
+	window->Activate(true);
 	_AppendOutput(B_TRANSLATE("Opened Haikode AI setup. Paste an API key or configure OAuth there; no Terminal export is required."));
 }
 
@@ -1321,6 +1499,8 @@ AIChatPanel::_SetRequestControlsEnabled(bool enabled)
 	fCodexStatusButton->SetEnabled(enabled);
 	fCodexLoginButton->SetEnabled(enabled);
 	fCodexAskButton->SetEnabled(enabled);
+	fProjectFilesButton->SetEnabled(enabled);
+	fOpenProjectFileButton->SetEnabled(enabled);
 	fRecentRecordsButton->SetEnabled(enabled);
 	fShowRecordButton->SetEnabled(enabled);
 	fCancelButton->SetEnabled(!enabled);
@@ -1973,6 +2153,92 @@ AIChatPanel::_ClearPendingCommands()
 	if (fRejectCommandButton != nullptr)
 		fRejectCommandButton->SetEnabled(false);
 	_UpdatePendingActions();
+}
+
+
+void
+AIChatPanel::_ListProjectFiles()
+{
+	if (fProjectRoot.IsEmpty()) {
+		_AppendOutput(B_TRANSLATE("Open or activate a project before listing project files."));
+		return;
+	}
+
+	size_t candidateCount = 0;
+	const std::vector<Haikode::AI::ProjectFileSummary> files
+		= Haikode::AI::BuildProjectMap(fProjectRoot.String(), 500,
+			&candidateCount);
+	if (files.empty()) {
+		_AppendOutput(B_TRANSLATE("No text/source files found in the active project. Binary files, build folders, .git, and .haikode are skipped."));
+		return;
+	}
+
+	BString line(B_TRANSLATE("Project files available to Haikode: "));
+	line << std::to_string(files.size()).c_str();
+	if (candidateCount > files.size())
+		line << "/" << std::to_string(candidateCount).c_str();
+	line << B_TRANSLATE(" text/source file(s).");
+	_AppendOutput(line.String());
+	if (fProjectFilePath != nullptr)
+		fProjectFilePath->SetText(files.front().path.c_str());
+
+	ProjectFileBrowserWindow* window = new ProjectFileBrowserWindow(
+		BMessenger(this), files);
+	window->Show();
+}
+
+
+void
+AIChatPanel::_OpenSelectedProjectFile()
+{
+	if (fProjectRoot.IsEmpty()) {
+		_AppendOutput(B_TRANSLATE("Open or activate a project before opening a project file."));
+		return;
+	}
+	if (fProjectFilePath == nullptr
+		|| BString(fProjectFilePath->Text()).IsEmpty()) {
+		_AppendOutput(B_TRANSLATE("Choose or paste a project file path first."));
+		return;
+	}
+
+	const BString relativePath(fProjectFilePath->Text());
+	if (!IsSafeRelativeProjectPath(relativePath)) {
+		BString line(B_TRANSLATE("Refusing unsafe project file path: "));
+		line << relativePath;
+		_AppendOutput(line.String());
+		return;
+	}
+
+	BPath path(fProjectRoot.String());
+	status_t status = path.Append(relativePath.String());
+	if (status != B_OK) {
+		BString line(B_TRANSLATE("Could not resolve project file path: "));
+		line << strerror(status);
+		_AppendOutput(line.String());
+		return;
+	}
+
+	entry_ref ref;
+	status = get_ref_for_path(path.Path(), &ref);
+	if (status != B_OK) {
+		BString line(B_TRANSLATE("Could not find project file: "));
+		line << path.Path();
+		_AppendOutput(line.String());
+		return;
+	}
+
+	BMessage open(B_REFS_RECEIVED);
+	open.AddRef("refs", &ref);
+	if (Window() == nullptr || Window()->PostMessage(&open) != B_OK) {
+		BString line(B_TRANSLATE("Could not ask Genio to open project file: "));
+		line << path.Path();
+		_AppendOutput(line.String());
+		return;
+	}
+
+	BString line(B_TRANSLATE("Opening project file: "));
+	line << relativePath;
+	_AppendOutput(line.String());
 }
 
 
