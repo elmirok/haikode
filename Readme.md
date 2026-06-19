@@ -207,7 +207,9 @@ and approval.
 Use **Recent records** in the AI panel to pick from recent `.haikode/sessions`,
 `.haikode/logs`, `.haikode/patches`, and `.haikode/commands` files for the
 active project. **Show record** previews the path currently shown in the record
-field. **Open record file** opens that saved record in Genio's editor.
+field. **Open record file** opens that saved record in Genio's editor. Session
+records redact key-like strings if they appear inside prompts, responses, or
+pending-action text.
 
 When an AI response includes a unified diff, Haikode saves it under
 `.haikode/patches/` and shows a selected-file review with old/new line columns,

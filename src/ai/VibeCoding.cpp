@@ -62,6 +62,62 @@ EscapeJson(const std::string& value)
 
 
 bool
+IsSecretTokenChar(char c)
+{
+	return std::isalnum(static_cast<unsigned char>(c)) || c == '-' || c == '_'
+		|| c == '.' || c == ':';
+}
+
+
+void
+RedactTokenAfterMarker(std::string& value, const std::string& marker)
+{
+	static const std::string kRedaction = "[redacted-secret]";
+	size_t pos = 0;
+	while ((pos = value.find(marker, pos)) != std::string::npos) {
+		const size_t tokenStart = pos + marker.size();
+		size_t tokenEnd = tokenStart;
+		while (tokenEnd < value.size() && IsSecretTokenChar(value[tokenEnd]))
+			tokenEnd++;
+		if (tokenEnd > tokenStart) {
+			value.replace(tokenStart, tokenEnd - tokenStart, kRedaction);
+			pos = tokenStart + kRedaction.size();
+		} else {
+			pos = tokenStart;
+		}
+	}
+}
+
+
+std::string
+RedactSecrets(std::string value)
+{
+	static const std::string kRedaction = "[redacted-secret]";
+	const std::vector<std::string> markers = {
+		"Authorization: Bearer ",
+		"authorization: bearer ",
+		"Bearer ",
+		"bearer ",
+		"access_token=",
+		"oauth_token=",
+		"api_key="
+	};
+	for (const std::string& marker : markers)
+		RedactTokenAfterMarker(value, marker);
+
+	size_t pos = 0;
+	while ((pos = value.find("sk-", pos)) != std::string::npos) {
+		size_t end = pos + 3;
+		while (end < value.size() && IsSecretTokenChar(value[end]))
+			end++;
+		value.replace(pos, end - pos, kRedaction);
+		pos += kRedaction.size();
+	}
+	return value;
+}
+
+
+bool
 IsInsideDirectory(const fs::path& child, const fs::path& parent)
 {
 	const fs::path relative = fs::relative(child, parent);
@@ -1173,22 +1229,22 @@ SaveAiSession(const std::string& projectRoot, const AiSessionRecord& session,
 
 		file
 			<< "{\n"
-			<< "  \"user_prompt\":\"" << EscapeJson(session.userPrompt)
+			<< "  \"user_prompt\":\"" << EscapeJson(RedactSecrets(session.userPrompt))
 			<< "\",\n"
 			<< "  \"provider_base_url\":\""
-			<< EscapeJson(session.providerBaseUrl) << "\",\n"
-			<< "  \"provider_model\":\"" << EscapeJson(session.providerModel)
+			<< EscapeJson(RedactSecrets(session.providerBaseUrl)) << "\",\n"
+			<< "  \"provider_model\":\"" << EscapeJson(RedactSecrets(session.providerModel))
 			<< "\",\n"
-			<< "  \"auth_mode\":\"" << EscapeJson(session.authMode)
+			<< "  \"auth_mode\":\"" << EscapeJson(RedactSecrets(session.authMode))
 			<< "\",\n"
-			<< "  \"active_file\":\"" << EscapeJson(session.activeFile)
+			<< "  \"active_file\":\"" << EscapeJson(RedactSecrets(session.activeFile))
 			<< "\",\n"
-			<< "  \"response_text\":\"" << EscapeJson(session.responseText)
+			<< "  \"response_text\":\"" << EscapeJson(RedactSecrets(session.responseText))
 			<< "\",\n"
-			<< "  \"pending_actions\":\"" << EscapeJson(session.pendingActions)
+			<< "  \"pending_actions\":\"" << EscapeJson(RedactSecrets(session.pendingActions))
 			<< "\",\n"
 			<< "  \"saved_patch_path\":\""
-			<< EscapeJson(session.savedPatchPath)
+			<< EscapeJson(RedactSecrets(session.savedPatchPath))
 			<< "\"\n"
 			<< "}\n";
 		savedPath = sessionPath.string();

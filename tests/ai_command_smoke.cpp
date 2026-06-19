@@ -214,20 +214,23 @@ main()
 	assert(!ReadFile(secondSavedPath).empty());
 
 	Haikode::AI::AiSessionRecord session;
-	session.userPrompt = "Explain the current file";
+	session.userPrompt = "Explain the current file; temporary key "
+		"sk-user-secret-1234567890";
 	session.providerBaseUrl = "https://api.openai.com";
 	session.providerModel = "gpt-4.1-mini";
 	session.authMode = "api-key";
 	session.activeFile = "src/main.cpp";
-	session.responseText = "Use BApplication and BWindow.";
-	session.pendingActions = pendingText;
+	session.responseText = "Use BApplication and BWindow.\n"
+		"Authorization: Bearer oauth-session-secret-abcdef";
+	session.pendingActions = pendingText
+		+ "\naccess_token=provider-token-secret-abcdef";
 	session.savedPatchPath = ".haikode/patches/patch-demo.diff";
 	std::string sessionPath;
 	assert(Haikode::AI::SaveAiSession(root.string(), session, sessionPath,
 		error));
 	assert(sessionPath.find(".haikode/sessions/session-") != std::string::npos);
 	const std::string savedSession = ReadFile(sessionPath);
-	assert(savedSession.find("\"user_prompt\":\"Explain the current file\"")
+	assert(savedSession.find("\"user_prompt\":\"Explain the current file; temporary key ")
 		!= std::string::npos);
 	assert(savedSession.find("\"provider_model\":\"gpt-4.1-mini\"")
 		!= std::string::npos);
@@ -237,6 +240,9 @@ main()
 		!= std::string::npos);
 	assert(savedSession.find("api_key") == std::string::npos);
 	assert(savedSession.find("sk-") == std::string::npos);
+	assert(savedSession.find("oauth-session-secret") == std::string::npos);
+	assert(savedSession.find("provider-token-secret") == std::string::npos);
+	assert(savedSession.find("[redacted-secret]") != std::string::npos);
 	std::string secondSessionPath;
 	assert(Haikode::AI::SaveAiSession(root.string(), session,
 		secondSessionPath, error));

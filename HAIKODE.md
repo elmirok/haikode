@@ -122,9 +122,11 @@ The Genio-based branch now adds:
   the selected file field is set.
 - Project-local `.haikode/sessions/` records for successful AI exchanges,
   storing prompts, responses, provider metadata, active file, and pending
-  actions without API keys or bearer tokens. Saved AI sessions, command
-  requests, logs, patches, and backups use collision-resistant timestamped
-  names so rapid repeated actions keep separate audit records.
+  actions without API keys or bearer tokens. Session records redact key-like
+  strings if they appear inside prompts, responses, or pending-action text.
+  Saved AI sessions, command requests, logs, patches, and backups use
+  collision-resistant timestamped names so rapid repeated actions keep separate
+  audit records.
 - A project-local `.haikode/project.json` memory file generated from project
   scans, with project name/root, inferred build/test commands when known,
   discovered file language/role/risk/TODO summaries, and no credentials.
