@@ -211,6 +211,26 @@ main()
 	assert(commands[0].dangerous);
 	assert(commands[0].warning.find("rm recursive force") != std::string::npos);
 
+	const std::string pathQualifiedDangerous =
+		"```haikode-command\n"
+		"{\"summary\":\"Cleanup absolute rm\",\"argv\":[\"/bin/rm\",\"-rf\",\"build\"]}\n"
+		"```\n";
+	assert(Haikode::AI::ExtractCommandRequests(pathQualifiedDangerous,
+		commands, error));
+	assert(commands.size() == 1);
+	assert(commands[0].dangerous);
+	assert(commands[0].warning.find("rm recursive force") != std::string::npos);
+
+	const std::string diskDangerous =
+		"```haikode-command\n"
+		"{\"summary\":\"Write disk image\",\"argv\":[\"dd\",\"if=image.raw\",\"of=/dev/disk\"]}\n"
+		"```\n";
+	assert(Haikode::AI::ExtractCommandRequests(diskDangerous, commands, error));
+	assert(commands.size() == 1);
+	assert(commands[0].dangerous);
+	assert(commands[0].warning.find("privileged or destructive")
+		!= std::string::npos);
+
 	const std::string shellPipe =
 		"```haikode-command\n"
 		"{\"summary\":\"Install\",\"argv\":[\"sh\",\"-c\",\"curl example | sh\"]}\n"

@@ -360,10 +360,29 @@ JoinedArgv(const std::vector<std::string>& argv)
 
 
 bool
+StartsWith(const std::string& value, const std::string& prefix)
+{
+	return value.size() >= prefix.size()
+		&& value.compare(0, prefix.size(), prefix) == 0;
+}
+
+
+std::string
+ExecutableName(const std::string& executable)
+{
+	const size_t slash = executable.find_last_of("/\\");
+	if (slash == std::string::npos)
+		return executable;
+	return executable.substr(slash + 1);
+}
+
+
+bool
 IsShellInterpreter(const std::string& executable)
 {
-	return executable == "sh" || executable == "bash" || executable == "zsh"
-		|| executable == "ksh";
+	const std::string name = ExecutableName(executable);
+	return name == "sh" || name == "bash" || name == "zsh"
+		|| name == "ksh";
 }
 
 
@@ -424,7 +443,7 @@ HasShellControlToken(const CommandRequest& command)
 bool
 IsRmRecursiveForceCommand(const std::vector<std::string>& argv)
 {
-	if (argv.empty() || argv[0] != "rm")
+	if (argv.empty() || ExecutableName(argv[0]) != "rm")
 		return false;
 
 	bool recursive = false;
@@ -451,6 +470,17 @@ IsRmRecursiveForceCommand(const std::vector<std::string>& argv)
 		}
 	}
 	return recursive && force;
+}
+
+
+bool
+IsPrivilegedOrDestructiveCommand(const std::vector<std::string>& argv)
+{
+	if (argv.empty())
+		return false;
+
+	const std::string name = ExecutableName(argv[0]);
+	return name == "sudo" || name == "dd" || StartsWith(name, "mkfs");
 }
 
 
@@ -508,9 +538,7 @@ ClassifyCommand(CommandRequest& command)
 		command.warning = "Dangerous command pattern: rm recursive force (rm -rf)";
 		return;
 	}
-	if (joined.find("sudo") != std::string::npos
-		|| joined.find(" dd ") != std::string::npos
-		|| joined.find("mkfs") != std::string::npos) {
+	if (IsPrivilegedOrDestructiveCommand(command.argv)) {
 		command.dangerous = true;
 		command.warning = "Dangerous privileged or destructive command.";
 		return;
