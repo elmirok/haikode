@@ -1259,11 +1259,9 @@ SaveProjectMemory(const std::string& projectRoot,
 
 bool
 LoadProjectMemory(const std::string& projectRoot, size_t maxFiles,
-	std::vector<ProjectFileSummary>& files, size_t& candidateCount,
-	std::string& error)
+	ProjectMemory& memory, std::string& error)
 {
-	files.clear();
-	candidateCount = 0;
+	memory = ProjectMemory();
 	error.clear();
 	try {
 		if (projectRoot.empty()) {
@@ -1298,7 +1296,11 @@ LoadProjectMemory(const std::string& projectRoot, size_t maxFiles,
 			return false;
 		}
 
-		ExtractJsonSizeField(json, "candidate_count", candidateCount);
+		ExtractJsonStringField(json, "default_build_command",
+			memory.defaultBuildCommand);
+		ExtractJsonStringField(json, "default_test_command",
+			memory.defaultTestCommand);
+		ExtractJsonSizeField(json, "candidate_count", memory.candidateCount);
 		std::vector<std::string> objects;
 		if (!ExtractJsonObjectArrayField(json, "files", objects)) {
 			error = "Project memory has no readable files list.";
@@ -1317,16 +1319,30 @@ LoadProjectMemory(const std::string& projectRoot, size_t maxFiles,
 			ExtractJsonStringField(object, "risk", summary.risk);
 			ExtractJsonStringField(object, "summary", summary.summary);
 			ExtractJsonBoolField(object, "todo", summary.hasTodo);
-			if (files.size() < maxFiles)
-				files.push_back(summary);
+			if (memory.files.size() < maxFiles)
+				memory.files.push_back(summary);
 		}
-		if (candidateCount == 0)
-			candidateCount = objects.size();
+		if (memory.candidateCount == 0)
+			memory.candidateCount = objects.size();
 		return true;
 	} catch (const std::exception& exception) {
 		error = exception.what();
 		return false;
 	}
+}
+
+
+bool
+LoadProjectMemory(const std::string& projectRoot, size_t maxFiles,
+	std::vector<ProjectFileSummary>& files, size_t& candidateCount,
+	std::string& error)
+{
+	ProjectMemory memory;
+	if (!LoadProjectMemory(projectRoot, maxFiles, memory, error))
+		return false;
+	files = memory.files;
+	candidateCount = memory.candidateCount;
+	return true;
 }
 
 
@@ -1574,6 +1590,16 @@ PromptBuilder::Build(const VibeCodingRequest& request, size_t maxBytesPerFile,
 				prompt << " -- " << file.summary;
 			prompt << "\n";
 		}
+		prompt << "\n";
+	}
+
+	if (!request.defaultBuildCommand.empty()
+		|| !request.defaultTestCommand.empty()) {
+		prompt << "Project commands:\n";
+		if (!request.defaultBuildCommand.empty())
+			prompt << "- Build: " << request.defaultBuildCommand << "\n";
+		if (!request.defaultTestCommand.empty())
+			prompt << "- Test: " << request.defaultTestCommand << "\n";
 		prompt << "\n";
 	}
 

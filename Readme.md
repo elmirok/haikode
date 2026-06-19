@@ -169,7 +169,8 @@ or not visibly populated yet. The scan also creates or refreshes
 build/test commands, and source/docs/build file summaries. API keys and OAuth
 tokens are never written to this project memory file. Later AI prompts reuse
 this saved project map when it exists and fall back to an offline scan when it
-does not.
+does not. The saved build/test command hints are included in prompts, but
+Haikode still requires explicit approval before running any command.
 
 ### Optional Codex CLI bridge
 

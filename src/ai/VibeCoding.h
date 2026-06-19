@@ -32,10 +32,19 @@ struct ProjectFileSummary {
 	std::string summary;
 };
 
+struct ProjectMemory {
+	std::string defaultBuildCommand;
+	std::string defaultTestCommand;
+	std::vector<ProjectFileSummary> files;
+	size_t candidateCount = 0;
+};
+
 struct VibeCodingRequest {
 	PromptMode mode = PromptMode::Ask;
 	std::string projectRoot;
 	std::string userPrompt;
+	std::string defaultBuildCommand;
+	std::string defaultTestCommand;
 	std::vector<ContextFile> files;
 	std::vector<ProjectFileSummary> projectFiles;
 	std::vector<std::string> contextWarnings;
@@ -114,6 +123,8 @@ bool SaveProjectMemory(const std::string& projectRoot,
 bool LoadProjectMemory(const std::string& projectRoot, size_t maxFiles,
 	std::vector<ProjectFileSummary>& files, size_t& candidateCount,
 	std::string& error);
+bool LoadProjectMemory(const std::string& projectRoot, size_t maxFiles,
+	ProjectMemory& memory, std::string& error);
 bool LoadProjectContextFile(const std::string& projectRoot,
 	const std::string& relativePath, size_t maxBytes, ContextFile& file,
 	std::string& error);

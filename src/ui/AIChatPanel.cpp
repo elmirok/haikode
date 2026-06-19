@@ -3142,12 +3142,18 @@ AIChatPanel::_RequestFromContext(Haikode::AI::PromptMode mode) const
 	request.userPrompt = fPrompt->Text();
 	size_t projectMapCandidateCount = 0;
 	std::string memoryError;
-	if (!Haikode::AI::LoadProjectMemory(fProjectRoot.String(), 80,
-			request.projectFiles, projectMapCandidateCount, memoryError)) {
+	Haikode::AI::ProjectMemory memory;
+	if (Haikode::AI::LoadProjectMemory(fProjectRoot.String(), 80, memory,
+			memoryError)) {
+		request.projectFiles = memory.files;
+		request.projectMapCandidateCount = memory.candidateCount;
+		request.defaultBuildCommand = memory.defaultBuildCommand;
+		request.defaultTestCommand = memory.defaultTestCommand;
+	} else {
 		request.projectFiles = Haikode::AI::BuildProjectMap(
 			fProjectRoot.String(), 80, &projectMapCandidateCount);
+		request.projectMapCandidateCount = projectMapCandidateCount;
 	}
-	request.projectMapCandidateCount = projectMapCandidateCount;
 	if (mode == Haikode::AI::PromptMode::ReviewDiff) {
 		const BString selectedPath = fPatchPath != nullptr
 			? BString(fPatchPath->Text()) : BString();
