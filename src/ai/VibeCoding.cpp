@@ -199,6 +199,24 @@ JoinedArgv(const std::vector<std::string>& argv)
 
 
 bool
+IsShellInterpreter(const std::string& executable)
+{
+	return executable == "sh" || executable == "bash" || executable == "zsh"
+		|| executable == "ksh";
+}
+
+
+bool
+UsesShellCommandString(const CommandRequest& command)
+{
+	if (command.argv.size() < 2 || !IsShellInterpreter(command.argv[0]))
+		return false;
+	return std::find(command.argv.begin() + 1, command.argv.end(), "-c")
+		!= command.argv.end();
+}
+
+
+bool
 NeedsShellQuotes(const std::string& value)
 {
 	if (value.empty())
@@ -236,6 +254,12 @@ void
 ClassifyCommand(CommandRequest& command)
 {
 	const std::string joined = JoinedArgv(command.argv);
+	if (UsesShellCommandString(command)) {
+		command.dangerous = true;
+		command.runnable = false;
+		command.warning = "Command uses a shell interpreter with -c; review and run it manually outside Haikode.";
+		return;
+	}
 	if (joined.find("rm -rf") != std::string::npos) {
 		command.dangerous = true;
 		command.warning = "Dangerous command pattern: rm -rf";
@@ -375,6 +399,8 @@ FormatPendingActions(const PendingActionSummary& summary)
 				<< ": " << CommandDisplayString(command);
 			if (command.dangerous && !command.warning.empty())
 				text << "\n    Warning: " << command.warning;
+			if (!command.runnable)
+				text << "\n    Not runnable inside Haikode.";
 		}
 	}
 
@@ -428,6 +454,8 @@ SaveCommandRequests(const std::string& projectRoot,
 			}
 			file << "],\"dangerous\":"
 				<< (command.dangerous ? "true" : "false")
+				<< ",\"runnable\":"
+				<< (command.runnable ? "true" : "false")
 				<< ",\"warning\":\"" << EscapeJson(command.warning) << "\"}";
 		}
 		file << "\n  ]\n}\n";

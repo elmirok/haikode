@@ -54,6 +54,8 @@ The Genio-based branch now adds:
   approval, so rejected and partially applied proposals still have an audit file.
 - Explicit AI command request parsing and a separate **Run command** approval
   button.
+- Shell-interpreter command requests such as `sh -c ...` are flagged as not
+  runnable inside Haikode and must be reviewed/run manually.
 - A native pending-actions summary that lists pending patch files, hunks,
   additions/deletions, new-file markers, and command requests before the user
   approves anything.

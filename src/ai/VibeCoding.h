@@ -38,6 +38,7 @@ struct CommandRequest {
 	std::string summary;
 	std::vector<std::string> argv;
 	bool dangerous = false;
+	bool runnable = true;
 	std::string warning;
 };
 

@@ -1034,14 +1034,27 @@ AIChatPanel::_RunPendingCommand()
 	prompt << "\n\n" << display.c_str();
 	if (command.dangerous)
 		prompt << "\n\n" << B_TRANSLATE("Warning: ") << command.warning.c_str();
+	if (!command.runnable) {
+		prompt << "\n\n"
+			<< B_TRANSLATE("Haikode will not run this command because it requires shell-string interpretation. Review and run it manually if you trust it.");
+	}
 
 	BAlert* alert = new BAlert("HaikodeRunCommand", prompt.String(),
-		B_TRANSLATE("Cancel"), B_TRANSLATE("Run"), nullptr,
+		B_TRANSLATE("Cancel"), command.runnable ? B_TRANSLATE("Run")
+			: B_TRANSLATE("Acknowledge"), nullptr,
 		B_WIDTH_AS_USUAL, B_OFFSET_SPACING,
 		command.dangerous ? B_WARNING_ALERT : B_IDEA_ALERT);
 	const int32 choice = alert->Go();
 	if (choice != 1) {
 		_AppendOutput(B_TRANSLATE("Command run cancelled."));
+		return;
+	}
+
+	if (!command.runnable) {
+		_AppendOutput(B_TRANSLATE("Command was not run because it requires manual shell review."));
+		fPendingCommands.erase(fPendingCommands.begin());
+		fRunCommandButton->SetEnabled(!fPendingCommands.empty());
+		_UpdatePendingActions();
 		return;
 	}
 

@@ -75,6 +75,7 @@ main()
 	assert(saved.find("\"summary\":\"Run unit tests\"") != std::string::npos);
 	assert(saved.find("\"argv\":[\"make\",\"test\"]") != std::string::npos);
 	assert(saved.find("\"dangerous\":false") != std::string::npos);
+	assert(saved.find("\"runnable\":true") != std::string::npos);
 
 	Haikode::AI::AiSessionRecord session;
 	session.userPrompt = "Explain the current file";
@@ -117,7 +118,18 @@ main()
 	assert(Haikode::AI::ExtractCommandRequests(shellPipe, commands, error));
 	assert(commands.size() == 1);
 	assert(commands[0].dangerous);
-	assert(commands[0].warning.find("pipe") != std::string::npos);
+	assert(!commands[0].runnable);
+	assert(commands[0].warning.find("shell interpreter") != std::string::npos);
+
+	const std::string shellInterpreter =
+		"```haikode-command\n"
+		"{\"summary\":\"Shell\",\"argv\":[\"sh\",\"-c\",\"make test\"]}\n"
+		"```\n";
+	assert(Haikode::AI::ExtractCommandRequests(shellInterpreter, commands, error));
+	assert(commands.size() == 1);
+	assert(commands[0].dangerous);
+	assert(!commands[0].runnable);
+	assert(commands[0].warning.find("shell interpreter") != std::string::npos);
 
 	const std::string invalid =
 		"```haikode-command\n"
