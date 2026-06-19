@@ -15,6 +15,23 @@ EndsWithSlash(const std::string& value)
 	return !value.empty() && value[value.size() - 1] == '/';
 }
 
+std::string
+TrimTrailingSlashes(std::string value)
+{
+	while (!value.empty() && value[value.size() - 1] == '/')
+		value.pop_back();
+	return value;
+}
+
+
+bool
+EndsWith(const std::string& value, const std::string& suffix)
+{
+	return value.size() >= suffix.size()
+		&& value.compare(value.size() - suffix.size(), suffix.size(), suffix)
+			== 0;
+}
+
 } // namespace
 
 bool
@@ -80,9 +97,16 @@ ProviderSettings::Validate(std::string& error) const
 std::string
 ProviderSettings::ChatCompletionsEndpoint() const
 {
+	const std::string base = TrimTrailingSlashes(baseUrl);
+	if (EndsWith(base, "/v1/chat/completions")
+		|| EndsWith(base, "/chat/completions")) {
+		return base;
+	}
+	if (EndsWith(base, "/v1"))
+		return base + "/chat/completions";
 	if (EndsWithSlash(baseUrl))
 		return baseUrl + "v1/chat/completions";
-	return baseUrl + "/v1/chat/completions";
+	return base + "/v1/chat/completions";
 }
 
 

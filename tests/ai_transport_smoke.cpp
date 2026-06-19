@@ -57,6 +57,11 @@ main()
 	assert(openRouterPreset.baseUrl == "https://openrouter.ai/api");
 	assert(openRouterPreset.model == "openai/gpt-4.1-mini");
 	assert(openRouterPreset.authMode == Haikode::AI::AuthMode::ApiKey);
+	Haikode::AI::ProviderSettings openRouterV1 = openRouterPreset;
+	openRouterV1.apiKey = "router-key";
+	openRouterV1.baseUrl = "https://openrouter.ai/api/v1";
+	prepared = Haikode::AI::OpenAICompatibleClient::Prepare(openRouterV1, request);
+	assert(prepared.url == "https://openrouter.ai/api/v1/chat/completions");
 
 	const Haikode::AI::ProviderSettings llamaCppPreset
 		= Haikode::AI::ProviderPresetSettings(
@@ -71,6 +76,16 @@ main()
 	prepared = Haikode::AI::OpenAICompatibleClient::Prepare(localProvider, request);
 	assert(prepared.url == "http://127.0.0.1:11434/v1/chat/completions");
 	assert(prepared.authorizationHeader.empty());
+
+	localProvider.baseUrl = "http://127.0.0.1:11434/";
+	prepared = Haikode::AI::OpenAICompatibleClient::Prepare(localProvider, request);
+	assert(prepared.url == "http://127.0.0.1:11434/v1/chat/completions");
+	localProvider.baseUrl = "http://127.0.0.1:11434/v1";
+	prepared = Haikode::AI::OpenAICompatibleClient::Prepare(localProvider, request);
+	assert(prepared.url == "http://127.0.0.1:11434/v1/chat/completions");
+	localProvider.baseUrl = "http://127.0.0.1:11434/v1/chat/completions";
+	prepared = Haikode::AI::OpenAICompatibleClient::Prepare(localProvider, request);
+	assert(prepared.url == "http://127.0.0.1:11434/v1/chat/completions");
 
 	Haikode::AI::ProviderSettings oauthProvider;
 	oauthProvider.authMode = Haikode::AI::AuthMode::OAuth;

@@ -129,7 +129,8 @@ For OpenRouter, use the **OpenRouter** preset and paste your OpenRouter API key.
 For local OpenAI-compatible servers such as Ollama, LM Studio, or llama.cpp,
 set:
 
-* Base URL: the local server, for example `http://127.0.0.1:11434`.
+* Base URL: the local server root or `/v1` endpoint, for example
+  `http://127.0.0.1:11434` or `http://127.0.0.1:11434/v1`.
 * Auth: `local`.
 * API key/OAuth token: leave blank.
 
