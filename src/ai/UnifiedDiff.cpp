@@ -251,6 +251,27 @@ UnifiedDiff::ParseHunkHeader(const std::string& line, PatchHunk& hunk)
 }
 
 
+std::vector<std::string>
+UnifiedDiff::ChangedPaths() const
+{
+	std::vector<std::string> paths;
+	paths.reserve(fFiles.size());
+	for (const PatchFile& file : fFiles)
+		paths.push_back(file.newPath);
+	return paths;
+}
+
+
+int
+UnifiedDiff::HunkCount() const
+{
+	int count = 0;
+	for (const PatchFile& file : fFiles)
+		count += static_cast<int>(file.hunks.size());
+	return count;
+}
+
+
 bool
 UnifiedDiff::Apply(const std::string& projectRoot, PatchApplyResult& result,
 	std::string& error) const

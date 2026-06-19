@@ -134,6 +134,7 @@ private:
 			void				_ShowDocumentation();
 			void				_ShowHaikodeAI();
 			void				_UpdateHaikodeAIContext();
+			void				_ReloadChangedFilesFromAI(BMessage* message);
 
 			// Project Folders (TODO: Rename to Project*, without "Folder")
 			void				_ProjectFolderClose(ProjectFolder *project);

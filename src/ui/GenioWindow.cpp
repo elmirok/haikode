@@ -302,6 +302,9 @@ GenioWindow::MessageReceived(BMessage* message)
 			window->Show();
 			break;
 		}
+		case MSG_HAIKODE_AI_PATCH_APPLIED:
+			_ReloadChangedFilesFromAI(message);
+			break;
 		case kLSPWorkProgress:
 		{
 			ProjectFolder* active = GetActiveProject();
@@ -4318,6 +4321,45 @@ GenioWindow::_UpdateHaikodeAIContext()
 	}
 
 	fAIChatPanel->SetActiveContext(projectRoot, filePath, selection);
+}
+
+
+void
+GenioWindow::_ReloadChangedFilesFromAI(BMessage* message)
+{
+	const BString projectRoot(message->GetString("project_root", ""));
+	if (projectRoot.IsEmpty())
+		return;
+
+	int32 index = 0;
+	BString relativePath;
+	while (message->FindString("changed_file", index++, &relativePath) == B_OK) {
+		BPath path(projectRoot.String());
+		if (path.Append(relativePath.String()) != B_OK)
+			continue;
+
+		entry_ref ref;
+		if (get_ref_for_path(path.Path(), &ref) != B_OK) {
+			LogError("Haikode AI could not reload changed file: %s", path.Path());
+			continue;
+		}
+
+		for (int32 tab = 0; tab < fTabManager->CountTabs(); tab++) {
+			IEditor* editor = fTabManager->EditorAt(tab);
+			if (editor == nullptr || editor->FilePath().Compare(path.Path()) != 0)
+				continue;
+
+			if (editor->IsModified()) {
+				LogInfo("Haikode AI changed %s on disk but left the modified editor buffer untouched.",
+					path.Path());
+				break;
+			}
+
+			_ReloadFileInEditor(editor, &ref);
+			LogInfo("Haikode AI reloaded changed editor tab: %s", path.Path());
+			break;
+		}
+	}
 }
 
 

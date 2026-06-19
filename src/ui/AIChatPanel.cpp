@@ -17,6 +17,7 @@
 
 #include "ConfigManager.h"
 #include "ConfigWindow.h"
+#include "GenioWindowMessages.h"
 
 #include <thread>
 
@@ -358,7 +359,16 @@ AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 		fPendingRawDiff = rawDiff.c_str();
 		fApplyPatchButton->SetEnabled(true);
 		fRejectPatchButton->SetEnabled(true);
-		BString line(B_TRANSLATE("Unified diff detected. Review the response, then click Apply patch or Reject patch."));
+		BString line(B_TRANSLATE("Unified diff detected: "));
+		line << diff.ChangedPaths().size() << B_TRANSLATE(" file(s), ")
+			<< diff.HunkCount() << B_TRANSLATE(" hunk(s).");
+		_AppendOutput(line.String());
+		for (const std::string& path : diff.ChangedPaths()) {
+			BString pathLine("  ");
+			pathLine << path.c_str();
+			_AppendOutput(pathLine.String());
+		}
+		line = B_TRANSLATE("Review the response, then click Apply patch or Reject patch.");
 		_AppendOutput(line.String());
 	}
 }
@@ -392,6 +402,13 @@ AIChatPanel::_ApplyPendingDiff()
 		BString fileLine("  ");
 		fileLine << file.c_str();
 		_AppendOutput(fileLine.String());
+	}
+	if (Window() != nullptr) {
+		BMessage notify(MSG_HAIKODE_AI_PATCH_APPLIED);
+		notify.AddString("project_root", fProjectRoot);
+		for (const std::string& file : result.changedFiles)
+			notify.AddString("changed_file", file.c_str());
+		Window()->PostMessage(&notify);
 	}
 	_RejectPendingDiff();
 }

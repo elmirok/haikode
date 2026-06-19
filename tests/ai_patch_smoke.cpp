@@ -50,6 +50,9 @@ main()
 	assert(Haikode::AI::UnifiedDiff::Parse(diff, parsed, error));
 	assert(parsed.Files().size() == 1);
 	assert(parsed.Files()[0].newPath == "src/main.cpp");
+	assert(parsed.ChangedPaths().size() == 1);
+	assert(parsed.ChangedPaths()[0] == "src/main.cpp");
+	assert(parsed.HunkCount() == 1);
 
 	Haikode::AI::PatchApplyResult result;
 	assert(parsed.Apply(root.string(), result, error));

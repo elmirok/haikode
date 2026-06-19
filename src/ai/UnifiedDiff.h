@@ -42,6 +42,8 @@ public:
 
 	const std::vector<PatchFile>& Files() const { return fFiles; }
 	bool IsEmpty() const { return fFiles.empty(); }
+	std::vector<std::string> ChangedPaths() const;
+	int HunkCount() const;
 
 	bool Apply(const std::string& projectRoot, PatchApplyResult& result,
 		std::string& error) const;
