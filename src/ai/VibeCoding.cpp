@@ -1159,6 +1159,18 @@ FormatPendingActions(const PendingActionSummary& summary)
 		if (text.tellp() > 0)
 			text << "\n";
 		text << "Commands: " << summary.commands.size() << " pending";
+		size_t blockedCount = 0;
+		size_t warningCount = 0;
+		for (const CommandRequest& command : summary.commands) {
+			if (!command.runnable)
+				blockedCount++;
+			if (command.dangerous)
+				warningCount++;
+		}
+		if (blockedCount > 0)
+			text << ", " << blockedCount << " blocked";
+		if (warningCount > 0)
+			text << ", " << warningCount << " warning";
 		for (const CommandRequest& command : summary.commands) {
 			text << "\n  "
 				<< (command.summary.empty() ? "Command" : command.summary)

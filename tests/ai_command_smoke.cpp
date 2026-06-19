@@ -212,6 +212,15 @@ main()
 		!= std::string::npos);
 	assert(blockedApproval.find(blockedCommand.warning) != std::string::npos);
 
+	Haikode::AI::PendingActionSummary blockedSummary;
+	blockedSummary.commands = {commands[0], blockedCommand};
+	const std::string blockedPendingText
+		= Haikode::AI::FormatPendingActions(blockedSummary);
+	assert(blockedPendingText.find("Commands: 2 pending, 1 blocked, 1 warning")
+		!= std::string::npos);
+	assert(blockedPendingText.find("Not runnable inside Haikode")
+		!= std::string::npos);
+
 	const fs::path root = fs::temp_directory_path() / "haikode-command-smoke";
 	fs::remove_all(root);
 	fs::create_directories(root);
