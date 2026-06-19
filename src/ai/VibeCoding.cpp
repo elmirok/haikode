@@ -1098,6 +1098,17 @@ CommandDisplayString(const CommandRequest& command)
 
 
 std::string
+CommandPrimaryActionLabel(const CommandRequest& command)
+{
+	if (!command.runnable)
+		return "Acknowledge command";
+	if (command.dangerous)
+		return "Review command";
+	return "Run command";
+}
+
+
+std::string
 FormatCommandApprovalPrompt(const CommandRequest& command,
 	const std::string& projectRoot)
 {

@@ -220,6 +220,19 @@ main()
 		!= std::string::npos);
 	assert(blockedPendingText.find("Not runnable inside Haikode")
 		!= std::string::npos);
+	assert(Haikode::AI::CommandPrimaryActionLabel(commands[0])
+		== "Run command");
+	assert(Haikode::AI::CommandPrimaryActionLabel(blockedCommand)
+		== "Acknowledge command");
+
+	Haikode::AI::CommandRequest riskyCommand;
+	riskyCommand.summary = "Install package";
+	riskyCommand.argv = {"pkgman", "install", "curl_devel"};
+	riskyCommand.dangerous = true;
+	riskyCommand.runnable = true;
+	riskyCommand.warning = "Package install changes the system.";
+	assert(Haikode::AI::CommandPrimaryActionLabel(riskyCommand)
+		== "Review command");
 
 	const fs::path root = fs::temp_directory_path() / "haikode-command-smoke";
 	fs::remove_all(root);

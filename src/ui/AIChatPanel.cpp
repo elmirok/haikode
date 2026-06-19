@@ -2763,6 +2763,22 @@ AIChatPanel::_UpdatePendingActions()
 	}
 	summary.commands = fPendingCommands;
 	fPendingActions->SetText(Haikode::AI::FormatPendingActions(summary).c_str());
+
+	if (fRunCommandButton != nullptr) {
+		if (fPendingCommands.empty()) {
+			fRunCommandButton->SetLabel(B_TRANSLATE("Run command"));
+		} else {
+			const std::string action
+				= Haikode::AI::CommandPrimaryActionLabel(
+					fPendingCommands.front());
+			if (action == "Acknowledge command")
+				fRunCommandButton->SetLabel(B_TRANSLATE("Acknowledge command"));
+			else if (action == "Review command")
+				fRunCommandButton->SetLabel(B_TRANSLATE("Review command"));
+			else
+				fRunCommandButton->SetLabel(B_TRANSLATE("Run command"));
+		}
+	}
 }
 
 
