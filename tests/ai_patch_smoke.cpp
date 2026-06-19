@@ -61,6 +61,14 @@ main()
 	assert(stats[0].deletions == 1);
 	assert(stats[0].hunkCount == 1);
 	assert(!stats[0].newFile);
+	const std::string preview = parsed.ReviewText();
+	assert(preview.find("Patch preview: 1 file(s), 1 hunk(s), +1 -1")
+		!= std::string::npos);
+	assert(preview.find("src/main.cpp (+1 -1, 1 hunk(s))")
+		!= std::string::npos);
+	assert(preview.find("@@ -1,3 +1,3 @@") != std::string::npos);
+	assert(preview.find("-old") != std::string::npos);
+	assert(preview.find("+new") != std::string::npos);
 
 	Haikode::AI::PatchApplyResult result;
 	assert(parsed.Apply(root.string(), result, error));
@@ -127,6 +135,9 @@ main()
 	assert(newFileStats[0].additions == 4);
 	assert(newFileStats[0].deletions == 0);
 	assert(newFileStats[0].newFile);
+	assert(newFilePatch.ReviewText().find(
+		"src/new_feature.cpp (+4 -0, 1 hunk(s), new file)")
+		!= std::string::npos);
 	assert(newFilePatch.Apply(root.string(), result, error));
 	assert(ReadFile(root / "src" / "new_feature.cpp")
 		== "#include <iostream>\nint answer() {\n\treturn 42;\n}\n");

@@ -1032,6 +1032,8 @@ AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 			pathLine << path.c_str();
 			_AppendOutput(pathLine.String());
 		}
+		_AppendOutput("");
+		_AppendOutput(diff.ReviewText().c_str());
 		line = B_TRANSLATE("Review the response, then click Apply patch or Reject patch.");
 		_AppendOutput(line.String());
 	}

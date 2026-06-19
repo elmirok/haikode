@@ -65,6 +65,8 @@ The Genio-based branch now adds:
 - A native pending-actions summary that lists pending patch files, hunks,
   additions/deletions, new-file markers, and command requests before the user
   approves anything.
+- A structured patch preview that prints each changed file, hunk header, and
+  added/removed/context lines before any apply action.
 - Project-local `.haikode/sessions/` records for successful AI exchanges,
   storing prompts, responses, provider metadata, active file, and pending
   actions without API keys or bearer tokens.
@@ -79,6 +81,6 @@ endpoint fields. API key and OAuth token fields are masked in the native UI.
 You do not need to export an API key in Terminal. Then use **Test provider** to
 verify the endpoint before asking questions or proposing patches.
 
-The next slice should improve the review UI from raw text to per-file/per-hunk
-review, then add a more complete Codex/OAuth bridge where Codex CLI is
-available on Haiku.
+The next slice should improve patch review from text output into a richer
+native per-file/per-hunk UI, then add a more complete Codex/OAuth bridge where
+Codex CLI is available on Haiku.

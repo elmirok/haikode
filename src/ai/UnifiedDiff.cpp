@@ -363,6 +363,43 @@ UnifiedDiff::HunkCount() const
 }
 
 
+std::string
+UnifiedDiff::ReviewText() const
+{
+	const std::vector<PatchFileStats> stats = FileStats();
+	size_t additions = 0;
+	size_t deletions = 0;
+	size_t hunkCount = 0;
+	for (const PatchFileStats& fileStats : stats) {
+		additions += fileStats.additions;
+		deletions += fileStats.deletions;
+		hunkCount += fileStats.hunkCount;
+	}
+
+	std::ostringstream preview;
+	preview << "Patch preview: " << fFiles.size() << " file(s), "
+		<< hunkCount << " hunk(s), +" << additions << " -" << deletions;
+	for (size_t fileIndex = 0; fileIndex < fFiles.size(); ++fileIndex) {
+		const PatchFile& file = fFiles[fileIndex];
+		const PatchFileStats& fileStats = stats[fileIndex];
+		preview << "\n\n" << fileStats.path << " (+" << fileStats.additions
+			<< " -" << fileStats.deletions << ", " << fileStats.hunkCount
+			<< " hunk(s)";
+		if (fileStats.newFile)
+			preview << ", new file";
+		preview << ")";
+
+		for (const PatchHunk& hunk : file.hunks) {
+			preview << "\n@@ -" << hunk.oldStart << "," << hunk.oldCount
+				<< " +" << hunk.newStart << "," << hunk.newCount << " @@";
+			for (const PatchHunkLine& line : hunk.lines)
+				preview << "\n" << line.kind << line.text;
+		}
+	}
+	return preview.str();
+}
+
+
 bool
 UnifiedDiff::Apply(const std::string& projectRoot, PatchApplyResult& result,
 	std::string& error) const
