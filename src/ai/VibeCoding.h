@@ -34,8 +34,17 @@ struct PromptBuildResult {
 	std::vector<std::string> warnings;
 };
 
+struct CommandRequest {
+	std::string summary;
+	std::vector<std::string> argv;
+	bool dangerous = false;
+	std::string warning;
+};
+
 std::string SelectContextText(const std::string& selection,
 	const std::string& fullFileText);
+bool ExtractCommandRequests(const std::string& text,
+	std::vector<CommandRequest>& commands, std::string& error);
 
 class PromptBuilder {
 public:

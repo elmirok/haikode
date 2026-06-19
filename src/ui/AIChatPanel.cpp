@@ -368,6 +368,30 @@ AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 		line = B_TRANSLATE("Review the response, then click Apply patch or Reject patch.");
 		_AppendOutput(line.String());
 	}
+
+	std::vector<Haikode::AI::CommandRequest> commands;
+	if (Haikode::AI::ExtractCommandRequests(text.String(), commands, parseError)
+		&& !commands.empty()) {
+		_AppendOutput(B_TRANSLATE("Command request(s) detected. Haikode did not run them."));
+		for (const Haikode::AI::CommandRequest& command : commands) {
+			BString line("  ");
+			line << (command.summary.empty() ? "Command" : command.summary.c_str())
+				<< ":";
+			for (const std::string& arg : command.argv)
+				line << " " << arg.c_str();
+			_AppendOutput(line.String());
+			if (command.dangerous) {
+				line = B_TRANSLATE("    Warning: ");
+				line << command.warning.c_str();
+				_AppendOutput(line.String());
+			}
+		}
+		_AppendOutput(B_TRANSLATE("Command execution still requires a separate explicit user action."));
+	} else if (!parseError.empty()) {
+		BString line(B_TRANSLATE("Command request parse warning: "));
+		line << parseError.c_str();
+		_AppendOutput(line.String());
+	}
 }
 
 

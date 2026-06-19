@@ -6,9 +6,182 @@
 #include "VibeCoding.h"
 
 #include <algorithm>
+#include <cctype>
 #include <sstream>
 
 namespace Haikode::AI {
+
+namespace {
+
+std::string
+Trim(const std::string& value)
+{
+	size_t start = 0;
+	while (start < value.size()
+		&& std::isspace(static_cast<unsigned char>(value[start]))) {
+		start++;
+	}
+	size_t end = value.size();
+	while (end > start
+		&& std::isspace(static_cast<unsigned char>(value[end - 1]))) {
+		end--;
+	}
+	return value.substr(start, end - start);
+}
+
+
+bool
+ReadJsonString(const std::string& text, size_t& pos, std::string& value)
+{
+	value.clear();
+	if (pos >= text.size() || text[pos] != '"')
+		return false;
+	pos++;
+	while (pos < text.size()) {
+		const char c = text[pos++];
+		if (c == '"')
+			return true;
+		if (c == '\\' && pos < text.size()) {
+			const char escaped = text[pos++];
+			switch (escaped) {
+				case 'n':
+					value.push_back('\n');
+					break;
+				case 't':
+					value.push_back('\t');
+					break;
+				default:
+					value.push_back(escaped);
+					break;
+			}
+		} else {
+			value.push_back(c);
+		}
+	}
+	return false;
+}
+
+
+bool
+ExtractJsonStringField(const std::string& json, const std::string& key,
+	std::string& value)
+{
+	const std::string marker = "\"" + key + "\"";
+	size_t pos = json.find(marker);
+	if (pos == std::string::npos)
+		return false;
+	pos = json.find(':', pos + marker.size());
+	if (pos == std::string::npos)
+		return false;
+	pos++;
+	while (pos < json.size()
+		&& std::isspace(static_cast<unsigned char>(json[pos]))) {
+		pos++;
+	}
+	return ReadJsonString(json, pos, value);
+}
+
+
+bool
+ExtractJsonStringArrayField(const std::string& json, const std::string& key,
+	std::vector<std::string>& values)
+{
+	values.clear();
+	const std::string marker = "\"" + key + "\"";
+	size_t pos = json.find(marker);
+	if (pos == std::string::npos)
+		return false;
+	pos = json.find(':', pos + marker.size());
+	if (pos == std::string::npos)
+		return false;
+	pos++;
+	while (pos < json.size()
+		&& std::isspace(static_cast<unsigned char>(json[pos]))) {
+		pos++;
+	}
+	if (pos >= json.size() || json[pos] != '[')
+		return false;
+	pos++;
+	while (pos < json.size()) {
+		while (pos < json.size()
+			&& std::isspace(static_cast<unsigned char>(json[pos]))) {
+			pos++;
+		}
+		if (pos < json.size() && json[pos] == ']')
+			return true;
+
+		std::string value;
+		if (!ReadJsonString(json, pos, value))
+			return false;
+		values.push_back(value);
+
+		while (pos < json.size()
+			&& std::isspace(static_cast<unsigned char>(json[pos]))) {
+			pos++;
+		}
+		if (pos < json.size() && json[pos] == ',') {
+			pos++;
+			continue;
+		}
+		if (pos < json.size() && json[pos] == ']')
+			return true;
+		return false;
+	}
+	return false;
+}
+
+
+std::string
+JoinedArgv(const std::vector<std::string>& argv)
+{
+	std::string command;
+	for (const std::string& arg : argv) {
+		if (!command.empty())
+			command += " ";
+		command += arg;
+	}
+	return command;
+}
+
+
+void
+ClassifyCommand(CommandRequest& command)
+{
+	const std::string joined = JoinedArgv(command.argv);
+	if (joined.find("rm -rf") != std::string::npos) {
+		command.dangerous = true;
+		command.warning = "Dangerous command pattern: rm -rf";
+		return;
+	}
+	if (joined.find("sudo") != std::string::npos
+		|| joined.find(" dd ") != std::string::npos
+		|| joined.find("mkfs") != std::string::npos) {
+		command.dangerous = true;
+		command.warning = "Dangerous privileged or destructive command.";
+		return;
+	}
+	if (joined.find("curl") != std::string::npos
+		&& joined.find("|") != std::string::npos
+		&& joined.find("sh") != std::string::npos) {
+		command.dangerous = true;
+		command.warning = "Dangerous command pattern: network download pipe to shell";
+		return;
+	}
+	if (joined.find("wget") != std::string::npos
+		&& joined.find("|") != std::string::npos
+		&& joined.find("sh") != std::string::npos) {
+		command.dangerous = true;
+		command.warning = "Dangerous command pattern: network download pipe to shell";
+		return;
+	}
+	if (joined.find("chmod -R 777") != std::string::npos) {
+		command.dangerous = true;
+		command.warning = "Dangerous command pattern: chmod -R 777";
+		return;
+	}
+}
+
+} // namespace
 
 std::string
 SelectContextText(const std::string& selection, const std::string& fullFileText)
@@ -16,6 +189,44 @@ SelectContextText(const std::string& selection, const std::string& fullFileText)
 	if (!selection.empty())
 		return selection;
 	return fullFileText;
+}
+
+
+bool
+ExtractCommandRequests(const std::string& text,
+	std::vector<CommandRequest>& commands, std::string& error)
+{
+	commands.clear();
+	error.clear();
+	size_t pos = 0;
+	while (true) {
+		const size_t fence = text.find("```haikode-command", pos);
+		if (fence == std::string::npos)
+			return true;
+		const size_t bodyStart = text.find('\n', fence);
+		if (bodyStart == std::string::npos) {
+			error = "Command request fence has no body.";
+			return false;
+		}
+		const size_t bodyEnd = text.find("```", bodyStart + 1);
+		if (bodyEnd == std::string::npos) {
+			error = "Command request fence is not closed.";
+			return false;
+		}
+
+		const std::string json = Trim(text.substr(bodyStart + 1,
+			bodyEnd - bodyStart - 1));
+		CommandRequest command;
+		ExtractJsonStringField(json, "summary", command.summary);
+		if (!ExtractJsonStringArrayField(json, "argv", command.argv)
+			|| command.argv.empty()) {
+			error = "Command request argv must be a non-empty JSON string array.";
+			return false;
+		}
+		ClassifyCommand(command);
+		commands.push_back(command);
+		pos = bodyEnd + 3;
+	}
 }
 
 
@@ -49,7 +260,9 @@ PromptBuilder::Build(const VibeCodingRequest& request, size_t maxBytesPerFile,
 		<< "Prefer BeAPI and native C++ patterns. Do not suggest Electron or "
 		<< "webview rewrites.\n"
 		<< "Never assume permission to run commands or write files. File edits "
-		<< "must be proposed as unified diffs for explicit review.\n\n"
+		<< "must be proposed as unified diffs for explicit review. If a command "
+		<< "would help, propose it in a fenced haikode-command JSON block with "
+		<< "summary and argv fields; Haikode will not run it automatically.\n\n"
 		<< "Project root: " << request.projectRoot << "\n"
 		<< "Mode: " << ModeInstruction(request.mode) << "\n\n"
 		<< "User request:\n" << request.userPrompt << "\n\n";
