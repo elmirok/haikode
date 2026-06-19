@@ -66,6 +66,12 @@ main()
 		code, error));
 	assert(code == "code value");
 	assert(Haikode::AI::OAuthClient::ExtractAuthorizationCode(
+		"/callback?state=haikode&code=local%20callback", code, error));
+	assert(code == "local callback");
+	assert(Haikode::AI::OAuthClient::ExtractAuthorizationCode(
+		"http://127.0.0.1:8765/callback#code=fragment%20code", code, error));
+	assert(code == "fragment code");
+	assert(Haikode::AI::OAuthClient::ExtractAuthorizationCode(
 		"plain-code", code, error));
 	assert(code == "plain-code");
 	assert(!Haikode::AI::OAuthClient::ExtractAuthorizationCode(

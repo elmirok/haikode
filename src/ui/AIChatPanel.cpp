@@ -23,8 +23,18 @@
 #include "ConfigManager.h"
 #include "GenioWindowMessages.h"
 
+#include <cerrno>
 #include <cstring>
+#include <cstdlib>
 #include <thread>
+
+#ifdef HAIKODE_AI_NETWORK
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/select.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#endif
 
 #undef B_TRANSLATION_CONTEXT
 #define B_TRANSLATION_CONTEXT "AIChatPanel"
@@ -54,6 +64,7 @@ const uint32 kMsgTestProviderResponse = 'hitr';
 const uint32 kMsgStartOAuth = 'hiox';
 const uint32 kMsgExchangeOAuth = 'hixo';
 const uint32 kMsgOAuthResponse = 'hior';
+const uint32 kMsgOAuthCallback = 'hioc';
 const uint32 kMsgAsk = 'hiak';
 const uint32 kMsgExplainSelection = 'hiex';
 const uint32 kMsgSummarizeProject = 'hisu';
@@ -87,6 +98,149 @@ InitialAIStatusText()
 	return B_TRANSLATE("AI network transport is disabled in this build. Rebuild with HAIKODE_AI_NETWORK=1 and install curl_devel to use cloud AI. API keys are entered inside AI Setup; no Terminal export is required.");
 #endif
 }
+
+#ifdef HAIKODE_AI_NETWORK
+bool
+ParseLoopbackRedirect(const std::string& redirectUri, uint16_t& port,
+	std::string& error)
+{
+	port = 0;
+	error.clear();
+
+	const size_t schemeEnd = redirectUri.find("://");
+	if (schemeEnd == std::string::npos
+		|| redirectUri.substr(0, schemeEnd) != "http") {
+		error = "OAuth callback listener requires an http:// loopback redirect URI.";
+		return false;
+	}
+
+	const size_t authorityStart = schemeEnd + 3;
+	const size_t pathStart = redirectUri.find('/', authorityStart);
+	const std::string authority = redirectUri.substr(authorityStart,
+		pathStart == std::string::npos ? std::string::npos
+			: pathStart - authorityStart);
+	const size_t colon = authority.rfind(':');
+	const std::string host = colon == std::string::npos ? authority
+		: authority.substr(0, colon);
+	if (host != "127.0.0.1" && host != "localhost") {
+		error = "OAuth callback listener only accepts 127.0.0.1 or localhost redirect URIs.";
+		return false;
+	}
+
+	if (colon == std::string::npos) {
+		port = 80;
+		return true;
+	}
+
+	char* end = nullptr;
+	const long parsedPort = std::strtol(authority.c_str() + colon + 1, &end, 10);
+	if (end == authority.c_str() + colon + 1 || *end != '\0'
+		|| parsedPort <= 0 || parsedPort > 65535) {
+		error = "OAuth redirect URI has an invalid port.";
+		return false;
+	}
+	port = static_cast<uint16_t>(parsedPort);
+	return true;
+}
+
+
+bool
+WaitForOAuthCallback(const std::string& redirectUri, std::string& callback,
+	std::string& error)
+{
+	callback.clear();
+	error.clear();
+
+	uint16_t port = 0;
+	if (!ParseLoopbackRedirect(redirectUri, port, error))
+		return false;
+
+	const int server = socket(AF_INET, SOCK_STREAM, 0);
+	if (server < 0) {
+		error = std::string("Could not create OAuth callback socket: ")
+			+ strerror(errno);
+		return false;
+	}
+
+	const int reuse = 1;
+	setsockopt(server, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
+
+	sockaddr_in address;
+	memset(&address, 0, sizeof(address));
+	address.sin_family = AF_INET;
+	address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	address.sin_port = htons(port);
+
+	if (bind(server, reinterpret_cast<sockaddr*>(&address), sizeof(address))
+		!= 0) {
+		error = std::string("Could not bind OAuth callback listener: ")
+			+ strerror(errno);
+		close(server);
+		return false;
+	}
+	if (listen(server, 1) != 0) {
+		error = std::string("Could not listen for OAuth callback: ")
+			+ strerror(errno);
+		close(server);
+		return false;
+	}
+
+	fd_set readSet;
+	FD_ZERO(&readSet);
+	FD_SET(server, &readSet);
+	timeval timeout;
+	timeout.tv_sec = 120;
+	timeout.tv_usec = 0;
+	const int ready = select(server + 1, &readSet, nullptr, nullptr, &timeout);
+	if (ready <= 0) {
+		error = ready == 0 ? "OAuth callback listener timed out."
+			: std::string("OAuth callback listener failed: ") + strerror(errno);
+		close(server);
+		return false;
+	}
+
+	const int client = accept(server, nullptr, nullptr);
+	if (client < 0) {
+		error = std::string("Could not accept OAuth callback: ")
+			+ strerror(errno);
+		close(server);
+		return false;
+	}
+
+	char buffer[4096];
+	const ssize_t received = recv(client, buffer, sizeof(buffer) - 1, 0);
+	if (received <= 0) {
+		error = "OAuth callback was empty.";
+		close(client);
+		close(server);
+		return false;
+	}
+	buffer[received] = '\0';
+
+	const std::string request(buffer);
+	const size_t methodEnd = request.find(' ');
+	const size_t targetEnd = methodEnd == std::string::npos
+		? std::string::npos : request.find(' ', methodEnd + 1);
+	if (methodEnd == std::string::npos || targetEnd == std::string::npos) {
+		error = "OAuth callback HTTP request was malformed.";
+		close(client);
+		close(server);
+		return false;
+	}
+	callback = request.substr(methodEnd + 1, targetEnd - methodEnd - 1);
+
+	const char response[] =
+		"HTTP/1.1 200 OK\r\n"
+		"Content-Type: text/plain; charset=utf-8\r\n"
+		"Connection: close\r\n"
+		"\r\n"
+		"Haikode received the OAuth callback. You can return to Haikode.";
+	send(client, response, sizeof(response) - 1, 0);
+	close(client);
+	close(server);
+	return true;
+}
+#endif
 
 class AIProviderSetupWindow : public BWindow {
 public:
@@ -445,6 +599,21 @@ AIChatPanel::MessageReceived(BMessage* message)
 		{
 			_FinishOAuthExchange(message->GetString("token", ""),
 				message->GetString("error", ""), message->GetInt64("status", 0));
+			break;
+		}
+		case kMsgOAuthCallback:
+		{
+			const BString callback(message->GetString("callback", ""));
+			const BString error(message->GetString("error", ""));
+			if (!callback.IsEmpty()) {
+				fOAuthCode->SetText(callback.String());
+				_AppendOutput(B_TRANSLATE("OAuth callback received. Exchanging authorization code."));
+				_ExchangeOAuthCode();
+			} else if (!error.IsEmpty()) {
+				BString line(B_TRANSLATE("OAuth callback listener: "));
+				line << error;
+				_AppendOutput(line.String());
+			}
 			break;
 		}
 		case kMsgApplyFirstFile:
@@ -852,9 +1021,10 @@ AIChatPanel::_StartOAuth()
 {
 	_SaveProviderToConfig();
 	Haikode::AI::OAuthSettings settings = _OAuthSettingsFromFields();
-	if (settings.authUrl.empty() || settings.clientId.empty()
+	if (settings.authUrl.empty() || settings.tokenUrl.empty()
+		|| settings.clientId.empty()
 		|| settings.redirectUri.empty()) {
-		_AppendOutput(B_TRANSLATE("OAuth auth URL, client ID, and redirect URI are required."));
+		_AppendOutput(B_TRANSLATE("OAuth auth URL, token URL, client ID, and redirect URI are required."));
 		return;
 	}
 
@@ -865,6 +1035,24 @@ AIChatPanel::_StartOAuth()
 
 	const std::string authUrl = Haikode::AI::OAuthClient::BuildAuthUrl(
 		settings, verifier, "haikode");
+
+#ifdef HAIKODE_AI_NETWORK
+	BMessenger callbackMessenger(this);
+	const std::string redirectUri = settings.redirectUri;
+	std::thread([callbackMessenger, redirectUri]() mutable {
+		std::string callback;
+		std::string error;
+		const bool ok = WaitForOAuthCallback(redirectUri, callback, error);
+		BMessage message(kMsgOAuthCallback);
+		message.AddString("callback", ok ? callback.c_str() : "");
+		message.AddString("error", ok ? "" : error.c_str());
+		callbackMessenger.SendMessage(&message);
+	}).detach();
+	_AppendOutput(B_TRANSLATE("Waiting for OAuth browser callback on localhost. Paste-code fallback remains available."));
+#else
+	_AppendOutput(B_TRANSLATE("This build cannot listen for OAuth browser callbacks; paste the returned code manually."));
+#endif
+
 	const char* argv[2] = {authUrl.c_str(), nullptr};
 	status_t status = be_roster->Launch("text/html", 1, argv);
 	if (status != B_OK) {
@@ -873,7 +1061,7 @@ AIChatPanel::_StartOAuth()
 		_AppendOutput(line.String());
 	}
 
-	_AppendOutput(B_TRANSLATE("OAuth login URL generated. Complete login in the browser, then paste the returned authorization code into OAuth code and click Exchange code."));
+	_AppendOutput(B_TRANSLATE("OAuth login URL generated. Complete login in the browser. If automatic callback capture does not finish, paste the returned authorization code into OAuth code and click Exchange code."));
 	_AppendOutput(authUrl.c_str());
 }
 

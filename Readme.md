@@ -135,10 +135,12 @@ set:
 
 For providers that expose generic OAuth 2.0 Authorization Code + PKCE, open
 **AI Setup**, choose **OAuth**, set the OAuth auth URL, token URL, client ID,
-scope, and redirect URI, then use **Start OAuth**. After the browser returns an
-authorization code, paste either the code or the full callback URL into
-**OAuth code** and click **Exchange code**. Haikode stores the resulting bearer
-token in its app settings.
+scope, and a loopback redirect URI such as
+`http://127.0.0.1:8765/callback`, then use **Start OAuth**. Haikode listens for
+one localhost browser callback and exchanges the returned authorization code
+automatically when possible. If the browser callback fails, paste either the
+code or the full callback URL into **OAuth code** and click **Exchange code**.
+Haikode stores the resulting bearer token in its app settings.
 
 If you would like to try a clang++ build:
 
