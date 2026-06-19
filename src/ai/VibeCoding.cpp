@@ -1022,6 +1022,7 @@ PromptBuilder::Build(const VibeCodingRequest& request, size_t maxBytesPerFile,
 	size_t maxFiles, size_t maxProjectFiles) const
 {
 	PromptBuildResult result;
+	result.warnings = request.contextWarnings;
 	std::ostringstream prompt;
 
 	prompt
@@ -1100,6 +1101,8 @@ PromptBuilder::Build(const VibeCodingRequest& request, size_t maxBytesPerFile,
 		std::string text = file.text;
 		if (text.size() > maxBytesPerFile) {
 			text.resize(maxBytesPerFile);
+			result.warnings.push_back(file.path + " was truncated for AI context.");
+		} else if (file.truncated) {
 			result.warnings.push_back(file.path + " was truncated for AI context.");
 		}
 

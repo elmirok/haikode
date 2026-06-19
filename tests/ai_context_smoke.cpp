@@ -39,6 +39,13 @@ main()
 		"void App() {}\n",
 		false
 	});
+	request.files.push_back({
+		"/boot/home/project/src/Large.cpp",
+		"truncated prefix\n",
+		true
+	});
+	request.contextWarnings.push_back(
+		"Selected project file was not included: ignored path");
 	request.projectFiles.push_back({"src/main.cpp", "C++", "source",
 		"high", true, "Application entry point"});
 	request.projectFiles.push_back({"Readme.md", "Markdown", "docs",
@@ -50,6 +57,7 @@ main()
 	assert(result.prompt.find("int main()") != std::string::npos);
 	assert(result.prompt.find("src/App.cpp") != std::string::npos);
 	assert(result.prompt.find("void App()") != std::string::npos);
+	assert(result.prompt.find("src/Large.cpp") != std::string::npos);
 	assert(result.prompt.find("Project map:") != std::string::npos);
 	assert(result.prompt.find("Application entry point") != std::string::npos);
 	assert(result.prompt.find("Response contract:") != std::string::npos);
@@ -59,14 +67,23 @@ main()
 	assert(result.prompt.find("Do not use shell strings") != std::string::npos);
 	assert(result.prompt.find("Never claim that a command was run")
 		!= std::string::npos);
+	assert(result.warnings.size() >= 2);
+	assert(result.warnings[0].find("Selected project file was not included")
+		!= std::string::npos);
+	assert(result.warnings[1].find("src/Large.cpp was truncated")
+		!= std::string::npos);
 
 	const Haikode::AI::PromptBuildResult fileLimited
 		= builder.Build(request, 1024, 1);
 	assert(fileLimited.prompt.find("int main()") != std::string::npos);
 	assert(fileLimited.prompt.find("void App()") == std::string::npos);
 	assert(!fileLimited.warnings.empty());
-	assert(fileLimited.warnings[0].find("Some files were omitted")
-		!= std::string::npos);
+	bool sawFileLimitWarning = false;
+	for (const std::string& warning : fileLimited.warnings) {
+		sawFileLimitWarning = sawFileLimitWarning
+			|| warning.find("Some files were omitted") != std::string::npos;
+	}
+	assert(sawFileLimitWarning);
 
 	const Haikode::AI::PromptBuildResult limited = builder.Build(request, 1024, 10,
 		1);

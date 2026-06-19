@@ -3017,7 +3017,8 @@ AIChatPanel::_RequestFromContext(Haikode::AI::PromptMode mode) const
 		}
 	}
 
-	if (fProjectFilePath != nullptr && !BString(fProjectFilePath->Text()).IsEmpty()) {
+	if (fProjectFilePath != nullptr
+		&& !BString(fProjectFilePath->Text()).IsEmpty()) {
 		Haikode::AI::ContextFile selectedFile;
 		std::string loadError;
 		if (Haikode::AI::LoadProjectContextFile(fProjectRoot.String(),
@@ -3032,6 +3033,9 @@ AIChatPanel::_RequestFromContext(Haikode::AI::PromptMode mode) const
 			}
 			if (!alreadyIncluded)
 				request.files.push_back(selectedFile);
+		} else {
+			request.contextWarnings.push_back(
+				"Selected project file was not included: " + loadError);
 		}
 	}
 
