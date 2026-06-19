@@ -146,6 +146,9 @@ keys inside Haikode, choose a local provider, or configure OAuth token/PKCE
 endpoint fields. API key and OAuth token fields are masked in the native UI.
 Provider base URLs must use `http://` or `https://`; other libcurl URL schemes
 are rejected before any request is sent.
+OpenRouter requests also include non-secret app attribution headers
+(`HTTP-Referer`, `X-OpenRouter-Title`, and `X-OpenRouter-Categories`) so the
+service can identify Haikode traffic without logging credentials.
 OAuth auth and token URLs use the same HTTP(S)-only validation, and OAuth
 redirect URIs must be local `http://127.0.0.1` or `http://localhost`
 callbacks before Haikode opens the browser or exchanges a code.

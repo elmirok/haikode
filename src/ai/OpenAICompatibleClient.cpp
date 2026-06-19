@@ -363,6 +363,7 @@ OpenAICompatibleClient::Prepare(const ProviderSettings& provider,
 		prepared.authorizationHeader = "Authorization: Bearer " + apiKey;
 	else if (provider.authMode == AuthMode::OAuth && !oauthToken.empty())
 		prepared.authorizationHeader = "Authorization: Bearer " + oauthToken;
+	prepared.extraHeaders = provider.ExtraHeaders();
 
 	return prepared;
 }
@@ -448,6 +449,8 @@ OpenAICompatibleClient::Send(const ProviderSettings& provider,
 	headers = curl_slist_append(headers, "Content-Type: application/json");
 	if (!prepared.authorizationHeader.empty())
 		headers = curl_slist_append(headers, prepared.authorizationHeader.c_str());
+	for (const std::string& header : prepared.extraHeaders)
+		headers = curl_slist_append(headers, header.c_str());
 
 	curl_easy_setopt(curl, CURLOPT_URL, prepared.url.c_str());
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, prepared.body.c_str());

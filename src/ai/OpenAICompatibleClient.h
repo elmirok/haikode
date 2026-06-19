@@ -8,6 +8,7 @@
 #include "CancellationToken.h"
 
 #include <string>
+#include <vector>
 
 namespace Haikode::AI {
 
@@ -26,6 +27,7 @@ struct PreparedChatRequest {
 	std::string url;
 	std::string body;
 	std::string authorizationHeader;
+	std::vector<std::string> extraHeaders;
 };
 
 class OpenAICompatibleClient {

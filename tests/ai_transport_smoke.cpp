@@ -83,6 +83,12 @@ main()
 	openRouterV1.baseUrl = "https://openrouter.ai/api/v1";
 	prepared = Haikode::AI::OpenAICompatibleClient::Prepare(openRouterV1, request);
 	assert(prepared.url == "https://openrouter.ai/api/v1/chat/completions");
+	assert(prepared.extraHeaders.size() == 3);
+	assert(prepared.extraHeaders[0]
+		== "HTTP-Referer: https://github.com/elmirok/haikode");
+	assert(prepared.extraHeaders[1] == "X-OpenRouter-Title: Haikode");
+	assert(prepared.extraHeaders[2]
+		== "X-OpenRouter-Categories: ide-extension,programming-app");
 
 	const Haikode::AI::ProviderSettings llamaCppPreset
 		= Haikode::AI::ProviderPresetSettings(
@@ -97,6 +103,7 @@ main()
 	prepared = Haikode::AI::OpenAICompatibleClient::Prepare(localProvider, request);
 	assert(prepared.url == "http://127.0.0.1:11434/v1/chat/completions");
 	assert(prepared.authorizationHeader.empty());
+	assert(prepared.extraHeaders.empty());
 
 	localProvider.baseUrl = "http://127.0.0.1:11434/";
 	prepared = Haikode::AI::OpenAICompatibleClient::Prepare(localProvider, request);

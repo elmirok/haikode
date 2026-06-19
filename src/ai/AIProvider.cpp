@@ -84,6 +84,16 @@ IsHttpProviderUrl(const std::string& value)
 		|| lower.rfind("https://", 0) == 0;
 }
 
+
+bool
+LooksLikeOpenRouter(const ProviderSettings& settings)
+{
+	const std::string name = ToLower(TrimWhitespace(settings.name));
+	const std::string baseUrl = ToLower(TrimWhitespace(settings.baseUrl));
+	return name.find("openrouter") != std::string::npos
+		|| baseUrl.find("openrouter.ai") != std::string::npos;
+}
+
 } // namespace
 
 bool
@@ -164,6 +174,20 @@ ProviderSettings::ChatCompletionsEndpoint() const
 	if (EndsWithSlash(trimmedUrl))
 		return trimmedUrl + "v1/chat/completions";
 	return base + "/v1/chat/completions";
+}
+
+
+std::vector<std::string>
+ProviderSettings::ExtraHeaders() const
+{
+	if (!LooksLikeOpenRouter(*this))
+		return {};
+
+	return {
+		"HTTP-Referer: https://github.com/elmirok/haikode",
+		"X-OpenRouter-Title: Haikode",
+		"X-OpenRouter-Categories: ide-extension,programming-app"
+	};
 }
 
 

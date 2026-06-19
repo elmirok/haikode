@@ -5,6 +5,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 namespace Haikode::AI {
 
@@ -36,6 +37,7 @@ struct ProviderSettings {
 	bool HasUsableCredentials() const;
 	bool Validate(std::string& error) const;
 	std::string ChatCompletionsEndpoint() const;
+	std::vector<std::string> ExtraHeaders() const;
 };
 
 const char* ToString(AuthMode mode);

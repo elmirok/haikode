@@ -136,6 +136,9 @@ For OpenAI-compatible cloud providers, set:
 * API key: paste the provider key in the Haikode AI panel or in **AI Setup**.
 
 For OpenRouter, use the **OpenRouter** preset and paste your OpenRouter API key.
+Haikode automatically adds non-secret app attribution headers
+(`HTTP-Referer`, `X-OpenRouter-Title`, and `X-OpenRouter-Categories`) so
+OpenRouter can identify Haikode requests without exposing your API key.
 
 For local OpenAI-compatible servers such as Ollama, LM Studio, or llama.cpp,
 set:
