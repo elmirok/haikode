@@ -1346,6 +1346,8 @@ AIChatPanel::_RequestFromContext(Haikode::AI::PromptMode mode) const
 	request.mode = mode;
 	request.projectRoot = fProjectRoot.String();
 	request.userPrompt = fPrompt->Text();
+	request.projectFiles = Haikode::AI::BuildProjectMap(fProjectRoot.String(),
+		80);
 
 	const std::string contextText = Haikode::AI::SelectContextText(
 		fSelection.String(), fFileText.String());

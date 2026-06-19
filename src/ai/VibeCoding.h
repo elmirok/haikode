@@ -22,11 +22,21 @@ struct ContextFile {
 	bool truncated = false;
 };
 
+struct ProjectFileSummary {
+	std::string path;
+	std::string language;
+	std::string role;
+	std::string risk;
+	bool hasTodo = false;
+	std::string summary;
+};
+
 struct VibeCodingRequest {
 	PromptMode mode = PromptMode::Ask;
 	std::string projectRoot;
 	std::string userPrompt;
 	std::vector<ContextFile> files;
+	std::vector<ProjectFileSummary> projectFiles;
 };
 
 struct PromptBuildResult {
@@ -80,11 +90,14 @@ std::string FormatPendingActions(const PendingActionSummary& summary);
 bool SaveAiSession(const std::string& projectRoot,
 	const AiSessionRecord& session, std::string& savedPath,
 	std::string& error);
+std::vector<ProjectFileSummary> BuildProjectMap(const std::string& projectRoot,
+	size_t maxFiles);
 
 class PromptBuilder {
 public:
 	PromptBuildResult Build(const VibeCodingRequest& request,
-		size_t maxBytesPerFile, size_t maxFiles) const;
+		size_t maxBytesPerFile, size_t maxFiles,
+		size_t maxProjectFiles = 50) const;
 
 private:
 	std::string ModeInstruction(PromptMode mode) const;

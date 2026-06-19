@@ -46,6 +46,8 @@ The Genio-based branch now adds:
   pasted authorization code for a bearer token.
 - OpenAI-compatible HTTP requests for active project, selected file, and
   selected text.
+- Offline project-map context that summarizes source/docs/build files with
+  language, role, risk, line count, and TODO markers before sending prompts.
 - Unified diff detection in AI responses.
 - Explicit **Apply first file**, **Reject first file**, **Apply patch**, and
   **Reject patch** controls with path checks and `.haikode/backups/` copies

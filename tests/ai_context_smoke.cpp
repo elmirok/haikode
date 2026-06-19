@@ -6,7 +6,11 @@
 #include "ai/VibeCoding.h"
 
 #include <cassert>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
+
+namespace fs = std::filesystem;
 
 int
 main()
@@ -23,11 +27,46 @@ main()
 		Haikode::AI::SelectContextText("", "int main() { return 0; }\n"),
 		false
 	});
+	request.projectFiles.push_back({"src/main.cpp", "C++", "source",
+		"high", true, "Application entry point"});
+	request.projectFiles.push_back({"Readme.md", "Markdown", "docs",
+		"low", false, "Project documentation"});
 
 	Haikode::AI::PromptBuilder builder;
 	const Haikode::AI::PromptBuildResult result = builder.Build(request, 1024, 10);
 	assert(result.prompt.find("src/main.cpp") != std::string::npos);
 	assert(result.prompt.find("int main()") != std::string::npos);
+	assert(result.prompt.find("Project map:") != std::string::npos);
+	assert(result.prompt.find("Application entry point") != std::string::npos);
+
+	const Haikode::AI::PromptBuildResult limited = builder.Build(request, 1024, 10,
+		1);
+	assert(limited.prompt.find("Application entry point") != std::string::npos);
+	assert(limited.prompt.find("Project documentation") == std::string::npos);
+	assert(!limited.warnings.empty());
+
+	const fs::path root = fs::temp_directory_path() / "haikode-context-smoke";
+	fs::remove_all(root);
+	fs::create_directories(root / "src");
+	fs::create_directories(root / "build");
+	fs::create_directories(root / ".git");
+	{
+		std::ofstream(root / "src" / "main.cpp")
+			<< "int main() {\n\t// TODO: wire app\n\treturn 0;\n}\n";
+		std::ofstream(root / "Readme.md") << "# Demo\n";
+		std::ofstream(root / "build" / "main.o") << "object";
+		std::ofstream(root / ".git" / "config") << "ignored";
+	}
+	const std::vector<Haikode::AI::ProjectFileSummary> map
+		= Haikode::AI::BuildProjectMap(root.string(), 10);
+	assert(map.size() == 2);
+	assert(map[0].path == "Readme.md");
+	assert(map[0].role == "docs");
+	assert(map[1].path == "src/main.cpp");
+	assert(map[1].language == "C++");
+	assert(map[1].hasTodo);
+	assert(map[1].summary.find("4 line(s)") != std::string::npos);
+	fs::remove_all(root);
 
 	std::cout << "ai-context-smoke-ok\n";
 	return 0;

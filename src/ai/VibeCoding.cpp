@@ -11,6 +11,7 @@
 #include <exception>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <sstream>
 
 namespace Haikode::AI {
@@ -81,6 +82,136 @@ Trim(const std::string& value)
 		end--;
 	}
 	return value.substr(start, end - start);
+}
+
+
+std::string
+ToLower(std::string value)
+{
+	std::transform(value.begin(), value.end(), value.begin(),
+		[](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+	return value;
+}
+
+
+bool
+ContainsTodoMarker(const std::string& text)
+{
+	return text.find("TODO") != std::string::npos
+		|| text.find("FIXME") != std::string::npos
+		|| text.find("HACK") != std::string::npos;
+}
+
+
+size_t
+LineCount(const std::string& text)
+{
+	if (text.empty())
+		return 0;
+	return static_cast<size_t>(std::count(text.begin(), text.end(), '\n'))
+		+ (text.back() == '\n' ? 0 : 1);
+}
+
+
+bool
+ShouldSkipPathPart(const std::string& name)
+{
+	return name == ".git" || name == ".hg" || name == ".svn"
+		|| name == ".haikode" || name == "build" || name == "dist"
+		|| name == "out" || name == "target" || name == "node_modules"
+		|| name == "vendor" || name == ".cache";
+}
+
+
+bool
+ShouldSkipRelativePath(const fs::path& relativePath)
+{
+	for (const fs::path& part : relativePath) {
+		if (ShouldSkipPathPart(part.string()))
+			return true;
+	}
+	const std::string filename = relativePath.filename().string();
+	const std::string lower = ToLower(filename);
+	return lower == ".ds_store" || lower.ends_with(".o")
+		|| lower.ends_with(".a") || lower.ends_with(".so")
+		|| lower.ends_with(".hpkg") || lower.ends_with(".png")
+		|| lower.ends_with(".jpg") || lower.ends_with(".jpeg")
+		|| lower.ends_with(".gif") || lower.ends_with(".ico")
+		|| lower.ends_with(".zip") || lower.ends_with(".tar")
+		|| lower.ends_with(".gz");
+}
+
+
+std::string
+LanguageForPath(const fs::path& relativePath)
+{
+	const std::string filename = relativePath.filename().string();
+	const std::string extension = ToLower(relativePath.extension().string());
+	if (extension == ".cpp" || extension == ".cc" || extension == ".cxx"
+		|| extension == ".h" || extension == ".hpp" || extension == ".hh") {
+		return "C++";
+	}
+	if (extension == ".c")
+		return "C";
+	if (extension == ".md" || ToLower(filename).starts_with("readme"))
+		return "Markdown";
+	if (extension == ".json")
+		return "JSON";
+	if (extension == ".yml" || extension == ".yaml")
+		return "YAML";
+	if (filename == "Makefile" || extension == ".mk")
+		return "Make";
+	if (extension == ".sh")
+		return "Shell";
+	return "Text";
+}
+
+
+std::string
+RoleForPath(const fs::path& relativePath)
+{
+	const std::string filename = relativePath.filename().string();
+	const std::string lowerFilename = ToLower(filename);
+	const std::string extension = ToLower(relativePath.extension().string());
+	if (extension == ".md" || lowerFilename.starts_with("readme"))
+		return "docs";
+	if (lowerFilename.find("test") != std::string::npos)
+		return "test";
+	if (filename == "Makefile" || extension == ".mk" || extension == ".sh")
+		return "build";
+	return "source";
+}
+
+
+std::string
+RiskForPath(const fs::path& relativePath)
+{
+	const std::string path = ToLower(relativePath.generic_string());
+	if (path.find("auth") != std::string::npos
+		|| path.find("oauth") != std::string::npos
+		|| path.find("provider") != std::string::npos
+		|| path.find("command") != std::string::npos
+		|| path.find("patch") != std::string::npos
+		|| path.find("makefile") != std::string::npos) {
+		return "high";
+	}
+	return "normal";
+}
+
+
+bool
+ReadSmallTextFile(const fs::path& path, std::string& text)
+{
+	constexpr uintmax_t kMaxProjectMapFileBytes = 128 * 1024;
+	std::error_code error;
+	if (fs::file_size(path, error) > kMaxProjectMapFileBytes)
+		return false;
+	std::ifstream file(path, std::ios::binary);
+	if (!file)
+		return false;
+	text.assign(std::istreambuf_iterator<char>(file),
+		std::istreambuf_iterator<char>());
+	return text.find('\0') == std::string::npos;
 }
 
 
@@ -525,6 +656,61 @@ SaveAiSession(const std::string& projectRoot, const AiSessionRecord& session,
 }
 
 
+std::vector<ProjectFileSummary>
+BuildProjectMap(const std::string& projectRoot, size_t maxFiles)
+{
+	std::vector<ProjectFileSummary> files;
+	if (projectRoot.empty() || maxFiles == 0)
+		return files;
+
+	try {
+		const fs::path root = fs::weakly_canonical(projectRoot);
+		if (!fs::is_directory(root))
+			return files;
+
+		std::vector<fs::path> paths;
+		for (fs::recursive_directory_iterator it(root), end; it != end; ++it) {
+			const fs::path relative = fs::relative(it->path(), root);
+			if (ShouldSkipRelativePath(relative)) {
+				if (it->is_directory())
+					it.disable_recursion_pending();
+				continue;
+			}
+			if (!it->is_regular_file())
+				continue;
+			paths.push_back(relative);
+		}
+		std::sort(paths.begin(), paths.end());
+
+		for (const fs::path& relative : paths) {
+			if (files.size() >= maxFiles)
+				break;
+
+			const fs::path absolute = root / relative;
+			std::string text;
+			if (!ReadSmallTextFile(absolute, text))
+				continue;
+
+			ProjectFileSummary summary;
+			summary.path = relative.generic_string();
+			summary.language = LanguageForPath(relative);
+			summary.role = RoleForPath(relative);
+			summary.risk = RiskForPath(relative);
+			summary.hasTodo = ContainsTodoMarker(text);
+			std::ostringstream details;
+			details << LineCount(text) << " line(s)";
+			if (summary.hasTodo)
+				details << ", TODO marker";
+			summary.summary = details.str();
+			files.push_back(summary);
+		}
+	} catch (const std::exception&) {
+		files.clear();
+	}
+	return files;
+}
+
+
 std::string
 PromptBuilder::ModeInstruction(PromptMode mode) const
 {
@@ -544,7 +730,7 @@ PromptBuilder::ModeInstruction(PromptMode mode) const
 
 PromptBuildResult
 PromptBuilder::Build(const VibeCodingRequest& request, size_t maxBytesPerFile,
-	size_t maxFiles) const
+	size_t maxFiles, size_t maxProjectFiles) const
 {
 	PromptBuildResult result;
 	std::ostringstream prompt;
@@ -561,6 +747,31 @@ PromptBuilder::Build(const VibeCodingRequest& request, size_t maxBytesPerFile,
 		<< "Project root: " << request.projectRoot << "\n"
 		<< "Mode: " << ModeInstruction(request.mode) << "\n\n"
 		<< "User request:\n" << request.userPrompt << "\n\n";
+
+	const size_t projectFileCount = std::min(maxProjectFiles,
+		request.projectFiles.size());
+	if (request.projectFiles.size() > maxProjectFiles) {
+		result.warnings.push_back("Some project-map entries were omitted from AI context.");
+	}
+	if (projectFileCount > 0) {
+		prompt << "Project map:\n";
+		for (size_t i = 0; i < projectFileCount; ++i) {
+			const ProjectFileSummary& file = request.projectFiles[i];
+			prompt << "- " << file.path;
+			if (!file.language.empty())
+				prompt << " [" << file.language << "]";
+			if (!file.role.empty())
+				prompt << " role=" << file.role;
+			if (!file.risk.empty())
+				prompt << " risk=" << file.risk;
+			if (file.hasTodo)
+				prompt << " todo=true";
+			if (!file.summary.empty())
+				prompt << " -- " << file.summary;
+			prompt << "\n";
+		}
+		prompt << "\n";
+	}
 
 	const size_t fileCount = std::min(maxFiles, request.files.size());
 	if (request.files.size() > maxFiles) {
