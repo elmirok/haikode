@@ -166,6 +166,20 @@ main()
 	assert(!Haikode::AI::LoadProjectContextFile(root.string(), ".git/config",
 		1024, selectedFile, loadError));
 	assert(loadError.find("ignored") != std::string::npos);
+	std::string normalizedPath;
+	assert(Haikode::AI::NormalizeProjectContextPath(root.string(),
+		(root / "src" / "main.cpp").string(), normalizedPath, loadError));
+	assert(normalizedPath == "src/main.cpp");
+	assert(Haikode::AI::NormalizeProjectContextPath(root.string(),
+		"src/main.cpp", normalizedPath, loadError));
+	assert(normalizedPath == "src/main.cpp");
+	assert(!Haikode::AI::NormalizeProjectContextPath(root.string(),
+		(root.parent_path() / "outside.cpp").string(), normalizedPath,
+		loadError));
+	assert(loadError.find("outside") != std::string::npos);
+	assert(!Haikode::AI::NormalizeProjectContextPath(root.string(),
+		".git/config", normalizedPath, loadError));
+	assert(loadError.find("ignored") != std::string::npos);
 	size_t totalProjectFiles = 0;
 	const std::vector<Haikode::AI::ProjectFileSummary> limitedMap
 		= Haikode::AI::BuildProjectMap(root.string(), 1, &totalProjectFiles);

@@ -3003,17 +3003,37 @@ AIChatPanel::_RequestFromContext(Haikode::AI::PromptMode mode) const
 
 	if (!fOpenFiles.empty()) {
 		for (const Haikode::AI::ContextFile& file : fOpenFiles) {
-			if (!file.path.empty() && !file.text.empty())
-				request.files.push_back(file);
+			if (!file.path.empty() && !file.text.empty()) {
+				std::string normalizedPath;
+				std::string normalizeError;
+				if (Haikode::AI::NormalizeProjectContextPath(
+						fProjectRoot.String(), file.path, normalizedPath,
+						normalizeError)) {
+					Haikode::AI::ContextFile normalizedFile = file;
+					normalizedFile.path = normalizedPath;
+					request.files.push_back(normalizedFile);
+				} else {
+					request.contextWarnings.push_back(
+						"Open editor file was not included: " + normalizeError);
+				}
+			}
 		}
 	} else {
 		const std::string contextText = Haikode::AI::SelectContextText(
 			fSelection.String(), fFileText.String());
 		if (!fFilePath.IsEmpty() && !contextText.empty()) {
+			std::string normalizedPath;
+			std::string normalizeError;
 			Haikode::AI::ContextFile file;
-			file.path = fFilePath.String();
-			file.text = contextText;
-			request.files.push_back(file);
+			if (Haikode::AI::NormalizeProjectContextPath(fProjectRoot.String(),
+					fFilePath.String(), normalizedPath, normalizeError)) {
+				file.path = normalizedPath;
+				file.text = contextText;
+				request.files.push_back(file);
+			} else {
+				request.contextWarnings.push_back(
+					"Active editor file was not included: " + normalizeError);
+			}
 		}
 	}
 

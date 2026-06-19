@@ -998,6 +998,75 @@ LoadProjectContextFile(const std::string& projectRoot,
 }
 
 
+bool
+NormalizeProjectContextPath(const std::string& projectRoot,
+	const std::string& path, std::string& normalizedPath, std::string& error)
+{
+	normalizedPath.clear();
+	error.clear();
+	if (path.empty()) {
+		error = "Context file path is empty.";
+		return false;
+	}
+
+	try {
+		const fs::path input(path);
+		if (!input.is_absolute()) {
+			if (!IsSafeRelativePath(input)) {
+				error = "Unsafe context file path: " + path;
+				return false;
+			}
+			if (ShouldSkipRelativePath(input)) {
+				error = "Context file path is ignored by Haikode: " + path;
+				return false;
+			}
+			normalizedPath = input.generic_string();
+			return true;
+		}
+
+		if (projectRoot.empty()) {
+			error = "Cannot make absolute context file path project-relative without an active project.";
+			return false;
+		}
+
+		std::error_code fsError;
+		const fs::path root = fs::weakly_canonical(projectRoot, fsError);
+		if (fsError || !fs::is_directory(root, fsError)) {
+			error = "Active project root is not a directory.";
+			return false;
+		}
+
+		fsError.clear();
+		const fs::path target = fs::weakly_canonical(input, fsError);
+		if (fsError) {
+			error = "Could not resolve context file path: " + path;
+			return false;
+		}
+		if (!IsInsideDirectory(target, root)) {
+			error = "Context file is outside the active project: " + path;
+			return false;
+		}
+
+		fsError.clear();
+		const fs::path relative = fs::relative(target, root, fsError);
+		if (fsError || !IsSafeRelativePath(relative)) {
+			error = "Could not make context file path project-relative: " + path;
+			return false;
+		}
+		if (ShouldSkipRelativePath(relative)) {
+			error = "Context file path is ignored by Haikode: "
+				+ relative.generic_string();
+			return false;
+		}
+		normalizedPath = relative.generic_string();
+		return true;
+	} catch (const std::exception& exception) {
+		error = exception.what();
+		return false;
+	}
+}
+
+
 std::string
 PromptBuilder::ModeInstruction(PromptMode mode) const
 {

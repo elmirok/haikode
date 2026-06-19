@@ -111,6 +111,8 @@ std::vector<ProjectFileSummary> BuildProjectMap(const std::string& projectRoot,
 bool LoadProjectContextFile(const std::string& projectRoot,
 	const std::string& relativePath, size_t maxBytes, ContextFile& file,
 	std::string& error);
+bool NormalizeProjectContextPath(const std::string& projectRoot,
+	const std::string& path, std::string& normalizedPath, std::string& error);
 
 class PromptBuilder {
 public:
