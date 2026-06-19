@@ -63,6 +63,8 @@ The Genio-based branch now adds:
   **Reject selected file**, **Previous hunk**, **Next hunk**, **Apply hunk**,
   **Reject hunk**, **Review patch**, **Apply patch**, and **Reject patch**
   controls with path checks and `.haikode/backups/` copies before writes.
+- AI patch application refuses sensitive project metadata such as `.git/`,
+  `.hg/`, `.svn/`, `.haikode/`, `.genio`, and Haikode/Genio settings files.
 - Generated unified diffs are saved immediately under `.haikode/patches/` before
   approval, so rejected and partially applied proposals still have an audit file.
 - Explicit AI command request parsing with separate **Run command** and

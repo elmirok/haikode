@@ -65,6 +65,23 @@ IsSafeRelativePath(const std::string& path)
 }
 
 bool
+IsSensitivePatchPath(const std::string& path)
+{
+	fs::path fsPath(path);
+	for (const fs::path& part : fsPath) {
+		const std::string name = part.string();
+		if (name == ".git" || name == ".hg" || name == ".svn"
+			|| name == ".haikode") {
+			return true;
+		}
+	}
+
+	const std::string filename = fsPath.filename().string();
+	return filename == ".genio" || filename == "Haikode.settings"
+		|| filename == "Genio.settings";
+}
+
+bool
 IsInsideDirectory(const fs::path& child, const fs::path& parent)
 {
 	const fs::path relative = fs::relative(child, parent);
@@ -567,6 +584,11 @@ UnifiedDiff::Apply(const std::string& projectRoot, PatchApplyResult& result,
 				error = "Unsafe patch path: " + file.newPath;
 				return false;
 			}
+			if (IsSensitivePatchPath(file.newPath)) {
+				error = "Refusing to patch sensitive project metadata: "
+					+ file.newPath;
+				return false;
+			}
 			if (file.newPath == "/dev/null") {
 				error = "File deletion patches are not enabled yet.";
 				return false;
@@ -650,6 +672,10 @@ UnifiedDiff::ApplyHunk(const std::string& projectRoot, const std::string& path,
 		}
 		if (!IsSafeRelativePath(path)) {
 			error = "Unsafe patch path: " + path;
+			return false;
+		}
+		if (IsSensitivePatchPath(path)) {
+			error = "Refusing to patch sensitive project metadata: " + path;
 			return false;
 		}
 

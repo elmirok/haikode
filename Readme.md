@@ -179,6 +179,9 @@ Use **Recent records** in the AI panel to pick from recent `.haikode/sessions`,
 active project. **Show record** previews the path currently shown in the record
 field.
 
+AI patches cannot modify sensitive project metadata such as `.git/`,
+`.haikode/`, `.genio`, or Haikode/Genio settings files.
+
 If you would like to try a clang++ build:
 
 * Install `llvm17_clang` and `llvm17_lld` hpkgs from HaikuPorts

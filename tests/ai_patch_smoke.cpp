@@ -215,6 +215,35 @@ main()
 	assert(!unsafe.Apply(root.string(), result, error));
 	assert(error.find("Unsafe") != std::string::npos);
 
+	const std::string metadataDiff =
+		"diff --git a/.haikode/project.json b/.haikode/project.json\n"
+		"--- a/.haikode/project.json\n"
+		"+++ b/.haikode/project.json\n"
+		"@@ -1 +1 @@\n"
+		"-old\n"
+		"+new\n";
+	Haikode::AI::UnifiedDiff metadataPatch;
+	assert(Haikode::AI::UnifiedDiff::Parse(metadataDiff, metadataPatch,
+		error));
+	assert(!metadataPatch.Apply(root.string(), result, error));
+	assert(error.find("sensitive project metadata") != std::string::npos);
+	assert(!metadataPatch.ApplyFile(root.string(), ".haikode/project.json",
+		result, error));
+	assert(error.find("sensitive project metadata") != std::string::npos);
+
+	const std::string genioSettingsDiff =
+		"diff --git a/.genio b/.genio\n"
+		"--- a/.genio\n"
+		"+++ b/.genio\n"
+		"@@ -1 +1 @@\n"
+		"-old\n"
+		"+new\n";
+	Haikode::AI::UnifiedDiff genioSettingsPatch;
+	assert(Haikode::AI::UnifiedDiff::Parse(genioSettingsDiff,
+		genioSettingsPatch, error));
+	assert(!genioSettingsPatch.Apply(root.string(), result, error));
+	assert(error.find("sensitive project metadata") != std::string::npos);
+
 	fs::remove_all(root);
 	std::cout << "ai-patch-smoke-ok\n";
 	return 0;
