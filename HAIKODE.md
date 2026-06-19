@@ -82,6 +82,8 @@ The Genio-based branch now adds:
 - Fenced `haikode-edit` JSON with `path`, `original_sha256`, and `replacement`
   is accepted for hash-checked single-file replacements, then converted into
   the same reviewable diff path.
+- Complete, untruncated file context includes SHA-256 metadata so models can
+  produce hash-checked `haikode-edit` proposals reliably.
 - Explicit AI command request parsing with separate **Run command** and
   **Reject command** approval buttons.
 - Generic fenced JSON blocks with both `summary` and `argv` are also surfaced

@@ -219,6 +219,8 @@ If the model returns whole-response JSON with a `unified_diff`, `diff`, or
 Fenced `haikode-edit` JSON with `path`, `original_sha256`, and `replacement`
 is also accepted for single-file replacements after Haikode verifies the
 current file hash, then converted into the same reviewable diff path.
+Complete, untruncated file context includes a SHA-256 hash in the prompt so a
+model can fill `original_sha256` without guessing.
 
 AI patches cannot modify sensitive project metadata such as `.git/`,
 `.haikode/`, `.genio`, or Haikode/Genio settings files.

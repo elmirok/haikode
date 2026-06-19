@@ -21,6 +21,7 @@ struct ContextFile {
 	std::string path;
 	std::string text;
 	bool truncated = false;
+	std::string sha256;
 };
 
 struct ProjectFileSummary {
@@ -100,6 +101,7 @@ struct ProjectRecordEntry {
 
 std::string SelectContextText(const std::string& selection,
 	const std::string& fullFileText);
+std::string Sha256HexForText(const std::string& text);
 bool ExtractCommandRequests(const std::string& text,
 	std::vector<CommandRequest>& commands, std::string& error);
 bool SaveCommandRequests(const std::string& projectRoot,

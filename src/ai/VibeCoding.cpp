@@ -6,12 +6,15 @@
 #include "VibeCoding.h"
 
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <cctype>
 #include <chrono>
+#include <cstdint>
 #include <exception>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
 #include <iterator>
 #include <sstream>
 
@@ -430,6 +433,115 @@ ExtractJsonSizeField(const std::string& json, const std::string& key,
 }
 
 
+uint32_t
+RotateRight(uint32_t value, uint32_t bits)
+{
+	return (value >> bits) | (value << (32 - bits));
+}
+
+
+std::string
+Sha256Hex(const std::string& text)
+{
+	static const std::array<uint32_t, 64> k = {
+		0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
+		0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+		0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
+		0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+		0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc,
+		0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+		0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7,
+		0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+		0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13,
+		0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+		0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3,
+		0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+		0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5,
+		0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+		0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
+		0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+	};
+
+	std::vector<uint8_t> bytes(text.begin(), text.end());
+	const uint64_t bitLength = static_cast<uint64_t>(bytes.size()) * 8;
+	bytes.push_back(0x80);
+	while ((bytes.size() % 64) != 56)
+		bytes.push_back(0);
+	for (int shift = 56; shift >= 0; shift -= 8)
+		bytes.push_back(static_cast<uint8_t>((bitLength >> shift) & 0xff));
+
+	uint32_t h0 = 0x6a09e667;
+	uint32_t h1 = 0xbb67ae85;
+	uint32_t h2 = 0x3c6ef372;
+	uint32_t h3 = 0xa54ff53a;
+	uint32_t h4 = 0x510e527f;
+	uint32_t h5 = 0x9b05688c;
+	uint32_t h6 = 0x1f83d9ab;
+	uint32_t h7 = 0x5be0cd19;
+
+	for (size_t chunk = 0; chunk < bytes.size(); chunk += 64) {
+		std::array<uint32_t, 64> w {};
+		for (size_t i = 0; i < 16; i++) {
+			const size_t offset = chunk + i * 4;
+			w[i] = (static_cast<uint32_t>(bytes[offset]) << 24)
+				| (static_cast<uint32_t>(bytes[offset + 1]) << 16)
+				| (static_cast<uint32_t>(bytes[offset + 2]) << 8)
+				| static_cast<uint32_t>(bytes[offset + 3]);
+		}
+		for (size_t i = 16; i < 64; i++) {
+			const uint32_t s0 = RotateRight(w[i - 15], 7)
+				^ RotateRight(w[i - 15], 18) ^ (w[i - 15] >> 3);
+			const uint32_t s1 = RotateRight(w[i - 2], 17)
+				^ RotateRight(w[i - 2], 19) ^ (w[i - 2] >> 10);
+			w[i] = w[i - 16] + s0 + w[i - 7] + s1;
+		}
+
+		uint32_t a = h0;
+		uint32_t b = h1;
+		uint32_t c = h2;
+		uint32_t d = h3;
+		uint32_t e = h4;
+		uint32_t f = h5;
+		uint32_t g = h6;
+		uint32_t h = h7;
+		for (size_t i = 0; i < 64; i++) {
+			const uint32_t s1 = RotateRight(e, 6) ^ RotateRight(e, 11)
+				^ RotateRight(e, 25);
+			const uint32_t ch = (e & f) ^ ((~e) & g);
+			const uint32_t temp1 = h + s1 + ch + k[i] + w[i];
+			const uint32_t s0 = RotateRight(a, 2) ^ RotateRight(a, 13)
+				^ RotateRight(a, 22);
+			const uint32_t maj = (a & b) ^ (a & c) ^ (b & c);
+			const uint32_t temp2 = s0 + maj;
+			h = g;
+			g = f;
+			f = e;
+			e = d + temp1;
+			d = c;
+			c = b;
+			b = a;
+			a = temp1 + temp2;
+		}
+		h0 += a;
+		h1 += b;
+		h2 += c;
+		h3 += d;
+		h4 += e;
+		h5 += f;
+		h6 += g;
+		h7 += h;
+	}
+
+	std::ostringstream output;
+	output << std::hex << std::setfill('0')
+		<< std::setw(8) << h0 << std::setw(8) << h1
+		<< std::setw(8) << h2 << std::setw(8) << h3
+		<< std::setw(8) << h4 << std::setw(8) << h5
+		<< std::setw(8) << h6 << std::setw(8) << h7;
+	return output.str();
+}
+
+
 bool
 ExtractJsonObjectAt(const std::string& json, size_t& pos, std::string& object)
 {
@@ -821,6 +933,13 @@ SelectContextText(const std::string& selection, const std::string& fullFileText)
 	if (!selection.empty())
 		return selection;
 	return fullFileText;
+}
+
+
+std::string
+Sha256HexForText(const std::string& text)
+{
+	return Sha256Hex(text);
 }
 
 
@@ -1571,6 +1690,8 @@ LoadProjectContextFile(const std::string& projectRoot,
 		file.path = relative.generic_string();
 		file.text = text;
 		file.truncated = size > maxBytes;
+		if (!file.truncated)
+			file.sha256 = Sha256HexForText(text);
 		return true;
 	} catch (const std::exception& exception) {
 		error = exception.what();
@@ -1693,6 +1814,14 @@ PromptBuilder::Build(const VibeCodingRequest& request, size_t maxBytesPerFile,
 		<< "or Genio.settings.\n"
 		<< "- Return at most one unified diff per response. Keep patches small "
 		<< "and focused on files shown in the project map or file context.\n"
+		<< "- For one complete file with sha256=..., you may instead output "
+		<< "a fenced haikode-edit JSON block with path, original_sha256, "
+		<< "and replacement fields; Haikode will verify the hash before "
+		<< "showing a reviewable patch.\n"
+		<< "```haikode-edit\n"
+		<< "{\"path\":\"src/main.cpp\",\"original_sha256\":\"...\","
+		<< "\"replacement\":\"full new file text\"}\n"
+		<< "```\n"
 		<< "- For commands, output fenced JSON exactly like:\n"
 		<< "```haikode-command\n"
 		<< "{\"summary\":\"Run tests\",\"argv\":[\"make\",\"test\"]}\n"
@@ -1764,15 +1893,21 @@ PromptBuilder::Build(const VibeCodingRequest& request, size_t maxBytesPerFile,
 	for (size_t i = 0; i < fileCount; ++i) {
 		const ContextFile& file = request.files[i];
 		std::string text = file.text;
+		bool contentTruncated = false;
 		if (text.size() > maxBytesPerFile) {
 			text.resize(maxBytesPerFile);
+			contentTruncated = true;
 			result.warnings.push_back(file.path + " was truncated for AI context.");
 		} else if (file.truncated) {
+			contentTruncated = true;
 			result.warnings.push_back(file.path + " was truncated for AI context.");
 		}
 
+		prompt << "File: " << file.path;
+		if (!contentTruncated && !file.sha256.empty())
+			prompt << " sha256=" << file.sha256;
 		prompt
-			<< "File: " << file.path << "\n"
+			<< "\n"
 			<< "```text\n"
 			<< text
 			<< "\n```\n\n";

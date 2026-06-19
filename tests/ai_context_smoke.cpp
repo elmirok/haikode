@@ -55,17 +55,20 @@ main()
 	request.files.push_back({
 		"/boot/home/project/src/main.cpp",
 		Haikode::AI::SelectContextText("", "int main() { return 0; }\n"),
-		false
+		false,
+		"deac66ccb79f6d31c0fa7d358de48e083c15c02ff50ec1ebd4b64314b9e6e196"
 	});
 	request.files.push_back({
 		"/boot/home/project/src/App.cpp",
 		"void App() {}\n",
-		false
+		false,
+		"b46466272d30e06c09d43791f5ca023cc4b9d530a8f21f621bd2d4a2067799ce"
 	});
 	request.files.push_back({
 		"/boot/home/project/src/Large.cpp",
 		"truncated prefix\n",
-		true
+		true,
+		""
 	});
 	request.contextWarnings.push_back(
 		"Selected project file was not included: ignored path");
@@ -77,10 +80,18 @@ main()
 	Haikode::AI::PromptBuilder builder;
 	const Haikode::AI::PromptBuildResult result = builder.Build(request, 1024, 10);
 	assert(result.prompt.find("src/main.cpp") != std::string::npos);
+	assert(result.prompt.find(
+		"sha256=deac66ccb79f6d31c0fa7d358de48e083c15c02ff50ec1ebd4b64314b9e6e196")
+		!= std::string::npos);
 	assert(result.prompt.find("int main()") != std::string::npos);
 	assert(result.prompt.find("src/App.cpp") != std::string::npos);
+	assert(result.prompt.find(
+		"sha256=b46466272d30e06c09d43791f5ca023cc4b9d530a8f21f621bd2d4a2067799ce")
+		!= std::string::npos);
 	assert(result.prompt.find("void App()") != std::string::npos);
 	assert(result.prompt.find("src/Large.cpp") != std::string::npos);
+	assert(result.prompt.find("File: /boot/home/project/src/Large.cpp sha256=")
+		== std::string::npos);
 	assert(result.prompt.find("Project map:") != std::string::npos);
 	assert(result.prompt.find("Application entry point") != std::string::npos);
 	assert(result.prompt.find("Response contract:") != std::string::npos);
@@ -89,6 +100,8 @@ main()
 	assert(result.prompt.find(".haikode") != std::string::npos);
 	assert(result.prompt.find("Return at most one unified diff")
 		!= std::string::npos);
+	assert(result.prompt.find("```haikode-edit") != std::string::npos);
+	assert(result.prompt.find("\"original_sha256\"") != std::string::npos);
 	assert(result.prompt.find("```haikode-command") != std::string::npos);
 	assert(result.prompt.find("\"argv\":[\"make\",\"test\"]")
 		!= std::string::npos);
@@ -251,9 +264,12 @@ main()
 	assert(selectedFile.path == "src/main.cpp");
 	assert(selectedFile.text.find("TODO: wire app") != std::string::npos);
 	assert(!selectedFile.truncated);
+	assert(selectedFile.sha256
+		== "02944f8a4393b14def327b5b34051d7d430505ead65fd5248ed39f5967dab6bb");
 	assert(Haikode::AI::LoadProjectContextFile(root.string(), "src/main.cpp",
 		12, selectedFile, loadError));
 	assert(selectedFile.truncated);
+	assert(selectedFile.sha256.empty());
 	assert(selectedFile.text.size() == 12);
 	WriteFile(root / "src" / "binary.dat", std::string("abc\0def", 7));
 	assert(!Haikode::AI::LoadProjectContextFile(root.string(), "src/binary.dat",

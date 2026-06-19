@@ -3256,6 +3256,9 @@ AIChatPanel::_RequestFromContext(Haikode::AI::PromptMode mode) const
 					fFilePath.String(), normalizedPath, normalizeError)) {
 				file.path = normalizedPath;
 				file.text = contextText;
+				file.truncated = false;
+				if (fSelection.IsEmpty() && !fFileText.IsEmpty())
+					file.sha256 = Haikode::AI::Sha256HexForText(file.text);
 				request.files.push_back(file);
 			} else {
 				request.contextWarnings.push_back(

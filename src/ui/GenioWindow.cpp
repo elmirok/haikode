@@ -4422,6 +4422,7 @@ GenioWindow::_UpdateHaikodeAIContext()
 				return;
 		}
 
+		const bool usingCompleteFile = preferredText.IsEmpty();
 		BString text = preferredText;
 		if (text.IsEmpty())
 			text = EditorTextForAI(contextEditor);
@@ -4431,7 +4432,11 @@ GenioWindow::_UpdateHaikodeAIContext()
 		if (text.IsEmpty())
 			return;
 
-		openFiles.push_back({path.String(), text.String(), truncated});
+		Haikode::AI::ContextFile file {path.String(), text.String(), truncated,
+			""};
+		if (usingCompleteFile && !truncated)
+			file.sha256 = Haikode::AI::Sha256HexForText(file.text);
+		openFiles.push_back(file);
 	};
 
 	appendEditorContext(editor, selection);
