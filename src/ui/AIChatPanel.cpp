@@ -737,7 +737,16 @@ AIChatPanel::_UpdatePendingActions()
 
 	Haikode::AI::PendingActionSummary summary;
 	if (!fPendingDiff.IsEmpty()) {
-		summary.changedPaths = fPendingDiff.ChangedPaths();
+		for (const Haikode::AI::PatchFileStats& stats
+				: fPendingDiff.FileStats()) {
+			summary.patchFiles.push_back({
+				stats.path,
+				stats.additions,
+				stats.deletions,
+				stats.hunkCount,
+				stats.newFile
+			});
+		}
 		summary.hunkCount = fPendingDiff.HunkCount();
 	}
 	summary.commands = fPendingCommands;

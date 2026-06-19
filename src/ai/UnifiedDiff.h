@@ -33,6 +33,14 @@ struct PatchApplyResult {
 	std::string backupDirectory;
 };
 
+struct PatchFileStats {
+	std::string path;
+	size_t additions = 0;
+	size_t deletions = 0;
+	size_t hunkCount = 0;
+	bool newFile = false;
+};
+
 class UnifiedDiff {
 public:
 	static bool Parse(const std::string& text, UnifiedDiff& diff,
@@ -45,6 +53,7 @@ public:
 	const std::vector<PatchFile>& Files() const { return fFiles; }
 	bool IsEmpty() const { return fFiles.empty(); }
 	std::vector<std::string> ChangedPaths() const;
+	std::vector<PatchFileStats> FileStats() const;
 	int HunkCount() const;
 
 	bool Apply(const std::string& projectRoot, PatchApplyResult& result,

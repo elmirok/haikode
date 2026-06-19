@@ -51,8 +51,9 @@ The Genio-based branch now adds:
   `.haikode/backups/` copies before writes.
 - Explicit AI command request parsing and a separate **Run command** approval
   button.
-- A native pending-actions summary that lists pending patch files/hunks and
-  command requests before the user approves anything.
+- A native pending-actions summary that lists pending patch files, hunks,
+  additions/deletions, new-file markers, and command requests before the user
+  approves anything.
 - Project-local `.haikode/sessions/` records for successful AI exchanges,
   storing prompts, responses, provider metadata, active file, and pending
   actions without API keys or bearer tokens.

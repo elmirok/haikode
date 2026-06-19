@@ -49,12 +49,18 @@ main()
 	assert(Haikode::AI::FormatPendingActions(summary)
 		== "No pending AI actions.");
 	summary.changedPaths = {"src/main.cpp", "src/ui/AIChatPanel.cpp"};
+	summary.patchFiles = {
+		{"src/main.cpp", 1, 1, 1, false},
+		{"src/ui/AIChatPanel.cpp", 12, 0, 2, true}
+	};
 	summary.hunkCount = 3;
 	summary.commands = commands;
 	const std::string pendingText = Haikode::AI::FormatPendingActions(summary);
-	assert(pendingText.find("Patch: 2 file(s), 3 hunk(s)")
+	assert(pendingText.find("Patch: 2 file(s), 3 hunk(s), +13 -1")
 		!= std::string::npos);
-	assert(pendingText.find("src/ui/AIChatPanel.cpp") != std::string::npos);
+	assert(pendingText.find(
+		"src/ui/AIChatPanel.cpp (+12 -0, 2 hunk(s), new file)")
+		!= std::string::npos);
 	assert(pendingText.find("Commands: 1 pending") != std::string::npos);
 	assert(pendingText.find("Run unit tests: make test") != std::string::npos);
 

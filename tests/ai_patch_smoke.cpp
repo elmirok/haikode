@@ -53,6 +53,14 @@ main()
 	assert(parsed.ChangedPaths().size() == 1);
 	assert(parsed.ChangedPaths()[0] == "src/main.cpp");
 	assert(parsed.HunkCount() == 1);
+	const std::vector<Haikode::AI::PatchFileStats> stats
+		= parsed.FileStats();
+	assert(stats.size() == 1);
+	assert(stats[0].path == "src/main.cpp");
+	assert(stats[0].additions == 1);
+	assert(stats[0].deletions == 1);
+	assert(stats[0].hunkCount == 1);
+	assert(!stats[0].newFile);
 
 	Haikode::AI::PatchApplyResult result;
 	assert(parsed.Apply(root.string(), result, error));
@@ -83,6 +91,13 @@ main()
 		"+}\n";
 	Haikode::AI::UnifiedDiff newFilePatch;
 	assert(Haikode::AI::UnifiedDiff::Parse(newFileDiff, newFilePatch, error));
+	const std::vector<Haikode::AI::PatchFileStats> newFileStats
+		= newFilePatch.FileStats();
+	assert(newFileStats.size() == 1);
+	assert(newFileStats[0].path == "src/new_feature.cpp");
+	assert(newFileStats[0].additions == 4);
+	assert(newFileStats[0].deletions == 0);
+	assert(newFileStats[0].newFile);
 	assert(newFilePatch.Apply(root.string(), result, error));
 	assert(ReadFile(root / "src" / "new_feature.cpp")
 		== "#include <iostream>\nint answer() {\n\treturn 42;\n}\n");

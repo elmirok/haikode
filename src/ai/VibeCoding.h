@@ -42,6 +42,15 @@ struct CommandRequest {
 };
 
 struct PendingActionSummary {
+	struct PatchFile {
+		std::string path;
+		size_t additions = 0;
+		size_t deletions = 0;
+		size_t hunkCount = 0;
+		bool newFile = false;
+	};
+
+	std::vector<PatchFile> patchFiles;
 	std::vector<std::string> changedPaths;
 	size_t hunkCount = 0;
 	std::vector<CommandRequest> commands;

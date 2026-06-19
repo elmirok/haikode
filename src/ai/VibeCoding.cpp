@@ -335,10 +335,30 @@ std::string
 FormatPendingActions(const PendingActionSummary& summary)
 {
 	std::ostringstream text;
-	if (summary.changedPaths.empty() && summary.commands.empty())
+	if (summary.patchFiles.empty() && summary.changedPaths.empty()
+		&& summary.commands.empty()) {
 		return "No pending AI actions.";
+	}
 
-	if (!summary.changedPaths.empty()) {
+	if (!summary.patchFiles.empty()) {
+		size_t additions = 0;
+		size_t deletions = 0;
+		size_t hunks = 0;
+		for (const PendingActionSummary::PatchFile& file : summary.patchFiles) {
+			additions += file.additions;
+			deletions += file.deletions;
+			hunks += file.hunkCount;
+		}
+		text << "Patch: " << summary.patchFiles.size() << " file(s), "
+			<< hunks << " hunk(s), +" << additions << " -" << deletions;
+		for (const PendingActionSummary::PatchFile& file : summary.patchFiles) {
+			text << "\n  " << file.path << " (+" << file.additions << " -"
+				<< file.deletions << ", " << file.hunkCount << " hunk(s)";
+			if (file.newFile)
+				text << ", new file";
+			text << ")";
+		}
+	} else if (!summary.changedPaths.empty()) {
 		text << "Patch: " << summary.changedPaths.size() << " file(s), "
 			<< summary.hunkCount << " hunk(s)";
 		for (const std::string& path : summary.changedPaths)

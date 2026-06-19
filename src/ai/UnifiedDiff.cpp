@@ -329,6 +329,30 @@ UnifiedDiff::ChangedPaths() const
 }
 
 
+std::vector<PatchFileStats>
+UnifiedDiff::FileStats() const
+{
+	std::vector<PatchFileStats> stats;
+	stats.reserve(fFiles.size());
+	for (const PatchFile& file : fFiles) {
+		PatchFileStats fileStats;
+		fileStats.path = file.newPath;
+		fileStats.hunkCount = file.hunks.size();
+		fileStats.newFile = file.oldPath == "/dev/null";
+		for (const PatchHunk& hunk : file.hunks) {
+			for (const PatchHunkLine& line : hunk.lines) {
+				if (line.kind == '+')
+					fileStats.additions++;
+				else if (line.kind == '-')
+					fileStats.deletions++;
+			}
+		}
+		stats.push_back(fileStats);
+	}
+	return stats;
+}
+
+
 int
 UnifiedDiff::HunkCount() const
 {
