@@ -7,6 +7,8 @@
 #include <GroupView.h>
 #include <String.h>
 
+#include <vector>
+
 #include "AIProvider.h"
 #include "OpenAICompatibleClient.h"
 #include "PanelTabManager.h"
@@ -38,6 +40,8 @@ private:
 	void _FinishResponse(const BString& text, const BString& error, long status);
 	void _ApplyPendingDiff();
 	void _RejectPendingDiff();
+	void _RunPendingCommand();
+	void _ClearPendingCommands();
 	void _AppendOutput(const char* text);
 	Haikode::AI::ProviderSettings _ProviderFromFields() const;
 	Haikode::AI::VibeCodingRequest _RequestFromContext(
@@ -59,9 +63,11 @@ private:
 	BButton* fPatchButton;
 	BButton* fApplyPatchButton;
 	BButton* fRejectPatchButton;
+	BButton* fRunCommandButton;
 	bool fRequestRunning;
 	Haikode::AI::UnifiedDiff fPendingDiff;
 	BString fPendingRawDiff;
+	std::vector<Haikode::AI::CommandRequest> fPendingCommands;
 
 	BString fProjectRoot;
 	BString fFilePath;

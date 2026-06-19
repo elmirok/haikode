@@ -48,6 +48,7 @@ bool ExtractCommandRequests(const std::string& text,
 bool SaveCommandRequests(const std::string& projectRoot,
 	const std::vector<CommandRequest>& commands, std::string& savedPath,
 	std::string& error);
+std::string CommandDisplayString(const CommandRequest& command);
 
 class PromptBuilder {
 public:

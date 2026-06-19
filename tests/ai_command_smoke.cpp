@@ -38,6 +38,12 @@ main()
 	assert(commands[0].argv[0] == "make");
 	assert(commands[0].argv[1] == "test");
 	assert(!commands[0].dangerous);
+	assert(Haikode::AI::CommandDisplayString(commands[0]) == "make test");
+
+	Haikode::AI::CommandRequest spaced;
+	spaced.argv = {"python3", "script with spaces.py", "it's ok"};
+	assert(Haikode::AI::CommandDisplayString(spaced)
+		== "python3 'script with spaces.py' 'it'\\''s ok'");
 
 	const fs::path root = fs::temp_directory_path() / "haikode-command-smoke";
 	fs::remove_all(root);

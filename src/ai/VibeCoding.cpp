@@ -198,6 +198,40 @@ JoinedArgv(const std::vector<std::string>& argv)
 }
 
 
+bool
+NeedsShellQuotes(const std::string& value)
+{
+	if (value.empty())
+		return true;
+	for (const char c : value) {
+		if (std::isspace(static_cast<unsigned char>(c)) || c == '\''
+			|| c == '"' || c == '\\' || c == '|' || c == '&' || c == ';'
+			|| c == '<' || c == '>' || c == '$' || c == '`') {
+			return true;
+		}
+	}
+	return false;
+}
+
+
+std::string
+ShellQuote(const std::string& value)
+{
+	if (!NeedsShellQuotes(value))
+		return value;
+
+	std::string quoted("'");
+	for (const char c : value) {
+		if (c == '\'')
+			quoted += "'\\''";
+		else
+			quoted.push_back(c);
+	}
+	quoted += "'";
+	return quoted;
+}
+
+
 void
 ClassifyCommand(CommandRequest& command)
 {
@@ -281,6 +315,19 @@ ExtractCommandRequests(const std::string& text,
 		commands.push_back(command);
 		pos = bodyEnd + 3;
 	}
+}
+
+
+std::string
+CommandDisplayString(const CommandRequest& command)
+{
+	std::string display;
+	for (const std::string& arg : command.argv) {
+		if (!display.empty())
+			display += " ";
+		display += ShellQuote(arg);
+	}
+	return display;
 }
 
 

@@ -779,16 +779,17 @@ ProjectBrowser::ProjectFolderPopulate(ProjectFolder* project)
 		UnlockLooper();
 	}
 
-	// Scan the project tree - this collects items in batches
-	// Pass nullptr as parent for the root item (project title)
+	// Scan the project tree directly on initial open so the browser visibly
+	// contains the project before the open task reports completion.
 	bigtime_t scanStartTime = system_time();
-	ProjectItem *projectItem = _ProjectFolderScan(project->EntryRef(), nullptr, project);
+	ProjectItem *projectItem = _ProjectFolderScan(project->EntryRef(), nullptr,
+		project, false);
 	bigtime_t scanEndTime = system_time();
 
 	ASSERT(projectItem != nullptr);
 
-	// Flush remaining items synchronously so sorting and selection see the
-	// complete tree before the project-open task reports completion.
+	// Live filesystem updates still use the batch path; this is a no-op for the
+	// direct initial scan.
 	_FlushItemBatch(project, true);
 
 	// Wait for all batch messages to be processed before continuing

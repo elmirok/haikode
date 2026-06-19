@@ -6,6 +6,7 @@
 #include "AIChatPanel.h"
 
 #include <Application.h>
+#include <Alert.h>
 #include <Button.h>
 #include <Catalog.h>
 #include <LayoutBuilder.h>
@@ -35,6 +36,7 @@ const uint32 kMsgProposePatch = 'hipa';
 const uint32 kMsgAIResponse = 'hirs';
 const uint32 kMsgApplyPatch = 'hiap';
 const uint32 kMsgRejectPatch = 'hirp';
+const uint32 kMsgRunCommand = 'hirc';
 
 Haikode::AI::AuthMode
 AuthModeFromString(const BString& value)
@@ -68,6 +70,7 @@ AIChatPanel::AIChatPanel(PanelTabManager* panelTabManager, tab_id id)
 	fPatchButton(nullptr),
 	fApplyPatchButton(nullptr),
 	fRejectPatchButton(nullptr),
+	fRunCommandButton(nullptr),
 	fRequestRunning(false)
 {
 	_BuildInterface();
@@ -78,6 +81,14 @@ void
 AIChatPanel::AttachedToWindow()
 {
 	BGroupView::AttachedToWindow();
+	fPrompt->SetTarget(this);
+	fSaveProvider->SetTarget(this);
+	fSetupButton->SetTarget(this);
+	fAskButton->SetTarget(this);
+	fPatchButton->SetTarget(this);
+	fApplyPatchButton->SetTarget(this);
+	fRejectPatchButton->SetTarget(this);
+	fRunCommandButton->SetTarget(this);
 	_LoadProviderFromConfig();
 	be_app->StartWatching(this, gCFG.UpdateMessageWhat());
 	SetTabLabel(B_TRANSLATE("Haikode AI"));
@@ -120,6 +131,9 @@ AIChatPanel::MessageReceived(BMessage* message)
 		case kMsgRejectPatch:
 			_RejectPendingDiff();
 			_AppendOutput(B_TRANSLATE("Pending patch rejected."));
+			break;
+		case kMsgRunCommand:
+			_RunPendingCommand();
 			break;
 		case B_OBSERVER_NOTICE_CHANGE:
 		{
@@ -188,6 +202,9 @@ AIChatPanel::_BuildInterface()
 	fRejectPatchButton = new BButton("haikode_ai_reject_patch",
 		B_TRANSLATE("Reject patch"), new BMessage(kMsgRejectPatch));
 	fRejectPatchButton->SetEnabled(false);
+	fRunCommandButton = new BButton("haikode_ai_run_command",
+		B_TRANSLATE("Run command"), new BMessage(kMsgRunCommand));
+	fRunCommandButton->SetEnabled(false);
 
 	fOutput = new BTextView("haikode_ai_output");
 	fOutput->MakeEditable(false);
@@ -217,6 +234,7 @@ AIChatPanel::_BuildInterface()
 			.Add(fPatchButton)
 			.Add(fApplyPatchButton)
 			.Add(fRejectPatchButton)
+			.Add(fRunCommandButton)
 		.End()
 		.Add(outputScroll);
 }
@@ -305,6 +323,7 @@ AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 	fRejectPatchButton->SetEnabled(false);
 	fPendingDiff = Haikode::AI::UnifiedDiff();
 	fPendingRawDiff = "";
+	_ClearPendingCommands();
 
 	BMessenger messenger(this);
 	std::string prompt = result.prompt;
@@ -372,6 +391,8 @@ AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 	std::vector<Haikode::AI::CommandRequest> commands;
 	if (Haikode::AI::ExtractCommandRequests(text.String(), commands, parseError)
 		&& !commands.empty()) {
+		fPendingCommands = commands;
+		fRunCommandButton->SetEnabled(true);
 		_AppendOutput(B_TRANSLATE("Command request(s) detected. Haikode did not run them."));
 		for (const Haikode::AI::CommandRequest& command : commands) {
 			BString line("  ");
@@ -406,6 +427,57 @@ AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 		line << parseError.c_str();
 		_AppendOutput(line.String());
 	}
+}
+
+
+void
+AIChatPanel::_RunPendingCommand()
+{
+	if (fPendingCommands.empty()) {
+		_AppendOutput(B_TRANSLATE("No pending command request to run."));
+		return;
+	}
+
+	const Haikode::AI::CommandRequest command = fPendingCommands.front();
+	const std::string display = Haikode::AI::CommandDisplayString(command);
+	BString prompt(B_TRANSLATE("Run this AI-requested command in the active project?"));
+	prompt << "\n\n" << display.c_str();
+	if (command.dangerous)
+		prompt << "\n\n" << B_TRANSLATE("Warning: ") << command.warning.c_str();
+
+	BAlert* alert = new BAlert("HaikodeRunCommand", prompt.String(),
+		B_TRANSLATE("Cancel"), B_TRANSLATE("Run"), nullptr,
+		B_WIDTH_AS_USUAL, B_OFFSET_SPACING,
+		command.dangerous ? B_WARNING_ALERT : B_IDEA_ALERT);
+	const int32 choice = alert->Go();
+	if (choice != 1) {
+		_AppendOutput(B_TRANSLATE("Command run cancelled."));
+		return;
+	}
+
+	if (Window() == nullptr) {
+		_AppendOutput(B_TRANSLATE("No window is available to run the command."));
+		return;
+	}
+
+	BMessage run(MSG_RUN_CONSOLE_PROGRAM);
+	run.AddString("command", display.c_str());
+	Window()->PostMessage(&run);
+	BString line(B_TRANSLATE("Approved command sent to Genio console: "));
+	line << display.c_str();
+	_AppendOutput(line.String());
+
+	fPendingCommands.erase(fPendingCommands.begin());
+	fRunCommandButton->SetEnabled(!fPendingCommands.empty());
+}
+
+
+void
+AIChatPanel::_ClearPendingCommands()
+{
+	fPendingCommands.clear();
+	if (fRunCommandButton != nullptr)
+		fRunCommandButton->SetEnabled(false);
 }
 
 
