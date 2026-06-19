@@ -884,13 +884,13 @@ PromptBuilder::ModeInstruction(PromptMode mode) const
 {
 	switch (mode) {
 		case PromptMode::Ask:
-			return "Answer the user's question about this Haiku project.";
+			return "Answer the user's question about this Haiku project. If the user asks for follow-up build/test work, return explicit haikode-command blocks instead of saying you ran anything.";
 		case PromptMode::ExplainSelection:
 			return "Explain the selected code or active file and mention Haiku API details when relevant.";
 		case PromptMode::SummarizeProject:
 			return "Summarize this Haiku project using the project map. Identify the main components, likely build/test entry points, TODO hotspots, and high-risk files.";
 		case PromptMode::ProposePatch:
-			return "Propose a small unified diff. Do not include shell commands.";
+			return "Propose a small unified diff only. Do not include command requests unless the user explicitly asks for a follow-up command.";
 		case PromptMode::ReviewDiff:
 			return "Review the diff for correctness, safety, and Haiku-native style.";
 	}
@@ -914,6 +914,18 @@ PromptBuilder::Build(const VibeCodingRequest& request, size_t maxBytesPerFile,
 		<< "must be proposed as unified diffs for explicit review. If a command "
 		<< "would help, propose it in a fenced haikode-command JSON block with "
 		<< "summary and argv fields; Haikode will not run it automatically.\n\n"
+		<< "Response contract:\n"
+		<< "- For explanations, answer normally and cite relevant file paths.\n"
+		<< "- For edits, output one unified diff using project-relative paths. "
+		<< "Do not describe edits that are not present in the diff.\n"
+		<< "- For commands, output fenced JSON exactly like:\n"
+		<< "```haikode-command\n"
+		<< "{\"summary\":\"Run tests\",\"argv\":[\"make\",\"test\"]}\n"
+		<< "```\n"
+		<< "- Command argv must be a JSON string array. Do not use shell "
+		<< "strings, pipes, redirection, or sh -c.\n"
+		<< "- Never claim that a command was run or a file was changed; Haikode "
+		<< "will ask the user to approve each action.\n\n"
 		<< "Project root: " << request.projectRoot << "\n"
 		<< "Mode: " << ModeInstruction(request.mode) << "\n\n"
 		<< "User request:\n" << request.userPrompt << "\n\n";

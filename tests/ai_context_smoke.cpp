@@ -45,6 +45,13 @@ main()
 	assert(result.prompt.find("void App()") != std::string::npos);
 	assert(result.prompt.find("Project map:") != std::string::npos);
 	assert(result.prompt.find("Application entry point") != std::string::npos);
+	assert(result.prompt.find("Response contract:") != std::string::npos);
+	assert(result.prompt.find("```haikode-command") != std::string::npos);
+	assert(result.prompt.find("\"argv\":[\"make\",\"test\"]")
+		!= std::string::npos);
+	assert(result.prompt.find("Do not use shell strings") != std::string::npos);
+	assert(result.prompt.find("Never claim that a command was run")
+		!= std::string::npos);
 
 	const Haikode::AI::PromptBuildResult fileLimited
 		= builder.Build(request, 1024, 1);
