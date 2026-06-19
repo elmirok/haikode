@@ -360,8 +360,6 @@ public:
 			ResizeTo(size.width, size.height);
 		}
 		CenterOnScreen();
-		if (BString(fAuthMode->Text()).ICompare("api-key") == 0)
-			fApiKey->MakeFocus(true);
 	}
 
 	void MessageReceived(BMessage* message) override
@@ -473,6 +471,8 @@ public:
 			ResizeTo(size.width, size.height);
 		}
 		CenterOnScreen();
+		if (BString(fAuthMode->Text()).ICompare("api-key") == 0)
+			fApiKey->MakeFocus(true);
 	}
 
 	void MessageReceived(BMessage* message) override
@@ -784,7 +784,10 @@ AIChatPanel::AttachedToWindow()
 	BGroupView::AttachedToWindow();
 	fPrompt->SetTarget(this);
 	fSaveProvider->SetTarget(this);
-	fSetupButton->SetTarget(this);
+	if (Window() != nullptr)
+		fSetupButton->SetTarget(Window());
+	else
+		fSetupButton->SetTarget(this);
 	fOpenAIPresetButton->SetTarget(this);
 	fOllamaPresetButton->SetTarget(this);
 	fLMStudioPresetButton->SetTarget(this);
@@ -840,6 +843,7 @@ AIChatPanel::MessageReceived(BMessage* message)
 		case kMsgSaveProvider:
 			_SaveProviderToConfig();
 			break;
+		case MSG_HAIKODE_AI_SETUP:
 		case kMsgOpenSetup:
 			_OpenProviderSettings();
 			break;
@@ -1124,7 +1128,7 @@ AIChatPanel::_BuildInterface()
 	fSaveProvider = new BButton("haikode_ai_save_provider",
 		B_TRANSLATE("Save provider"), new BMessage(kMsgSaveProvider));
 	fSetupButton = new BButton("haikode_ai_setup",
-		B_TRANSLATE("AI Setup"), new BMessage(kMsgOpenSetup));
+		B_TRANSLATE("AI Setup"), new BMessage(MSG_HAIKODE_AI_SETUP));
 	fOpenAIPresetButton = new BButton("haikode_ai_preset_openai",
 		B_TRANSLATE("OpenAI"), new BMessage(kMsgPresetOpenAI));
 	fOllamaPresetButton = new BButton("haikode_ai_preset_ollama",

@@ -49,6 +49,13 @@ main()
 	assert(savedLog.find("label: codex ask") != std::string::npos);
 	assert(savedLog.find("[0] /bin/echo") != std::string::npos);
 	assert(savedLog.find("argument with spaces semi;colon") != std::string::npos);
+	std::string secondSavedPath;
+	assert(Haikode::AI::ProcessCapture::SaveLog(root.string(), "codex ask",
+		options, result, error, secondSavedPath, saveError));
+	assert(secondSavedPath.find(".haikode/logs/codex-ask-")
+		!= std::string::npos);
+	assert(secondSavedPath != savedPath);
+	assert(!ReadFile(secondSavedPath).empty());
 
 	options.argv = {"/bin/sh", "-c", "exit 7"};
 	assert(!Haikode::AI::ProcessCapture::Run(options, result, error));

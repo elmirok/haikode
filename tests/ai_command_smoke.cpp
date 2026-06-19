@@ -122,6 +122,13 @@ main()
 	assert(saved.find("\"argv\":[\"make\",\"test\"]") != std::string::npos);
 	assert(saved.find("\"dangerous\":false") != std::string::npos);
 	assert(saved.find("\"runnable\":true") != std::string::npos);
+	std::string secondSavedPath;
+	assert(Haikode::AI::SaveCommandRequests(root.string(), commands,
+		secondSavedPath, error));
+	assert(secondSavedPath.find(".haikode/commands/command-")
+		!= std::string::npos);
+	assert(secondSavedPath != savedPath);
+	assert(!ReadFile(secondSavedPath).empty());
 
 	Haikode::AI::AiSessionRecord session;
 	session.userPrompt = "Explain the current file";
@@ -147,6 +154,13 @@ main()
 		!= std::string::npos);
 	assert(savedSession.find("api_key") == std::string::npos);
 	assert(savedSession.find("sk-") == std::string::npos);
+	std::string secondSessionPath;
+	assert(Haikode::AI::SaveAiSession(root.string(), session,
+		secondSessionPath, error));
+	assert(secondSessionPath.find(".haikode/sessions/session-")
+		!= std::string::npos);
+	assert(secondSessionPath != sessionPath);
+	assert(!ReadFile(secondSessionPath).empty());
 
 	WriteFile(root / ".haikode" / "logs" / "codex-demo.log",
 		"label: codex\n--- output ---\nhello from codex\n");

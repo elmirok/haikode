@@ -765,6 +765,17 @@ struct {
 } CompareProjectsItemName;
 
 
+static bool
+ShouldCollapseScannedItem(ProjectItem* parent)
+{
+	if (parent == nullptr)
+		return false;
+
+	SourceItem* source = parent->GetSourceItem();
+	return source == nullptr || source->Type() != ProjectFolderItem;
+}
+
+
 ProjectFolder*
 ProjectBrowser::ProjectFolderPopulate(ProjectFolder* project)
 {
@@ -913,7 +924,8 @@ ProjectBrowser::_ProjectFolderScan(const entry_ref* ref, ProjectItem* parentItem
 		// Add the item directly
 		if (parentItem != nullptr) {
 			fOutlineListView->AddUnder(newItem, parentItem);
-			fOutlineListView->Collapse(newItem);
+			if (ShouldCollapseScannedItem(parentItem))
+				fOutlineListView->Collapse(newItem);
 		} else
 			fOutlineListView->AddItem(newItem);
 		UnlockLooper();
@@ -952,7 +964,7 @@ ProjectBrowser::_AddItemCommandToBatch(ProjectItem* item, ProjectItem* parent, P
 	AddItemCommand cmd;
 	cmd.item = item;
 	cmd.parent = parent;
-	cmd.shouldCollapse = (parent != nullptr);  // Collapse all non-root items
+	cmd.shouldCollapse = ShouldCollapseScannedItem(parent);
 
 	projectBatch.push_back(cmd);
 

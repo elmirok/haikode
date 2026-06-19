@@ -96,7 +96,9 @@ The Genio-based branch now adds:
   the selected file field is set.
 - Project-local `.haikode/sessions/` records for successful AI exchanges,
   storing prompts, responses, provider metadata, active file, and pending
-  actions without API keys or bearer tokens.
+  actions without API keys or bearer tokens. Saved AI sessions, command
+  requests, logs, patches, and backups use collision-resistant timestamped
+  names so rapid repeated actions keep separate audit records.
 - A supervised Codex CLI bridge: **Codex status**, **Codex login**, and
   **Ask Codex** prepare argv-native commands for explicit approval. The bridge
   uses Codex's own login/session storage and never reads or persists Codex

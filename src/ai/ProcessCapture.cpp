@@ -5,6 +5,7 @@
 
 #include "ProcessCapture.h"
 
+#include <atomic>
 #include <chrono>
 #include <cstring>
 #include <filesystem>
@@ -62,9 +63,10 @@ AppendOutput(std::string& output, const char* buffer, ssize_t count,
 std::string
 Timestamp()
 {
+	static std::atomic<unsigned long long> sSequence {0};
 	const auto now = std::chrono::system_clock::now().time_since_epoch();
 	return std::to_string(std::chrono::duration_cast<std::chrono::nanoseconds>(
-		now).count());
+		now).count()) + "-" + std::to_string(++sSequence);
 }
 
 
