@@ -117,8 +117,9 @@ if it says network AI is disabled, rebuild with `HAIKODE_AI_NETWORK=1`.
 
 Use the **OpenAI**, **OpenRouter**, **Ollama**, **LM Studio**, or **llama.cpp**
 buttons to fill the common base URL, model, and auth mode defaults, then adjust
-the model if needed. Haikode trims leading/trailing spaces from provider URLs,
-model names, API keys, and OAuth bearer tokens before sending a request.
+the model if needed. Haikode normalizes auth mode text and trims leading/trailing
+spaces from provider URLs, model names, API keys, and OAuth bearer tokens before
+sending a request.
 
 For OpenAI-compatible cloud providers, set:
 

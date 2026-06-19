@@ -105,18 +105,6 @@ const uint32 kMsgRecordPicked = 'hipr';
 const uint32 kMsgRecordOpen = 'hiro';
 const uint32 kMsgRecordCancel = 'hrcx';
 
-Haikode::AI::AuthMode
-AuthModeFromString(const BString& value)
-{
-	if (value.ICompare("local") == 0)
-		return Haikode::AI::AuthMode::Local;
-	if (value.ICompare("oauth") == 0)
-		return Haikode::AI::AuthMode::OAuth;
-	if (value.ICompare("none") == 0)
-		return Haikode::AI::AuthMode::None;
-	return Haikode::AI::AuthMode::ApiKey;
-}
-
 const char*
 InitialAIStatusText()
 {
@@ -3059,7 +3047,7 @@ AIChatPanel::_ProviderFromFields() const
 	Haikode::AI::ProviderSettings provider;
 	provider.baseUrl = fBaseUrl->Text();
 	provider.model = fModel->Text();
-	provider.authMode = AuthModeFromString(fAuthMode->Text());
+	provider.authMode = Haikode::AI::AuthModeFromString(fAuthMode->Text());
 	provider.apiKey = fApiKey->Text();
 	provider.oauthToken = fOAuthToken->Text();
 	return provider;

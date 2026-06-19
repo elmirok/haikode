@@ -39,6 +39,7 @@ struct ProviderSettings {
 };
 
 const char* ToString(AuthMode mode);
+AuthMode AuthModeFromString(const std::string& value);
 ProviderSettings ProviderPresetSettings(ProviderPreset preset);
 
 } // namespace Haikode::AI

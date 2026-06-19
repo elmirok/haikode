@@ -28,6 +28,21 @@ TrimWhitespace(std::string value)
 }
 
 
+std::string
+NormalizeAuthModeString(std::string value)
+{
+	value = TrimWhitespace(value);
+	std::string normalized;
+	for (const char c : value) {
+		if (c == '-' || c == '_' || std::isspace(static_cast<unsigned char>(c)))
+			continue;
+		normalized.push_back(static_cast<char>(std::tolower(
+			static_cast<unsigned char>(c))));
+	}
+	return normalized;
+}
+
+
 bool
 EndsWithSlash(const std::string& value)
 {
@@ -144,6 +159,20 @@ ToString(AuthMode mode)
 			return "local";
 	}
 	return "unknown";
+}
+
+
+AuthMode
+AuthModeFromString(const std::string& value)
+{
+	const std::string normalized = NormalizeAuthModeString(value);
+	if (normalized == "local")
+		return AuthMode::Local;
+	if (normalized == "oauth")
+		return AuthMode::OAuth;
+	if (normalized == "none")
+		return AuthMode::None;
+	return AuthMode::ApiKey;
 }
 
 

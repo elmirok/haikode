@@ -41,6 +41,16 @@ main()
 	assert(prepared.url == "https://api.openai.com/v1/chat/completions");
 	assert(prepared.authorizationHeader == "Authorization: Bearer sk-pasted");
 	assert(prepared.body.find("\"model\":\"gpt-test\"") != std::string::npos);
+	assert(Haikode::AI::AuthModeFromString(" LOCAL ")
+		== Haikode::AI::AuthMode::Local);
+	assert(Haikode::AI::AuthModeFromString("OAuth")
+		== Haikode::AI::AuthMode::OAuth);
+	assert(Haikode::AI::AuthModeFromString("api key")
+		== Haikode::AI::AuthMode::ApiKey);
+	assert(Haikode::AI::AuthModeFromString("api_key")
+		== Haikode::AI::AuthMode::ApiKey);
+	assert(Haikode::AI::AuthModeFromString("none")
+		== Haikode::AI::AuthMode::None);
 
 	const Haikode::AI::ProviderSettings openaiPreset
 		= Haikode::AI::ProviderPresetSettings(
