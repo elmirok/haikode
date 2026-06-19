@@ -177,7 +177,7 @@ shell command strings.
 Use **Recent records** in the AI panel to pick from recent `.haikode/sessions`,
 `.haikode/logs`, `.haikode/patches`, and `.haikode/commands` files for the
 active project. **Show record** previews the path currently shown in the record
-field.
+field. **Open record file** opens that saved record in Genio's editor.
 
 AI patches cannot modify sensitive project metadata such as `.git/`,
 `.haikode/`, `.genio`, or Haikode/Genio settings files.

@@ -100,6 +100,7 @@ const uint32 kMsgOpenProjectFile = 'hifo';
 const uint32 kMsgProjectFilePicked = 'hifp';
 const uint32 kMsgListRecords = 'hilr';
 const uint32 kMsgShowRecord = 'hird';
+const uint32 kMsgOpenRecordFile = 'hrof';
 const uint32 kMsgRecordPicked = 'hipr';
 const uint32 kMsgRecordOpen = 'hiro';
 const uint32 kMsgRecordCancel = 'hrcx';
@@ -780,6 +781,7 @@ AIChatPanel::AIChatPanel(PanelTabManager* panelTabManager, tab_id id)
 	fOpenProjectFileButton(nullptr),
 	fRecentRecordsButton(nullptr),
 	fShowRecordButton(nullptr),
+	fOpenRecordButton(nullptr),
 	fRequestRunning(false),
 	fActiveRequestId(0),
 	fActiveCancellation(nullptr)
@@ -828,6 +830,7 @@ AIChatPanel::AttachedToWindow()
 	fOpenProjectFileButton->SetTarget(this);
 	fRecentRecordsButton->SetTarget(this);
 	fShowRecordButton->SetTarget(this);
+	fOpenRecordButton->SetTarget(this);
 	_LoadProviderFromConfig();
 	be_app->StartWatching(this, gCFG.UpdateMessageWhat());
 	SetTabLabel(B_TRANSLATE("Haikode AI"));
@@ -1037,6 +1040,9 @@ AIChatPanel::MessageReceived(BMessage* message)
 		case kMsgShowRecord:
 			_ShowSelectedProjectRecord();
 			break;
+		case kMsgOpenRecordFile:
+			_OpenSelectedProjectRecord();
+			break;
 		case kMsgRecordPicked:
 			fRecordPath->SetText(message->GetString("path", ""));
 			_ShowSelectedProjectRecord();
@@ -1211,6 +1217,8 @@ AIChatPanel::_BuildInterface()
 		B_TRANSLATE("Recent records"), new BMessage(kMsgListRecords));
 	fShowRecordButton = new BButton("haikode_ai_show_record",
 		B_TRANSLATE("Show record"), new BMessage(kMsgShowRecord));
+	fOpenRecordButton = new BButton("haikode_ai_open_record",
+		B_TRANSLATE("Open record file"), new BMessage(kMsgOpenRecordFile));
 
 	fPendingActions = new BTextView("haikode_ai_pending_actions");
 	fPendingActions->MakeEditable(false);
@@ -1305,6 +1313,7 @@ AIChatPanel::_BuildInterface()
 			.Add(fRecordPath)
 			.Add(fRecentRecordsButton)
 			.Add(fShowRecordButton)
+			.Add(fOpenRecordButton)
 		.End()
 		.Add(pendingScroll)
 		.Add(outputScroll);
@@ -1516,6 +1525,7 @@ AIChatPanel::_SetRequestControlsEnabled(bool enabled)
 	fOpenProjectFileButton->SetEnabled(enabled);
 	fRecentRecordsButton->SetEnabled(enabled);
 	fShowRecordButton->SetEnabled(enabled);
+	fOpenRecordButton->SetEnabled(enabled);
 	fRunCommandButton->SetEnabled(enabled && !fPendingCommands.empty());
 	fRejectCommandButton->SetEnabled(enabled && !fPendingCommands.empty());
 	fCancelButton->SetEnabled(!enabled);
@@ -2427,6 +2437,69 @@ AIChatPanel::_ShowSelectedProjectRecord()
 	_AppendOutput(line.String());
 	_AppendOutput("");
 	_AppendOutput(text.c_str());
+}
+
+
+void
+AIChatPanel::_OpenSelectedProjectRecord()
+{
+	if (fProjectRoot.IsEmpty()) {
+		_AppendOutput(B_TRANSLATE("Open or activate a project before opening a Haikode record."));
+		return;
+	}
+	if (fRecordPath == nullptr || BString(fRecordPath->Text()).IsEmpty()) {
+		_AppendOutput(B_TRANSLATE("Choose or paste a .haikode record path first."));
+		return;
+	}
+
+	const BString relativePath(fRecordPath->Text());
+	if (!IsSafeRelativeProjectPath(relativePath)) {
+		BString line(B_TRANSLATE("Refusing unsafe Haikode record path: "));
+		line << relativePath;
+		_AppendOutput(line.String());
+		return;
+	}
+
+	std::string validationPreview;
+	std::string validationError;
+	if (!Haikode::AI::ReadProjectRecord(fProjectRoot.String(),
+			relativePath.String(), 1024, validationPreview, validationError)) {
+		BString line(B_TRANSLATE("Could not open Haikode record: "));
+		line << validationError.c_str();
+		_AppendOutput(line.String());
+		return;
+	}
+
+	BPath path(fProjectRoot.String());
+	status_t status = path.Append(relativePath.String());
+	if (status != B_OK) {
+		BString line(B_TRANSLATE("Could not resolve Haikode record path: "));
+		line << strerror(status);
+		_AppendOutput(line.String());
+		return;
+	}
+
+	entry_ref ref;
+	status = get_ref_for_path(path.Path(), &ref);
+	if (status != B_OK) {
+		BString line(B_TRANSLATE("Could not find Haikode record: "));
+		line << path.Path();
+		_AppendOutput(line.String());
+		return;
+	}
+
+	BMessage open(B_REFS_RECEIVED);
+	open.AddRef("refs", &ref);
+	if (Window() == nullptr || Window()->PostMessage(&open) != B_OK) {
+		BString line(B_TRANSLATE("Could not ask Genio to open Haikode record: "));
+		line << path.Path();
+		_AppendOutput(line.String());
+		return;
+	}
+
+	BString line(B_TRANSLATE("Opening Haikode record file: "));
+	line << relativePath;
+	_AppendOutput(line.String());
 }
 
 

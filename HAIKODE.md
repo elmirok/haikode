@@ -28,9 +28,10 @@ Haikode should feel like Codex/OpenCode for Haiku, but remain supervised:
 
 ## Current Branches
 
-- `main`: current public scratch MVP until the Genio fork is promoted.
+- `main`: public Genio-based Haikode fork.
 - `legacy/scratch-mvp`: backup of the scratch MVP.
-- `codex/genio-haikode`: Genio-based fork work.
+- `codex/genio-haikode`: development branch used while landing AI/vibecoding
+  slices.
 
 ## Current Integration Slice
 
@@ -99,6 +100,9 @@ The Genio-based branch now adds:
 - A lightweight native `.haikode` record browser lists recent sessions, logs,
   patches, and command request files; selecting a row previews the record in
   the AI transcript.
+- A native **Open record file** action opens the selected `.haikode` session,
+  log, patch, or command record in Genio's editor for normal inspection,
+  copying, and search.
 - A native **Project files** picker in the AI panel scans the active project for
   text/source files and opens the selected file in Genio's editor, so users can
   see and select files even if the regular project tree is collapsed or stale.

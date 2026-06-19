@@ -90,6 +90,7 @@ private:
 	void _OpenSelectedProjectFile();
 	void _ListRecentProjectRecords();
 	void _ShowSelectedProjectRecord();
+	void _OpenSelectedProjectRecord();
 	void _UpdatePendingActions();
 	void _SaveSessionRecord(const BString& responseText);
 	void _AppendOutput(const char* text);
@@ -154,6 +155,7 @@ private:
 	BButton* fOpenProjectFileButton;
 	BButton* fRecentRecordsButton;
 	BButton* fShowRecordButton;
+	BButton* fOpenRecordButton;
 	bool fRequestRunning;
 	int64 fActiveRequestId;
 	std::shared_ptr<Haikode::AI::CancellationToken> fActiveCancellation;
