@@ -11,6 +11,15 @@
 namespace Haikode::AI {
 
 std::string
+SelectContextText(const std::string& selection, const std::string& fullFileText)
+{
+	if (!selection.empty())
+		return selection;
+	return fullFileText;
+}
+
+
+std::string
 PromptBuilder::ModeInstruction(PromptMode mode) const
 {
 	switch (mode) {

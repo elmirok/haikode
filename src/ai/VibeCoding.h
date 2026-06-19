@@ -34,6 +34,9 @@ struct PromptBuildResult {
 	std::vector<std::string> warnings;
 };
 
+std::string SelectContextText(const std::string& selection,
+	const std::string& fullFileText);
+
 class PromptBuilder {
 public:
 	PromptBuildResult Build(const VibeCodingRequest& request,

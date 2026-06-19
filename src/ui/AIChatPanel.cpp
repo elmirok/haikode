@@ -141,11 +141,12 @@ AIChatPanel::MessageReceived(BMessage* message)
 
 void
 AIChatPanel::SetActiveContext(const BString& projectRoot, const BString& filePath,
-	const BString& selection)
+	const BString& selection, const BString& fileText)
 {
 	fProjectRoot = projectRoot;
 	fFilePath = filePath;
 	fSelection = selection;
+	fFileText = fileText;
 }
 
 
@@ -456,10 +457,12 @@ AIChatPanel::_RequestFromContext(Haikode::AI::PromptMode mode) const
 	request.projectRoot = fProjectRoot.String();
 	request.userPrompt = fPrompt->Text();
 
-	if (!fFilePath.IsEmpty() || !fSelection.IsEmpty()) {
+	const std::string contextText = Haikode::AI::SelectContextText(
+		fSelection.String(), fFileText.String());
+	if (!fFilePath.IsEmpty() && !contextText.empty()) {
 		Haikode::AI::ContextFile file;
 		file.path = fFilePath.String();
-		file.text = fSelection.String();
+		file.text = contextText;
 		request.files.push_back(file);
 	}
 

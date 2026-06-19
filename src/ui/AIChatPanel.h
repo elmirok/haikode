@@ -26,7 +26,7 @@ public:
 	void MessageReceived(BMessage* message) override;
 
 	void SetActiveContext(const BString& projectRoot, const BString& filePath,
-		const BString& selection);
+		const BString& selection, const BString& fileText);
 	void SetTabLabel(BString label);
 
 private:
@@ -66,4 +66,5 @@ private:
 	BString fProjectRoot;
 	BString fFilePath;
 	BString fSelection;
+	BString fFileText;
 };

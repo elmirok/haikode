@@ -80,6 +80,32 @@
 
 GenioWindow* gMainWindow = nullptr;
 
+namespace {
+
+constexpr int32 kHaikodeAIFileContextLimit = 200 * 1024;
+
+BString
+EditorTextForAI(IEditor* editor)
+{
+	BString text;
+	if (editor == nullptr)
+		return text;
+
+	const int32 lineCount = editor->CountLines();
+	for (int32 line = 0; line < lineCount; line++) {
+		BString lineText = editor->GetLine(line);
+		const int32 remaining = kHaikodeAIFileContextLimit - text.Length();
+		if (remaining <= 0)
+			break;
+		if (lineText.Length() > remaining)
+			lineText.Truncate(remaining);
+		text << lineText;
+	}
+	return text;
+}
+
+} // namespace
+
 #if B_HAIKU_VERSION <= B_HAIKU_VERSION_1_BETA_5
 #define B_NO_COMMAND_KEY 0
 #endif
@@ -4314,13 +4340,16 @@ GenioWindow::_UpdateHaikodeAIContext()
 
 	BString filePath;
 	BString selection;
+	BString fileText;
 	IEditor* editor = fTabManager->SelectedEditor();
 	if (editor != nullptr) {
 		filePath = editor->FilePath();
 		selection = editor->Selection();
+		if (selection.IsEmpty())
+			fileText = EditorTextForAI(editor);
 	}
 
-	fAIChatPanel->SetActiveContext(projectRoot, filePath, selection);
+	fAIChatPanel->SetActiveContext(projectRoot, filePath, selection, fileText);
 }
 
 
