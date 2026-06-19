@@ -1176,18 +1176,21 @@ SaveCommandRequests(const std::string& projectRoot,
 			const CommandRequest& command = commands[i];
 			if (i > 0)
 				file << ",";
-			file << "\n    {\"summary\":\"" << EscapeJson(command.summary)
+			file << "\n    {\"summary\":\""
+				<< EscapeJson(RedactSecrets(command.summary))
 				<< "\",\"argv\":[";
 			for (size_t arg = 0; arg < command.argv.size(); arg++) {
 				if (arg > 0)
 					file << ",";
-				file << "\"" << EscapeJson(command.argv[arg]) << "\"";
+				file << "\"" << EscapeJson(RedactSecrets(command.argv[arg]))
+					<< "\"";
 			}
 			file << "],\"dangerous\":"
 				<< (command.dangerous ? "true" : "false")
 				<< ",\"runnable\":"
 				<< (command.runnable ? "true" : "false")
-				<< ",\"warning\":\"" << EscapeJson(command.warning) << "\"}";
+				<< ",\"warning\":\""
+				<< EscapeJson(RedactSecrets(command.warning)) << "\"}";
 		}
 		file << "\n  ]\n}\n";
 		savedPath = commandPath.string();

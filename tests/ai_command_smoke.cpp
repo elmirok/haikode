@@ -205,6 +205,22 @@ main()
 	assert(saved.find("\"argv\":[\"make\",\"test\"]") != std::string::npos);
 	assert(saved.find("\"dangerous\":false") != std::string::npos);
 	assert(saved.find("\"runnable\":true") != std::string::npos);
+	Haikode::AI::CommandRequest secretCommand;
+	secretCommand.summary = "Use sk-command-secret-123456";
+	secretCommand.argv = {"curl", "-H",
+		"Authorization: Bearer command-bearer-secret-abcdef",
+		"https://example.test?access_token=query-token-secret"};
+	secretCommand.warning = "api_key=warning-secret";
+	std::vector<Haikode::AI::CommandRequest> secretCommands {secretCommand};
+	std::string secretSavedPath;
+	assert(Haikode::AI::SaveCommandRequests(root.string(), secretCommands,
+		secretSavedPath, error));
+	const std::string secretSaved = ReadFile(secretSavedPath);
+	assert(secretSaved.find("sk-command-secret") == std::string::npos);
+	assert(secretSaved.find("command-bearer-secret") == std::string::npos);
+	assert(secretSaved.find("query-token-secret") == std::string::npos);
+	assert(secretSaved.find("warning-secret") == std::string::npos);
+	assert(secretSaved.find("[redacted-secret]") != std::string::npos);
 	std::string secondSavedPath;
 	assert(Haikode::AI::SaveCommandRequests(root.string(), commands,
 		secondSavedPath, error));

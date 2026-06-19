@@ -105,6 +105,8 @@ The Genio-based branch now adds:
   capture path inside the active project, return stdout/stderr to the AI
   transcript, and save `.haikode/logs/` records. They are not evaluated through
   shell command strings.
+- Saved command-request records redact key-like strings in summaries, argv, and
+  warnings before writing `.haikode/commands/` files.
 - A native pending-actions summary that lists pending patch files, hunks,
   additions/deletions, new-file markers, and command requests before the user
   approves anything.
