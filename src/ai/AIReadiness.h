@@ -27,6 +27,9 @@ struct AIReadinessStatus {
 
 AIReadinessStatus EvaluateAIReadiness(const ProviderSettings& provider,
 	bool networkEnabled);
+bool ShouldOpenSetupForReadiness(const AIReadinessStatus& status);
+std::string FormatReadinessFailureTranscript(
+	const AIReadinessStatus& status);
 
 const char* ToString(AIReadinessState state);
 

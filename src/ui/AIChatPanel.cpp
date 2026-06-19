@@ -1855,6 +1855,18 @@ AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 	_SaveProviderToConfig();
 	Haikode::AI::ProviderSettings provider = _ProviderFromFields();
 
+	const Haikode::AI::AIReadinessStatus readiness
+		= Haikode::AI::EvaluateAIReadiness(provider, NetworkAIEnabled());
+	if (!readiness.ready) {
+		fOutput->SetText("");
+		_AppendOutput(Haikode::AI::FormatReadinessFailureTranscript(
+			readiness).c_str());
+		_UpdateReadinessStatus();
+		if (Haikode::AI::ShouldOpenSetupForReadiness(readiness))
+			_OpenProviderSettings();
+		return;
+	}
+
 	fOutput->SetText("");
 	_AppendOutput(B_TRANSLATE("Sending prompt to configured provider."));
 	_AppendOutput("");

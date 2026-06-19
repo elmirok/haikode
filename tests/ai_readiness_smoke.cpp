@@ -24,17 +24,28 @@ main()
 	assert(status.summary.find("Network AI disabled") != std::string::npos);
 	assert(status.action.find("HAIKODE_AI_NETWORK=1") != std::string::npos);
 	assert(!status.safeDetails.empty());
+	assert(!Haikode::AI::ShouldOpenSetupForReadiness(status));
+	const std::string disabledTranscript
+		= Haikode::AI::FormatReadinessFailureTranscript(status);
+	assert(disabledTranscript.find("AI request not started")
+		!= std::string::npos);
+	assert(disabledTranscript.find("Network AI disabled") != std::string::npos);
+	assert(disabledTranscript.find("HAIKODE_AI_NETWORK=1")
+		!= std::string::npos);
+	assert(disabledTranscript.find("sk-secret") == std::string::npos);
 
 	status = Haikode::AI::EvaluateAIReadiness(provider, true);
 	assert(status.state == Haikode::AI::AIReadinessState::MissingCredential);
 	assert(status.ready == false);
 	assert(status.summary.find("API key missing") != std::string::npos);
 	assert(status.action.find("AI Setup") != std::string::npos);
+	assert(Haikode::AI::ShouldOpenSetupForReadiness(status));
 
 	provider.apiKey = " sk-secret-test-key ";
 	status = Haikode::AI::EvaluateAIReadiness(provider, true);
 	assert(status.state == Haikode::AI::AIReadinessState::Ready);
 	assert(status.ready);
+	assert(!Haikode::AI::ShouldOpenSetupForReadiness(status));
 	assert(status.summary.find("Ready") != std::string::npos);
 	assert(status.safeDetails.find("sk-secret") == std::string::npos);
 	assert(status.safeDetails.find("api-key") != std::string::npos);

@@ -120,4 +120,25 @@ EvaluateAIReadiness(const ProviderSettings& provider, bool networkEnabled)
 		provider);
 }
 
+
+bool
+ShouldOpenSetupForReadiness(const AIReadinessStatus& status)
+{
+	return status.state == AIReadinessState::MissingCredential
+		|| status.state == AIReadinessState::InvalidProvider;
+}
+
+
+std::string
+FormatReadinessFailureTranscript(const AIReadinessStatus& status)
+{
+	std::ostringstream transcript;
+	transcript << "AI request not started: " << status.summary;
+	if (!status.action.empty())
+		transcript << "\nNext step: " << status.action;
+	if (!status.safeDetails.empty())
+		transcript << "\nProvider: " << status.safeDetails;
+	return transcript.str();
+}
+
 } // namespace Haikode::AI
