@@ -161,6 +161,16 @@ main()
 		!= std::string::npos);
 	assert(projectSummary.prompt.find("Project map:") != std::string::npos);
 
+	request.mode = Haikode::AI::PromptMode::ProposePatch;
+	request.userPrompt = "Add a status label.";
+	const Haikode::AI::PromptBuildResult patchProposal
+		= builder.Build(request, 1024, 10);
+	assert(patchProposal.prompt.find("Propose a small unified diff only")
+		!= std::string::npos);
+	assert(patchProposal.prompt.find("Do not return haikode-edit blocks")
+		!= std::string::npos);
+	assert(patchProposal.prompt.find("```haikode-edit") == std::string::npos);
+
 	request.mode = Haikode::AI::PromptMode::ReviewDiff;
 	request.userPrompt = "Please sanity-check this patch.";
 	request.pendingDiffPath = "src/main.cpp";

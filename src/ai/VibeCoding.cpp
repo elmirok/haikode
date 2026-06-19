@@ -1938,7 +1938,7 @@ PromptBuilder::ModeInstruction(PromptMode mode) const
 		case PromptMode::SummarizeProject:
 			return "Summarize this Haiku project using the project map. Identify the main components, likely build/test entry points, TODO hotspots, and high-risk files.";
 		case PromptMode::ProposePatch:
-			return "Propose a small unified diff only. Do not include command requests unless the user explicitly asks for a follow-up command.";
+			return "Propose a small unified diff only. Do not return haikode-edit blocks. Do not include command requests unless the user explicitly asks for a follow-up command.";
 		case PromptMode::ReviewDiff:
 			return "Review the diff for correctness, safety, and Haiku-native style.";
 	}
@@ -1953,6 +1953,8 @@ PromptBuilder::Build(const VibeCodingRequest& request, size_t maxBytesPerFile,
 	PromptBuildResult result;
 	result.warnings = request.contextWarnings;
 	std::ostringstream prompt;
+	const bool allowSingleFileEditBlock
+		= request.mode != PromptMode::ProposePatch;
 
 	prompt
 		<< "You are Haikode, a native Haiku OS AI coding assistant built as a "
@@ -1971,15 +1973,23 @@ PromptBuilder::Build(const VibeCodingRequest& request, size_t maxBytesPerFile,
 		<< "not modify .git, .hg, .svn, .haikode, .genio, Haikode.settings, "
 		<< "or Genio.settings.\n"
 		<< "- Return at most one unified diff per response. Keep patches small "
-		<< "and focused on files shown in the project map or file context.\n"
-		<< "- For one complete file with sha256=..., you may instead output "
-		<< "a fenced haikode-edit JSON block with path, original_sha256, "
-		<< "and replacement fields; Haikode will verify the hash before "
-		<< "showing a reviewable patch.\n"
-		<< "```haikode-edit\n"
-		<< "{\"path\":\"src/main.cpp\",\"original_sha256\":\"...\","
-		<< "\"replacement\":\"full new file text\"}\n"
-		<< "```\n"
+		<< "and focused on files shown in the project map or file context.\n";
+	if (allowSingleFileEditBlock) {
+		prompt
+			<< "- For one complete file with sha256=..., you may instead output "
+			<< "a fenced haikode-edit JSON block with path, original_sha256, "
+			<< "and replacement fields; Haikode will verify the hash before "
+			<< "showing a reviewable patch.\n"
+			<< "```haikode-edit\n"
+			<< "{\"path\":\"src/main.cpp\",\"original_sha256\":\"...\","
+			<< "\"replacement\":\"full new file text\"}\n"
+			<< "```\n";
+	} else {
+		prompt
+			<< "- Do not return haikode-edit blocks in patch proposal mode; "
+			<< "Haikode's primary patch workflow expects a unified diff.\n";
+	}
+	prompt
 		<< "- For commands, output fenced JSON exactly like:\n"
 		<< "```haikode-command\n"
 		<< "{\"summary\":\"Run tests\",\"argv\":[\"make\",\"test\"]}\n"
