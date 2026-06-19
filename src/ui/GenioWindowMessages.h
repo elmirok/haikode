@@ -142,6 +142,7 @@ enum {
 
 	MSG_HAIKODE_AI_SHOW			= 'hais',
 	MSG_HAIKODE_AI_SETUP			= 'hise',
+	MSG_HAIKODE_AI_SETUP_READY		= 'hisr',
 	MSG_HAIKODE_AI_PATCH_APPLIED	= 'hipl',
 
 	MSG_WHEEL_WITH_COMMAND_KEY		= 'waco',

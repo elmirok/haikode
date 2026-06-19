@@ -32,6 +32,7 @@
 
 #include "ActionManager.h"
 #include "AIChatPanel.h"
+#include "AISetupFlow.h"
 #include "argv_split.h"
 #include "ConfigManager.h"
 #include "ConfigWindow.h"
@@ -325,10 +326,19 @@ GenioWindow::MessageReceived(BMessage* message)
 		case MSG_HAIKODE_AI_SETUP:
 		{
 			_ShowHaikodeAI();
+			if (fAIChatPanel != nullptr
+				&& Haikode::AI::ShouldDeferSetupOpenAfterPanelShow(
+					fAIChatPanel->Window() != nullptr)) {
+				PostMessage(MSG_HAIKODE_AI_SETUP_READY);
+			} else if (fAIChatPanel != nullptr) {
+				fAIChatPanel->OpenProviderSettings();
+			}
+			break;
+		}
+		case MSG_HAIKODE_AI_SETUP_READY:
 			if (fAIChatPanel != nullptr)
 				fAIChatPanel->OpenProviderSettings();
 			break;
-		}
 		case MSG_HAIKODE_AI_PATCH_APPLIED:
 			_ReloadChangedFilesFromAI(message);
 			break;
