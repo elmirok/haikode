@@ -464,4 +464,17 @@ UnifiedDiff::RemoveFile(const std::string& path)
 	return fFiles.size() != oldSize;
 }
 
+
+bool
+UnifiedDiff::RemoveFirstFile(std::string* removedPath)
+{
+	if (fFiles.empty())
+		return false;
+
+	if (removedPath != nullptr)
+		*removedPath = fFiles.front().newPath;
+	fFiles.erase(fFiles.begin());
+	return true;
+}
+
 } // namespace Haikode::AI

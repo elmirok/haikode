@@ -50,6 +50,7 @@ private:
 	void _FinishResponse(const BString& text, const BString& error, long status);
 	void _ApplyPendingDiff();
 	void _ApplyFirstPendingFile();
+	void _RejectFirstPendingFile();
 	void _RejectPendingDiff();
 	void _RunPendingCommand();
 	void _ClearPendingCommands();
@@ -89,6 +90,7 @@ private:
 	BButton* fAskButton;
 	BButton* fPatchButton;
 	BButton* fApplyFirstFileButton;
+	BButton* fRejectFirstFileButton;
 	BButton* fApplyPatchButton;
 	BButton* fRejectPatchButton;
 	BButton* fRunCommandButton;

@@ -93,6 +93,11 @@ main()
 	assert(multiPatch.ChangedPaths().size() == 1);
 	assert(multiPatch.ChangedPaths()[0] == "src/other.cpp");
 	assert(!multiPatch.RemoveFile("missing.cpp"));
+	std::string removedPath;
+	assert(multiPatch.RemoveFirstFile(&removedPath));
+	assert(removedPath == "src/other.cpp");
+	assert(multiPatch.IsEmpty());
+	assert(!multiPatch.RemoveFirstFile(&removedPath));
 
 	std::string savedPatchPath;
 	assert(Haikode::AI::UnifiedDiff::SavePatchText(root.string(), diff,

@@ -61,6 +61,7 @@ public:
 	bool ApplyFile(const std::string& projectRoot, const std::string& path,
 		PatchApplyResult& result, std::string& error) const;
 	bool RemoveFile(const std::string& path);
+	bool RemoveFirstFile(std::string* removedPath = nullptr);
 
 private:
 	static bool ParseHunkHeader(const std::string& line, PatchHunk& hunk);
