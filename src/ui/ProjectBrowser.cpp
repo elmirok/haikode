@@ -826,13 +826,14 @@ ProjectBrowser::ProjectFolderPopulate(ProjectFolder* project)
 		UnlockLooper();
 	}
 
-	// Scan off the opener thread, but insert the initial tree synchronously on
-	// the browser looper. Queued pointer batches can leave the first project
-	// visually empty on some Haiku systems even though the filesystem walk
-	// completed; live filesystem updates still use the batch path.
+	// Scan off the opener thread, then replay the initial tree on the browser
+	// looper in one synchronous batch. Mutating BOutlineListView during the
+	// recursive scanner walk can leave the first project visually empty on some
+	// Haiku systems if the view attachment/locking state changes mid-open.
 	bigtime_t scanStartTime = system_time();
 	ProjectItem *projectItem = _ProjectFolderScan(project->EntryRef(), nullptr,
-		project, false);
+		project, true);
+	_FlushItemBatch(project, true);
 	bigtime_t scanEndTime = system_time();
 
 	ASSERT(projectItem != nullptr);

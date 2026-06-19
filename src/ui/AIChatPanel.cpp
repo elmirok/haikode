@@ -1454,11 +1454,8 @@ AIChatPanel::_ApplyProviderPreset(Haikode::AI::ProviderPreset preset)
 void
 AIChatPanel::_OpenProviderSettings()
 {
-	BLooper* looper = Window();
-	if (looper == nullptr)
-		looper = Looper();
 	status_t messengerStatus = B_OK;
-	BMessenger target(this, looper, &messengerStatus);
+	BMessenger target(this, nullptr, &messengerStatus);
 	if (messengerStatus != B_OK) {
 		BString text(B_TRANSLATE("Haikode could not open AI Setup because the AI panel is not ready yet."));
 		text << "\n\n" << B_TRANSLATE("Open the Haikode AI panel, then click AI Setup again.");

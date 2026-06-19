@@ -435,6 +435,108 @@ ExtractJsonStringField(const std::string& json, const std::string& key,
 
 
 bool
+ExtractJsonObjectAt(const std::string& json, size_t start, std::string& object)
+{
+	object.clear();
+	if (start >= json.size() || json[start] != '{')
+		return false;
+
+	bool inString = false;
+	bool escaping = false;
+	int depth = 0;
+	for (size_t pos = start; pos < json.size(); pos++) {
+		const char c = json[pos];
+		if (inString) {
+			if (escaping) {
+				escaping = false;
+			} else if (c == '\\') {
+				escaping = true;
+			} else if (c == '"') {
+				inString = false;
+			}
+			continue;
+		}
+
+		if (c == '"') {
+			inString = true;
+		} else if (c == '{') {
+			depth++;
+		} else if (c == '}') {
+			depth--;
+			if (depth == 0) {
+				object = json.substr(start, pos - start + 1);
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
+bool
+ExtractJsonObjectArrayField(const std::string& json, const std::string& key,
+	std::vector<std::string>& objects)
+{
+	objects.clear();
+	const std::string marker = "\"" + key + "\"";
+	size_t pos = json.find(marker);
+	if (pos == std::string::npos)
+		return false;
+	pos = json.find(':', pos + marker.size());
+	if (pos == std::string::npos)
+		return false;
+	pos++;
+	while (pos < json.size()
+		&& std::isspace(static_cast<unsigned char>(json[pos]))) {
+		pos++;
+	}
+	if (pos >= json.size() || json[pos] != '[')
+		return false;
+	pos++;
+
+	while (pos < json.size()) {
+		while (pos < json.size()
+			&& std::isspace(static_cast<unsigned char>(json[pos]))) {
+			pos++;
+		}
+		if (pos >= json.size())
+			return false;
+		if (json[pos] == ']')
+			return true;
+		if (json[pos] != '{')
+			return false;
+
+		std::string object;
+		if (!ExtractJsonObjectAt(json, pos, object))
+			return false;
+		objects.push_back(object);
+		pos += object.size();
+
+		while (pos < json.size()
+			&& std::isspace(static_cast<unsigned char>(json[pos]))) {
+			pos++;
+		}
+		if (pos < json.size() && json[pos] == ',') {
+			pos++;
+			continue;
+		}
+		if (pos < json.size() && json[pos] == ']')
+			return true;
+		return false;
+	}
+	return false;
+}
+
+
+bool
+LooksLikeUnifiedDiff(const std::string& value)
+{
+	return value.find("--- ") != std::string::npos
+		|| value.find("diff --git ") != std::string::npos;
+}
+
+
+bool
 ExtractJsonDiffBody(const std::string& text, std::string& rawDiff)
 {
 	const std::string trimmed = TrimTrailingWhitespace(text);
@@ -443,11 +545,35 @@ ExtractJsonDiffBody(const std::string& text, std::string& rawDiff)
 		return false;
 	}
 
+	std::vector<std::string> patchObjects;
+	ExtractJsonObjectArrayField(trimmed, "patches", patchObjects);
+
+	std::vector<std::string> diffs;
+	for (const std::string& object : patchObjects) {
+		for (const std::string& key : {"unified_diff", "diff", "patch"}) {
+			std::string value;
+			if (ExtractJsonStringField(object, key, value)
+				&& LooksLikeUnifiedDiff(value)) {
+				diffs.push_back(TrimTrailingWhitespace(value));
+				break;
+			}
+		}
+	}
+	if (!diffs.empty()) {
+		std::ostringstream joined;
+		for (size_t i = 0; i < diffs.size(); i++) {
+			if (i > 0)
+				joined << "\n";
+			joined << diffs[i];
+		}
+		rawDiff = joined.str();
+		return true;
+	}
+
 	for (const std::string& key : {"unified_diff", "diff", "patch"}) {
 		std::string value;
 		if (ExtractJsonStringField(trimmed, key, value)
-			&& (value.find("--- ") != std::string::npos
-				|| value.find("diff --git ") != std::string::npos)) {
+			&& LooksLikeUnifiedDiff(value)) {
 			rawDiff = TrimTrailingWhitespace(value);
 			return true;
 		}
@@ -507,8 +633,11 @@ UnifiedDiff::Parse(const std::string& text, UnifiedDiff& diff, std::string& erro
 	PatchHunk* currentHunk = nullptr;
 	const std::vector<std::string> lines = SplitLines(text);
 
-	for (const std::string& line : lines) {
-		if (line.rfind("--- ", 0) == 0) {
+	for (size_t index = 0; index < lines.size(); index++) {
+		const std::string& line = lines[index];
+		const bool followedByNewPath = index + 1 < lines.size()
+			&& lines[index + 1].rfind("+++ ", 0) == 0;
+		if (line.rfind("--- ", 0) == 0 && followedByNewPath) {
 			diff.fFiles.push_back(PatchFile());
 			currentFile = &diff.fFiles.back();
 			currentFile->oldPath = TrimPatchPath(line.substr(4));

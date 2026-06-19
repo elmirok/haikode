@@ -190,6 +190,30 @@ main()
 	assert(jsonRawDiff.find("\\n") == std::string::npos);
 	assert(jsonRawDiff.find("+new") != std::string::npos);
 
+	const std::string jsonPatchArrayResponse =
+		"{\"patches\":["
+		"{\"summary\":\"Main replacement\","
+		"\"unified_diff\":\"--- a/src/main.cpp\\n"
+		"+++ b/src/main.cpp\\n"
+		"@@ -1,3 +1,3 @@\\n"
+		" one\\n-old\\n+new\\n three\\n\"},"
+		"{\"summary\":\"Other replacement\","
+		"\"diff\":\"--- a/src/other.cpp\\n"
+		"+++ b/src/other.cpp\\n"
+		"@@ -1,2 +1,2 @@\\n"
+		" alpha\\n-beta\\n+gamma\\n\"}"
+		"]}";
+	Haikode::AI::UnifiedDiff jsonPatchArray;
+	std::string jsonArrayRawDiff;
+	assert(Haikode::AI::UnifiedDiff::ExtractFromText(jsonPatchArrayResponse,
+		jsonPatchArray, jsonArrayRawDiff, error));
+	assert(jsonPatchArray.ChangedPaths().size() == 2);
+	assert(jsonPatchArray.ChangedPaths()[0] == "src/main.cpp");
+	assert(jsonPatchArray.ChangedPaths()[1] == "src/other.cpp");
+	assert(jsonArrayRawDiff.find("--- a/src/main.cpp") == 0);
+	assert(jsonArrayRawDiff.find("--- a/src/other.cpp") != std::string::npos);
+	assert(jsonArrayRawDiff.find("\\n") == std::string::npos);
+
 	WriteFile(root / "src" / "main.cpp", "one\nold\nthree\nkeep\nlast\n");
 	const std::string hunkDiff =
 		"diff --git a/src/main.cpp b/src/main.cpp\n"
