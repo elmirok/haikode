@@ -3000,9 +3000,13 @@ AIChatPanel::_ApplyPendingDiff()
 		return;
 	}
 
-	BString line(B_TRANSLATE("Patch applied. Backup: "));
-	line << result.backupDirectory.c_str();
+	BString line(B_TRANSLATE("Patch applied."));
 	_AppendOutput(line.String());
+	if (!result.backupDirectory.empty()) {
+		line = B_TRANSLATE("Backup: ");
+		line << result.backupDirectory.c_str();
+		_AppendOutput(line.String());
+	}
 	if (!savedPatchPath.empty()) {
 		line = B_TRANSLATE("Saved patch: ");
 		line << savedPatchPath.c_str();
