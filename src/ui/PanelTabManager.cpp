@@ -347,6 +347,7 @@ PanelTabManager::ShowPanelByTab(tab_id id) const
 				} else if ( panel.first.compare(kTabViewBottom) == 0) {
 					gCFG["show_output"] = true;
 				}
+				panel.second->Show();
 			}
 			panel.second->SelectTab(id);
 			return;

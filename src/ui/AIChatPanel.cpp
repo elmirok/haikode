@@ -371,6 +371,8 @@ public:
 			ResizeTo(size.width, size.height);
 		}
 		CenterOnScreen();
+		if (BString(fAuthMode->Text()).ICompare("api-key") == 0)
+			fApiKey->MakeFocus(true);
 	}
 
 	void MessageReceived(BMessage* message) override

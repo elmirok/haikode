@@ -4074,7 +4074,9 @@ GenioWindow::_ProjectFolderOpenCompleted(ProjectFolder* project,
 
 	// final touch, let's be sure the folder is added to the recent files.
 	be_roster->AddToRecentFolders(&ref, GenioNames::kApplicationSignature);
+	GetProjectBrowser()->ClearFilter();
 	_ShowPanelTabView(kTabViewLeft, true, MSG_SHOW_HIDE_LEFT_PANE);
+	fPanelTabManager->ShowTab(kTabProjectBrowser);
 }
 
 
@@ -4371,6 +4373,7 @@ void
 GenioWindow::_ShowHaikodeAI()
 {
 	_UpdateHaikodeAIContext();
+	_ShowPanelTabView(kTabViewBottom, true, MSG_SHOW_HIDE_BOTTOM_PANE);
 	fPanelTabManager->ShowTab(kTabHaikodeAI);
 }
 
