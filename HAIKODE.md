@@ -60,9 +60,9 @@ The Genio-based branch now adds:
   project overview without requiring an active file.
 - Unified diff detection in AI responses.
 - Explicit **Previous file**, **Next file**, **Apply selected file**,
-  **Reject selected file**, **Review patch**, **Apply patch**, and
-  **Reject patch** controls with path checks and `.haikode/backups/` copies
-  before writes.
+  **Reject selected file**, **Previous hunk**, **Next hunk**, **Apply hunk**,
+  **Reject hunk**, **Review patch**, **Apply patch**, and **Reject patch**
+  controls with path checks and `.haikode/backups/` copies before writes.
 - Generated unified diffs are saved immediately under `.haikode/patches/` before
   approval, so rejected and partially applied proposals still have an audit file.
 - Explicit AI command request parsing with separate **Run command** and
@@ -95,6 +95,6 @@ endpoint fields. API key and OAuth token fields are masked in the native UI.
 You do not need to export an API key in Terminal. Then use **Test provider** to
 verify the endpoint before asking questions or proposing patches.
 
-The next slice should improve patch review from text output into a richer
-native per-file/per-hunk UI, then add a more complete Codex/OAuth bridge where
-Codex CLI is available on Haiku.
+The next slices should make the patch review more visual inside native controls
+and add a more complete Codex/OAuth bridge where Codex CLI is available on
+Haiku.

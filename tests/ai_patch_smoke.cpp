@@ -117,6 +117,42 @@ main()
 	assert(multiPatch.IsEmpty());
 	assert(!multiPatch.RemoveFirstFile(&removedPath));
 
+	WriteFile(root / "src" / "main.cpp", "one\nold\nthree\nkeep\nlast\n");
+	const std::string hunkDiff =
+		"diff --git a/src/main.cpp b/src/main.cpp\n"
+		"--- a/src/main.cpp\n"
+		"+++ b/src/main.cpp\n"
+		"@@ -1,3 +1,3 @@\n"
+		" one\n"
+		"-old\n"
+		"+new\n"
+		" three\n"
+		"@@ -3,3 +3,3 @@\n"
+		" three\n"
+		"-keep\n"
+		"+changed\n"
+		" last\n";
+	Haikode::AI::UnifiedDiff hunkPatch;
+	assert(Haikode::AI::UnifiedDiff::Parse(hunkDiff, hunkPatch, error));
+	assert(hunkPatch.HunkCountForFile("src/main.cpp") == 2);
+	assert(hunkPatch.ReviewTextForHunk("src/main.cpp", 1).find("+changed")
+		!= std::string::npos);
+	assert(hunkPatch.ReviewTextForHunk("src/main.cpp", 3).empty());
+	assert(hunkPatch.ApplyHunk(root.string(), "src/main.cpp", 0, result,
+		error));
+	assert(ReadFile(root / "src" / "main.cpp")
+		== "one\nnew\nthree\nkeep\nlast\n");
+	assert(result.changedFiles.size() == 1);
+	assert(result.changedFiles[0] == "src/main.cpp");
+	assert(hunkPatch.RemoveHunk("src/main.cpp", 0));
+	assert(hunkPatch.HunkCountForFile("src/main.cpp") == 1);
+	assert(hunkPatch.ApplyHunk(root.string(), "src/main.cpp", 0, result,
+		error));
+	assert(ReadFile(root / "src" / "main.cpp")
+		== "one\nnew\nthree\nchanged\nlast\n");
+	assert(hunkPatch.RemoveHunk("src/main.cpp", 0));
+	assert(hunkPatch.IsEmpty());
+
 	std::string savedPatchPath;
 	assert(Haikode::AI::UnifiedDiff::SavePatchText(root.string(), diff,
 		savedPatchPath, error));

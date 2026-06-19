@@ -62,7 +62,13 @@ public:
 		std::string& error) const;
 	bool ApplyFile(const std::string& projectRoot, const std::string& path,
 		PatchApplyResult& result, std::string& error) const;
+	bool ApplyHunk(const std::string& projectRoot, const std::string& path,
+		size_t hunkIndex, PatchApplyResult& result, std::string& error) const;
+	size_t HunkCountForFile(const std::string& path) const;
+	std::string ReviewTextForHunk(const std::string& path,
+		size_t hunkIndex) const;
 	bool RemoveFile(const std::string& path);
+	bool RemoveHunk(const std::string& path, size_t hunkIndex);
 	bool RemoveFirstFile(std::string* removedPath = nullptr);
 
 private:

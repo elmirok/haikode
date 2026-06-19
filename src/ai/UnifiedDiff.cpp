@@ -180,6 +180,94 @@ BuildNewFileContents(const std::vector<PatchHunk>& hunks,
 	return true;
 }
 
+
+bool
+BuildHunkBlocks(const PatchHunk& hunk, std::vector<std::string>& oldBlock,
+	std::vector<std::string>& newBlock, std::string& error)
+{
+	oldBlock.clear();
+	newBlock.clear();
+	for (const PatchHunkLine& line : hunk.lines) {
+		if (line.kind == ' ' || line.kind == '-') {
+			oldBlock.push_back(line.text);
+		}
+		if (line.kind == ' ' || line.kind == '+') {
+			newBlock.push_back(line.text);
+		} else if (line.kind != '-') {
+			error = "Unsupported patch line in hunk.";
+			return false;
+		}
+	}
+	if (oldBlock.empty() && newBlock.empty()) {
+		error = "Patch hunk is empty.";
+		return false;
+	}
+	return true;
+}
+
+
+bool
+BlockMatchesAt(const std::vector<std::string>& lines,
+	const std::vector<std::string>& block, size_t offset)
+{
+	if (offset + block.size() > lines.size())
+		return false;
+	for (size_t index = 0; index < block.size(); index++) {
+		if (lines[offset + index] != block[index])
+			return false;
+	}
+	return true;
+}
+
+
+bool
+FindBlock(const std::vector<std::string>& lines,
+	const std::vector<std::string>& block, size_t preferredOffset,
+	size_t& offset)
+{
+	if (BlockMatchesAt(lines, block, preferredOffset)) {
+		offset = preferredOffset;
+		return true;
+	}
+
+	for (size_t index = 0; index <= lines.size(); index++) {
+		if (index == preferredOffset)
+			continue;
+		if (BlockMatchesAt(lines, block, index)) {
+			offset = index;
+			return true;
+		}
+	}
+	return false;
+}
+
+
+bool
+ApplySingleHunkToLines(const std::vector<std::string>& original,
+	const PatchHunk& hunk, std::vector<std::string>& patched,
+	std::string& error)
+{
+	std::vector<std::string> oldBlock;
+	std::vector<std::string> newBlock;
+	if (!BuildHunkBlocks(hunk, oldBlock, newBlock, error))
+		return false;
+
+	const size_t preferred = hunk.oldStart <= 0
+		? 0 : static_cast<size_t>(hunk.oldStart - 1);
+	size_t offset = 0;
+	if (!FindBlock(original, oldBlock, preferred, offset)) {
+		error = "Patch hunk context does not match the current file.";
+		return false;
+	}
+
+	patched.clear();
+	patched.insert(patched.end(), original.begin(), original.begin() + offset);
+	patched.insert(patched.end(), newBlock.begin(), newBlock.end());
+	patched.insert(patched.end(), original.begin() + offset + oldBlock.size(),
+		original.end());
+	return true;
+}
+
 } // namespace
 
 bool
@@ -434,6 +522,31 @@ UnifiedDiff::ReviewTextForFile(const std::string& path) const
 }
 
 
+size_t
+UnifiedDiff::HunkCountForFile(const std::string& path) const
+{
+	for (const PatchFile& file : fFiles) {
+		if (file.newPath == path)
+			return file.hunks.size();
+	}
+	return 0;
+}
+
+
+std::string
+UnifiedDiff::ReviewTextForHunk(const std::string& path, size_t hunkIndex) const
+{
+	for (const PatchFile& file : fFiles) {
+		if (file.newPath == path && hunkIndex < file.hunks.size()) {
+			PatchFile hunkFile = file;
+			hunkFile.hunks = {file.hunks[hunkIndex]};
+			return BuildReviewText({hunkFile});
+		}
+	}
+	return "";
+}
+
+
 bool
 UnifiedDiff::Apply(const std::string& projectRoot, PatchApplyResult& result,
 	std::string& error) const
@@ -525,6 +638,95 @@ UnifiedDiff::ApplyFile(const std::string& projectRoot, const std::string& path,
 
 
 bool
+UnifiedDiff::ApplyHunk(const std::string& projectRoot, const std::string& path,
+	size_t hunkIndex, PatchApplyResult& result, std::string& error) const
+{
+	result = PatchApplyResult();
+	error.clear();
+	try {
+		if (projectRoot.empty()) {
+			error = "No active project root.";
+			return false;
+		}
+		if (!IsSafeRelativePath(path)) {
+			error = "Unsafe patch path: " + path;
+			return false;
+		}
+
+		const PatchFile* patchFile = nullptr;
+		for (const PatchFile& file : fFiles) {
+			if (file.newPath == path) {
+				patchFile = &file;
+				break;
+			}
+		}
+		if (patchFile == nullptr) {
+			error = "Patch does not contain file: " + path;
+			return false;
+		}
+		if (hunkIndex >= patchFile->hunks.size()) {
+			error = "Patch hunk index is outside the selected file.";
+			return false;
+		}
+		if (patchFile->newPath == "/dev/null") {
+			error = "File deletion patches are not enabled yet.";
+			return false;
+		}
+		if (patchFile->oldPath == "/dev/null" && patchFile->hunks.size() > 1) {
+			error = "Apply the whole selected file to create a multi-hunk new file.";
+			return false;
+		}
+
+		const fs::path root = fs::weakly_canonical(projectRoot);
+		const fs::path backupRoot = root / ".haikode" / "backups" / Timestamp();
+		const fs::path target = patchFile->oldPath == "/dev/null"
+			? fs::weakly_canonical((root / path).parent_path())
+				/ fs::path(path).filename()
+			: fs::weakly_canonical(root / path);
+		if (!IsInsideDirectory(target, root)) {
+			error = "Unsafe patch path: " + path;
+			return false;
+		}
+
+		std::vector<std::string> patched;
+		if (patchFile->oldPath == "/dev/null") {
+			if (fs::exists(target)) {
+				error = "New-file patch target already exists: " + path;
+				return false;
+			}
+			if (!BuildNewFileContents({patchFile->hunks[hunkIndex]}, patched,
+					error)) {
+				return false;
+			}
+		} else {
+			std::vector<std::string> original;
+			if (!ReadTextFile(target, original, error))
+				return false;
+			if (!ApplySingleHunkToLines(original, patchFile->hunks[hunkIndex],
+					patched, error)) {
+				return false;
+			}
+
+			const fs::path backup = backupRoot / path;
+			fs::create_directories(backup.parent_path());
+			fs::copy_file(target, backup, fs::copy_options::overwrite_existing);
+		}
+
+		fs::create_directories(target.parent_path());
+		if (!WriteTextFile(target, patched, error))
+			return false;
+
+		result.changedFiles.push_back(path);
+		result.backupDirectory = backupRoot.string();
+		return true;
+	} catch (const std::exception& exception) {
+		error = exception.what();
+		return false;
+	}
+}
+
+
+bool
 UnifiedDiff::RemoveFile(const std::string& path)
 {
 	const auto oldSize = fFiles.size();
@@ -533,6 +735,24 @@ UnifiedDiff::RemoveFile(const std::string& path)
 			return file.newPath == path;
 		}), fFiles.end());
 	return fFiles.size() != oldSize;
+}
+
+
+bool
+UnifiedDiff::RemoveHunk(const std::string& path, size_t hunkIndex)
+{
+	for (auto file = fFiles.begin(); file != fFiles.end(); ++file) {
+		if (file->newPath != path)
+			continue;
+		if (hunkIndex >= file->hunks.size())
+			return false;
+
+		file->hunks.erase(file->hunks.begin() + hunkIndex);
+		if (file->hunks.empty())
+			fFiles.erase(file);
+		return true;
+	}
+	return false;
 }
 
 

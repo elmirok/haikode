@@ -58,10 +58,14 @@ private:
 	void _SendPrompt(Haikode::AI::PromptMode mode);
 	void _FinishResponse(const BString& text, const BString& error, long status);
 	void _SelectPatchFile(int32 delta);
+	void _SelectPatchHunk(int32 delta);
+	size_t _SelectedPatchHunkIndex(const std::string& path) const;
 	void _SetPatchControlsEnabled(bool enabled);
 	void _ApplyPendingDiff();
 	void _ApplyFirstPendingFile();
+	void _ApplySelectedPendingHunk();
 	void _RejectFirstPendingFile();
+	void _RejectSelectedPendingHunk();
 	void _RejectPendingDiff();
 	void _RunPendingCommand();
 	void _RejectPendingCommand();
@@ -90,6 +94,7 @@ private:
 	BTextControl* fOAuthCode;
 	BTextControl* fPrompt;
 	BTextControl* fPatchPath;
+	BTextControl* fPatchHunk;
 	BTextView* fPendingActions;
 	BTextView* fOutput;
 	BButton* fSaveProvider;
@@ -109,8 +114,12 @@ private:
 	BButton* fPatchButton;
 	BButton* fPreviousPatchFileButton;
 	BButton* fNextPatchFileButton;
+	BButton* fPreviousPatchHunkButton;
+	BButton* fNextPatchHunkButton;
 	BButton* fApplyFirstFileButton;
 	BButton* fRejectFirstFileButton;
+	BButton* fApplyHunkButton;
+	BButton* fRejectHunkButton;
 	BButton* fReviewPatchButton;
 	BButton* fApplyPatchButton;
 	BButton* fRejectPatchButton;

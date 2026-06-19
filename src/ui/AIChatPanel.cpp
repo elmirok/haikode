@@ -73,8 +73,12 @@ const uint32 kMsgProposePatch = 'hipa';
 const uint32 kMsgAIResponse = 'hirs';
 const uint32 kMsgPreviousPatchFile = 'hipv';
 const uint32 kMsgNextPatchFile = 'hinx';
+const uint32 kMsgPreviousPatchHunk = 'hihp';
+const uint32 kMsgNextPatchHunk = 'hihn';
 const uint32 kMsgApplyFirstFile = 'hiaf';
 const uint32 kMsgRejectFirstFile = 'hirf';
+const uint32 kMsgApplyHunk = 'hiah';
+const uint32 kMsgRejectHunk = 'hirh';
 const uint32 kMsgReviewPatch = 'hivr';
 const uint32 kMsgApplyPatch = 'hiap';
 const uint32 kMsgRejectPatch = 'hirp';
@@ -461,6 +465,7 @@ AIChatPanel::AIChatPanel(PanelTabManager* panelTabManager, tab_id id)
 	fOAuthCode(nullptr),
 	fPrompt(nullptr),
 	fPatchPath(nullptr),
+	fPatchHunk(nullptr),
 	fPendingActions(nullptr),
 	fOutput(nullptr),
 	fSaveProvider(nullptr),
@@ -480,8 +485,12 @@ AIChatPanel::AIChatPanel(PanelTabManager* panelTabManager, tab_id id)
 	fPatchButton(nullptr),
 	fPreviousPatchFileButton(nullptr),
 	fNextPatchFileButton(nullptr),
+	fPreviousPatchHunkButton(nullptr),
+	fNextPatchHunkButton(nullptr),
 	fApplyFirstFileButton(nullptr),
 	fRejectFirstFileButton(nullptr),
+	fApplyHunkButton(nullptr),
+	fRejectHunkButton(nullptr),
 	fReviewPatchButton(nullptr),
 	fApplyPatchButton(nullptr),
 	fRejectPatchButton(nullptr),
@@ -517,8 +526,12 @@ AIChatPanel::AttachedToWindow()
 	fPatchButton->SetTarget(this);
 	fPreviousPatchFileButton->SetTarget(this);
 	fNextPatchFileButton->SetTarget(this);
+	fPreviousPatchHunkButton->SetTarget(this);
+	fNextPatchHunkButton->SetTarget(this);
 	fApplyFirstFileButton->SetTarget(this);
 	fRejectFirstFileButton->SetTarget(this);
+	fApplyHunkButton->SetTarget(this);
+	fRejectHunkButton->SetTarget(this);
 	fReviewPatchButton->SetTarget(this);
 	fApplyPatchButton->SetTarget(this);
 	fRejectPatchButton->SetTarget(this);
@@ -619,6 +632,12 @@ AIChatPanel::MessageReceived(BMessage* message)
 		case kMsgNextPatchFile:
 			_SelectPatchFile(1);
 			break;
+		case kMsgPreviousPatchHunk:
+			_SelectPatchHunk(-1);
+			break;
+		case kMsgNextPatchHunk:
+			_SelectPatchHunk(1);
+			break;
 		case kMsgOAuthResponse:
 		{
 			if (_IsCurrentRequest(message, "OAuth response"))
@@ -650,6 +669,12 @@ AIChatPanel::MessageReceived(BMessage* message)
 			break;
 		case kMsgRejectFirstFile:
 			_RejectFirstPendingFile();
+			break;
+		case kMsgApplyHunk:
+			_ApplySelectedPendingHunk();
+			break;
+		case kMsgRejectHunk:
+			_RejectSelectedPendingHunk();
 			break;
 		case kMsgReviewPatch:
 			if (fPendingDiff.IsEmpty() || fPendingRawDiff.IsEmpty())
@@ -754,6 +779,9 @@ AIChatPanel::_BuildInterface()
 	fPatchPath = new BTextControl("haikode_ai_patch_path",
 		B_TRANSLATE("Patch file"), "", nullptr);
 	fPatchPath->SetEnabled(false);
+	fPatchHunk = new BTextControl("haikode_ai_patch_hunk",
+		B_TRANSLATE("Hunk"), "1", nullptr);
+	fPatchHunk->SetEnabled(false);
 
 	fSaveProvider = new BButton("haikode_ai_save_provider",
 		B_TRANSLATE("Save provider"), new BMessage(kMsgSaveProvider));
@@ -792,12 +820,24 @@ AIChatPanel::_BuildInterface()
 	fNextPatchFileButton = new BButton("haikode_ai_next_patch_file",
 		B_TRANSLATE("Next file"), new BMessage(kMsgNextPatchFile));
 	fNextPatchFileButton->SetEnabled(false);
+	fPreviousPatchHunkButton = new BButton("haikode_ai_previous_patch_hunk",
+		B_TRANSLATE("Previous hunk"), new BMessage(kMsgPreviousPatchHunk));
+	fPreviousPatchHunkButton->SetEnabled(false);
+	fNextPatchHunkButton = new BButton("haikode_ai_next_patch_hunk",
+		B_TRANSLATE("Next hunk"), new BMessage(kMsgNextPatchHunk));
+	fNextPatchHunkButton->SetEnabled(false);
 	fApplyFirstFileButton = new BButton("haikode_ai_apply_first_file",
 		B_TRANSLATE("Apply selected file"), new BMessage(kMsgApplyFirstFile));
 	fApplyFirstFileButton->SetEnabled(false);
 	fRejectFirstFileButton = new BButton("haikode_ai_reject_first_file",
 		B_TRANSLATE("Reject selected file"), new BMessage(kMsgRejectFirstFile));
 	fRejectFirstFileButton->SetEnabled(false);
+	fApplyHunkButton = new BButton("haikode_ai_apply_hunk",
+		B_TRANSLATE("Apply hunk"), new BMessage(kMsgApplyHunk));
+	fApplyHunkButton->SetEnabled(false);
+	fRejectHunkButton = new BButton("haikode_ai_reject_hunk",
+		B_TRANSLATE("Reject hunk"), new BMessage(kMsgRejectHunk));
+	fRejectHunkButton->SetEnabled(false);
 	fReviewPatchButton = new BButton("haikode_ai_review_patch",
 		B_TRANSLATE("Review patch"), new BMessage(kMsgReviewPatch));
 	fReviewPatchButton->SetEnabled(false);
@@ -877,10 +917,15 @@ AIChatPanel::_BuildInterface()
 		.End()
 		.AddGroup(B_HORIZONTAL, B_USE_DEFAULT_SPACING)
 			.Add(fPatchPath)
+			.Add(fPatchHunk)
 			.Add(fPreviousPatchFileButton)
 			.Add(fNextPatchFileButton)
+			.Add(fPreviousPatchHunkButton)
+			.Add(fNextPatchHunkButton)
 			.Add(fApplyFirstFileButton)
 			.Add(fRejectFirstFileButton)
+			.Add(fApplyHunkButton)
+			.Add(fRejectHunkButton)
 			.Add(fReviewPatchButton)
 			.Add(fApplyPatchButton)
 			.Add(fRejectPatchButton)
@@ -1358,6 +1403,8 @@ AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 		const std::vector<std::string> changedPaths = diff.ChangedPaths();
 		if (!changedPaths.empty())
 			fPatchPath->SetText(changedPaths.front().c_str());
+		if (fPatchHunk != nullptr)
+			fPatchHunk->SetText("1");
 		_SetPatchControlsEnabled(true);
 		BString line(B_TRANSLATE("Unified diff detected: "));
 		line << changedPaths.size() << B_TRANSLATE(" file(s), ")
@@ -1606,9 +1653,83 @@ AIChatPanel::_SelectPatchFile(int32 delta)
 	selected %= static_cast<int32>(paths.size());
 
 	fPatchPath->SetText(paths[selected].c_str());
+	if (fPatchHunk != nullptr)
+		fPatchHunk->SetText("1");
 	BString line(B_TRANSLATE("Selected patch file: "));
 	line << paths[selected].c_str();
 	_AppendOutput(line.String());
+}
+
+
+size_t
+AIChatPanel::_SelectedPatchHunkIndex(const std::string& path) const
+{
+	const size_t hunkCount = fPendingDiff.HunkCountForFile(path);
+	if (hunkCount == 0)
+		return 0;
+
+	long requested = 1;
+	if (fPatchHunk != nullptr) {
+		const char* text = fPatchHunk->Text();
+		char* end = nullptr;
+		const long parsed = std::strtol(text, &end, 10);
+		if (end != text && parsed > 0)
+			requested = parsed;
+	}
+	if (requested > static_cast<long>(hunkCount))
+		requested = static_cast<long>(hunkCount);
+	return static_cast<size_t>(requested - 1);
+}
+
+
+void
+AIChatPanel::_SelectPatchHunk(int32 delta)
+{
+	if (fPendingDiff.IsEmpty()) {
+		_AppendOutput(B_TRANSLATE("No pending patch hunk to select."));
+		return;
+	}
+
+	std::vector<std::string> paths = fPendingDiff.ChangedPaths();
+	if (paths.empty()) {
+		_AppendOutput(B_TRANSLATE("Pending diff has no changed files."));
+		return;
+	}
+
+	std::string path = fPatchPath != nullptr ? fPatchPath->Text() : "";
+	if (path.empty()) {
+		path = paths.front();
+		if (fPatchPath != nullptr)
+			fPatchPath->SetText(path.c_str());
+	}
+
+	const size_t hunkCount = fPendingDiff.HunkCountForFile(path);
+	if (hunkCount == 0) {
+		BString line(B_TRANSLATE("Pending patch has no hunks for selected file: "));
+		line << path.c_str();
+		_AppendOutput(line.String());
+		return;
+	}
+
+	int32 selected = static_cast<int32>(_SelectedPatchHunkIndex(path));
+	selected += delta;
+	while (selected < 0)
+		selected += static_cast<int32>(hunkCount);
+	selected %= static_cast<int32>(hunkCount);
+
+	BString hunkText;
+	hunkText << (selected + 1);
+	if (fPatchHunk != nullptr)
+		fPatchHunk->SetText(hunkText.String());
+
+	BString line(B_TRANSLATE("Selected patch hunk: "));
+	line << path.c_str() << " #" << (selected + 1) << "/"
+		<< static_cast<int32>(hunkCount);
+	_AppendOutput(line.String());
+	const std::string preview = fPendingDiff.ReviewTextForHunk(path,
+		static_cast<size_t>(selected));
+	if (!preview.empty())
+		_AppendOutput(preview.c_str());
 }
 
 
@@ -1617,16 +1738,29 @@ AIChatPanel::_SetPatchControlsEnabled(bool enabled)
 {
 	const bool hasMultipleFiles = enabled
 		&& fPendingDiff.ChangedPaths().size() > 1;
+	size_t selectedHunkCount = 0;
+	if (enabled && fPatchPath != nullptr && !BString(fPatchPath->Text()).IsEmpty())
+		selectedHunkCount = fPendingDiff.HunkCountForFile(fPatchPath->Text());
 	if (fPatchPath != nullptr)
 		fPatchPath->SetEnabled(enabled);
+	if (fPatchHunk != nullptr)
+		fPatchHunk->SetEnabled(enabled);
 	if (fPreviousPatchFileButton != nullptr)
 		fPreviousPatchFileButton->SetEnabled(hasMultipleFiles);
 	if (fNextPatchFileButton != nullptr)
 		fNextPatchFileButton->SetEnabled(hasMultipleFiles);
+	if (fPreviousPatchHunkButton != nullptr)
+		fPreviousPatchHunkButton->SetEnabled(enabled && selectedHunkCount > 1);
+	if (fNextPatchHunkButton != nullptr)
+		fNextPatchHunkButton->SetEnabled(enabled && selectedHunkCount > 1);
 	if (fApplyFirstFileButton != nullptr)
 		fApplyFirstFileButton->SetEnabled(enabled);
 	if (fRejectFirstFileButton != nullptr)
 		fRejectFirstFileButton->SetEnabled(enabled);
+	if (fApplyHunkButton != nullptr)
+		fApplyHunkButton->SetEnabled(enabled);
+	if (fRejectHunkButton != nullptr)
+		fRejectHunkButton->SetEnabled(enabled);
 	if (fReviewPatchButton != nullptr)
 		fReviewPatchButton->SetEnabled(enabled);
 	if (fApplyPatchButton != nullptr)
@@ -1687,12 +1821,86 @@ AIChatPanel::_ApplyFirstPendingFile()
 		fPendingRawDiff = "";
 		fSavedPendingPatchPath = "";
 		fPatchPath->SetText("");
+		if (fPatchHunk != nullptr)
+			fPatchHunk->SetText("1");
 		_SetPatchControlsEnabled(false);
 	} else {
 		const std::vector<std::string> remainingPaths
 			= fPendingDiff.ChangedPaths();
 		if (!remainingPaths.empty())
 			fPatchPath->SetText(remainingPaths.front().c_str());
+		if (fPatchHunk != nullptr)
+			fPatchHunk->SetText("1");
+		_SetPatchControlsEnabled(true);
+	}
+	_UpdatePendingActions();
+}
+
+
+void
+AIChatPanel::_ApplySelectedPendingHunk()
+{
+	if (fPendingDiff.IsEmpty()) {
+		_AppendOutput(B_TRANSLATE("No pending diff to apply."));
+		return;
+	}
+	if (fProjectRoot.IsEmpty()) {
+		_AppendOutput(B_TRANSLATE("Open or activate a project before applying a patch."));
+		return;
+	}
+
+	std::vector<std::string> paths = fPendingDiff.ChangedPaths();
+	if (paths.empty()) {
+		_AppendOutput(B_TRANSLATE("Pending diff has no changed files."));
+		return;
+	}
+
+	std::string path = fPatchPath != nullptr ? fPatchPath->Text() : "";
+	if (path.empty())
+		path = paths.front();
+	const size_t hunkIndex = _SelectedPatchHunkIndex(path);
+
+	Haikode::AI::PatchApplyResult result;
+	std::string error;
+	if (!fPendingDiff.ApplyHunk(fProjectRoot.String(), path, hunkIndex, result,
+			error)) {
+		BString line(B_TRANSLATE("Selected-hunk patch apply failed: "));
+		line << error.c_str();
+		_AppendOutput(line.String());
+		return;
+	}
+
+	fPendingDiff.RemoveHunk(path, hunkIndex);
+	BString line(B_TRANSLATE("Applied selected patch hunk: "));
+	line << path.c_str() << " #" << static_cast<int32>(hunkIndex + 1);
+	_AppendOutput(line.String());
+	if (!result.backupDirectory.empty()) {
+		line = B_TRANSLATE("Backup: ");
+		line << result.backupDirectory.c_str();
+		_AppendOutput(line.String());
+	}
+
+	if (Window() != nullptr) {
+		BMessage notify(MSG_HAIKODE_AI_PATCH_APPLIED);
+		notify.AddString("project_root", fProjectRoot);
+		notify.AddString("changed_file", path.c_str());
+		Window()->PostMessage(&notify);
+	}
+
+	if (fPendingDiff.IsEmpty()) {
+		fPendingRawDiff = "";
+		fSavedPendingPatchPath = "";
+		fPatchPath->SetText("");
+		fPatchHunk->SetText("1");
+		_SetPatchControlsEnabled(false);
+	} else {
+		if (fPendingDiff.HunkCountForFile(path) == 0) {
+			const std::vector<std::string> remainingPaths
+				= fPendingDiff.ChangedPaths();
+			if (!remainingPaths.empty())
+				fPatchPath->SetText(remainingPaths.front().c_str());
+		}
+		fPatchHunk->SetText("1");
 		_SetPatchControlsEnabled(true);
 	}
 	_UpdatePendingActions();
@@ -1731,12 +1939,65 @@ AIChatPanel::_RejectFirstPendingFile()
 		fPendingRawDiff = "";
 		fSavedPendingPatchPath = "";
 		fPatchPath->SetText("");
+		if (fPatchHunk != nullptr)
+			fPatchHunk->SetText("1");
 		_SetPatchControlsEnabled(false);
 	} else {
 		const std::vector<std::string> remainingPaths
 			= fPendingDiff.ChangedPaths();
 		if (!remainingPaths.empty())
 			fPatchPath->SetText(remainingPaths.front().c_str());
+		if (fPatchHunk != nullptr)
+			fPatchHunk->SetText("1");
+		_SetPatchControlsEnabled(true);
+	}
+	_UpdatePendingActions();
+}
+
+
+void
+AIChatPanel::_RejectSelectedPendingHunk()
+{
+	if (fPendingDiff.IsEmpty()) {
+		_AppendOutput(B_TRANSLATE("No pending diff to reject."));
+		return;
+	}
+
+	std::vector<std::string> paths = fPendingDiff.ChangedPaths();
+	if (paths.empty()) {
+		_AppendOutput(B_TRANSLATE("Pending diff has no changed files."));
+		return;
+	}
+
+	std::string path = fPatchPath != nullptr ? fPatchPath->Text() : "";
+	if (path.empty())
+		path = paths.front();
+	const size_t hunkIndex = _SelectedPatchHunkIndex(path);
+	if (!fPendingDiff.RemoveHunk(path, hunkIndex)) {
+		BString line(B_TRANSLATE("Pending patch does not contain selected hunk: "));
+		line << path.c_str() << " #" << static_cast<int32>(hunkIndex + 1);
+		_AppendOutput(line.String());
+		return;
+	}
+
+	BString line(B_TRANSLATE("Rejected selected patch hunk: "));
+	line << path.c_str() << " #" << static_cast<int32>(hunkIndex + 1);
+	_AppendOutput(line.String());
+
+	if (fPendingDiff.IsEmpty()) {
+		fPendingRawDiff = "";
+		fSavedPendingPatchPath = "";
+		fPatchPath->SetText("");
+		fPatchHunk->SetText("1");
+		_SetPatchControlsEnabled(false);
+	} else {
+		if (fPendingDiff.HunkCountForFile(path) == 0) {
+			const std::vector<std::string> remainingPaths
+				= fPendingDiff.ChangedPaths();
+			if (!remainingPaths.empty())
+				fPatchPath->SetText(remainingPaths.front().c_str());
+		}
+		fPatchHunk->SetText("1");
 		_SetPatchControlsEnabled(true);
 	}
 	_UpdatePendingActions();
@@ -1808,6 +2069,8 @@ AIChatPanel::_RejectPendingDiff()
 	fPendingRawDiff = "";
 	fSavedPendingPatchPath = "";
 	fPatchPath->SetText("");
+	if (fPatchHunk != nullptr)
+		fPatchHunk->SetText("1");
 	_SetPatchControlsEnabled(false);
 	_UpdatePendingActions();
 }
