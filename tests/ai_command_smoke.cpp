@@ -131,6 +131,16 @@ main()
 	assert(!commands[0].runnable);
 	assert(commands[0].warning.find("shell interpreter") != std::string::npos);
 
+	const std::string shellOperator =
+		"```haikode-command\n"
+		"{\"summary\":\"Chained command\",\"argv\":[\"make\",\"test\",\";\",\"rm\",\"-rf\",\"build\"]}\n"
+		"```\n";
+	assert(Haikode::AI::ExtractCommandRequests(shellOperator, commands, error));
+	assert(commands.size() == 1);
+	assert(commands[0].dangerous);
+	assert(!commands[0].runnable);
+	assert(commands[0].warning.find("shell control") != std::string::npos);
+
 	const std::string invalid =
 		"```haikode-command\n"
 		"{\"summary\":\"Broken\",\"argv\":\"make test\"}\n"

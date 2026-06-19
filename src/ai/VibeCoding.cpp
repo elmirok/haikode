@@ -348,6 +348,20 @@ UsesShellCommandString(const CommandRequest& command)
 
 
 bool
+HasShellControlToken(const CommandRequest& command)
+{
+	for (const std::string& arg : command.argv) {
+		if (arg == ";" || arg == "&&" || arg == "||" || arg == "|"
+			|| arg == "<" || arg == ">" || arg == ">>" || arg == "2>"
+			|| arg == "2>>" || arg == "&") {
+			return true;
+		}
+	}
+	return false;
+}
+
+
+bool
 NeedsShellQuotes(const std::string& value)
 {
 	if (value.empty())
@@ -389,6 +403,12 @@ ClassifyCommand(CommandRequest& command)
 		command.dangerous = true;
 		command.runnable = false;
 		command.warning = "Command uses a shell interpreter with -c; review and run it manually outside Haikode.";
+		return;
+	}
+	if (HasShellControlToken(command)) {
+		command.dangerous = true;
+		command.runnable = false;
+		command.warning = "Command contains shell control tokens; review and run it manually outside Haikode.";
 		return;
 	}
 	if (joined.find("rm -rf") != std::string::npos) {

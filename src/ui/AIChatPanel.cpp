@@ -1140,7 +1140,7 @@ AIChatPanel::_RunPendingCommand()
 		prompt << "\n\n" << B_TRANSLATE("Warning: ") << command.warning.c_str();
 	if (!command.runnable) {
 		prompt << "\n\n"
-			<< B_TRANSLATE("Haikode will not run this command because it requires shell-string interpretation. Review and run it manually if you trust it.");
+			<< B_TRANSLATE("Haikode will not run this command because it needs shell-style interpretation. Review and run it manually if you trust it.");
 	}
 
 	BAlert* alert = new BAlert("HaikodeRunCommand", prompt.String(),
