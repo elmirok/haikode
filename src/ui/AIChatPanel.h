@@ -49,6 +49,8 @@ private:
 		long status);
 	void _SendPrompt(Haikode::AI::PromptMode mode);
 	void _FinishResponse(const BString& text, const BString& error, long status);
+	void _SelectPatchFile(int32 delta);
+	void _SetPatchControlsEnabled(bool enabled);
 	void _ApplyPendingDiff();
 	void _ApplyFirstPendingFile();
 	void _RejectFirstPendingFile();
@@ -96,6 +98,8 @@ private:
 	BButton* fExplainButton;
 	BButton* fSummarizeButton;
 	BButton* fPatchButton;
+	BButton* fPreviousPatchFileButton;
+	BButton* fNextPatchFileButton;
 	BButton* fApplyFirstFileButton;
 	BButton* fRejectFirstFileButton;
 	BButton* fReviewPatchButton;

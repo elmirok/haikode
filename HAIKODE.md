@@ -56,9 +56,10 @@ The Genio-based branch now adds:
 - A **Summarize project** action that uses project-map context to produce a
   project overview without requiring an active file.
 - Unified diff detection in AI responses.
-- Explicit **Apply selected file**, **Reject selected file**, **Review patch**,
-  **Apply patch**, and **Reject patch** controls with path checks and
-  `.haikode/backups/` copies before writes.
+- Explicit **Previous file**, **Next file**, **Apply selected file**,
+  **Reject selected file**, **Review patch**, **Apply patch**, and
+  **Reject patch** controls with path checks and `.haikode/backups/` copies
+  before writes.
 - Generated unified diffs are saved immediately under `.haikode/patches/` before
   approval, so rejected and partially applied proposals still have an audit file.
 - Explicit AI command request parsing with separate **Run command** and

@@ -70,6 +70,8 @@ const uint32 kMsgExplainSelection = 'hiex';
 const uint32 kMsgSummarizeProject = 'hisu';
 const uint32 kMsgProposePatch = 'hipa';
 const uint32 kMsgAIResponse = 'hirs';
+const uint32 kMsgPreviousPatchFile = 'hipv';
+const uint32 kMsgNextPatchFile = 'hinx';
 const uint32 kMsgApplyFirstFile = 'hiaf';
 const uint32 kMsgRejectFirstFile = 'hirf';
 const uint32 kMsgReviewPatch = 'hivr';
@@ -474,6 +476,8 @@ AIChatPanel::AIChatPanel(PanelTabManager* panelTabManager, tab_id id)
 	fExplainButton(nullptr),
 	fSummarizeButton(nullptr),
 	fPatchButton(nullptr),
+	fPreviousPatchFileButton(nullptr),
+	fNextPatchFileButton(nullptr),
 	fApplyFirstFileButton(nullptr),
 	fRejectFirstFileButton(nullptr),
 	fReviewPatchButton(nullptr),
@@ -506,6 +510,8 @@ AIChatPanel::AttachedToWindow()
 	fExplainButton->SetTarget(this);
 	fSummarizeButton->SetTarget(this);
 	fPatchButton->SetTarget(this);
+	fPreviousPatchFileButton->SetTarget(this);
+	fNextPatchFileButton->SetTarget(this);
 	fApplyFirstFileButton->SetTarget(this);
 	fRejectFirstFileButton->SetTarget(this);
 	fReviewPatchButton->SetTarget(this);
@@ -598,6 +604,12 @@ AIChatPanel::MessageReceived(BMessage* message)
 				message->GetString("error", ""), message->GetInt64("status", 0));
 			break;
 		}
+		case kMsgPreviousPatchFile:
+			_SelectPatchFile(-1);
+			break;
+		case kMsgNextPatchFile:
+			_SelectPatchFile(1);
+			break;
 		case kMsgOAuthResponse:
 		{
 			_FinishOAuthExchange(message->GetString("token", ""),
@@ -757,6 +769,12 @@ AIChatPanel::_BuildInterface()
 		B_TRANSLATE("Summarize project"), new BMessage(kMsgSummarizeProject));
 	fPatchButton = new BButton("haikode_ai_patch", B_TRANSLATE("Propose patch"),
 		new BMessage(kMsgProposePatch));
+	fPreviousPatchFileButton = new BButton("haikode_ai_previous_patch_file",
+		B_TRANSLATE("Previous file"), new BMessage(kMsgPreviousPatchFile));
+	fPreviousPatchFileButton->SetEnabled(false);
+	fNextPatchFileButton = new BButton("haikode_ai_next_patch_file",
+		B_TRANSLATE("Next file"), new BMessage(kMsgNextPatchFile));
+	fNextPatchFileButton->SetEnabled(false);
 	fApplyFirstFileButton = new BButton("haikode_ai_apply_first_file",
 		B_TRANSLATE("Apply selected file"), new BMessage(kMsgApplyFirstFile));
 	fApplyFirstFileButton->SetEnabled(false);
@@ -841,6 +859,8 @@ AIChatPanel::_BuildInterface()
 		.End()
 		.AddGroup(B_HORIZONTAL, B_USE_DEFAULT_SPACING)
 			.Add(fPatchPath)
+			.Add(fPreviousPatchFileButton)
+			.Add(fNextPatchFileButton)
 			.Add(fApplyFirstFileButton)
 			.Add(fRejectFirstFileButton)
 			.Add(fReviewPatchButton)
@@ -1232,12 +1252,7 @@ AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 	fLlamaCppPresetButton->SetEnabled(false);
 	fStartOAuthButton->SetEnabled(false);
 	fExchangeOAuthButton->SetEnabled(false);
-	fApplyFirstFileButton->SetEnabled(false);
-	fRejectFirstFileButton->SetEnabled(false);
-	fReviewPatchButton->SetEnabled(false);
-	fPatchPath->SetEnabled(false);
-	fApplyPatchButton->SetEnabled(false);
-	fRejectPatchButton->SetEnabled(false);
+	_SetPatchControlsEnabled(false);
 	const bool reviewingPatch = mode == Haikode::AI::PromptMode::ReviewDiff;
 	if (!reviewingPatch) {
 		fPendingDiff = Haikode::AI::UnifiedDiff();
@@ -1325,12 +1340,7 @@ AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 		const std::vector<std::string> changedPaths = diff.ChangedPaths();
 		if (!changedPaths.empty())
 			fPatchPath->SetText(changedPaths.front().c_str());
-		fApplyFirstFileButton->SetEnabled(true);
-		fRejectFirstFileButton->SetEnabled(true);
-		fReviewPatchButton->SetEnabled(true);
-		fPatchPath->SetEnabled(true);
-		fApplyPatchButton->SetEnabled(true);
-		fRejectPatchButton->SetEnabled(true);
+		_SetPatchControlsEnabled(true);
 		BString line(B_TRANSLATE("Unified diff detected: "));
 		line << changedPaths.size() << B_TRANSLATE(" file(s), ")
 			<< diff.HunkCount() << B_TRANSLATE(" hunk(s).");
@@ -1387,17 +1397,12 @@ AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 		_AppendOutput(line.String());
 	}
 	if (!fPendingDiff.IsEmpty()) {
-		fApplyFirstFileButton->SetEnabled(true);
-		fRejectFirstFileButton->SetEnabled(true);
-		fReviewPatchButton->SetEnabled(true);
-		fPatchPath->SetEnabled(true);
+		_SetPatchControlsEnabled(true);
 		if (BString(fPatchPath->Text()).IsEmpty()) {
 			const std::vector<std::string> paths = fPendingDiff.ChangedPaths();
 			if (!paths.empty())
 				fPatchPath->SetText(paths.front().c_str());
 		}
-		fApplyPatchButton->SetEnabled(true);
-		fRejectPatchButton->SetEnabled(true);
 	}
 	_UpdatePendingActions();
 	_SaveSessionRecord(text);
@@ -1554,6 +1559,66 @@ AIChatPanel::_SaveSessionRecord(const BString& responseText)
 
 
 void
+AIChatPanel::_SelectPatchFile(int32 delta)
+{
+	if (fPendingDiff.IsEmpty()) {
+		_AppendOutput(B_TRANSLATE("No pending patch file to select."));
+		return;
+	}
+
+	const std::vector<std::string> paths = fPendingDiff.ChangedPaths();
+	if (paths.empty()) {
+		_AppendOutput(B_TRANSLATE("Pending diff has no changed files."));
+		return;
+	}
+
+	const BString current = fPatchPath != nullptr
+		? BString(fPatchPath->Text()) : BString();
+	int32 selected = 0;
+	for (int32 index = 0; index < static_cast<int32>(paths.size()); index++) {
+		if (current == paths[index].c_str()) {
+			selected = index;
+			break;
+		}
+	}
+
+	selected += delta;
+	while (selected < 0)
+		selected += static_cast<int32>(paths.size());
+	selected %= static_cast<int32>(paths.size());
+
+	fPatchPath->SetText(paths[selected].c_str());
+	BString line(B_TRANSLATE("Selected patch file: "));
+	line << paths[selected].c_str();
+	_AppendOutput(line.String());
+}
+
+
+void
+AIChatPanel::_SetPatchControlsEnabled(bool enabled)
+{
+	const bool hasMultipleFiles = enabled
+		&& fPendingDiff.ChangedPaths().size() > 1;
+	if (fPatchPath != nullptr)
+		fPatchPath->SetEnabled(enabled);
+	if (fPreviousPatchFileButton != nullptr)
+		fPreviousPatchFileButton->SetEnabled(hasMultipleFiles);
+	if (fNextPatchFileButton != nullptr)
+		fNextPatchFileButton->SetEnabled(hasMultipleFiles);
+	if (fApplyFirstFileButton != nullptr)
+		fApplyFirstFileButton->SetEnabled(enabled);
+	if (fRejectFirstFileButton != nullptr)
+		fRejectFirstFileButton->SetEnabled(enabled);
+	if (fReviewPatchButton != nullptr)
+		fReviewPatchButton->SetEnabled(enabled);
+	if (fApplyPatchButton != nullptr)
+		fApplyPatchButton->SetEnabled(enabled);
+	if (fRejectPatchButton != nullptr)
+		fRejectPatchButton->SetEnabled(enabled);
+}
+
+
+void
 AIChatPanel::_ApplyFirstPendingFile()
 {
 	if (fPendingDiff.IsEmpty()) {
@@ -1604,17 +1669,13 @@ AIChatPanel::_ApplyFirstPendingFile()
 		fPendingRawDiff = "";
 		fSavedPendingPatchPath = "";
 		fPatchPath->SetText("");
-		fPatchPath->SetEnabled(false);
-		fApplyFirstFileButton->SetEnabled(false);
-		fRejectFirstFileButton->SetEnabled(false);
-		fReviewPatchButton->SetEnabled(false);
-		fApplyPatchButton->SetEnabled(false);
-		fRejectPatchButton->SetEnabled(false);
+		_SetPatchControlsEnabled(false);
 	} else {
 		const std::vector<std::string> remainingPaths
 			= fPendingDiff.ChangedPaths();
 		if (!remainingPaths.empty())
 			fPatchPath->SetText(remainingPaths.front().c_str());
+		_SetPatchControlsEnabled(true);
 	}
 	_UpdatePendingActions();
 }
@@ -1652,17 +1713,13 @@ AIChatPanel::_RejectFirstPendingFile()
 		fPendingRawDiff = "";
 		fSavedPendingPatchPath = "";
 		fPatchPath->SetText("");
-		fPatchPath->SetEnabled(false);
-		fApplyFirstFileButton->SetEnabled(false);
-		fRejectFirstFileButton->SetEnabled(false);
-		fReviewPatchButton->SetEnabled(false);
-		fApplyPatchButton->SetEnabled(false);
-		fRejectPatchButton->SetEnabled(false);
+		_SetPatchControlsEnabled(false);
 	} else {
 		const std::vector<std::string> remainingPaths
 			= fPendingDiff.ChangedPaths();
 		if (!remainingPaths.empty())
 			fPatchPath->SetText(remainingPaths.front().c_str());
+		_SetPatchControlsEnabled(true);
 	}
 	_UpdatePendingActions();
 }
@@ -1733,12 +1790,7 @@ AIChatPanel::_RejectPendingDiff()
 	fPendingRawDiff = "";
 	fSavedPendingPatchPath = "";
 	fPatchPath->SetText("");
-	fPatchPath->SetEnabled(false);
-	fApplyFirstFileButton->SetEnabled(false);
-	fRejectFirstFileButton->SetEnabled(false);
-	fReviewPatchButton->SetEnabled(false);
-	fApplyPatchButton->SetEnabled(false);
-	fRejectPatchButton->SetEnabled(false);
+	_SetPatchControlsEnabled(false);
 	_UpdatePendingActions();
 }
 
