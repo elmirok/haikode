@@ -387,6 +387,20 @@ AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 			}
 		}
 		_AppendOutput(B_TRANSLATE("Command execution still requires a separate explicit user action."));
+		if (!fProjectRoot.IsEmpty()) {
+			std::string savedCommandsPath;
+			std::string saveError;
+			if (Haikode::AI::SaveCommandRequests(fProjectRoot.String(), commands,
+					savedCommandsPath, saveError)) {
+				BString line(B_TRANSLATE("Saved command request(s): "));
+				line << savedCommandsPath.c_str();
+				_AppendOutput(line.String());
+			} else {
+				BString line(B_TRANSLATE("Command request save warning: "));
+				line << saveError.c_str();
+				_AppendOutput(line.String());
+			}
+		}
 	} else if (!parseError.empty()) {
 		BString line(B_TRANSLATE("Command request parse warning: "));
 		line << parseError.c_str();

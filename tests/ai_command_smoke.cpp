@@ -6,7 +6,19 @@
 #include "ai/VibeCoding.h"
 
 #include <cassert>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
+
+namespace fs = std::filesystem;
+
+static std::string
+ReadFile(const fs::path& path)
+{
+	std::ifstream file(path, std::ios::binary);
+	return std::string(std::istreambuf_iterator<char>(file),
+		std::istreambuf_iterator<char>());
+}
 
 int
 main()
@@ -26,6 +38,18 @@ main()
 	assert(commands[0].argv[0] == "make");
 	assert(commands[0].argv[1] == "test");
 	assert(!commands[0].dangerous);
+
+	const fs::path root = fs::temp_directory_path() / "haikode-command-smoke";
+	fs::remove_all(root);
+	fs::create_directories(root);
+	std::string savedPath;
+	assert(Haikode::AI::SaveCommandRequests(root.string(), commands, savedPath,
+		error));
+	assert(savedPath.find(".haikode/commands/command-") != std::string::npos);
+	const std::string saved = ReadFile(savedPath);
+	assert(saved.find("\"summary\":\"Run unit tests\"") != std::string::npos);
+	assert(saved.find("\"argv\":[\"make\",\"test\"]") != std::string::npos);
+	assert(saved.find("\"dangerous\":false") != std::string::npos);
 
 	const std::string dangerous =
 		"```haikode-command\n"
@@ -52,6 +76,7 @@ main()
 	assert(!Haikode::AI::ExtractCommandRequests(invalid, commands, error));
 	assert(error.find("argv") != std::string::npos);
 
+	fs::remove_all(root);
 	std::cout << "ai-command-smoke-ok\n";
 	return 0;
 }

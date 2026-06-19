@@ -7,11 +7,65 @@
 
 #include <algorithm>
 #include <cctype>
+#include <chrono>
+#include <exception>
+#include <filesystem>
+#include <fstream>
 #include <sstream>
 
 namespace Haikode::AI {
 
+namespace fs = std::filesystem;
+
 namespace {
+
+std::string
+Timestamp()
+{
+	const auto now = std::chrono::system_clock::now().time_since_epoch();
+	return std::to_string(std::chrono::duration_cast<std::chrono::nanoseconds>(
+		now).count());
+}
+
+
+std::string
+EscapeJson(const std::string& value)
+{
+	std::string escaped;
+	for (const char c : value) {
+		switch (c) {
+			case '\\':
+				escaped += "\\\\";
+				break;
+			case '"':
+				escaped += "\\\"";
+				break;
+			case '\n':
+				escaped += "\\n";
+				break;
+			case '\t':
+				escaped += "\\t";
+				break;
+			default:
+				escaped.push_back(c);
+				break;
+		}
+	}
+	return escaped;
+}
+
+
+bool
+IsInsideDirectory(const fs::path& child, const fs::path& parent)
+{
+	const fs::path relative = fs::relative(child, parent);
+	for (const fs::path& part : relative) {
+		if (part == "..")
+			return false;
+	}
+	return !relative.empty();
+}
+
 
 std::string
 Trim(const std::string& value)
@@ -226,6 +280,64 @@ ExtractCommandRequests(const std::string& text,
 		ClassifyCommand(command);
 		commands.push_back(command);
 		pos = bodyEnd + 3;
+	}
+}
+
+
+bool
+SaveCommandRequests(const std::string& projectRoot,
+	const std::vector<CommandRequest>& commands, std::string& savedPath,
+	std::string& error)
+{
+	savedPath.clear();
+	error.clear();
+	try {
+		if (projectRoot.empty()) {
+			error = "No active project root.";
+			return false;
+		}
+		if (commands.empty()) {
+			error = "No command requests to save.";
+			return false;
+		}
+
+		const fs::path root = fs::weakly_canonical(projectRoot);
+		const fs::path commandsRoot = root / ".haikode" / "commands";
+		fs::create_directories(commandsRoot);
+		const fs::path commandPath = commandsRoot
+			/ ("command-" + Timestamp() + ".json");
+		if (!IsInsideDirectory(commandPath, root)) {
+			error = "Unsafe command save path.";
+			return false;
+		}
+
+		std::ofstream file(commandPath, std::ios::binary | std::ios::trunc);
+		if (!file) {
+			error = "Could not save command requests.";
+			return false;
+		}
+		file << "{\n  \"commands\":[";
+		for (size_t i = 0; i < commands.size(); i++) {
+			const CommandRequest& command = commands[i];
+			if (i > 0)
+				file << ",";
+			file << "\n    {\"summary\":\"" << EscapeJson(command.summary)
+				<< "\",\"argv\":[";
+			for (size_t arg = 0; arg < command.argv.size(); arg++) {
+				if (arg > 0)
+					file << ",";
+				file << "\"" << EscapeJson(command.argv[arg]) << "\"";
+			}
+			file << "],\"dangerous\":"
+				<< (command.dangerous ? "true" : "false")
+				<< ",\"warning\":\"" << EscapeJson(command.warning) << "\"}";
+		}
+		file << "\n  ]\n}\n";
+		savedPath = commandPath.string();
+		return true;
+	} catch (const std::exception& exception) {
+		error = exception.what();
+		return false;
 	}
 }
 

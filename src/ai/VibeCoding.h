@@ -45,6 +45,9 @@ std::string SelectContextText(const std::string& selection,
 	const std::string& fullFileText);
 bool ExtractCommandRequests(const std::string& text,
 	std::vector<CommandRequest>& commands, std::string& error);
+bool SaveCommandRequests(const std::string& projectRoot,
+	const std::vector<CommandRequest>& commands, std::string& savedPath,
+	std::string& error);
 
 class PromptBuilder {
 public:
