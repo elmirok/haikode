@@ -7,6 +7,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <cctype>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -97,6 +98,62 @@ SanitizeLabel(std::string label)
 }
 
 
+bool
+IsSecretTokenChar(char c)
+{
+	return std::isalnum(static_cast<unsigned char>(c)) || c == '-' || c == '_'
+		|| c == '.' || c == ':';
+}
+
+
+void
+RedactTokenAfterMarker(std::string& value, const std::string& marker)
+{
+	static const std::string kRedaction = "[redacted-secret]";
+	size_t pos = 0;
+	while ((pos = value.find(marker, pos)) != std::string::npos) {
+		const size_t tokenStart = pos + marker.size();
+		size_t tokenEnd = tokenStart;
+		while (tokenEnd < value.size() && IsSecretTokenChar(value[tokenEnd]))
+			tokenEnd++;
+		if (tokenEnd > tokenStart) {
+			value.replace(tokenStart, tokenEnd - tokenStart, kRedaction);
+			pos = tokenStart + kRedaction.size();
+		} else {
+			pos = tokenStart;
+		}
+	}
+}
+
+
+std::string
+RedactSecrets(std::string value)
+{
+	static const std::string kRedaction = "[redacted-secret]";
+	const std::vector<std::string> markers = {
+		"Authorization: Bearer ",
+		"authorization: bearer ",
+		"Bearer ",
+		"bearer ",
+		"access_token=",
+		"oauth_token=",
+		"api_key="
+	};
+	for (const std::string& marker : markers)
+		RedactTokenAfterMarker(value, marker);
+
+	size_t pos = 0;
+	while ((pos = value.find("sk-", pos)) != std::string::npos) {
+		size_t end = pos + 3;
+		while (end < value.size() && IsSecretTokenChar(value[end]))
+			end++;
+		value.replace(pos, end - pos, kRedaction);
+		pos += kRedaction.size();
+	}
+	return value;
+}
+
+
 std::string
 DisplayArgv(const std::vector<std::string>& argv)
 {
@@ -104,7 +161,7 @@ DisplayArgv(const std::vector<std::string>& argv)
 	for (size_t i = 0; i < argv.size(); i++) {
 		if (i > 0)
 			out << '\n';
-		out << "  [" << i << "] " << argv[i];
+		out << "  [" << i << "] " << RedactSecrets(argv[i]);
 	}
 	return out.str();
 }
@@ -276,15 +333,16 @@ ProcessCapture::SaveLog(const std::string& projectRoot,
 		}
 
 		file
-			<< "label: " << label << "\n"
-			<< "working_directory: " << options.workingDirectory << "\n"
+			<< "label: " << RedactSecrets(label) << "\n"
+			<< "working_directory: "
+			<< RedactSecrets(options.workingDirectory) << "\n"
 			<< "exit_code: " << result.exitCode << "\n"
 			<< "timed_out: " << (result.timedOut ? "true" : "false") << "\n"
 			<< "cancelled: " << (result.cancelled ? "true" : "false") << "\n"
-			<< "error: " << errorText << "\n"
+			<< "error: " << RedactSecrets(errorText) << "\n"
 			<< "argv:\n" << DisplayArgv(options.argv) << "\n"
 			<< "\n--- output ---\n"
-			<< result.output;
+			<< RedactSecrets(result.output);
 		if (!result.output.empty() && result.output.back() != '\n')
 			file << "\n";
 		savedPath = logPath.string();

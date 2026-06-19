@@ -104,7 +104,8 @@ The Genio-based branch now adds:
 - Approved AI command requests run through Haikode's argv-native process
   capture path inside the active project, return stdout/stderr to the AI
   transcript, and save `.haikode/logs/` records. They are not evaluated through
-  shell command strings.
+  shell command strings. Saved command/Codex logs redact key-like strings in
+  labels, argv, errors, and captured output.
 - Saved command-request records redact key-like strings in summaries, argv, and
   warnings before writing `.haikode/commands/` files.
 - A native pending-actions summary that lists pending patch files, hunks,

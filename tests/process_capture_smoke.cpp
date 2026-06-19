@@ -49,6 +49,18 @@ main()
 	assert(savedLog.find("label: codex ask") != std::string::npos);
 	assert(savedLog.find("[0] /bin/echo") != std::string::npos);
 	assert(savedLog.find("argument with spaces semi;colon") != std::string::npos);
+	options.argv = {"/bin/echo", "sk-log-argv-secret-123",
+		"Authorization: Bearer log-argv-bearer-secret"};
+	result.output = "stdout has access_token=log-output-secret\n";
+	error = "failed with oauth_token=log-error-secret";
+	assert(Haikode::AI::ProcessCapture::SaveLog(root.string(), "secret log",
+		options, result, error, savedPath, saveError));
+	const std::string secretLog = ReadFile(savedPath);
+	assert(secretLog.find("sk-log-argv-secret") == std::string::npos);
+	assert(secretLog.find("log-argv-bearer-secret") == std::string::npos);
+	assert(secretLog.find("log-output-secret") == std::string::npos);
+	assert(secretLog.find("log-error-secret") == std::string::npos);
+	assert(secretLog.find("[redacted-secret]") != std::string::npos);
 	std::string secondSavedPath;
 	assert(Haikode::AI::ProcessCapture::SaveLog(root.string(), "codex ask",
 		options, result, error, secondSavedPath, saveError));

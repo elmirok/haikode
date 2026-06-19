@@ -191,13 +191,15 @@ Haikode does not read Codex token files. These actions are added to the pending
 command list and still require an explicit **Run command** click. Captured
 Codex output is parsed for unified diffs and command requests using the same
 explicit review/apply flow as direct provider responses. Captured Codex runs
-are also saved under `.haikode/logs/`.
+are also saved under `.haikode/logs/` with key-like strings redacted.
 
 Approved non-Codex command requests also run through Haikode's argv-native
 capture path inside the active project. Output returns to the AI transcript and
 is saved under `.haikode/logs/`; Haikode does not evaluate these requests as
-shell command strings. Saved command-request records redact key-like strings in
-summaries, argv, and warnings before writing `.haikode/commands/` files.
+shell command strings. Saved command logs redact key-like strings in labels,
+argv, errors, and captured output. Saved command-request records redact
+key-like strings in summaries, argv, and warnings before writing
+`.haikode/commands/` files.
 Command requests can be returned in a fenced `haikode-command` block or in a
 generic fenced `json` block containing both `summary` and an `argv` string
 array. Generic JSON may also contain a `commands` array of `{summary, argv}`
