@@ -7,6 +7,8 @@
 namespace Haikode::AI {
 
 bool ShouldDeferSetupOpenAfterPanelShow(bool aiPanelHasWindow);
+bool ShouldRetrySetupOpenAfterPanelShow(bool aiPanelHasWindow, int attempt,
+	int maxAttempts);
 bool ShouldRunProviderTestAfterSetupSave(bool requested, bool requestRunning);
 bool ShouldStartOAuthAfterSetupSave(bool requested, bool requestRunning);
 bool ShouldExchangeOAuthAfterSetupSave(bool requested, bool requestRunning);

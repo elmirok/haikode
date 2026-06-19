@@ -15,6 +15,14 @@ ShouldDeferSetupOpenAfterPanelShow(bool aiPanelHasWindow)
 
 
 bool
+ShouldRetrySetupOpenAfterPanelShow(bool aiPanelHasWindow, int attempt,
+	int maxAttempts)
+{
+	return !aiPanelHasWindow && attempt >= 0 && attempt < maxAttempts;
+}
+
+
+bool
 ShouldRunProviderTestAfterSetupSave(bool requested, bool requestRunning)
 {
 	return requested && !requestRunning;

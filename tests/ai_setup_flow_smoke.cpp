@@ -13,6 +13,11 @@ main()
 {
 	assert(Haikode::AI::ShouldDeferSetupOpenAfterPanelShow(false));
 	assert(!Haikode::AI::ShouldDeferSetupOpenAfterPanelShow(true));
+	assert(Haikode::AI::ShouldRetrySetupOpenAfterPanelShow(false, 0, 5));
+	assert(Haikode::AI::ShouldRetrySetupOpenAfterPanelShow(false, 4, 5));
+	assert(!Haikode::AI::ShouldRetrySetupOpenAfterPanelShow(false, 5, 5));
+	assert(!Haikode::AI::ShouldRetrySetupOpenAfterPanelShow(true, 0, 5));
+	assert(!Haikode::AI::ShouldRetrySetupOpenAfterPanelShow(false, 0, 0));
 	assert(Haikode::AI::ShouldRunProviderTestAfterSetupSave(true, false));
 	assert(!Haikode::AI::ShouldRunProviderTestAfterSetupSave(false, false));
 	assert(!Haikode::AI::ShouldRunProviderTestAfterSetupSave(true, true));

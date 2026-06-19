@@ -85,6 +85,16 @@ namespace {
 
 constexpr int32 kHaikodeAIFileContextLimit = 200 * 1024;
 constexpr size_t kHaikodeAIMaxOpenContextFiles = 10;
+constexpr int32 kHaikodeAISetupMaxOpenAttempts = 8;
+constexpr bigtime_t kHaikodeAISetupRetryDelay = 150000;
+
+void
+ScheduleHaikodeAISetupOpenRetry(BHandler* target, int32 attempt)
+{
+	BMessage retry(MSG_HAIKODE_AI_SETUP_READY);
+	retry.AddInt32("attempt", attempt);
+	BMessageRunner::StartSending(target, &retry, kHaikodeAISetupRetryDelay, 1);
+}
 
 BString
 EditorTextForAI(IEditor* editor)
@@ -329,16 +339,32 @@ GenioWindow::MessageReceived(BMessage* message)
 			if (fAIChatPanel != nullptr
 				&& Haikode::AI::ShouldDeferSetupOpenAfterPanelShow(
 					fAIChatPanel->Window() != nullptr)) {
-				PostMessage(MSG_HAIKODE_AI_SETUP_READY);
+				ScheduleHaikodeAISetupOpenRetry(this, 0);
 			} else if (fAIChatPanel != nullptr) {
 				fAIChatPanel->OpenProviderSettings();
 			}
 			break;
 		}
 		case MSG_HAIKODE_AI_SETUP_READY:
-			if (fAIChatPanel != nullptr)
+		{
+			if (fAIChatPanel == nullptr)
+				break;
+			const int32 attempt = message->GetInt32("attempt", 0);
+			const bool panelHasWindow = fAIChatPanel->Window() != nullptr;
+			if (!Haikode::AI::ShouldDeferSetupOpenAfterPanelShow(
+					panelHasWindow)) {
 				fAIChatPanel->OpenProviderSettings();
+			} else if (Haikode::AI::ShouldRetrySetupOpenAfterPanelShow(
+					panelHasWindow, attempt,
+					kHaikodeAISetupMaxOpenAttempts)) {
+				ScheduleHaikodeAISetupOpenRetry(this, attempt + 1);
+			} else {
+				OKAlert(B_TRANSLATE("Haikode AI setup"),
+					B_TRANSLATE("Haikode opened the AI panel, but the setup window is not ready yet. Open Window > Haikode AI, then click AI Setup again."),
+					B_WARNING_ALERT);
+			}
 			break;
+		}
 		case MSG_HAIKODE_AI_PATCH_APPLIED:
 			_ReloadChangedFilesFromAI(message);
 			break;
