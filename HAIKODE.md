@@ -93,8 +93,9 @@ The Genio-based branch now adds:
   command proposal parsing flow.
 - Captured Codex runs are saved under `.haikode/logs/` with argv, cwd, exit
   status, error, timeout/cancel flags, and output for later inspection.
-- A lightweight in-panel `.haikode` record browser lists recent sessions, logs,
-  patches, and command request files and can preview a selected record.
+- A lightweight native `.haikode` record browser lists recent sessions, logs,
+  patches, and command request files; selecting a row previews the record in
+  the AI transcript.
 
 The panel sends prompts to cloud or local endpoints when built with
 `HAIKODE_AI_NETWORK=1`. API-key mode stores the key in Haikode settings and
@@ -107,4 +108,4 @@ You do not need to export an API key in Terminal. Then use **Test provider** to
 verify the endpoint before asking questions or proposing patches.
 
 The next slices should make the patch review more visual inside native controls
-and turn the record browser into a richer native list with direct selection.
+and add filtering/open-in-editor actions to the record browser.

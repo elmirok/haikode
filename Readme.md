@@ -159,9 +159,10 @@ Codex output is parsed for unified diffs and command requests using the same
 explicit review/apply flow as direct provider responses. Captured Codex runs
 are also saved under `.haikode/logs/`.
 
-Use **Recent records** and **Show record** in the AI panel to inspect recent
-`.haikode/sessions`, `.haikode/logs`, `.haikode/patches`, and
-`.haikode/commands` files for the active project.
+Use **Recent records** in the AI panel to pick from recent `.haikode/sessions`,
+`.haikode/logs`, `.haikode/patches`, and `.haikode/commands` files for the
+active project. **Show record** previews the path currently shown in the record
+field.
 
 If you would like to try a clang++ build:
 

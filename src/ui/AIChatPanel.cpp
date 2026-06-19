@@ -11,11 +11,13 @@
 #include <Catalog.h>
 #include <Layout.h>
 #include <LayoutBuilder.h>
+#include <ListView.h>
 #include <Looper.h>
 #include <Message.h>
 #include <Messenger.h>
 #include <Roster.h>
 #include <ScrollView.h>
+#include <StringItem.h>
 #include <TextControl.h>
 #include <TextView.h>
 #include <Window.h>
@@ -91,6 +93,9 @@ const uint32 kMsgRunCommand = 'hirc';
 const uint32 kMsgRejectCommand = 'hirx';
 const uint32 kMsgListRecords = 'hilr';
 const uint32 kMsgShowRecord = 'hird';
+const uint32 kMsgRecordPicked = 'hipr';
+const uint32 kMsgRecordOpen = 'hiro';
+const uint32 kMsgRecordCancel = 'hrcx';
 
 Haikode::AI::AuthMode
 AuthModeFromString(const BString& value)
@@ -256,6 +261,117 @@ WaitForOAuthCallback(const std::string& redirectUri, std::string& callback,
 	return true;
 }
 #endif
+
+class ProjectRecordListItem : public BStringItem {
+public:
+	ProjectRecordListItem(const Haikode::AI::ProjectRecordEntry& record)
+		:
+		BStringItem(_Label(record).String()),
+		fPath(record.path.c_str())
+	{
+	}
+
+	const char* Path() const
+	{
+		return fPath.String();
+	}
+
+private:
+	static BString _Label(const Haikode::AI::ProjectRecordEntry& record)
+	{
+		BString label;
+		label << record.type.c_str() << "  " << record.path.c_str()
+			<< "  (" << std::to_string(record.sizeBytes).c_str() << " bytes)";
+		return label;
+	}
+
+	BString fPath;
+};
+
+
+class ProjectRecordBrowserWindow : public BWindow {
+public:
+	ProjectRecordBrowserWindow(BMessenger target,
+		const std::vector<Haikode::AI::ProjectRecordEntry>& records)
+		:
+		BWindow(BRect(120, 120, 760, 520), B_TRANSLATE("Haikode records"),
+			B_TITLED_WINDOW_LOOK, B_MODAL_APP_WINDOW_FEEL,
+			B_ASYNCHRONOUS_CONTROLS | B_AUTO_UPDATE_SIZE_LIMITS
+				| B_CLOSE_ON_ESCAPE),
+		fTarget(target)
+	{
+		fListView = new BListView("haikode_record_picker",
+			B_SINGLE_SELECTION_LIST);
+		fListView->SetInvocationMessage(new BMessage(kMsgRecordPicked));
+		fListView->SetTarget(this);
+		for (const Haikode::AI::ProjectRecordEntry& record : records)
+			fListView->AddItem(new ProjectRecordListItem(record));
+		if (fListView->CountItems() > 0)
+			fListView->Select(0);
+
+		BScrollView* scroll = new BScrollView("haikode_record_picker_scroll",
+			fListView, B_FOLLOW_ALL, 0, false, true);
+		scroll->SetExplicitMinSize(BSize(560, 260));
+
+		BButton* cancelButton = new BButton("haikode_record_cancel",
+			B_TRANSLATE("Cancel"), new BMessage(kMsgRecordCancel));
+		BButton* openButton = new BButton("haikode_record_open",
+			B_TRANSLATE("Open"), new BMessage(kMsgRecordOpen));
+		cancelButton->SetTarget(this);
+		openButton->SetTarget(this);
+
+		BLayoutBuilder::Group<>(this, B_VERTICAL, B_USE_DEFAULT_SPACING)
+			.SetInsets(B_USE_WINDOW_SPACING)
+			.Add(scroll)
+			.AddGroup(B_HORIZONTAL, B_USE_DEFAULT_SPACING)
+				.AddGlue()
+				.Add(cancelButton)
+				.Add(openButton)
+			.End();
+
+		openButton->MakeDefault(true);
+		if (GetLayout() != nullptr) {
+			const BSize size = GetLayout()->MinSize();
+			ResizeTo(size.width, size.height);
+		}
+		CenterOnScreen();
+	}
+
+	void MessageReceived(BMessage* message) override
+	{
+		switch (message->what) {
+			case kMsgRecordPicked:
+			case kMsgRecordOpen:
+				_SendSelectionAndQuit();
+				break;
+			case kMsgRecordCancel:
+				Quit();
+				break;
+			default:
+				BWindow::MessageReceived(message);
+				break;
+		}
+	}
+
+private:
+	void _SendSelectionAndQuit()
+	{
+		const int32 selection = fListView->CurrentSelection();
+		ProjectRecordListItem* item = dynamic_cast<ProjectRecordListItem*>(
+			fListView->ItemAt(selection));
+		if (item == nullptr)
+			return;
+
+		BMessage picked(kMsgRecordPicked);
+		picked.AddString("path", item->Path());
+		fTarget.SendMessage(&picked);
+		Quit();
+	}
+
+	BMessenger fTarget;
+	BListView* fListView;
+};
+
 
 class AIProviderSetupWindow : public BWindow {
 public:
@@ -742,6 +858,10 @@ AIChatPanel::MessageReceived(BMessage* message)
 			_ListRecentProjectRecords();
 			break;
 		case kMsgShowRecord:
+			_ShowSelectedProjectRecord();
+			break;
+		case kMsgRecordPicked:
+			fRecordPath->SetText(message->GetString("path", ""));
 			_ShowSelectedProjectRecord();
 			break;
 		case B_OBSERVER_NOTICE_CHANGE:
@@ -1880,6 +2000,10 @@ AIChatPanel::_ListRecentProjectRecords()
 	}
 	if (fRecordPath != nullptr)
 		fRecordPath->SetText(records.front().path.c_str());
+
+	ProjectRecordBrowserWindow* window = new ProjectRecordBrowserWindow(
+		BMessenger(this), records);
+	window->Show();
 }
 
 
