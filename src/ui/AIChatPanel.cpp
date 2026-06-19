@@ -70,6 +70,9 @@ const uint32 kMsgAsk = 'hiak';
 const uint32 kMsgExplainSelection = 'hiex';
 const uint32 kMsgSummarizeProject = 'hisu';
 const uint32 kMsgProposePatch = 'hipa';
+const uint32 kMsgCodexStatus = 'hicd';
+const uint32 kMsgCodexLogin = 'hicl';
+const uint32 kMsgCodexAsk = 'hica';
 const uint32 kMsgAIResponse = 'hirs';
 const uint32 kMsgPreviousPatchFile = 'hipv';
 const uint32 kMsgNextPatchFile = 'hinx';
@@ -483,6 +486,9 @@ AIChatPanel::AIChatPanel(PanelTabManager* panelTabManager, tab_id id)
 	fExplainButton(nullptr),
 	fSummarizeButton(nullptr),
 	fPatchButton(nullptr),
+	fCodexStatusButton(nullptr),
+	fCodexLoginButton(nullptr),
+	fCodexAskButton(nullptr),
 	fPreviousPatchFileButton(nullptr),
 	fNextPatchFileButton(nullptr),
 	fPreviousPatchHunkButton(nullptr),
@@ -524,6 +530,9 @@ AIChatPanel::AttachedToWindow()
 	fExplainButton->SetTarget(this);
 	fSummarizeButton->SetTarget(this);
 	fPatchButton->SetTarget(this);
+	fCodexStatusButton->SetTarget(this);
+	fCodexLoginButton->SetTarget(this);
+	fCodexAskButton->SetTarget(this);
 	fPreviousPatchFileButton->SetTarget(this);
 	fNextPatchFileButton->SetTarget(this);
 	fPreviousPatchHunkButton->SetTarget(this);
@@ -617,6 +626,15 @@ AIChatPanel::MessageReceived(BMessage* message)
 			break;
 		case kMsgProposePatch:
 			_SendPrompt(Haikode::AI::PromptMode::ProposePatch);
+			break;
+		case kMsgCodexStatus:
+			_QueueCodexLoginStatus();
+			break;
+		case kMsgCodexLogin:
+			_QueueCodexDeviceLogin();
+			break;
+		case kMsgCodexAsk:
+			_QueueCodexReadOnlyAsk();
 			break;
 		case kMsgAIResponse:
 		{
@@ -814,6 +832,12 @@ AIChatPanel::_BuildInterface()
 		B_TRANSLATE("Summarize project"), new BMessage(kMsgSummarizeProject));
 	fPatchButton = new BButton("haikode_ai_patch", B_TRANSLATE("Propose patch"),
 		new BMessage(kMsgProposePatch));
+	fCodexStatusButton = new BButton("haikode_ai_codex_status",
+		B_TRANSLATE("Codex status"), new BMessage(kMsgCodexStatus));
+	fCodexLoginButton = new BButton("haikode_ai_codex_login",
+		B_TRANSLATE("Codex login"), new BMessage(kMsgCodexLogin));
+	fCodexAskButton = new BButton("haikode_ai_codex_ask",
+		B_TRANSLATE("Ask Codex"), new BMessage(kMsgCodexAsk));
 	fPreviousPatchFileButton = new BButton("haikode_ai_previous_patch_file",
 		B_TRANSLATE("Previous file"), new BMessage(kMsgPreviousPatchFile));
 	fPreviousPatchFileButton->SetEnabled(false);
@@ -914,6 +938,12 @@ AIChatPanel::_BuildInterface()
 			.Add(fExplainButton)
 			.Add(fSummarizeButton)
 			.Add(fPatchButton)
+		.End()
+		.AddGroup(B_HORIZONTAL, B_USE_DEFAULT_SPACING)
+			.Add(fCodexStatusButton)
+			.Add(fCodexLoginButton)
+			.Add(fCodexAskButton)
+			.AddGlue()
 		.End()
 		.AddGroup(B_HORIZONTAL, B_USE_DEFAULT_SPACING)
 			.Add(fPatchPath)
@@ -1132,6 +1162,9 @@ AIChatPanel::_SetRequestControlsEnabled(bool enabled)
 	fLlamaCppPresetButton->SetEnabled(enabled);
 	fStartOAuthButton->SetEnabled(enabled);
 	fExchangeOAuthButton->SetEnabled(enabled);
+	fCodexStatusButton->SetEnabled(enabled);
+	fCodexLoginButton->SetEnabled(enabled);
+	fCodexAskButton->SetEnabled(enabled);
 	fCancelButton->SetEnabled(!enabled);
 }
 
@@ -1471,6 +1504,111 @@ AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 	}
 	_UpdatePendingActions();
 	_SaveSessionRecord(text);
+}
+
+
+bool
+AIChatPanel::_FindCodexExecutable(std::string& executable, std::string& error) const
+{
+	const char* path = std::getenv("PATH");
+	executable = Haikode::AI::CodexBridge::FindExecutable("codex",
+		path != nullptr ? path : "", error);
+	return !executable.empty();
+}
+
+
+void
+AIChatPanel::_QueueCodexCommand(const Haikode::AI::CommandRequest& command,
+	const char* queuedText)
+{
+	fPendingCommands.push_back(command);
+	fRunCommandButton->SetEnabled(true);
+	fRejectCommandButton->SetEnabled(true);
+	_UpdatePendingActions();
+	_AppendOutput(queuedText);
+	_AppendOutput(Haikode::AI::CommandDisplayString(command).c_str());
+	_AppendOutput(B_TRANSLATE("Click Run command to approve it, or Reject command to discard it."));
+}
+
+
+void
+AIChatPanel::_QueueCodexLoginStatus()
+{
+	std::string executable;
+	std::string error;
+	if (!_FindCodexExecutable(executable, error)) {
+		BString line(B_TRANSLATE("Codex CLI not found: "));
+		line << error.c_str();
+		_AppendOutput(line.String());
+		return;
+	}
+
+	_QueueCodexCommand(Haikode::AI::CodexBridge::LoginStatusCommand(executable),
+		B_TRANSLATE("Prepared Codex login status check."));
+}
+
+
+void
+AIChatPanel::_QueueCodexDeviceLogin()
+{
+	std::string executable;
+	std::string error;
+	if (!_FindCodexExecutable(executable, error)) {
+		BString line(B_TRANSLATE("Codex CLI not found: "));
+		line << error.c_str();
+		_AppendOutput(line.String());
+		return;
+	}
+
+	_QueueCodexCommand(Haikode::AI::CodexBridge::DeviceLoginCommand(executable),
+		B_TRANSLATE("Prepared Codex device login. Haikode will not read Codex tokens."));
+}
+
+
+void
+AIChatPanel::_QueueCodexReadOnlyAsk()
+{
+	if (fProjectRoot.IsEmpty()) {
+		_AppendOutput(B_TRANSLATE("Open or activate a project before asking Codex."));
+		return;
+	}
+
+	std::string executable;
+	std::string error;
+	if (!_FindCodexExecutable(executable, error)) {
+		BString line(B_TRANSLATE("Codex CLI not found: "));
+		line << error.c_str();
+		_AppendOutput(line.String());
+		return;
+	}
+
+	BString prompt(fPrompt->Text());
+	if (prompt.IsEmpty())
+		prompt = B_TRANSLATE("Explain this Haiku project and suggest the next safe change.");
+
+	BString codexPrompt(B_TRANSLATE("You are helping in Haikode, a native Haiku IDE fork of Genio. Run read-only. Do not write files or run build/test commands. Answer with guidance or a unified diff proposal only after explaining the change.\n\nUser prompt: "));
+	codexPrompt << prompt;
+	if (!fFilePath.IsEmpty())
+		codexPrompt << "\n\nActive file: " << fFilePath;
+	if (!fSelection.IsEmpty())
+		codexPrompt << "\n\nSelected text:\n" << fSelection;
+
+	Haikode::AI::CodexBridgeSettings settings;
+	settings.executable = executable;
+	settings.projectRoot = fProjectRoot.String();
+	settings.model = fModel->Text();
+
+	Haikode::AI::CommandRequest command;
+	if (!Haikode::AI::CodexBridge::BuildReadOnlyAskCommand(settings,
+			codexPrompt.String(), command, error)) {
+		BString line(B_TRANSLATE("Could not prepare Codex request: "));
+		line << error.c_str();
+		_AppendOutput(line.String());
+		return;
+	}
+
+	_QueueCodexCommand(command,
+		B_TRANSLATE("Prepared read-only Codex request for the active project."));
 }
 
 

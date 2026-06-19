@@ -12,6 +12,7 @@
 
 #include "AIProvider.h"
 #include "CancellationToken.h"
+#include "CodexBridge.h"
 #include "OAuthClient.h"
 #include "OpenAICompatibleClient.h"
 #include "PanelTabManager.h"
@@ -57,6 +58,12 @@ private:
 		long status);
 	void _SendPrompt(Haikode::AI::PromptMode mode);
 	void _FinishResponse(const BString& text, const BString& error, long status);
+	void _QueueCodexLoginStatus();
+	void _QueueCodexDeviceLogin();
+	void _QueueCodexReadOnlyAsk();
+	bool _FindCodexExecutable(std::string& executable, std::string& error) const;
+	void _QueueCodexCommand(const Haikode::AI::CommandRequest& command,
+		const char* queuedText);
 	void _SelectPatchFile(int32 delta);
 	void _SelectPatchHunk(int32 delta);
 	size_t _SelectedPatchHunkIndex(const std::string& path) const;
@@ -112,6 +119,9 @@ private:
 	BButton* fExplainButton;
 	BButton* fSummarizeButton;
 	BButton* fPatchButton;
+	BButton* fCodexStatusButton;
+	BButton* fCodexLoginButton;
+	BButton* fCodexAskButton;
 	BButton* fPreviousPatchFileButton;
 	BButton* fNextPatchFileButton;
 	BButton* fPreviousPatchHunkButton;

@@ -143,6 +143,18 @@ automatically when possible. If the browser callback fails, paste either the
 code or the full callback URL into **OAuth code** and click **Exchange code**.
 Haikode stores the resulting bearer token in its app settings.
 
+### Optional Codex CLI bridge
+
+If the `codex` CLI is installed on Haiku and available in `PATH`, the AI panel
+can prepare supervised Codex actions:
+
+* **Codex status** queues `codex login status`.
+* **Codex login** queues `codex login --device-auth`.
+* **Ask Codex** queues a read-only `codex exec` request for the active project.
+
+Haikode does not read Codex token files. These actions are added to the pending
+command list and still require an explicit **Run command** click.
+
 If you would like to try a clang++ build:
 
 * Install `llvm17_clang` and `llvm17_lld` hpkgs from HaikuPorts

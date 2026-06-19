@@ -84,6 +84,10 @@ The Genio-based branch now adds:
 - Project-local `.haikode/sessions/` records for successful AI exchanges,
   storing prompts, responses, provider metadata, active file, and pending
   actions without API keys or bearer tokens.
+- A supervised Codex CLI bridge: **Codex status**, **Codex login**, and
+  **Ask Codex** prepare argv-native commands for explicit approval. The bridge
+  uses Codex's own login/session storage and never reads or persists Codex
+  tokens inside Haikode.
 
 The panel sends prompts to cloud or local endpoints when built with
 `HAIKODE_AI_NETWORK=1`. API-key mode stores the key in Haikode settings and
@@ -96,5 +100,5 @@ You do not need to export an API key in Terminal. Then use **Test provider** to
 verify the endpoint before asking questions or proposing patches.
 
 The next slices should make the patch review more visual inside native controls
-and add a more complete Codex/OAuth bridge where Codex CLI is available on
-Haiku.
+and capture Codex CLI output back into the Haikode AI transcript when the CLI is
+available on Haiku.
