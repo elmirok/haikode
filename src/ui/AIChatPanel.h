@@ -77,6 +77,7 @@ private:
 	BTextControl* fOAuthRedirectUri;
 	BTextControl* fOAuthCode;
 	BTextControl* fPrompt;
+	BTextControl* fPatchPath;
 	BTextView* fPendingActions;
 	BTextView* fOutput;
 	BButton* fSaveProvider;

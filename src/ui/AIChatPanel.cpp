@@ -278,6 +278,7 @@ AIChatPanel::AIChatPanel(PanelTabManager* panelTabManager, tab_id id)
 	fOAuthRedirectUri(nullptr),
 	fOAuthCode(nullptr),
 	fPrompt(nullptr),
+	fPatchPath(nullptr),
 	fPendingActions(nullptr),
 	fOutput(nullptr),
 	fSaveProvider(nullptr),
@@ -501,6 +502,9 @@ AIChatPanel::_BuildInterface()
 		B_TRANSLATE("OAuth code"), "", nullptr);
 	fPrompt = new BTextControl("haikode_ai_prompt", B_TRANSLATE("Prompt"), "",
 		new BMessage(kMsgAsk));
+	fPatchPath = new BTextControl("haikode_ai_patch_path",
+		B_TRANSLATE("Patch file"), "", nullptr);
+	fPatchPath->SetEnabled(false);
 
 	fSaveProvider = new BButton("haikode_ai_save_provider",
 		B_TRANSLATE("Save provider"), new BMessage(kMsgSaveProvider));
@@ -525,10 +529,10 @@ AIChatPanel::_BuildInterface()
 	fPatchButton = new BButton("haikode_ai_patch", B_TRANSLATE("Propose patch"),
 		new BMessage(kMsgProposePatch));
 	fApplyFirstFileButton = new BButton("haikode_ai_apply_first_file",
-		B_TRANSLATE("Apply first file"), new BMessage(kMsgApplyFirstFile));
+		B_TRANSLATE("Apply selected file"), new BMessage(kMsgApplyFirstFile));
 	fApplyFirstFileButton->SetEnabled(false);
 	fRejectFirstFileButton = new BButton("haikode_ai_reject_first_file",
-		B_TRANSLATE("Reject first file"), new BMessage(kMsgRejectFirstFile));
+		B_TRANSLATE("Reject selected file"), new BMessage(kMsgRejectFirstFile));
 	fRejectFirstFileButton->SetEnabled(false);
 	fReviewPatchButton = new BButton("haikode_ai_review_patch",
 		B_TRANSLATE("Review patch"), new BMessage(kMsgReviewPatch));
@@ -599,6 +603,9 @@ AIChatPanel::_BuildInterface()
 			.Add(fAskButton)
 			.Add(fSummarizeButton)
 			.Add(fPatchButton)
+		.End()
+		.AddGroup(B_HORIZONTAL, B_USE_DEFAULT_SPACING)
+			.Add(fPatchPath)
 			.Add(fApplyFirstFileButton)
 			.Add(fRejectFirstFileButton)
 			.Add(fReviewPatchButton)
@@ -936,6 +943,7 @@ AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 	fApplyFirstFileButton->SetEnabled(false);
 	fRejectFirstFileButton->SetEnabled(false);
 	fReviewPatchButton->SetEnabled(false);
+	fPatchPath->SetEnabled(false);
 	fApplyPatchButton->SetEnabled(false);
 	fRejectPatchButton->SetEnabled(false);
 	const bool reviewingPatch = mode == Haikode::AI::PromptMode::ReviewDiff;
@@ -943,6 +951,7 @@ AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 		fPendingDiff = Haikode::AI::UnifiedDiff();
 		fPendingRawDiff = "";
 		fSavedPendingPatchPath = "";
+		fPatchPath->SetText("");
 	}
 	_ClearPendingCommands();
 	_UpdatePendingActions();
@@ -1018,16 +1027,20 @@ AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 				_AppendOutput(saveLine.String());
 			}
 		}
+		const std::vector<std::string> changedPaths = diff.ChangedPaths();
+		if (!changedPaths.empty())
+			fPatchPath->SetText(changedPaths.front().c_str());
 		fApplyFirstFileButton->SetEnabled(true);
 		fRejectFirstFileButton->SetEnabled(true);
 		fReviewPatchButton->SetEnabled(true);
+		fPatchPath->SetEnabled(true);
 		fApplyPatchButton->SetEnabled(true);
 		fRejectPatchButton->SetEnabled(true);
 		BString line(B_TRANSLATE("Unified diff detected: "));
-		line << diff.ChangedPaths().size() << B_TRANSLATE(" file(s), ")
+		line << changedPaths.size() << B_TRANSLATE(" file(s), ")
 			<< diff.HunkCount() << B_TRANSLATE(" hunk(s).");
 		_AppendOutput(line.String());
-		for (const std::string& path : diff.ChangedPaths()) {
+		for (const std::string& path : changedPaths) {
 			BString pathLine("  ");
 			pathLine << path.c_str();
 			_AppendOutput(pathLine.String());
@@ -1081,6 +1094,12 @@ AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 		fApplyFirstFileButton->SetEnabled(true);
 		fRejectFirstFileButton->SetEnabled(true);
 		fReviewPatchButton->SetEnabled(true);
+		fPatchPath->SetEnabled(true);
+		if (BString(fPatchPath->Text()).IsEmpty()) {
+			const std::vector<std::string> paths = fPendingDiff.ChangedPaths();
+			if (!paths.empty())
+				fPatchPath->SetText(paths.front().c_str());
+		}
 		fApplyPatchButton->SetEnabled(true);
 		fRejectPatchButton->SetEnabled(true);
 	}
@@ -1230,18 +1249,20 @@ AIChatPanel::_ApplyFirstPendingFile()
 		return;
 	}
 
-	const std::string path = paths.front();
+	std::string path = fPatchPath != nullptr ? fPatchPath->Text() : "";
+	if (path.empty())
+		path = paths.front();
 	Haikode::AI::PatchApplyResult result;
 	std::string error;
 	if (!fPendingDiff.ApplyFile(fProjectRoot.String(), path, result, error)) {
-		BString line(B_TRANSLATE("Single-file patch apply failed: "));
+		BString line(B_TRANSLATE("Selected-file patch apply failed: "));
 		line << error.c_str();
 		_AppendOutput(line.String());
 		return;
 	}
 
 	fPendingDiff.RemoveFile(path);
-	BString line(B_TRANSLATE("Applied first patch file: "));
+	BString line(B_TRANSLATE("Applied selected patch file: "));
 	line << path.c_str();
 	_AppendOutput(line.String());
 	if (!result.backupDirectory.empty()) {
@@ -1260,11 +1281,18 @@ AIChatPanel::_ApplyFirstPendingFile()
 	if (fPendingDiff.IsEmpty()) {
 		fPendingRawDiff = "";
 		fSavedPendingPatchPath = "";
+		fPatchPath->SetText("");
+		fPatchPath->SetEnabled(false);
 		fApplyFirstFileButton->SetEnabled(false);
 		fRejectFirstFileButton->SetEnabled(false);
 		fReviewPatchButton->SetEnabled(false);
 		fApplyPatchButton->SetEnabled(false);
 		fRejectPatchButton->SetEnabled(false);
+	} else {
+		const std::vector<std::string> remainingPaths
+			= fPendingDiff.ChangedPaths();
+		if (!remainingPaths.empty())
+			fPatchPath->SetText(remainingPaths.front().c_str());
 	}
 	_UpdatePendingActions();
 }
@@ -1278,24 +1306,41 @@ AIChatPanel::_RejectFirstPendingFile()
 		return;
 	}
 
-	std::string path;
-	if (!fPendingDiff.RemoveFirstFile(&path)) {
+	std::vector<std::string> paths = fPendingDiff.ChangedPaths();
+	if (paths.empty()) {
 		_AppendOutput(B_TRANSLATE("Pending diff has no changed files."));
 		return;
 	}
 
-	BString line(B_TRANSLATE("Rejected first patch file: "));
+	std::string path = fPatchPath != nullptr ? fPatchPath->Text() : "";
+	if (path.empty())
+		path = paths.front();
+	if (!fPendingDiff.RemoveFile(path)) {
+		BString line(B_TRANSLATE("Pending diff does not contain selected file: "));
+		line << path.c_str();
+		_AppendOutput(line.String());
+		return;
+	}
+
+	BString line(B_TRANSLATE("Rejected selected patch file: "));
 	line << path.c_str();
 	_AppendOutput(line.String());
 
 	if (fPendingDiff.IsEmpty()) {
 		fPendingRawDiff = "";
 		fSavedPendingPatchPath = "";
+		fPatchPath->SetText("");
+		fPatchPath->SetEnabled(false);
 		fApplyFirstFileButton->SetEnabled(false);
 		fRejectFirstFileButton->SetEnabled(false);
 		fReviewPatchButton->SetEnabled(false);
 		fApplyPatchButton->SetEnabled(false);
 		fRejectPatchButton->SetEnabled(false);
+	} else {
+		const std::vector<std::string> remainingPaths
+			= fPendingDiff.ChangedPaths();
+		if (!remainingPaths.empty())
+			fPatchPath->SetText(remainingPaths.front().c_str());
 	}
 	_UpdatePendingActions();
 }
@@ -1365,6 +1410,8 @@ AIChatPanel::_RejectPendingDiff()
 	fPendingDiff = Haikode::AI::UnifiedDiff();
 	fPendingRawDiff = "";
 	fSavedPendingPatchPath = "";
+	fPatchPath->SetText("");
+	fPatchPath->SetEnabled(false);
 	fApplyFirstFileButton->SetEnabled(false);
 	fRejectFirstFileButton->SetEnabled(false);
 	fReviewPatchButton->SetEnabled(false);

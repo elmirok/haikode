@@ -364,9 +364,26 @@ UnifiedDiff::HunkCount() const
 
 
 std::string
-UnifiedDiff::ReviewText() const
+BuildReviewText(const std::vector<PatchFile>& files)
 {
-	const std::vector<PatchFileStats> stats = FileStats();
+	std::vector<PatchFileStats> stats;
+	stats.reserve(files.size());
+	for (const PatchFile& file : files) {
+		PatchFileStats fileStats;
+		fileStats.path = file.newPath;
+		fileStats.hunkCount = file.hunks.size();
+		fileStats.newFile = file.oldPath == "/dev/null";
+		for (const PatchHunk& hunk : file.hunks) {
+			for (const PatchHunkLine& line : hunk.lines) {
+				if (line.kind == '+')
+					fileStats.additions++;
+				else if (line.kind == '-')
+					fileStats.deletions++;
+			}
+		}
+		stats.push_back(fileStats);
+	}
+
 	size_t additions = 0;
 	size_t deletions = 0;
 	size_t hunkCount = 0;
@@ -377,10 +394,10 @@ UnifiedDiff::ReviewText() const
 	}
 
 	std::ostringstream preview;
-	preview << "Patch preview: " << fFiles.size() << " file(s), "
+	preview << "Patch preview: " << files.size() << " file(s), "
 		<< hunkCount << " hunk(s), +" << additions << " -" << deletions;
-	for (size_t fileIndex = 0; fileIndex < fFiles.size(); ++fileIndex) {
-		const PatchFile& file = fFiles[fileIndex];
+	for (size_t fileIndex = 0; fileIndex < files.size(); ++fileIndex) {
+		const PatchFile& file = files[fileIndex];
 		const PatchFileStats& fileStats = stats[fileIndex];
 		preview << "\n\n" << fileStats.path << " (+" << fileStats.additions
 			<< " -" << fileStats.deletions << ", " << fileStats.hunkCount
@@ -397,6 +414,23 @@ UnifiedDiff::ReviewText() const
 		}
 	}
 	return preview.str();
+}
+
+std::string
+UnifiedDiff::ReviewText() const
+{
+	return BuildReviewText(fFiles);
+}
+
+
+std::string
+UnifiedDiff::ReviewTextForFile(const std::string& path) const
+{
+	for (const PatchFile& file : fFiles) {
+		if (file.newPath == path)
+			return BuildReviewText({file});
+	}
+	return "";
 }
 
 

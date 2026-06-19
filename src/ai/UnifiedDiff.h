@@ -56,6 +56,7 @@ public:
 	std::vector<PatchFileStats> FileStats() const;
 	int HunkCount() const;
 	std::string ReviewText() const;
+	std::string ReviewTextForFile(const std::string& path) const;
 
 	bool Apply(const std::string& projectRoot, PatchApplyResult& result,
 		std::string& error) const;

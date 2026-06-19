@@ -69,6 +69,9 @@ main()
 	assert(preview.find("@@ -1,3 +1,3 @@") != std::string::npos);
 	assert(preview.find("-old") != std::string::npos);
 	assert(preview.find("+new") != std::string::npos);
+	assert(parsed.ReviewTextForFile("src/main.cpp").find(
+		"src/main.cpp (+1 -1, 1 hunk(s))") != std::string::npos);
+	assert(parsed.ReviewTextForFile("missing.cpp").empty());
 
 	Haikode::AI::PatchApplyResult result;
 	assert(parsed.Apply(root.string(), result, error));
@@ -92,6 +95,13 @@ main()
 	Haikode::AI::UnifiedDiff multiPatch;
 	assert(Haikode::AI::UnifiedDiff::Parse(multiDiff, multiPatch, error));
 	assert(multiPatch.ChangedPaths().size() == 2);
+	const std::string otherPreview = multiPatch.ReviewTextForFile("src/other.cpp");
+	assert(otherPreview.find("Patch preview: 1 file(s), 1 hunk(s), +1 -1")
+		!= std::string::npos);
+	assert(otherPreview.find("src/other.cpp (+1 -1, 1 hunk(s))")
+		!= std::string::npos);
+	assert(otherPreview.find("+gamma") != std::string::npos);
+	assert(otherPreview.find("src/main.cpp") == std::string::npos);
 	assert(multiPatch.ApplyFile(root.string(), "src/main.cpp", result, error));
 	assert(ReadFile(root / "src" / "main.cpp") == "one\nnew\nthree\n");
 	assert(ReadFile(root / "src" / "other.cpp") == "alpha\nbeta\n");
