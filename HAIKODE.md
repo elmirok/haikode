@@ -69,9 +69,10 @@ The Genio-based branch now adds:
   **Reject command** approval buttons.
 - Shell-interpreter command requests such as `sh -c ...` are flagged as not
   runnable inside Haikode and must be reviewed/run manually.
-- Approved AI command requests are passed to Genio's console as argv entries
-  instead of a shell command string, so paths with spaces do not require shell
-  quoting and shell-control-looking tokens are not interpreted by `/bin/sh`.
+- Approved AI command requests run through Haikode's argv-native process
+  capture path inside the active project, return stdout/stderr to the AI
+  transcript, and save `.haikode/logs/` records. They are not evaluated through
+  shell command strings.
 - A native pending-actions summary that lists pending patch files, hunks,
   additions/deletions, new-file markers, and command requests before the user
   approves anything.

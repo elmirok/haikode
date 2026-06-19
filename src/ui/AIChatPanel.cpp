@@ -80,6 +80,7 @@ const uint32 kMsgCodexStatus = 'hicd';
 const uint32 kMsgCodexLogin = 'hicl';
 const uint32 kMsgCodexAsk = 'hica';
 const uint32 kMsgCodexCaptureResponse = 'hicr';
+const uint32 kMsgCommandCaptureResponse = 'hccr';
 const uint32 kMsgAIResponse = 'hirs';
 const uint32 kMsgPreviousPatchFile = 'hipv';
 const uint32 kMsgNextPatchFile = 'hinx';
@@ -925,6 +926,16 @@ AIChatPanel::MessageReceived(BMessage* message)
 					message->GetString("log_path", ""),
 					message->GetString("log_error", ""));
 			break;
+		case kMsgCommandCaptureResponse:
+			if (_IsCurrentRequest(message, "command response"))
+				_FinishCommandCapture(message->GetString("output", ""),
+					message->GetString("error", ""),
+					message->GetInt32("exit_code", -1),
+					message->GetBool("timed_out", false),
+					message->GetBool("cancelled", false),
+					message->GetString("log_path", ""),
+					message->GetString("log_error", ""));
+			break;
 		case kMsgAIResponse:
 		{
 			if (_IsCurrentRequest(message, "AI response"))
@@ -1503,6 +1514,8 @@ AIChatPanel::_SetRequestControlsEnabled(bool enabled)
 	fOpenProjectFileButton->SetEnabled(enabled);
 	fRecentRecordsButton->SetEnabled(enabled);
 	fShowRecordButton->SetEnabled(enabled);
+	fRunCommandButton->SetEnabled(enabled && !fPendingCommands.empty());
+	fRejectCommandButton->SetEnabled(enabled && !fPendingCommands.empty());
 	fCancelButton->SetEnabled(!enabled);
 }
 
@@ -2011,6 +2024,66 @@ AIChatPanel::_RunCodexCommandCaptured(const Haikode::AI::CommandRequest& command
 
 
 void
+AIChatPanel::_RunCommandCaptured(const Haikode::AI::CommandRequest& command)
+{
+	if (fRequestRunning) {
+		_AppendOutput(B_TRANSLATE("An AI command is already running."));
+		return;
+	}
+	if (fProjectRoot.IsEmpty()) {
+		_AppendOutput(B_TRANSLATE("Open or activate a project before running an AI command."));
+		return;
+	}
+
+	fLastUserPrompt = fPrompt->Text();
+	fLastProvider = Haikode::AI::ProviderSettings();
+	fLastProvider.name = "Approved AI command";
+	fLastProvider.baseUrl = "local-process";
+	fLastProvider.model = "argv";
+	fLastProvider.authMode = Haikode::AI::AuthMode::None;
+
+	const int64 requestId = _BeginRequest();
+	std::shared_ptr<Haikode::AI::CancellationToken> cancellation
+		= fActiveCancellation;
+
+	_AppendOutput(B_TRANSLATE("Running approved argv command in the active project. Output will return here."));
+	_AppendOutput(Haikode::AI::CommandDisplayString(command).c_str());
+
+	BMessenger messenger(this);
+	const std::vector<std::string> argv = command.argv;
+	const std::string projectRoot = fProjectRoot.String();
+	std::thread([messenger, argv, projectRoot, requestId, cancellation]() mutable {
+		Haikode::AI::ProcessCaptureOptions options;
+		options.argv = argv;
+		options.workingDirectory = projectRoot;
+		options.timeoutSeconds = 600;
+		options.maxOutputBytes = 2 * 1024 * 1024;
+		options.cancellation = cancellation.get();
+
+		Haikode::AI::ProcessCaptureResult result;
+		std::string error;
+		const bool ok = Haikode::AI::ProcessCapture::Run(options, result,
+			error);
+		std::string savedLogPath;
+		std::string logError;
+		Haikode::AI::ProcessCapture::SaveLog(projectRoot, "ai-command",
+			options, result, error, savedLogPath, logError);
+
+		BMessage done(kMsgCommandCaptureResponse);
+		done.AddInt64("request_id", requestId);
+		done.AddString("output", result.output.c_str());
+		done.AddString("error", ok ? "" : error.c_str());
+		done.AddInt32("exit_code", result.exitCode);
+		done.AddBool("timed_out", result.timedOut);
+		done.AddBool("cancelled", result.cancelled);
+		done.AddString("log_path", savedLogPath.c_str());
+		done.AddString("log_error", logError.c_str());
+		messenger.SendMessage(&done);
+	}).detach();
+}
+
+
+void
 AIChatPanel::_FinishCodexCapture(const BString& output, const BString& error,
 	int32 exitCode, bool timedOut, bool cancelled, const BString& logPath,
 	const BString& logError)
@@ -2052,6 +2125,56 @@ AIChatPanel::_FinishCodexCapture(const BString& output, const BString& error,
 
 
 void
+AIChatPanel::_FinishCommandCapture(const BString& output, const BString& error,
+	int32 exitCode, bool timedOut, bool cancelled, const BString& logPath,
+	const BString& logError)
+{
+	_FinishRequest();
+	fRunCommandButton->SetEnabled(!fPendingCommands.empty());
+	fRejectCommandButton->SetEnabled(!fPendingCommands.empty());
+
+	if (!logPath.IsEmpty()) {
+		BString line(B_TRANSLATE("Saved command log: "));
+		line << logPath;
+		_AppendOutput(line.String());
+	} else if (!logError.IsEmpty()) {
+		BString line(B_TRANSLATE("Command log save warning: "));
+		line << logError;
+		_AppendOutput(line.String());
+	}
+
+	if (cancelled) {
+		_AppendOutput(B_TRANSLATE("Command cancelled."));
+		return;
+	}
+	if (timedOut) {
+		_AppendOutput(B_TRANSLATE("Command timed out."));
+		if (!output.IsEmpty())
+			_AppendOutput(output.String());
+		return;
+	}
+	if (!error.IsEmpty()) {
+		BString line(B_TRANSLATE("Command failed"));
+		if (exitCode >= 0)
+			line << " (" << exitCode << ")";
+		line << ": " << error;
+		_AppendOutput(line.String());
+		if (!output.IsEmpty())
+			_AppendOutput(output.String());
+		return;
+	}
+
+	BString line(B_TRANSLATE("Command completed"));
+	if (exitCode >= 0)
+		line << " (" << exitCode << ")";
+	line << ".";
+	_AppendOutput(line.String());
+	if (!output.IsEmpty())
+		_AppendOutput(output.String());
+}
+
+
+void
 AIChatPanel::_RunPendingCommand()
 {
 	if (fPendingCommands.empty()) {
@@ -2061,6 +2184,15 @@ AIChatPanel::_RunPendingCommand()
 
 	const Haikode::AI::CommandRequest command = fPendingCommands.front();
 	const std::string display = Haikode::AI::CommandDisplayString(command);
+	if (fRequestRunning) {
+		_AppendOutput(B_TRANSLATE("An AI or command request is already running."));
+		return;
+	}
+	if (fProjectRoot.IsEmpty()) {
+		_AppendOutput(B_TRANSLATE("Open or activate a project before running an AI command."));
+		return;
+	}
+
 	BString prompt(B_TRANSLATE("Run this AI-requested command in the active project?"));
 	prompt << "\n\n" << display.c_str();
 	if (command.dangerous)
@@ -2103,24 +2235,11 @@ AIChatPanel::_RunPendingCommand()
 		return;
 	}
 
-	if (Window() == nullptr) {
-		_AppendOutput(B_TRANSLATE("No window is available to run the command."));
-		return;
-	}
-
-	BMessage run(MSG_RUN_CONSOLE_PROGRAM);
-	run.AddString("command", display.c_str());
-	for (const std::string& arg : command.argv)
-		run.AddString("argv", arg.c_str());
-	Window()->PostMessage(&run);
-	BString line(B_TRANSLATE("Approved argv command sent to Genio console: "));
-	line << display.c_str();
-	_AppendOutput(line.String());
-
 	fPendingCommands.erase(fPendingCommands.begin());
 	fRunCommandButton->SetEnabled(!fPendingCommands.empty());
 	fRejectCommandButton->SetEnabled(!fPendingCommands.empty());
 	_UpdatePendingActions();
+	_RunCommandCaptured(command);
 }
 
 

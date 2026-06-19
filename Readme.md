@@ -169,6 +169,11 @@ Codex output is parsed for unified diffs and command requests using the same
 explicit review/apply flow as direct provider responses. Captured Codex runs
 are also saved under `.haikode/logs/`.
 
+Approved non-Codex command requests also run through Haikode's argv-native
+capture path inside the active project. Output returns to the AI transcript and
+is saved under `.haikode/logs/`; Haikode does not evaluate these requests as
+shell command strings.
+
 Use **Recent records** in the AI panel to pick from recent `.haikode/sessions`,
 `.haikode/logs`, `.haikode/patches`, and `.haikode/commands` files for the
 active project. **Show record** previews the path currently shown in the record
