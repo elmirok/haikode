@@ -29,6 +29,8 @@ const uint32 kMsgSaveProvider = 'hisp';
 const uint32 kMsgAsk = 'hiak';
 const uint32 kMsgProposePatch = 'hipa';
 const uint32 kMsgAIResponse = 'hirs';
+const uint32 kMsgApplyPatch = 'hiap';
+const uint32 kMsgRejectPatch = 'hirp';
 
 Haikode::AI::AuthMode
 AuthModeFromString(const BString& value)
@@ -59,6 +61,8 @@ AIChatPanel::AIChatPanel(PanelTabManager* panelTabManager, tab_id id)
 	fSaveProvider(nullptr),
 	fAskButton(nullptr),
 	fPatchButton(nullptr),
+	fApplyPatchButton(nullptr),
+	fRejectPatchButton(nullptr),
 	fRequestRunning(false)
 {
 	_BuildInterface();
@@ -93,6 +97,13 @@ AIChatPanel::MessageReceived(BMessage* message)
 				message->GetString("error", ""), message->GetInt64("status", 0));
 			break;
 		}
+		case kMsgApplyPatch:
+			_ApplyPendingDiff();
+			break;
+		case kMsgRejectPatch:
+			_RejectPendingDiff();
+			_AppendOutput(B_TRANSLATE("Pending patch rejected."));
+			break;
 		default:
 			BGroupView::MessageReceived(message);
 			break;
@@ -140,6 +151,12 @@ AIChatPanel::_BuildInterface()
 		new BMessage(kMsgAsk));
 	fPatchButton = new BButton("haikode_ai_patch", B_TRANSLATE("Propose patch"),
 		new BMessage(kMsgProposePatch));
+	fApplyPatchButton = new BButton("haikode_ai_apply_patch",
+		B_TRANSLATE("Apply patch"), new BMessage(kMsgApplyPatch));
+	fApplyPatchButton->SetEnabled(false);
+	fRejectPatchButton = new BButton("haikode_ai_reject_patch",
+		B_TRANSLATE("Reject patch"), new BMessage(kMsgRejectPatch));
+	fRejectPatchButton->SetEnabled(false);
 
 	fOutput = new BTextView("haikode_ai_output");
 	fOutput->MakeEditable(false);
@@ -166,6 +183,8 @@ AIChatPanel::_BuildInterface()
 			.Add(fSaveProvider)
 			.Add(fAskButton)
 			.Add(fPatchButton)
+			.Add(fApplyPatchButton)
+			.Add(fRejectPatchButton)
 		.End()
 		.Add(outputScroll);
 }
@@ -232,6 +251,10 @@ AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 	fAskButton->SetEnabled(false);
 	fPatchButton->SetEnabled(false);
 	fSaveProvider->SetEnabled(false);
+	fApplyPatchButton->SetEnabled(false);
+	fRejectPatchButton->SetEnabled(false);
+	fPendingDiff = Haikode::AI::UnifiedDiff();
+	fPendingRawDiff = "";
 
 	BMessenger messenger(this);
 	std::string prompt = result.prompt;
@@ -272,6 +295,62 @@ AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 
 	_AppendOutput(B_TRANSLATE("AI response:"));
 	_AppendOutput(text.String());
+
+	std::string rawDiff;
+	std::string parseError;
+	Haikode::AI::UnifiedDiff diff;
+	if (Haikode::AI::UnifiedDiff::ExtractFromText(text.String(), diff, rawDiff,
+			parseError)) {
+		fPendingDiff = diff;
+		fPendingRawDiff = rawDiff.c_str();
+		fApplyPatchButton->SetEnabled(true);
+		fRejectPatchButton->SetEnabled(true);
+		BString line(B_TRANSLATE("Unified diff detected. Review the response, then click Apply patch or Reject patch."));
+		_AppendOutput(line.String());
+	}
+}
+
+
+void
+AIChatPanel::_ApplyPendingDiff()
+{
+	if (fPendingDiff.IsEmpty()) {
+		_AppendOutput(B_TRANSLATE("No pending diff to apply."));
+		return;
+	}
+	if (fProjectRoot.IsEmpty()) {
+		_AppendOutput(B_TRANSLATE("Open or activate a project before applying a patch."));
+		return;
+	}
+
+	Haikode::AI::PatchApplyResult result;
+	std::string error;
+	if (!fPendingDiff.Apply(fProjectRoot.String(), result, error)) {
+		BString line(B_TRANSLATE("Patch apply failed: "));
+		line << error.c_str();
+		_AppendOutput(line.String());
+		return;
+	}
+
+	BString line(B_TRANSLATE("Patch applied. Backup: "));
+	line << result.backupDirectory.c_str();
+	_AppendOutput(line.String());
+	for (const std::string& file : result.changedFiles) {
+		BString fileLine("  ");
+		fileLine << file.c_str();
+		_AppendOutput(fileLine.String());
+	}
+	_RejectPendingDiff();
+}
+
+
+void
+AIChatPanel::_RejectPendingDiff()
+{
+	fPendingDiff = Haikode::AI::UnifiedDiff();
+	fPendingRawDiff = "";
+	fApplyPatchButton->SetEnabled(false);
+	fRejectPatchButton->SetEnabled(false);
 }
 
 

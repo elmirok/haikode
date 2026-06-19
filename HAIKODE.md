@@ -42,10 +42,13 @@ The Genio-based branch now adds:
 - Provider fields for base URL, model, auth mode, API key, and OAuth token.
 - OpenAI-compatible HTTP requests for active project, selected file, and
   selected text.
+- Unified diff detection in AI responses.
+- Explicit **Apply patch** / **Reject patch** controls with path checks and
+  `.haikode/backups/` copies before writes.
 
 The panel sends prompts to cloud or local endpoints when built with
 `HAIKODE_AI_NETWORK=1`. API-key and OAuth modes send
 `Authorization: Bearer ...`; local mode sends no authorization header.
 
-The next slice should connect unified-diff responses to a native review/apply
-flow.
+The next slice should improve the review UI from raw text to per-file/per-hunk
+review and reload changed editor tabs after apply.

@@ -10,6 +10,7 @@
 #include "AIProvider.h"
 #include "OpenAICompatibleClient.h"
 #include "PanelTabManager.h"
+#include "UnifiedDiff.h"
 #include "VibeCoding.h"
 
 class BButton;
@@ -33,6 +34,8 @@ private:
 	void _SaveProviderToConfig();
 	void _SendPrompt(Haikode::AI::PromptMode mode);
 	void _FinishResponse(const BString& text, const BString& error, long status);
+	void _ApplyPendingDiff();
+	void _RejectPendingDiff();
 	void _AppendOutput(const char* text);
 	Haikode::AI::ProviderSettings _ProviderFromFields() const;
 	Haikode::AI::VibeCodingRequest _RequestFromContext(
@@ -51,7 +54,11 @@ private:
 	BButton* fSaveProvider;
 	BButton* fAskButton;
 	BButton* fPatchButton;
+	BButton* fApplyPatchButton;
+	BButton* fRejectPatchButton;
 	bool fRequestRunning;
+	Haikode::AI::UnifiedDiff fPendingDiff;
+	BString fPendingRawDiff;
 
 	BString fProjectRoot;
 	BString fFilePath;
