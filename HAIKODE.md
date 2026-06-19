@@ -133,6 +133,8 @@ still require `HAIKODE_AI_NETWORK=1` because Haikode talks to them over HTTP.
 Use **Window > Haikode AI setup** or the **AI Setup** button to paste cloud API
 keys inside Haikode, choose a local provider, or configure OAuth token/PKCE
 endpoint fields. API key and OAuth token fields are masked in the native UI.
+Provider base URLs must use `http://` or `https://`; other libcurl URL schemes
+are rejected before any request is sent.
 You do not need to export an API key in Terminal. The setup dialog also reports
 whether the current binary was built with network AI support. Then use
 **Save & Test** to verify the endpoint before asking questions or proposing

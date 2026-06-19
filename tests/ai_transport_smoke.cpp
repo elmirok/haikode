@@ -128,6 +128,13 @@ main()
 	assert(!missingApiKey.Validate(validationError));
 	assert(validationError.find("API key") != std::string::npos);
 
+	Haikode::AI::ProviderSettings unsafeScheme;
+	unsafeScheme.baseUrl = "file:///boot/home/config/settings";
+	unsafeScheme.model = "test-model";
+	unsafeScheme.apiKey = "sk-test";
+	assert(!unsafeScheme.Validate(validationError));
+	assert(validationError.find("http") != std::string::npos);
+
 	Haikode::AI::ProviderSettings missingOAuth;
 	missingOAuth.authMode = Haikode::AI::AuthMode::OAuth;
 	assert(!missingOAuth.Validate(validationError));

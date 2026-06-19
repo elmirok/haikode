@@ -125,7 +125,8 @@ Use the **OpenAI**, **OpenRouter**, **Ollama**, **LM Studio**, or **llama.cpp**
 buttons to fill the common base URL, model, and auth mode defaults, then adjust
 the model if needed. Haikode normalizes auth mode text and trims leading/trailing
 spaces from provider URLs, model names, API keys, and OAuth bearer tokens before
-sending a request.
+sending a request. Provider base URLs must use `http://` or `https://`;
+Haikode rejects other libcurl URL schemes.
 
 For OpenAI-compatible cloud providers, set:
 

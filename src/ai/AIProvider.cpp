@@ -66,6 +66,24 @@ EndsWith(const std::string& value, const std::string& suffix)
 			== 0;
 }
 
+
+std::string
+ToLower(std::string value)
+{
+	for (char& c : value)
+		c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+	return value;
+}
+
+
+bool
+IsHttpProviderUrl(const std::string& value)
+{
+	const std::string lower = ToLower(TrimWhitespace(value));
+	return lower.rfind("http://", 0) == 0
+		|| lower.rfind("https://", 0) == 0;
+}
+
 } // namespace
 
 bool
@@ -101,6 +119,10 @@ ProviderSettings::Validate(std::string& error) const
 	error.clear();
 	if (TrimWhitespace(baseUrl).empty()) {
 		error = "Provider base URL is required.";
+		return false;
+	}
+	if (!IsHttpProviderUrl(baseUrl)) {
+		error = "Provider base URL must start with http:// or https://.";
 		return false;
 	}
 
