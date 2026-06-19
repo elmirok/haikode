@@ -3,14 +3,11 @@
 #include "core/ChatRequest.h"
 #include "core/CommandSafety.h"
 #include "core/Crypto.h"
+#include "core/DiffProposal.h"
 #include "core/ProcessRunner.h"
 #include "core/PromptBuilder.h"
 #include "core/ProjectScanner.h"
 #include "core/TimeUtils.h"
-
-#ifdef HAIKODE_CODEX_BRIDGE
-#include "core/DiffProposal.h"
-#endif
 
 #ifdef HAIKODE_AI_NETWORK
 #include "core/AiProvider.h"
