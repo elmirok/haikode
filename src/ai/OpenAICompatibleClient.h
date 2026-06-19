@@ -33,6 +33,7 @@ public:
 		const ChatRequest& request);
 	static bool ExtractResponseText(const std::string& body, std::string& text,
 		std::string& error);
+	static std::string ExtractErrorMessage(const std::string& body);
 
 	bool Send(const ProviderSettings& provider, const ChatRequest& request,
 		ChatResponse& response, std::string& error) const;

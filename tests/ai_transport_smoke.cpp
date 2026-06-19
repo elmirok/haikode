@@ -117,6 +117,14 @@ main()
 		spacedResponse, text, error));
 	assert(text == "Hello with spaces");
 
+	assert(Haikode::AI::OpenAICompatibleClient::ExtractErrorMessage(
+		"{\"error\":{\"message\":\"model not found\",\"type\":\"invalid_request\"}}")
+		== "model not found");
+	assert(Haikode::AI::OpenAICompatibleClient::ExtractErrorMessage(
+		"{\"message\":\"local server unavailable\"}") == "local server unavailable");
+	assert(Haikode::AI::OpenAICompatibleClient::ExtractErrorMessage(
+		"{\"error\":\"invalid_api_key\"}") == "invalid_api_key");
+
 	std::cout << "ai-transport-smoke-ok\n";
 	return 0;
 }

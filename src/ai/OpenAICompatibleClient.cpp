@@ -6,6 +6,7 @@
 #include "OpenAICompatibleClient.h"
 
 #include <cctype>
+#include <algorithm>
 #include <sstream>
 
 #ifdef HAIKODE_AI_NETWORK
@@ -131,6 +132,72 @@ ExtractJsonStringField(const std::string& body, const std::string& field,
 	return false;
 }
 
+
+std::string
+ExtractObjectForField(const std::string& body, const std::string& field)
+{
+	size_t pos = body.find("\"" + field + "\"");
+	if (pos == std::string::npos)
+		return "";
+	pos += field.size() + 2;
+
+	while (pos < body.size()
+		&& std::isspace(static_cast<unsigned char>(body[pos]))) {
+		++pos;
+	}
+	if (pos >= body.size() || body[pos] != ':')
+		return "";
+	++pos;
+	while (pos < body.size()
+		&& std::isspace(static_cast<unsigned char>(body[pos]))) {
+		++pos;
+	}
+	if (pos >= body.size() || body[pos] != '{')
+		return "";
+
+	size_t end = pos;
+	int depth = 0;
+	bool inString = false;
+	bool escaping = false;
+	for (; end < body.size(); ++end) {
+		const char c = body[end];
+		if (escaping) {
+			escaping = false;
+			continue;
+		}
+		if (c == '\\' && inString) {
+			escaping = true;
+			continue;
+		}
+		if (c == '"') {
+			inString = !inString;
+			continue;
+		}
+		if (inString)
+			continue;
+		if (c == '{')
+			depth++;
+		else if (c == '}') {
+			depth--;
+			if (depth == 0)
+				return body.substr(pos, end - pos + 1);
+		}
+	}
+	return "";
+}
+
+
+std::string
+TruncatedBody(const std::string& body)
+{
+	std::string truncated = body.substr(0, std::min<size_t>(body.size(), 300));
+	for (char& c : truncated) {
+		if (c == '\n' || c == '\r' || c == '\t')
+			c = ' ';
+	}
+	return truncated;
+}
+
 #ifdef HAIKODE_AI_NETWORK
 size_t
 WriteCallback(char* ptr, size_t size, size_t nmemb, void* userdata)
@@ -187,6 +254,27 @@ OpenAICompatibleClient::ExtractResponseText(const std::string& body,
 }
 
 
+std::string
+OpenAICompatibleClient::ExtractErrorMessage(const std::string& body)
+{
+	std::string message;
+	const std::string errorObject = ExtractObjectForField(body, "error");
+	if (!errorObject.empty()
+		&& ExtractJsonStringField(errorObject, "message", message)) {
+		return message;
+	}
+	if (ExtractJsonStringField(body, "error", message))
+		return message;
+	if (ExtractJsonStringField(body, "error_description", message))
+		return message;
+	if (ExtractJsonStringField(body, "message", message))
+		return message;
+	if (!body.empty())
+		return TruncatedBody(body);
+	return "";
+}
+
+
 bool
 OpenAICompatibleClient::Send(const ProviderSettings& provider,
 	const ChatRequest& request, ChatResponse& response, std::string& error) const
@@ -223,6 +311,8 @@ OpenAICompatibleClient::Send(const ProviderSettings& provider,
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &body);
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, "Haikode/0.1");
+	curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120L);
 
 	const CURLcode result = curl_easy_perform(curl);
 	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response.httpStatus);
@@ -240,6 +330,9 @@ OpenAICompatibleClient::Send(const ProviderSettings& provider,
 		std::ostringstream message;
 		message << "AI request failed with HTTP status " << response.httpStatus
 			<< ".";
+		const std::string providerError = ExtractErrorMessage(body);
+		if (!providerError.empty())
+			message << " " << providerError;
 		error = message.str();
 		return false;
 	}
