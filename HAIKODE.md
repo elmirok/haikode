@@ -75,6 +75,8 @@ The Genio-based branch now adds:
   patch modifies the named project file instead of writing through a link.
 - Generated unified diffs are saved immediately under `.haikode/patches/` before
   approval, so rejected and partially applied proposals still have an audit file.
+- Fenced AI diff responses are extracted as the diff body only, so trailing
+  model commentary after the code fence is not saved into patch audit files.
 - Explicit AI command request parsing with separate **Run command** and
   **Reject command** approval buttons.
 - Shell-interpreter command requests such as `sh -c ...` are flagged as not

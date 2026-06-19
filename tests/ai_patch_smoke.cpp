@@ -148,6 +148,29 @@ main()
 	assert(multiPatch.IsEmpty());
 	assert(!multiPatch.RemoveFirstFile(&removedPath));
 
+	const std::string fencedDiffResponse =
+		"Here is a small patch:\n"
+		"```diff\n"
+		"--- a/src/main.cpp\n"
+		"+++ b/src/main.cpp\n"
+		"@@ -1,3 +1,3 @@\n"
+		" one\n"
+		"-old\n"
+		"+new\n"
+		" three\n"
+		"```\n"
+		"After applying it, review the build manually.\n";
+	Haikode::AI::UnifiedDiff fencedPatch;
+	std::string fencedRawDiff;
+	assert(Haikode::AI::UnifiedDiff::ExtractFromText(fencedDiffResponse,
+		fencedPatch, fencedRawDiff, error));
+	assert(fencedPatch.ChangedPaths().size() == 1);
+	assert(fencedPatch.ChangedPaths()[0] == "src/main.cpp");
+	assert(fencedRawDiff.find("```") == std::string::npos);
+	assert(fencedRawDiff.find("After applying") == std::string::npos);
+	assert(fencedRawDiff.find("--- a/src/main.cpp") == 0);
+	assert(fencedRawDiff.find("+new") != std::string::npos);
+
 	WriteFile(root / "src" / "main.cpp", "one\nold\nthree\nkeep\nlast\n");
 	const std::string hunkDiff =
 		"diff --git a/src/main.cpp b/src/main.cpp\n"
