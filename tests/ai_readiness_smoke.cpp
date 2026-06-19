@@ -23,6 +23,7 @@ main()
 	assert(status.ready == false);
 	assert(status.summary.find("Network AI disabled") != std::string::npos);
 	assert(status.action.find("HAIKODE_AI_NETWORK=1") != std::string::npos);
+	assert(status.action.find("or AI_NETWORK=1") != std::string::npos);
 	assert(!status.safeDetails.empty());
 	assert(!Haikode::AI::ShouldOpenSetupForReadiness(status));
 	const std::string disabledTranscript
@@ -32,6 +33,7 @@ main()
 	assert(disabledTranscript.find("Network AI disabled") != std::string::npos);
 	assert(disabledTranscript.find("HAIKODE_AI_NETWORK=1")
 		!= std::string::npos);
+	assert(disabledTranscript.find("or AI_NETWORK=1") != std::string::npos);
 	assert(disabledTranscript.find("sk-secret") == std::string::npos);
 
 	status = Haikode::AI::EvaluateAIReadiness(provider, true);

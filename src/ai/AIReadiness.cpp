@@ -94,7 +94,7 @@ EvaluateAIReadiness(const ProviderSettings& provider, bool networkEnabled)
 	if (provider.authMode != AuthMode::None && !networkEnabled) {
 		return Status(AIReadinessState::NetworkDisabled,
 			"Network AI disabled in this build.",
-			"Rebuild Haikode with HAIKODE_AI_NETWORK=1 and install curl_devel.",
+			"Rebuild Haikode with HAIKODE_AI_NETWORK=1 or AI_NETWORK=1 and install curl_devel.",
 			provider);
 	}
 
