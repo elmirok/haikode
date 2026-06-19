@@ -34,6 +34,8 @@ public:
 	static std::string GenerateVerifier();
 	static bool IsValidVerifier(const std::string& verifier);
 	static std::string CodeChallenge(const std::string& verifier);
+	static bool ValidateSettings(const OAuthSettings& settings,
+		std::string& error);
 	static std::string BuildAuthUrl(const OAuthSettings& settings,
 		const std::string& verifier, const std::string& state);
 	static OAuthTokenRequest PrepareTokenRequest(const OAuthSettings& settings,

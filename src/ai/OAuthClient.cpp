@@ -113,6 +113,58 @@ FindQueryValue(const std::string& input, const std::string& key,
 
 
 std::string
+TrimWhitespace(std::string value)
+{
+	size_t start = 0;
+	while (start < value.size()
+		&& std::isspace(static_cast<unsigned char>(value[start]))) {
+		start++;
+	}
+	size_t end = value.size();
+	while (end > start
+		&& std::isspace(static_cast<unsigned char>(value[end - 1]))) {
+		end--;
+	}
+	return value.substr(start, end - start);
+}
+
+
+std::string
+ToLower(std::string value)
+{
+	for (char& c : value)
+		c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+	return value;
+}
+
+
+bool
+StartsWith(const std::string& value, const std::string& prefix)
+{
+	return value.rfind(prefix, 0) == 0;
+}
+
+
+bool
+IsHttpUrl(const std::string& value)
+{
+	const std::string lower = ToLower(TrimWhitespace(value));
+	return StartsWith(lower, "http://") || StartsWith(lower, "https://");
+}
+
+
+bool
+IsLoopbackHttpRedirectUri(const std::string& value)
+{
+	const std::string lower = ToLower(TrimWhitespace(value));
+	return StartsWith(lower, "http://127.0.0.1/")
+		|| StartsWith(lower, "http://127.0.0.1:")
+		|| StartsWith(lower, "http://localhost/")
+		|| StartsWith(lower, "http://localhost:");
+}
+
+
+std::string
 Base64UrlEncode(const unsigned char* data, size_t length)
 {
 	const int encodedLength = 4 * ((int(length) + 2) / 3);
@@ -284,6 +336,42 @@ OAuthClient::CodeChallenge(const std::string& verifier)
 }
 
 
+bool
+OAuthClient::ValidateSettings(const OAuthSettings& settings, std::string& error)
+{
+	error.clear();
+	if (TrimWhitespace(settings.authUrl).empty()) {
+		error = "OAuth auth URL is required.";
+		return false;
+	}
+	if (!IsHttpUrl(settings.authUrl)) {
+		error = "OAuth auth URL must start with http:// or https://.";
+		return false;
+	}
+	if (TrimWhitespace(settings.tokenUrl).empty()) {
+		error = "OAuth token URL is required.";
+		return false;
+	}
+	if (!IsHttpUrl(settings.tokenUrl)) {
+		error = "OAuth token URL must start with http:// or https://.";
+		return false;
+	}
+	if (TrimWhitespace(settings.clientId).empty()) {
+		error = "OAuth client ID is required.";
+		return false;
+	}
+	if (TrimWhitespace(settings.redirectUri).empty()) {
+		error = "OAuth redirect URI is required.";
+		return false;
+	}
+	if (!IsLoopbackHttpRedirectUri(settings.redirectUri)) {
+		error = "OAuth redirect URI must be an http://127.0.0.1 or http://localhost callback.";
+		return false;
+	}
+	return true;
+}
+
+
 std::string
 OAuthClient::BuildAuthUrl(const OAuthSettings& settings,
 	const std::string& verifier, const std::string& state)
@@ -393,14 +481,8 @@ OAuthClient::ExchangeCode(const OAuthSettings& settings, const std::string& code
 		return false;
 	}
 
-	if (settings.tokenUrl.empty()) {
-		error = "OAuth token URL is required.";
+	if (!ValidateSettings(settings, error))
 		return false;
-	}
-	if (settings.clientId.empty()) {
-		error = "OAuth client ID is required.";
-		return false;
-	}
 	if (code.empty()) {
 		error = "OAuth authorization code is required.";
 		return false;

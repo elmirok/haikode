@@ -135,6 +135,9 @@ keys inside Haikode, choose a local provider, or configure OAuth token/PKCE
 endpoint fields. API key and OAuth token fields are masked in the native UI.
 Provider base URLs must use `http://` or `https://`; other libcurl URL schemes
 are rejected before any request is sent.
+OAuth auth and token URLs use the same HTTP(S)-only validation, and OAuth
+redirect URIs must be local `http://127.0.0.1` or `http://localhost`
+callbacks before Haikode opens the browser or exchanges a code.
 You do not need to export an API key in Terminal. The setup dialog also reports
 whether the current binary was built with network AI support. Then use
 **Save & Test** to verify the endpoint before asking questions or proposing

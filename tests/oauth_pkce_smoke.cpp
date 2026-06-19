@@ -27,6 +27,28 @@ main()
 	settings.scope = "openid profile offline_access";
 	settings.redirectUri = "http://127.0.0.1:8765/callback";
 
+	std::string token;
+	std::string error;
+	assert(Haikode::AI::OAuthClient::ValidateSettings(settings, error));
+
+	Haikode::AI::OAuthSettings unsafeAuthSettings = settings;
+	unsafeAuthSettings.authUrl = "file:///boot/home/key";
+	assert(!Haikode::AI::OAuthClient::ValidateSettings(unsafeAuthSettings,
+		error));
+	assert(error.find("auth URL") != std::string::npos);
+
+	Haikode::AI::OAuthSettings unsafeTokenSettings = settings;
+	unsafeTokenSettings.tokenUrl = "ftp://provider.example/token";
+	assert(!Haikode::AI::OAuthClient::ValidateSettings(unsafeTokenSettings,
+		error));
+	assert(error.find("token URL") != std::string::npos);
+
+	Haikode::AI::OAuthSettings unsafeRedirectSettings = settings;
+	unsafeRedirectSettings.redirectUri = "https://example.com/callback";
+	assert(!Haikode::AI::OAuthClient::ValidateSettings(unsafeRedirectSettings,
+		error));
+	assert(error.find("redirect URI") != std::string::npos);
+
 	const std::string authUrl = Haikode::AI::OAuthClient::BuildAuthUrl(
 		settings, verifier, "state value");
 	assert(authUrl.find("client_id=haikode%20desktop") != std::string::npos);
@@ -49,8 +71,6 @@ main()
 	assert(tokenRequest.body.find("code_verifier=" + verifier)
 		!= std::string::npos);
 
-	std::string token;
-	std::string error;
 	assert(Haikode::AI::OAuthClient::ExtractAccessToken(
 		"{\"access_token\":\"oauth-token\",\"token_type\":\"Bearer\"}",
 		token, error));

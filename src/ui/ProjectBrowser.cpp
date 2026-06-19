@@ -12,6 +12,7 @@
 #include <Debug.h>
 #include <GroupLayoutBuilder.h>
 #include <LayoutBuilder.h>
+#include <ListItem.h>
 #include <Locker.h>
 #include <MessageRunner.h>
 #include <Mime.h>
@@ -776,6 +777,41 @@ ShouldCollapseScannedItem(ProjectItem* parent)
 }
 
 
+static bool
+IsInsideProjectItem(ProjectOutlineListView* listView, ProjectItem* item,
+	ProjectItem* projectItem, int32& depth)
+{
+	depth = 0;
+	for (BListItem* parent = item; parent != nullptr;
+			parent = listView->Superitem(parent)) {
+		if (parent == projectItem)
+			return true;
+		depth++;
+	}
+	return false;
+}
+
+
+static void
+ExpandInitialProjectLevels(ProjectOutlineListView* listView,
+	ProjectItem* projectItem)
+{
+	for (int32 i = 0; i < listView->FullListCountItems(); i++) {
+		ProjectItem* item = dynamic_cast<ProjectItem*>(
+			listView->FullListItemAt(i));
+		if (item == nullptr)
+			continue;
+
+		int32 depth = 0;
+		if (!IsInsideProjectItem(listView, item, projectItem, depth))
+			continue;
+
+		if (depth <= 2)
+			listView->Expand(item);
+	}
+}
+
+
 ProjectFolder*
 ProjectBrowser::ProjectFolderPopulate(ProjectFolder* project)
 {
@@ -809,6 +845,7 @@ ProjectBrowser::ProjectFolderPopulate(ProjectFolder* project)
 	// TODO: here we are ordering ALL the elements (maybe and option could prevent ordering the projects)
 	fOutlineListView->SortItemsUnder(nullptr, false, ProjectOutlineListView::CompareProjectItems);
 	fOutlineListView->Expand(projectItem);
+	ExpandInitialProjectLevels(fOutlineListView, projectItem);
 	fOutlineListView->Select(fOutlineListView->IndexOf(projectItem));
 	fOutlineListView->ScrollToSelection();
 

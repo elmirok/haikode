@@ -152,11 +152,15 @@ scope, and a loopback redirect URI such as
 one localhost browser callback and exchanges the returned authorization code
 automatically when possible. If the browser callback fails, paste either the
 code or the full callback URL into **OAuth code** and click **Exchange code**.
-Haikode stores the resulting bearer token in its app settings.
+Haikode stores the resulting bearer token in its app settings. OAuth auth and
+token URLs must use `http://` or `https://`, and redirect URIs must be local
+`http://127.0.0.1` or `http://localhost` callbacks.
 
 ### Seeing project files in the AI panel
 
-After opening a project folder, use **Project files** in the Haikode AI panel
+After opening a project folder, the regular project tree expands the first
+levels of the scanned folder so common `src`, `headers`, and `tests` files are
+visible immediately. You can also use **Project files** in the Haikode AI panel
 to scan the active project for text/source files. Pick a file and press
 **Open**; Haikode opens it through Genio's normal editor path and uses it as AI
 context. This is also useful if the left project tree is collapsed, filtered,

@@ -483,8 +483,6 @@ public:
 			ResizeTo(size.width, size.height);
 		}
 		CenterOnScreen();
-		if (BString(fAuthMode->Text()).ICompare("api-key") == 0)
-			fApiKey->MakeFocus(true);
 	}
 
 	void MessageReceived(BMessage* message) override
@@ -646,6 +644,8 @@ public:
 			ResizeTo(size.width, size.height);
 		}
 		CenterOnScreen();
+		if (BString(fAuthMode->Text()).ICompare("api-key") == 0)
+			fApiKey->MakeFocus(true);
 	}
 
 	void MessageReceived(BMessage* message) override
@@ -797,10 +797,7 @@ AIChatPanel::AttachedToWindow()
 	BGroupView::AttachedToWindow();
 	fPrompt->SetTarget(this);
 	fSaveProvider->SetTarget(this);
-	if (Window() != nullptr)
-		fSetupButton->SetTarget(Window());
-	else
-		fSetupButton->SetTarget(this);
+	fSetupButton->SetTarget(this);
 	fOpenAIPresetButton->SetTarget(this);
 	fOllamaPresetButton->SetTarget(this);
 	fLMStudioPresetButton->SetTarget(this);
@@ -1593,10 +1590,11 @@ AIChatPanel::_StartOAuth()
 {
 	_SaveProviderToConfig();
 	Haikode::AI::OAuthSettings settings = _OAuthSettingsFromFields();
-	if (settings.authUrl.empty() || settings.tokenUrl.empty()
-		|| settings.clientId.empty()
-		|| settings.redirectUri.empty()) {
-		_AppendOutput(B_TRANSLATE("OAuth auth URL, token URL, client ID, and redirect URI are required."));
+	std::string validationError;
+	if (!Haikode::AI::OAuthClient::ValidateSettings(settings,
+			validationError)) {
+		_AppendOutput(validationError.c_str());
+		_AppendOutput(B_TRANSLATE("Click AI Setup, choose OAuth, and use a loopback redirect such as http://127.0.0.1:8765/callback."));
 		return;
 	}
 
@@ -1648,6 +1646,13 @@ AIChatPanel::_ExchangeOAuthCode()
 
 	_SaveProviderToConfig();
 	Haikode::AI::OAuthSettings settings = _OAuthSettingsFromFields();
+	std::string validationError;
+	if (!Haikode::AI::OAuthClient::ValidateSettings(settings,
+			validationError)) {
+		_AppendOutput(validationError.c_str());
+		_AppendOutput(B_TRANSLATE("Click AI Setup, choose OAuth, and use a loopback redirect such as http://127.0.0.1:8765/callback."));
+		return;
+	}
 	std::string code;
 	std::string codeError;
 	if (!Haikode::AI::OAuthClient::ExtractAuthorizationCode(fOAuthCode->Text(),
