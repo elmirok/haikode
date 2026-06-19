@@ -85,20 +85,31 @@ For more advanced IDE features, Genio implements the [LSP protocol](https://micr
 Genio requires Scintilla and Lexilla to implement various functionalities.
 It also requires libgit2 to implement Git features, libyaml_cpp to read yaml files and
 editorconfig_core_c to provide support for project wide .editorconfig settings.
-The needed development files are available in `libgit2_1.9_devel`, `lexilla_devel`, `yaml_cpp0.8_devel`, `openssl3_devel`
-and `editorconfig_core_c_devel` respectively. To install, open a terminal and type:
+Haikode also uses curl for the default OpenAI-compatible AI transport.
+
+On a Haiku computer, use the dependency doctor before the first build:
 
 ```bash
-pkgman install libgit2_1.9_devel lexilla_devel yaml_cpp0.8_devel editorconfig_core_c_devel openssl3_devel lsp_framework
+make doctor
 ```
 
-Haikode's AI provider transport is enabled by default and also requires curl:
+If it reports missing dependencies, install everything Haikode needs with:
 
 ```bash
-pkgman install curl_devel
+make install-deps
+make doctor
+make
 ```
 
-For an offline build without AI HTTP transport:
+The direct package command is:
+
+```bash
+pkgman install gcc_syslibs_devel cmd:clang libgit2_1.9_devel lexilla_devel yaml_cpp0.8_devel editorconfig_core_c_devel openssl3_devel lsp_framework curl_devel
+```
+
+For an offline build without AI HTTP transport, curl is not used by the binary,
+but keeping `curl_devel` installed is still the simplest supported developer
+setup:
 
 ```bash
 make HAIKODE_AI_NETWORK=0
