@@ -759,6 +759,24 @@ AppendShellCommandSuggestions(const std::string& body,
 	}
 }
 
+
+bool
+ParseCommandRequestJson(const std::string& json, CommandRequest& command,
+	std::string& error, bool requireSummary)
+{
+	command = CommandRequest();
+	ExtractJsonStringField(json, "summary", command.summary);
+	if (requireSummary && Trim(command.summary).empty())
+		return false;
+	if (!ExtractJsonStringArrayField(json, "argv", command.argv)
+		|| command.argv.empty()) {
+		error = "Command request argv must be a non-empty JSON string array.";
+		return false;
+	}
+	ClassifyCommand(command);
+	return true;
+}
+
 } // namespace
 
 std::string
@@ -798,14 +816,16 @@ ExtractCommandRequests(const std::string& text,
 		if (fenceInfo == "haikode-command") {
 			const std::string json = Trim(body);
 			CommandRequest command;
-			ExtractJsonStringField(json, "summary", command.summary);
-			if (!ExtractJsonStringArrayField(json, "argv", command.argv)
-				|| command.argv.empty()) {
-				error = "Command request argv must be a non-empty JSON string array.";
+			if (!ParseCommandRequestJson(json, command, error, false)) {
 				return false;
 			}
-			ClassifyCommand(command);
 			commands.push_back(command);
+		} else if (FenceLanguage(fenceInfo) == "json") {
+			const std::string json = Trim(body);
+			CommandRequest command;
+			std::string jsonError;
+			if (ParseCommandRequestJson(json, command, jsonError, true))
+				commands.push_back(command);
 		} else if (IsShellCommandFence(fenceInfo)) {
 			AppendShellCommandSuggestions(body, commands);
 		}

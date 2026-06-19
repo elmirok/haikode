@@ -64,6 +64,22 @@ main()
 	assert(tolerantCommands[0].argv[0] == "ls");
 	assert(tolerantCommands[0].argv[1] == "-la");
 
+	const std::string genericJsonCommandFence =
+		"Some models return command JSON without a custom fence:\n"
+		"```json\n"
+		"{\"summary\":\"Run configured tests\",\"argv\":[\"make\",\"test\"]}\n"
+		"```\n";
+	std::vector<Haikode::AI::CommandRequest> genericJsonCommands;
+	assert(Haikode::AI::ExtractCommandRequests(genericJsonCommandFence,
+		genericJsonCommands, error));
+	assert(genericJsonCommands.size() == 1);
+	assert(genericJsonCommands[0].summary == "Run configured tests");
+	assert(genericJsonCommands[0].argv.size() == 2);
+	assert(genericJsonCommands[0].argv[0] == "make");
+	assert(genericJsonCommands[0].argv[1] == "test");
+	assert(!genericJsonCommands[0].dangerous);
+	assert(genericJsonCommands[0].runnable);
+
 	const std::string shellFence =
 		"Try these commands:\n"
 		"```sh\n"

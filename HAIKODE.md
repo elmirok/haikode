@@ -79,6 +79,9 @@ The Genio-based branch now adds:
   model commentary after the code fence is not saved into patch audit files.
 - Explicit AI command request parsing with separate **Run command** and
   **Reject command** approval buttons.
+- Generic fenced JSON blocks with both `summary` and `argv` are also surfaced
+  as pending command requests, so OpenCode/Codex-style model output does not
+  need Haikode's custom fence label to remain reviewable.
 - Shell-interpreter command requests such as `sh -c ...` are flagged as not
   runnable inside Haikode and must be reviewed/run manually.
 - Destructive argv-native requests such as recursive forced `rm` and disk

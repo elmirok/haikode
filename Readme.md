@@ -197,6 +197,9 @@ Approved non-Codex command requests also run through Haikode's argv-native
 capture path inside the active project. Output returns to the AI transcript and
 is saved under `.haikode/logs/`; Haikode does not evaluate these requests as
 shell command strings.
+Command requests can be returned in a fenced `haikode-command` block or in a
+generic fenced `json` block containing both `summary` and an `argv` string
+array. Either way, they are only queued for explicit review and approval.
 
 Use **Recent records** in the AI panel to pick from recent `.haikode/sessions`,
 `.haikode/logs`, `.haikode/patches`, and `.haikode/commands` files for the
