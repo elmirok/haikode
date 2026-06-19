@@ -75,9 +75,9 @@ sends `Authorization: Bearer ...`; OAuth mode stores the exchanged bearer token
 in Haikode settings; local mode sends no authorization header.
 Use **Window > Haikode AI setup** or the **AI Setup** button to paste cloud API
 keys inside Haikode, choose a local provider, or configure OAuth token/PKCE
-endpoint fields. You do not need to export an API key in Terminal. Then use
-**Test provider** to verify the endpoint before asking questions or proposing
-patches.
+endpoint fields. API key and OAuth token fields are masked in the native UI.
+You do not need to export an API key in Terminal. Then use **Test provider** to
+verify the endpoint before asking questions or proposing patches.
 
 The next slice should improve the review UI from raw text to per-file/per-hunk
 review, then add a more complete Codex/OAuth bridge where Codex CLI is

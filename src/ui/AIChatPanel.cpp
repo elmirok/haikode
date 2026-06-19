@@ -109,9 +109,11 @@ public:
 			nullptr);
 		fApiKey = new BTextControl("setup_api_key", B_TRANSLATE("API key"),
 			apiKey != nullptr ? apiKey : "", nullptr);
+		fApiKey->TextView()->HideTyping(true);
 		fOAuthToken = new BTextControl("setup_oauth_token",
 			B_TRANSLATE("OAuth token"), oauthToken != nullptr ? oauthToken : "",
 			nullptr);
+		fOAuthToken->TextView()->HideTyping(true);
 		fOAuthAuthUrl = new BTextControl("setup_oauth_auth_url",
 			B_TRANSLATE("OAuth auth URL"),
 			oauthAuthUrl != nullptr ? oauthAuthUrl : "", nullptr);
@@ -481,8 +483,10 @@ AIChatPanel::_BuildInterface()
 		B_TRANSLATE("Auth"), "", nullptr);
 	fApiKey = new BTextControl("haikode_ai_api_key", B_TRANSLATE("API key"), "",
 		nullptr);
+	fApiKey->TextView()->HideTyping(true);
 	fOAuthToken = new BTextControl("haikode_ai_oauth_token",
 		B_TRANSLATE("OAuth token"), "", nullptr);
+	fOAuthToken->TextView()->HideTyping(true);
 	fOAuthAuthUrl = new BTextControl("haikode_ai_oauth_auth_url",
 		B_TRANSLATE("OAuth auth URL"), "", nullptr);
 	fOAuthTokenUrl = new BTextControl("haikode_ai_oauth_token_url",
