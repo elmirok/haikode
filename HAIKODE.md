@@ -63,7 +63,8 @@ The Genio-based branch now adds:
 - Explicit **Previous file**, **Next file**, **Apply selected file**,
   **Reject selected file**, **Previous hunk**, **Next hunk**, **Apply hunk**,
   **Reject hunk**, **Review patch**, **Apply patch**, and **Reject patch**
-  controls with path checks and `.haikode/backups/` copies before writes.
+  controls with path checks and unique `.haikode/backups/` copies before
+  writes.
 - AI patch application refuses sensitive project metadata such as `.git/`,
   `.hg/`, `.svn/`, `.haikode/`, `.genio`, and Haikode/Genio settings files.
 - AI patch application refuses symbolic-link path components so a proposed

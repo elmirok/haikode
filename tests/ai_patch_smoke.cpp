@@ -80,6 +80,13 @@ main()
 	assert(fs::exists(result.backupDirectory));
 	assert(ReadFile(fs::path(result.backupDirectory) / "src" / "main.cpp")
 		== "one\nold\nthree\n");
+	const std::string firstBackupDirectory = result.backupDirectory;
+	WriteFile(root / "src" / "main.cpp", "one\nold\nthree\n");
+	assert(parsed.Apply(root.string(), result, error));
+	assert(!result.backupDirectory.empty());
+	assert(result.backupDirectory != firstBackupDirectory);
+	assert(ReadFile(fs::path(firstBackupDirectory) / "src" / "main.cpp")
+		== "one\nold\nthree\n");
 
 	WriteFile(root / "src" / "main.cpp", "one\nold\nthree\n");
 	WriteFile(root / "src" / "other.cpp", "alpha\nbeta\n");

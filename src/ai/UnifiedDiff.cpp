@@ -6,6 +6,7 @@
 #include "UnifiedDiff.h"
 
 #include <algorithm>
+#include <atomic>
 #include <cctype>
 #include <chrono>
 #include <cstdlib>
@@ -166,17 +167,16 @@ WriteTextFile(const fs::path& path, const std::vector<std::string>& lines,
 std::string
 Timestamp()
 {
+	static std::atomic<unsigned long long> sSequence {0};
 	const auto now = std::chrono::system_clock::now().time_since_epoch();
-	return std::to_string(std::chrono::duration_cast<std::chrono::seconds>(now)
-		.count());
+	return std::to_string(std::chrono::duration_cast<std::chrono::nanoseconds>(
+		now).count()) + "-" + std::to_string(++sSequence);
 }
 
 std::string
 PatchTimestamp()
 {
-	const auto now = std::chrono::system_clock::now().time_since_epoch();
-	return std::to_string(std::chrono::duration_cast<std::chrono::nanoseconds>(
-		now).count());
+	return Timestamp();
 }
 
 bool
