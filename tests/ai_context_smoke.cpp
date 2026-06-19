@@ -161,18 +161,22 @@ main()
 		std::ofstream(root / "src" / "main.cpp")
 			<< "int main() {\n\t// TODO: wire app\n\treturn 0;\n}\n";
 		std::ofstream(root / "Readme.md") << "# Demo\n";
+		std::ofstream(root / "Makefile")
+			<< "all:\n\t@echo build\n\ntest:\n\t@echo test\n";
 		std::ofstream(root / "build" / "main.o") << "object";
 		std::ofstream(root / ".git" / "config") << "ignored";
 	}
 	const std::vector<Haikode::AI::ProjectFileSummary> map
 		= Haikode::AI::BuildProjectMap(root.string(), 10);
-	assert(map.size() == 2);
-	assert(map[0].path == "Readme.md");
-	assert(map[0].role == "docs");
-	assert(map[1].path == "src/main.cpp");
-	assert(map[1].language == "C++");
-	assert(map[1].hasTodo);
-	assert(map[1].summary.find("4 line(s)") != std::string::npos);
+	assert(map.size() == 3);
+	assert(map[0].path == "Makefile");
+	assert(map[0].role == "build");
+	assert(map[1].path == "Readme.md");
+	assert(map[1].role == "docs");
+	assert(map[2].path == "src/main.cpp");
+	assert(map[2].language == "C++");
+	assert(map[2].hasTodo);
+	assert(map[2].summary.find("4 line(s)") != std::string::npos);
 	std::string memoryPath;
 	const fs::path canonicalRoot = fs::weakly_canonical(root);
 	assert(Haikode::AI::SaveProjectMemory(root.string(), map, map.size(),
@@ -204,8 +208,8 @@ main()
 	assert(rememberedMemory.defaultTestCommand == "make test");
 	assert(rememberedCandidateCount == map.size());
 	assert(rememberedFiles.size() == map.size());
-	assert(rememberedFiles[1].path == "src/main.cpp");
-	assert(rememberedFiles[1].hasTodo);
+	assert(rememberedFiles[2].path == "src/main.cpp");
+	assert(rememberedFiles[2].hasTodo);
 	Haikode::AI::VibeCodingRequest rememberedRequest;
 	rememberedRequest.projectRoot = root.string();
 	rememberedRequest.defaultBuildCommand = rememberedMemory.defaultBuildCommand;
@@ -220,6 +224,27 @@ main()
 		!= std::string::npos);
 	assert(rememberedPrompt.prompt.find("Build: make") != std::string::npos);
 	assert(rememberedPrompt.prompt.find("Test: make test") != std::string::npos);
+	const fs::path noBuildRoot = fs::temp_directory_path()
+		/ "haikode-no-build-command-smoke";
+	fs::remove_all(noBuildRoot);
+	fs::create_directories(noBuildRoot / "src");
+	WriteFile(noBuildRoot / "src" / "plain.cpp", "int plain() { return 1; }\n");
+	const std::vector<Haikode::AI::ProjectFileSummary> noBuildMap
+		= Haikode::AI::BuildProjectMap(noBuildRoot.string(), 10);
+	std::string noBuildMemoryPath;
+	assert(Haikode::AI::SaveProjectMemory(noBuildRoot.string(), noBuildMap,
+		noBuildMap.size(), noBuildMemoryPath, loadError));
+	const std::string noBuildMemory = ReadFile(noBuildMemoryPath);
+	assert(noBuildMemory.find("\"default_build_command\":\"make\"")
+		== std::string::npos);
+	assert(noBuildMemory.find("\"default_test_command\":\"make test\"")
+		== std::string::npos);
+	Haikode::AI::ProjectMemory noBuildMemoryLoaded;
+	assert(Haikode::AI::LoadProjectMemory(noBuildRoot.string(), 10,
+		noBuildMemoryLoaded, loadError));
+	assert(noBuildMemoryLoaded.defaultBuildCommand.empty());
+	assert(noBuildMemoryLoaded.defaultTestCommand.empty());
+	fs::remove_all(noBuildRoot);
 	Haikode::AI::ContextFile selectedFile;
 	assert(Haikode::AI::LoadProjectContextFile(root.string(), "src/main.cpp",
 		1024, selectedFile, loadError));
@@ -258,7 +283,7 @@ main()
 	const std::vector<Haikode::AI::ProjectFileSummary> limitedMap
 		= Haikode::AI::BuildProjectMap(root.string(), 1, &totalProjectFiles);
 	assert(limitedMap.size() == 1);
-	assert(totalProjectFiles == 2);
+	assert(totalProjectFiles == 3);
 	Haikode::AI::VibeCodingRequest mapLimitedRequest;
 	mapLimitedRequest.projectRoot = root.string();
 	mapLimitedRequest.projectFiles = limitedMap;

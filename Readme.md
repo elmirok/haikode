@@ -166,13 +166,13 @@ to scan the active project for text/source files. Pick a file and press
 context. This is also useful if the left project tree is collapsed, filtered,
 or not visibly populated yet. The scan also creates or refreshes
 `.haikode/project.json` with project-local memory: project name/root, default
-build/test commands, and source/docs/build file summaries. API keys and OAuth
-tokens are never written to this project memory file. Later AI prompts reuse
-this saved project map when it exists and fall back to an offline scan when it
-does not. The saved build/test command hints are included in prompts, but
-Haikode still requires explicit approval before running any command. If project
-memory does not exist yet, Haikode can still infer basic Makefile command hints
-for the first prompt.
+build/test commands when they can be inferred, and source/docs/build file
+summaries. API keys and OAuth tokens are never written to this project memory
+file. Later AI prompts reuse this saved project map when it exists and fall back
+to an offline scan when it does not. The saved build/test command hints are
+included in prompts, but Haikode still requires explicit approval before running
+any command. If project memory does not exist yet, Haikode can still infer basic
+Makefile command hints for the first prompt.
 
 ### Optional Codex CLI bridge
 

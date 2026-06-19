@@ -107,13 +107,13 @@ The Genio-based branch now adds:
   requests, logs, patches, and backups use collision-resistant timestamped
   names so rapid repeated actions keep separate audit records.
 - A project-local `.haikode/project.json` memory file generated from project
-  scans, with project name/root, default build/test commands, discovered file
-  language/role/risk/TODO summaries, and no credentials.
+  scans, with project name/root, inferred build/test commands when known,
+  discovered file language/role/risk/TODO summaries, and no credentials.
 - AI prompts reuse `.haikode/project.json` project-map memory when available
   and fall back to an offline scan when memory has not been created yet.
-- Project memory command hints, currently defaulting to `make` and `make test`,
-  are included in prompts so AI can propose relevant approved commands without
-  claiming they were run.
+- Project memory command hints, currently inferred from Makefiles, are included
+  in prompts so AI can propose relevant approved commands without claiming they
+  were run.
 - Fresh projects without `.haikode/project.json` still infer simple Makefile
   command hints for prompts, then fall back to the saved memory once a scan has
   created it.

@@ -246,6 +246,31 @@ ReadSmallTextFile(const fs::path& path, std::string& text)
 
 
 bool
+InferMakefileCommands(const fs::path& root, ProjectMemory& memory)
+{
+	const std::vector<std::string> makefileNames = {
+		"Makefile", "makefile", "GNUmakefile"
+	};
+	for (const std::string& name : makefileNames) {
+		const fs::path makefilePath = root / name;
+		std::error_code fsError;
+		if (!fs::is_regular_file(makefilePath, fsError))
+			continue;
+
+		memory.defaultBuildCommand = "make";
+		std::string text;
+		if (ReadSmallTextFile(makefilePath, text)
+			&& (text.rfind("test:", 0) == 0
+				|| text.find("\ntest:") != std::string::npos)) {
+			memory.defaultTestCommand = "make test";
+		}
+		return true;
+	}
+	return false;
+}
+
+
+bool
 ReadJsonString(const std::string& text, size_t& pos, std::string& value)
 {
 	value.clear();
@@ -1222,6 +1247,9 @@ SaveProjectMemory(const std::string& projectRoot,
 			return false;
 		}
 
+		ProjectMemory commandHints;
+		InferMakefileCommands(root, commandHints);
+
 		const std::string now = Timestamp();
 		file
 			<< "{\n"
@@ -1230,8 +1258,10 @@ SaveProjectMemory(const std::string& projectRoot,
 			<< "\",\n"
 			<< "  \"root\":\"" << EscapeJson(root.string()) << "\",\n"
 			<< "  \"updated\":\"" << now << "\",\n"
-			<< "  \"default_build_command\":\"make\",\n"
-			<< "  \"default_test_command\":\"make test\",\n"
+			<< "  \"default_build_command\":\""
+			<< EscapeJson(commandHints.defaultBuildCommand) << "\",\n"
+			<< "  \"default_test_command\":\""
+			<< EscapeJson(commandHints.defaultTestCommand) << "\",\n"
 			<< "  \"candidate_count\":" << candidateCount << ",\n"
 			<< "  \"files\":[";
 		for (size_t i = 0; i < files.size(); i++) {
@@ -1363,24 +1393,8 @@ InferProjectCommands(const std::string& projectRoot, ProjectMemory& memory,
 			return false;
 		}
 
-		const std::vector<std::string> makefileNames = {
-			"Makefile", "makefile", "GNUmakefile"
-		};
-		for (const std::string& name : makefileNames) {
-			const fs::path makefilePath = root / name;
-			std::error_code fsError;
-			if (!fs::is_regular_file(makefilePath, fsError))
-				continue;
-
-			memory.defaultBuildCommand = "make";
-			std::string text;
-			if (ReadSmallTextFile(makefilePath, text)
-				&& (text.rfind("test:", 0) == 0
-					|| text.find("\ntest:") != std::string::npos)) {
-				memory.defaultTestCommand = "make test";
-			}
+		if (InferMakefileCommands(root, memory))
 			return true;
-		}
 
 		error = "No known build command was inferred.";
 		return false;
