@@ -39,16 +39,23 @@ The Genio-based branch now adds:
 - `src/ai/` as a pure C++ AI/vibecoding core.
 - `src/ui/AIChatPanel.*` as a native bottom panel.
 - A **Window > Haikode AI** action that opens the panel.
-- Provider fields for base URL, model, auth mode, API key, and OAuth token.
+- Provider fields for base URL, model, auth mode, API key, local mode, and
+  generic OAuth 2.0 settings.
+- A PKCE OAuth helper that can open a provider authorization URL and exchange a
+  pasted authorization code for a bearer token.
 - OpenAI-compatible HTTP requests for active project, selected file, and
   selected text.
 - Unified diff detection in AI responses.
 - Explicit **Apply patch** / **Reject patch** controls with path checks and
   `.haikode/backups/` copies before writes.
+- Explicit AI command request parsing and a separate **Run command** approval
+  button.
 
 The panel sends prompts to cloud or local endpoints when built with
-`HAIKODE_AI_NETWORK=1`. API-key and OAuth modes send
-`Authorization: Bearer ...`; local mode sends no authorization header.
+`HAIKODE_AI_NETWORK=1`. API-key mode stores the key in Haikode settings and
+sends `Authorization: Bearer ...`; OAuth mode stores the exchanged bearer token
+in Haikode settings; local mode sends no authorization header.
 
 The next slice should improve the review UI from raw text to per-file/per-hunk
-review and reload changed editor tabs after apply.
+review, then add a more complete Codex/OAuth bridge where Codex CLI is
+available on Haiku.

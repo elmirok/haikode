@@ -104,6 +104,31 @@ For an offline build without AI HTTP transport:
 make HAIKODE_AI_NETWORK=0
 ```
 
+### Configuring Haikode AI
+
+Open **Window > Haikode AI** after launch. Credentials are stored in Haikode's
+machine-local settings, not in the project and not through exported shell
+variables.
+
+For OpenAI-compatible cloud providers, set:
+
+* Base URL: `https://api.openai.com` or the provider endpoint.
+* Model: the chat/completions model name.
+* Auth: `api-key`.
+* API key: paste the provider key in the Haikode AI panel or in **AI Setup**.
+
+For local OpenAI-compatible servers such as Ollama or LM Studio, set:
+
+* Base URL: the local server, for example `http://127.0.0.1:11434`.
+* Auth: `local`.
+* API key/OAuth token: leave blank.
+
+For providers that expose generic OAuth 2.0 Authorization Code + PKCE, set the
+OAuth auth URL, token URL, client ID, scope, and redirect URI, then use
+**Start OAuth**. After the browser returns an authorization code, paste it into
+**OAuth code** and click **Exchange code**. Haikode stores the resulting bearer
+token in its app settings.
+
 If you would like to try a clang++ build:
 
 * Install `llvm17_clang` and `llvm17_lld` hpkgs from HaikuPorts

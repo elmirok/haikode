@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "AIProvider.h"
+#include "OAuthClient.h"
 #include "OpenAICompatibleClient.h"
 #include "PanelTabManager.h"
 #include "UnifiedDiff.h"
@@ -36,6 +37,10 @@ private:
 	void _LoadProviderFromConfig();
 	void _SaveProviderToConfig();
 	void _OpenProviderSettings();
+	void _StartOAuth();
+	void _ExchangeOAuthCode();
+	void _FinishOAuthExchange(const BString& token, const BString& error,
+		long status);
 	void _SendPrompt(Haikode::AI::PromptMode mode);
 	void _FinishResponse(const BString& text, const BString& error, long status);
 	void _ApplyPendingDiff();
@@ -44,6 +49,7 @@ private:
 	void _ClearPendingCommands();
 	void _AppendOutput(const char* text);
 	Haikode::AI::ProviderSettings _ProviderFromFields() const;
+	Haikode::AI::OAuthSettings _OAuthSettingsFromFields() const;
 	Haikode::AI::VibeCodingRequest _RequestFromContext(
 		Haikode::AI::PromptMode mode) const;
 
@@ -55,10 +61,18 @@ private:
 	BTextControl* fAuthMode;
 	BTextControl* fApiKey;
 	BTextControl* fOAuthToken;
+	BTextControl* fOAuthAuthUrl;
+	BTextControl* fOAuthTokenUrl;
+	BTextControl* fOAuthClientId;
+	BTextControl* fOAuthScope;
+	BTextControl* fOAuthRedirectUri;
+	BTextControl* fOAuthCode;
 	BTextControl* fPrompt;
 	BTextView* fOutput;
 	BButton* fSaveProvider;
 	BButton* fSetupButton;
+	BButton* fStartOAuthButton;
+	BButton* fExchangeOAuthButton;
 	BButton* fAskButton;
 	BButton* fPatchButton;
 	BButton* fApplyPatchButton;

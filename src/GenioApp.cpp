@@ -551,6 +551,18 @@ GenioApp::_PrepareConfig(ConfigManager& cfg)
 		B_TRANSLATE("API key:"), "");
 	cfg.AddConfig(ai.String(), "haikode_ai_oauth_token",
 		B_TRANSLATE("OAuth token:"), "");
+	cfg.AddConfig(ai.String(), "haikode_ai_oauth_auth_url",
+		B_TRANSLATE("OAuth auth URL:"), "");
+	cfg.AddConfig(ai.String(), "haikode_ai_oauth_token_url",
+		B_TRANSLATE("OAuth token URL:"), "");
+	cfg.AddConfig(ai.String(), "haikode_ai_oauth_client_id",
+		B_TRANSLATE("OAuth client ID:"), "");
+	cfg.AddConfig(ai.String(), "haikode_ai_oauth_scope",
+		B_TRANSLATE("OAuth scope:"), "");
+	cfg.AddConfig(ai.String(), "haikode_ai_oauth_redirect_uri",
+		B_TRANSLATE("OAuth redirect URI:"), "http://127.0.0.1:8765/callback");
+	cfg.AddConfig("Hidden", "haikode_ai_oauth_verifier",
+		"haikode_ai_oauth_verifier", "");
 
 	cfg.AddConfig("Hidden", "ui_bounds", "ui_bounds", BRect(40, 40, 839, 639));
 	cfg.AddConfig("Hidden", "config_version", "config_version", "2.0");

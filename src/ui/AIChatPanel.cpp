@@ -12,6 +12,7 @@
 #include <LayoutBuilder.h>
 #include <Message.h>
 #include <Messenger.h>
+#include <Roster.h>
 #include <ScrollView.h>
 #include <TextControl.h>
 #include <TextView.h>
@@ -20,6 +21,7 @@
 #include "ConfigWindow.h"
 #include "GenioWindowMessages.h"
 
+#include <cstring>
 #include <thread>
 
 #undef B_TRANSLATION_CONTEXT
@@ -31,6 +33,9 @@ namespace {
 
 const uint32 kMsgSaveProvider = 'hisp';
 const uint32 kMsgOpenSetup = 'hios';
+const uint32 kMsgStartOAuth = 'hiso';
+const uint32 kMsgExchangeOAuth = 'hixo';
+const uint32 kMsgOAuthResponse = 'hior';
 const uint32 kMsgAsk = 'hiak';
 const uint32 kMsgProposePatch = 'hipa';
 const uint32 kMsgAIResponse = 'hirs';
@@ -62,10 +67,18 @@ AIChatPanel::AIChatPanel(PanelTabManager* panelTabManager, tab_id id)
 	fAuthMode(nullptr),
 	fApiKey(nullptr),
 	fOAuthToken(nullptr),
+	fOAuthAuthUrl(nullptr),
+	fOAuthTokenUrl(nullptr),
+	fOAuthClientId(nullptr),
+	fOAuthScope(nullptr),
+	fOAuthRedirectUri(nullptr),
+	fOAuthCode(nullptr),
 	fPrompt(nullptr),
 	fOutput(nullptr),
 	fSaveProvider(nullptr),
 	fSetupButton(nullptr),
+	fStartOAuthButton(nullptr),
+	fExchangeOAuthButton(nullptr),
 	fAskButton(nullptr),
 	fPatchButton(nullptr),
 	fApplyPatchButton(nullptr),
@@ -84,6 +97,8 @@ AIChatPanel::AttachedToWindow()
 	fPrompt->SetTarget(this);
 	fSaveProvider->SetTarget(this);
 	fSetupButton->SetTarget(this);
+	fStartOAuthButton->SetTarget(this);
+	fExchangeOAuthButton->SetTarget(this);
 	fAskButton->SetTarget(this);
 	fPatchButton->SetTarget(this);
 	fApplyPatchButton->SetTarget(this);
@@ -113,6 +128,12 @@ AIChatPanel::MessageReceived(BMessage* message)
 		case kMsgOpenSetup:
 			_OpenProviderSettings();
 			break;
+		case kMsgStartOAuth:
+			_StartOAuth();
+			break;
+		case kMsgExchangeOAuth:
+			_ExchangeOAuthCode();
+			break;
 		case kMsgAsk:
 			_SendPrompt(Haikode::AI::PromptMode::Ask);
 			break;
@@ -122,6 +143,12 @@ AIChatPanel::MessageReceived(BMessage* message)
 		case kMsgAIResponse:
 		{
 			_FinishResponse(message->GetString("text", ""),
+				message->GetString("error", ""), message->GetInt64("status", 0));
+			break;
+		}
+		case kMsgOAuthResponse:
+		{
+			_FinishOAuthExchange(message->GetString("token", ""),
 				message->GetString("error", ""), message->GetInt64("status", 0));
 			break;
 		}
@@ -185,6 +212,18 @@ AIChatPanel::_BuildInterface()
 		nullptr);
 	fOAuthToken = new BTextControl("haikode_ai_oauth_token",
 		B_TRANSLATE("OAuth token"), "", nullptr);
+	fOAuthAuthUrl = new BTextControl("haikode_ai_oauth_auth_url",
+		B_TRANSLATE("OAuth auth URL"), "", nullptr);
+	fOAuthTokenUrl = new BTextControl("haikode_ai_oauth_token_url",
+		B_TRANSLATE("OAuth token URL"), "", nullptr);
+	fOAuthClientId = new BTextControl("haikode_ai_oauth_client_id",
+		B_TRANSLATE("OAuth client ID"), "", nullptr);
+	fOAuthScope = new BTextControl("haikode_ai_oauth_scope",
+		B_TRANSLATE("OAuth scope"), "", nullptr);
+	fOAuthRedirectUri = new BTextControl("haikode_ai_oauth_redirect_uri",
+		B_TRANSLATE("OAuth redirect URI"), "", nullptr);
+	fOAuthCode = new BTextControl("haikode_ai_oauth_code",
+		B_TRANSLATE("OAuth code"), "", nullptr);
 	fPrompt = new BTextControl("haikode_ai_prompt", B_TRANSLATE("Prompt"), "",
 		new BMessage(kMsgAsk));
 
@@ -192,6 +231,10 @@ AIChatPanel::_BuildInterface()
 		B_TRANSLATE("Save provider"), new BMessage(kMsgSaveProvider));
 	fSetupButton = new BButton("haikode_ai_setup",
 		B_TRANSLATE("AI Setup"), new BMessage(kMsgOpenSetup));
+	fStartOAuthButton = new BButton("haikode_ai_start_oauth",
+		B_TRANSLATE("Start OAuth"), new BMessage(kMsgStartOAuth));
+	fExchangeOAuthButton = new BButton("haikode_ai_exchange_oauth",
+		B_TRANSLATE("Exchange code"), new BMessage(kMsgExchangeOAuth));
 	fAskButton = new BButton("haikode_ai_ask", B_TRANSLATE("Ask"),
 		new BMessage(kMsgAsk));
 	fPatchButton = new BButton("haikode_ai_patch", B_TRANSLATE("Propose patch"),
@@ -225,11 +268,25 @@ AIChatPanel::_BuildInterface()
 			.Add(fApiKey->CreateTextViewLayoutItem(), 3, 1)
 			.Add(fOAuthToken->CreateLabelLayoutItem(), 0, 2)
 			.Add(fOAuthToken->CreateTextViewLayoutItem(), 1, 2, 3)
+			.Add(fOAuthAuthUrl->CreateLabelLayoutItem(), 0, 3)
+			.Add(fOAuthAuthUrl->CreateTextViewLayoutItem(), 1, 3, 3)
+			.Add(fOAuthTokenUrl->CreateLabelLayoutItem(), 0, 4)
+			.Add(fOAuthTokenUrl->CreateTextViewLayoutItem(), 1, 4, 3)
+			.Add(fOAuthClientId->CreateLabelLayoutItem(), 0, 5)
+			.Add(fOAuthClientId->CreateTextViewLayoutItem(), 1, 5)
+			.Add(fOAuthScope->CreateLabelLayoutItem(), 2, 5)
+			.Add(fOAuthScope->CreateTextViewLayoutItem(), 3, 5)
+			.Add(fOAuthRedirectUri->CreateLabelLayoutItem(), 0, 6)
+			.Add(fOAuthRedirectUri->CreateTextViewLayoutItem(), 1, 6)
+			.Add(fOAuthCode->CreateLabelLayoutItem(), 2, 6)
+			.Add(fOAuthCode->CreateTextViewLayoutItem(), 3, 6)
 		.End()
 		.AddGroup(B_HORIZONTAL, B_USE_DEFAULT_SPACING)
 			.Add(fPrompt)
 			.Add(fSetupButton)
 			.Add(fSaveProvider)
+			.Add(fStartOAuthButton)
+			.Add(fExchangeOAuthButton)
 			.Add(fAskButton)
 			.Add(fPatchButton)
 			.Add(fApplyPatchButton)
@@ -248,6 +305,15 @@ AIChatPanel::_LoadProviderFromConfig()
 	fAuthMode->SetText(BString(gCFG["haikode_ai_auth_mode"]).String());
 	fApiKey->SetText(BString(gCFG["haikode_ai_api_key"]).String());
 	fOAuthToken->SetText(BString(gCFG["haikode_ai_oauth_token"]).String());
+	fOAuthAuthUrl->SetText(
+		BString(gCFG["haikode_ai_oauth_auth_url"]).String());
+	fOAuthTokenUrl->SetText(
+		BString(gCFG["haikode_ai_oauth_token_url"]).String());
+	fOAuthClientId->SetText(
+		BString(gCFG["haikode_ai_oauth_client_id"]).String());
+	fOAuthScope->SetText(BString(gCFG["haikode_ai_oauth_scope"]).String());
+	fOAuthRedirectUri->SetText(
+		BString(gCFG["haikode_ai_oauth_redirect_uri"]).String());
 }
 
 
@@ -259,6 +325,11 @@ AIChatPanel::_SaveProviderToConfig()
 	gCFG["haikode_ai_auth_mode"] = fAuthMode->Text();
 	gCFG["haikode_ai_api_key"] = fApiKey->Text();
 	gCFG["haikode_ai_oauth_token"] = fOAuthToken->Text();
+	gCFG["haikode_ai_oauth_auth_url"] = fOAuthAuthUrl->Text();
+	gCFG["haikode_ai_oauth_token_url"] = fOAuthTokenUrl->Text();
+	gCFG["haikode_ai_oauth_client_id"] = fOAuthClientId->Text();
+	gCFG["haikode_ai_oauth_scope"] = fOAuthScope->Text();
+	gCFG["haikode_ai_oauth_redirect_uri"] = fOAuthRedirectUri->Text();
 
 	_AppendOutput(B_TRANSLATE("Provider settings saved."));
 }
@@ -270,6 +341,104 @@ AIChatPanel::_OpenProviderSettings()
 	ConfigWindow* window = new ConfigWindow(gCFG);
 	window->Show();
 	_AppendOutput(B_TRANSLATE("Opened Haikode settings. Select the Haikode AI section, paste your API key, and close the settings window to save it."));
+}
+
+
+void
+AIChatPanel::_StartOAuth()
+{
+	_SaveProviderToConfig();
+	Haikode::AI::OAuthSettings settings = _OAuthSettingsFromFields();
+	if (settings.authUrl.empty() || settings.clientId.empty()
+		|| settings.redirectUri.empty()) {
+		_AppendOutput(B_TRANSLATE("OAuth auth URL, client ID, and redirect URI are required."));
+		return;
+	}
+
+	const std::string verifier = Haikode::AI::OAuthClient::GenerateVerifier();
+	gCFG["haikode_ai_oauth_verifier"] = verifier.c_str();
+	fAuthMode->SetText("oauth");
+	gCFG["haikode_ai_auth_mode"] = "oauth";
+
+	const std::string authUrl = Haikode::AI::OAuthClient::BuildAuthUrl(
+		settings, verifier, "haikode");
+	const char* argv[2] = {authUrl.c_str(), nullptr};
+	status_t status = be_roster->Launch("text/html", 1, argv);
+	if (status != B_OK) {
+		BString line(B_TRANSLATE("Could not open OAuth URL in browser: "));
+		line << strerror(status);
+		_AppendOutput(line.String());
+	}
+
+	_AppendOutput(B_TRANSLATE("OAuth login URL generated. Complete login in the browser, then paste the returned authorization code into OAuth code and click Exchange code."));
+	_AppendOutput(authUrl.c_str());
+}
+
+
+void
+AIChatPanel::_ExchangeOAuthCode()
+{
+	if (fRequestRunning) {
+		_AppendOutput(B_TRANSLATE("An AI or OAuth request is already running."));
+		return;
+	}
+
+	_SaveProviderToConfig();
+	Haikode::AI::OAuthSettings settings = _OAuthSettingsFromFields();
+	const std::string code = fOAuthCode->Text();
+	const std::string verifier = BString(gCFG["haikode_ai_oauth_verifier"]).String();
+
+	fRequestRunning = true;
+	fAskButton->SetEnabled(false);
+	fPatchButton->SetEnabled(false);
+	fSaveProvider->SetEnabled(false);
+	fSetupButton->SetEnabled(false);
+	fStartOAuthButton->SetEnabled(false);
+	fExchangeOAuthButton->SetEnabled(false);
+
+	BMessenger messenger(this);
+	std::thread([messenger, settings, code, verifier]() mutable {
+		Haikode::AI::OAuthClient client;
+		Haikode::AI::OAuthTokenResponse response;
+		std::string error;
+		const bool ok = client.ExchangeCode(settings, code, verifier, response,
+			error);
+
+		BMessage done(kMsgOAuthResponse);
+		done.AddString("token", ok ? response.accessToken.c_str() : "");
+		done.AddString("error", error.c_str());
+		done.AddInt64("status", response.httpStatus);
+		messenger.SendMessage(&done);
+	}).detach();
+}
+
+
+void
+AIChatPanel::_FinishOAuthExchange(const BString& token, const BString& error,
+	long status)
+{
+	fRequestRunning = false;
+	fAskButton->SetEnabled(true);
+	fPatchButton->SetEnabled(true);
+	fSaveProvider->SetEnabled(true);
+	fSetupButton->SetEnabled(true);
+	fStartOAuthButton->SetEnabled(true);
+	fExchangeOAuthButton->SetEnabled(true);
+
+	if (!error.IsEmpty()) {
+		BString line(B_TRANSLATE("OAuth token exchange failed"));
+		if (status != 0)
+			line << " (" << status << ")";
+		line << ": " << error;
+		_AppendOutput(line.String());
+		return;
+	}
+
+	fAuthMode->SetText("oauth");
+	fOAuthToken->SetText(token.String());
+	gCFG["haikode_ai_auth_mode"] = "oauth";
+	gCFG["haikode_ai_oauth_token"] = token.String();
+	_AppendOutput(B_TRANSLATE("OAuth token saved. Haikode will use oauth bearer auth for AI requests."));
 }
 
 
@@ -319,6 +488,8 @@ AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 	fPatchButton->SetEnabled(false);
 	fSaveProvider->SetEnabled(false);
 	fSetupButton->SetEnabled(false);
+	fStartOAuthButton->SetEnabled(false);
+	fExchangeOAuthButton->SetEnabled(false);
 	fApplyPatchButton->SetEnabled(false);
 	fRejectPatchButton->SetEnabled(false);
 	fPendingDiff = Haikode::AI::UnifiedDiff();
@@ -353,6 +524,8 @@ AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 	fPatchButton->SetEnabled(true);
 	fSaveProvider->SetEnabled(true);
 	fSetupButton->SetEnabled(true);
+	fStartOAuthButton->SetEnabled(true);
+	fExchangeOAuthButton->SetEnabled(true);
 
 	if (!error.IsEmpty()) {
 		BString line(B_TRANSLATE("AI request failed"));
@@ -569,6 +742,19 @@ AIChatPanel::_ProviderFromFields() const
 	provider.apiKey = fApiKey->Text();
 	provider.oauthToken = fOAuthToken->Text();
 	return provider;
+}
+
+
+Haikode::AI::OAuthSettings
+AIChatPanel::_OAuthSettingsFromFields() const
+{
+	Haikode::AI::OAuthSettings settings;
+	settings.authUrl = fOAuthAuthUrl->Text();
+	settings.tokenUrl = fOAuthTokenUrl->Text();
+	settings.clientId = fOAuthClientId->Text();
+	settings.scope = fOAuthScope->Text();
+	settings.redirectUri = fOAuthRedirectUri->Text();
+	return settings;
 }
 
 
