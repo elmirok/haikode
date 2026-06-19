@@ -39,6 +39,7 @@ const uint32 kMsgSetupSaved = 'hisd';
 const uint32 kMsgSetupPresetOpenAI = 'hiso';
 const uint32 kMsgSetupPresetOllama = 'hisl';
 const uint32 kMsgSetupPresetLMStudio = 'hism';
+const uint32 kMsgSetupPresetOAuth = 'hioa';
 const uint32 kMsgPresetOpenAI = 'hpai';
 const uint32 kMsgPresetOllama = 'hpol';
 const uint32 kMsgPresetLMStudio = 'hplm';
@@ -71,7 +72,10 @@ AuthModeFromString(const BString& value)
 class AIProviderSetupWindow : public BWindow {
 public:
 	AIProviderSetupWindow(BMessenger target, const char* baseUrl,
-		const char* model, const char* authMode, const char* apiKey)
+		const char* model, const char* authMode, const char* apiKey,
+		const char* oauthToken, const char* oauthAuthUrl,
+		const char* oauthTokenUrl, const char* oauthClientId,
+		const char* oauthScope, const char* oauthRedirectUri)
 		:
 		BWindow(BRect(), B_TRANSLATE("Haikode AI setup"),
 			B_TITLED_WINDOW_LOOK, B_MODAL_APP_WINDOW_FEEL,
@@ -92,6 +96,26 @@ public:
 			nullptr);
 		fApiKey = new BTextControl("setup_api_key", B_TRANSLATE("API key"),
 			apiKey != nullptr ? apiKey : "", nullptr);
+		fOAuthToken = new BTextControl("setup_oauth_token",
+			B_TRANSLATE("OAuth token"), oauthToken != nullptr ? oauthToken : "",
+			nullptr);
+		fOAuthAuthUrl = new BTextControl("setup_oauth_auth_url",
+			B_TRANSLATE("OAuth auth URL"),
+			oauthAuthUrl != nullptr ? oauthAuthUrl : "", nullptr);
+		fOAuthTokenUrl = new BTextControl("setup_oauth_token_url",
+			B_TRANSLATE("OAuth token URL"),
+			oauthTokenUrl != nullptr ? oauthTokenUrl : "", nullptr);
+		fOAuthClientId = new BTextControl("setup_oauth_client_id",
+			B_TRANSLATE("OAuth client ID"),
+			oauthClientId != nullptr ? oauthClientId : "", nullptr);
+		fOAuthScope = new BTextControl("setup_oauth_scope",
+			B_TRANSLATE("OAuth scope"), oauthScope != nullptr ? oauthScope : "",
+			nullptr);
+		fOAuthRedirectUri = new BTextControl("setup_oauth_redirect_uri",
+			B_TRANSLATE("OAuth redirect URI"),
+			oauthRedirectUri != nullptr && oauthRedirectUri[0] != '\0'
+				? oauthRedirectUri : "http://127.0.0.1:8765/callback",
+			nullptr);
 
 		BButton* openAIButton = new BButton("setup_openai",
 			B_TRANSLATE("OpenAI"), new BMessage(kMsgSetupPresetOpenAI));
@@ -99,6 +123,8 @@ public:
 			B_TRANSLATE("Ollama"), new BMessage(kMsgSetupPresetOllama));
 		BButton* lmStudioButton = new BButton("setup_lmstudio",
 			B_TRANSLATE("LM Studio"), new BMessage(kMsgSetupPresetLMStudio));
+		BButton* oauthButton = new BButton("setup_oauth",
+			B_TRANSLATE("OAuth"), new BMessage(kMsgSetupPresetOAuth));
 		BButton* cancelButton = new BButton("setup_cancel",
 			B_TRANSLATE("Cancel"), new BMessage(kMsgSetupCancel));
 		BButton* saveButton = new BButton("setup_save",
@@ -106,6 +132,7 @@ public:
 		openAIButton->SetTarget(this);
 		ollamaButton->SetTarget(this);
 		lmStudioButton->SetTarget(this);
+		oauthButton->SetTarget(this);
 		cancelButton->SetTarget(this);
 		saveButton->SetTarget(this);
 
@@ -120,11 +147,24 @@ public:
 				.Add(fAuthMode->CreateTextViewLayoutItem(), 1, 2)
 				.Add(fApiKey->CreateLabelLayoutItem(), 0, 3)
 				.Add(fApiKey->CreateTextViewLayoutItem(), 1, 3)
+				.Add(fOAuthToken->CreateLabelLayoutItem(), 0, 4)
+				.Add(fOAuthToken->CreateTextViewLayoutItem(), 1, 4)
+				.Add(fOAuthAuthUrl->CreateLabelLayoutItem(), 0, 5)
+				.Add(fOAuthAuthUrl->CreateTextViewLayoutItem(), 1, 5)
+				.Add(fOAuthTokenUrl->CreateLabelLayoutItem(), 0, 6)
+				.Add(fOAuthTokenUrl->CreateTextViewLayoutItem(), 1, 6)
+				.Add(fOAuthClientId->CreateLabelLayoutItem(), 0, 7)
+				.Add(fOAuthClientId->CreateTextViewLayoutItem(), 1, 7)
+				.Add(fOAuthScope->CreateLabelLayoutItem(), 0, 8)
+				.Add(fOAuthScope->CreateTextViewLayoutItem(), 1, 8)
+				.Add(fOAuthRedirectUri->CreateLabelLayoutItem(), 0, 9)
+				.Add(fOAuthRedirectUri->CreateTextViewLayoutItem(), 1, 9)
 			.End()
 			.AddGroup(B_HORIZONTAL, B_USE_DEFAULT_SPACING)
 				.Add(openAIButton)
 				.Add(ollamaButton)
 				.Add(lmStudioButton)
+				.Add(oauthButton)
 				.AddGlue()
 			.End()
 			.AddGroup(B_HORIZONTAL, B_USE_DEFAULT_SPACING)
@@ -155,6 +195,11 @@ public:
 				fModel->SetText("local-model");
 				fAuthMode->SetText("local");
 				break;
+			case kMsgSetupPresetOAuth:
+				fAuthMode->SetText("oauth");
+				if (strlen(fOAuthRedirectUri->Text()) == 0)
+					fOAuthRedirectUri->SetText("http://127.0.0.1:8765/callback");
+				break;
 			case kMsgSetupSave:
 			{
 				BMessage saved(kMsgSetupSaved);
@@ -162,6 +207,12 @@ public:
 				saved.AddString("model", fModel->Text());
 				saved.AddString("auth_mode", fAuthMode->Text());
 				saved.AddString("api_key", fApiKey->Text());
+				saved.AddString("oauth_token", fOAuthToken->Text());
+				saved.AddString("oauth_auth_url", fOAuthAuthUrl->Text());
+				saved.AddString("oauth_token_url", fOAuthTokenUrl->Text());
+				saved.AddString("oauth_client_id", fOAuthClientId->Text());
+				saved.AddString("oauth_scope", fOAuthScope->Text());
+				saved.AddString("oauth_redirect_uri", fOAuthRedirectUri->Text());
 				fTarget.SendMessage(&saved);
 				Quit();
 				break;
@@ -181,6 +232,12 @@ private:
 	BTextControl* fModel;
 	BTextControl* fAuthMode;
 	BTextControl* fApiKey;
+	BTextControl* fOAuthToken;
+	BTextControl* fOAuthAuthUrl;
+	BTextControl* fOAuthTokenUrl;
+	BTextControl* fOAuthClientId;
+	BTextControl* fOAuthScope;
+	BTextControl* fOAuthRedirectUri;
 };
 
 } // namespace
@@ -274,6 +331,13 @@ AIChatPanel::MessageReceived(BMessage* message)
 			fModel->SetText(message->GetString("model", ""));
 			fAuthMode->SetText(message->GetString("auth_mode", ""));
 			fApiKey->SetText(message->GetString("api_key", ""));
+			fOAuthToken->SetText(message->GetString("oauth_token", ""));
+			fOAuthAuthUrl->SetText(message->GetString("oauth_auth_url", ""));
+			fOAuthTokenUrl->SetText(message->GetString("oauth_token_url", ""));
+			fOAuthClientId->SetText(message->GetString("oauth_client_id", ""));
+			fOAuthScope->SetText(message->GetString("oauth_scope", ""));
+			fOAuthRedirectUri->SetText(
+				message->GetString("oauth_redirect_uri", ""));
 			_SaveProviderToConfig();
 			break;
 		case kMsgPresetOpenAI:
@@ -564,9 +628,11 @@ void
 AIChatPanel::_OpenProviderSettings()
 {
 	AIProviderSetupWindow* window = new AIProviderSetupWindow(BMessenger(this),
-		fBaseUrl->Text(), fModel->Text(), fAuthMode->Text(), fApiKey->Text());
+		fBaseUrl->Text(), fModel->Text(), fAuthMode->Text(), fApiKey->Text(),
+		fOAuthToken->Text(), fOAuthAuthUrl->Text(), fOAuthTokenUrl->Text(),
+		fOAuthClientId->Text(), fOAuthScope->Text(), fOAuthRedirectUri->Text());
 	window->Show();
-	_AppendOutput(B_TRANSLATE("Opened Haikode AI setup. Paste an API key there; no Terminal export is required."));
+	_AppendOutput(B_TRANSLATE("Opened Haikode AI setup. Paste an API key or configure OAuth there; no Terminal export is required."));
 }
 
 
