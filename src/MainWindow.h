@@ -45,6 +45,7 @@ private:
 		int32& count);
 	void HandleFileSelected();
 	void HandleScanProject();
+	void ShowScannedFilesInTree();
 	void HandleRadarRow(int32 filter);
 	void StartLogin();
 	void FinishOAuthCode(const char* code, const char* verifier);

@@ -46,6 +46,7 @@
 #include <Alert.h>
 
 #include <ctime>
+#include <cstdlib>
 #include <sstream>
 
 #include <thread>
@@ -105,16 +106,6 @@ private:
 	std::string fPath;
 	bool fIsDirectory;
 };
-
-#ifdef HAIKODE_AI_NETWORK
-bool
-looksConfigured(const ProviderSettings& settings)
-{
-	return !settings.baseUrl.empty() && !settings.model.empty()
-		&& !settings.authUrl.empty() && !settings.tokenUrl.empty()
-		&& !settings.clientId.empty();
-}
-#endif
 
 bool
 hasPrefix(const char* text, const char* prefix)
@@ -354,7 +345,7 @@ MainWindow::BuildInterface()
 #ifdef HAIKODE_CODEX_BRIDGE
 		"Codex Login",
 #else
-		"Settings/Login",
+		"AI Setup",
 #endif
 		new BMessage(kMsgLogin));
 #ifdef HAIKODE_CODEX_BRIDGE
@@ -681,6 +672,36 @@ MainWindow::HandleScanProject()
 		}
 	}
 	AppendLog(log.String());
+	ShowScannedFilesInTree();
+}
+
+void
+MainWindow::ShowScannedFilesInTree()
+{
+	if (fProject.RootPath().empty())
+		return;
+
+	fFileTree->MakeEmpty();
+
+	BString rootLabel("Scanned files: ");
+	rootLabel << static_cast<int32>(fLastScan.files.size());
+	PathItem* rootItem = new PathItem(rootLabel.String(), fProject.RootPath().c_str(),
+		true);
+	fFileTree->AddItem(rootItem);
+
+	for (const ProjectFileMetadata& file : fLastScan.files) {
+		PathItem* item = new PathItem(file.relativePath.c_str(), file.path.c_str(),
+			false);
+		fFileTree->AddUnder(item, rootItem);
+	}
+
+	fFileTree->Expand(rootItem);
+	if (!fLastScan.files.empty()) {
+		BString hint("Scanned files are now listed in the left pane. Select one to preview it.");
+		AppendLog(hint.String());
+	} else {
+		AppendLog("Scan found no text/source files. Hidden, generated, binary, and oversized files are skipped.");
+	}
 }
 
 void
@@ -774,49 +795,28 @@ MainWindow::StartLogin()
 	}).detach();
 #else
 #ifndef HAIKODE_AI_NETWORK
-	AppendLog("Network AI support was not enabled at build time. Rebuild with: make AI_NETWORK=1");
+	AppendLog("AI is disabled in this build.");
+	AppendLog("To enable OpenAI-compatible AI on Haiku, install packages and rebuild:");
+	AppendLog("pkgman install curl_devel jsoncpp_devel openssl_devel");
+	AppendLog("make clean");
+	AppendLog("make AI_NETWORK=1");
+	AppendLog("Then set an API key before running Haikode:");
+	AppendLog("export HAIKODE_API_KEY=your_api_key");
 #else
-	std::string error;
-	fSettingsStore.LoadProvider(fSettings);
-	if (!looksConfigured(fSettings)) {
-		BString log("Provider settings are incomplete. Edit: ");
-		log << fSettingsStore.ProviderPath().c_str();
-		AppendLog(log.String());
-		AppendLog("Required fields: base_url, model, auth_url, token_url, client_id, scope, redirect_port.");
+	const char* haikodeKey = getenv("HAIKODE_API_KEY");
+	const char* openaiKey = getenv("OPENAI_API_KEY");
+	if ((haikodeKey != nullptr && haikodeKey[0] != '\0')
+		|| (openaiKey != nullptr && openaiKey[0] != '\0')) {
+		AppendLog("AI API key found. Select a file, type a prompt, and click Send.");
 		return;
 	}
 
-	fPendingVerifier = OAuthClient::GenerateCodeVerifier();
-	fPendingState = Crypto::RandomBase64Url(18);
-	const std::string url = OAuthClient::BuildAuthorizationUrl(fSettings,
-		fPendingVerifier, fPendingState);
-
-	BMessenger messenger(this);
-	const ProviderSettings settings = fSettings;
-	const std::string verifier = fPendingVerifier;
-	const std::string state = fPendingState;
-	std::thread([messenger, settings, verifier, state]() {
-		OAuthCallbackServer server;
-		std::string code;
-		std::string callbackError;
-		BMessage message(kMsgOAuthCode);
-		if (server.WaitForCode(settings.redirectPort, state, code, callbackError)) {
-			message.AddString("code", code.c_str());
-			message.AddString("verifier", verifier.c_str());
-		} else {
-			message.AddString("error", callbackError.c_str());
-		}
-		messenger.SendMessage(&message);
-	}).detach();
-
-	char* argv[] = {const_cast<char*>(url.c_str())};
-	if (be_roster->Launch("text/html", 1, argv) != B_OK) {
-		AppendLog("Could not open browser automatically.");
-	}
-
-	BString log("OAuth login started. If the browser callback fails, paste the code with: /oauth CODE\n");
-	log << url.c_str();
-	AppendLog(log.String());
+	AppendLog("AI network support is enabled, but no API key was found.");
+	AppendLog("Set HAIKODE_API_KEY or OPENAI_API_KEY before launching Haikode.");
+	AppendLog("Example: export HAIKODE_API_KEY=your_api_key");
+	AppendLog("Optional provider defaults are read from:");
+	AppendLog(fSettingsStore.ProviderPath().c_str());
+	return;
 #endif
 #endif
 }
@@ -920,7 +920,7 @@ MainWindow::HandleChatSubmit()
 	BString userLine("You: ");
 	userLine << prompt;
 	AppendLog(userLine.String());
-	AppendLog("Network AI support was not enabled at build time.");
+	AppendLog("AI is disabled in this build. Click AI Setup for build instructions.");
 	fChatInput->SetText("");
 	return;
 #else
@@ -1347,12 +1347,15 @@ MainWindow::UpdateAuthLabel()
 	}
 #else
 #ifndef HAIKODE_AI_NETWORK
-	fAuthLabel->SetText("Network disabled");
+	fAuthLabel->SetText("AI disabled");
 #else
-	if (fToken.HasAccessToken())
-		fAuthLabel->SetText("Logged in");
+	const char* haikodeKey = getenv("HAIKODE_API_KEY");
+	const char* openaiKey = getenv("OPENAI_API_KEY");
+	if ((haikodeKey != nullptr && haikodeKey[0] != '\0')
+		|| (openaiKey != nullptr && openaiKey[0] != '\0'))
+		fAuthLabel->SetText("AI ready");
 	else
-		fAuthLabel->SetText("Not logged in");
+		fAuthLabel->SetText("API key missing");
 #endif
 #endif
 }

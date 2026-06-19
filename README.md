@@ -38,6 +38,10 @@ make
 make run
 ```
 
+This build lets you open folders, scan projects, preview files, apply patches,
+and run approved build/test commands. AI is disabled in this mode; click
+**AI Setup** in the app for the same instructions shown below.
+
 Run core tests:
 
 ```sh
@@ -50,6 +54,7 @@ Optional OpenAI-compatible network build:
 pkgman install curl_devel jsoncpp_devel openssl_devel
 make clean
 make AI_NETWORK=1
+export HAIKODE_API_KEY=your_api_key
 make run
 ```
 
