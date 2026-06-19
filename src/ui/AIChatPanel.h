@@ -7,9 +7,11 @@
 #include <GroupView.h>
 #include <String.h>
 
+#include <memory>
 #include <vector>
 
 #include "AIProvider.h"
+#include "CancellationToken.h"
 #include "OAuthClient.h"
 #include "OpenAICompatibleClient.h"
 #include "PanelTabManager.h"
@@ -116,6 +118,7 @@ private:
 	BButton* fRejectCommandButton;
 	bool fRequestRunning;
 	int64 fActiveRequestId;
+	std::shared_ptr<Haikode::AI::CancellationToken> fActiveCancellation;
 	Haikode::AI::UnifiedDiff fPendingDiff;
 	BString fPendingRawDiff;
 	BString fSavedPendingPatchPath;

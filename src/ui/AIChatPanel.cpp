@@ -488,7 +488,8 @@ AIChatPanel::AIChatPanel(PanelTabManager* panelTabManager, tab_id id)
 	fRunCommandButton(nullptr),
 	fRejectCommandButton(nullptr),
 	fRequestRunning(false),
-	fActiveRequestId(0)
+	fActiveRequestId(0),
+	fActiveCancellation(nullptr)
 {
 	_BuildInterface();
 }
@@ -990,20 +991,23 @@ AIChatPanel::_TestProvider()
 	}
 
 	const int64 requestId = _BeginRequest();
+	std::shared_ptr<Haikode::AI::CancellationToken> cancellation
+		= fActiveCancellation;
 
 	BString line(B_TRANSLATE("Testing provider endpoint: "));
 	line << provider.ChatCompletionsEndpoint().c_str();
 	_AppendOutput(line.String());
 
 	BMessenger messenger(this);
-	std::thread([messenger, provider, requestId]() mutable {
+	std::thread([messenger, provider, requestId, cancellation]() mutable {
 		Haikode::AI::OpenAICompatibleClient client;
 		Haikode::AI::ChatRequest request;
 		request.prompt = "Reply with exactly: Haikode provider OK";
 		request.maxTokens = 32;
 		Haikode::AI::ChatResponse response;
 		std::string error;
-		const bool ok = client.Send(provider, request, response, error);
+		const bool ok = client.Send(provider, request, response, error,
+			cancellation.get());
 
 		BMessage done(kMsgTestProviderResponse);
 		done.AddInt64("request_id", requestId);
@@ -1020,6 +1024,8 @@ AIChatPanel::_BeginRequest()
 {
 	fRequestRunning = true;
 	fActiveRequestId++;
+	fActiveCancellation
+		= std::make_shared<Haikode::AI::CancellationToken>();
 	_SetRequestControlsEnabled(false);
 	return fActiveRequestId;
 }
@@ -1048,8 +1054,10 @@ AIChatPanel::_CancelRequest()
 	}
 
 	fActiveRequestId++;
+	if (fActiveCancellation != nullptr)
+		fActiveCancellation->Cancel();
 	_FinishRequest();
-	_AppendOutput(B_TRANSLATE("AI request stopped. Any late provider response will be ignored."));
+	_AppendOutput(B_TRANSLATE("AI request stopped. Network work is being cancelled and any late provider response will be ignored."));
 }
 
 
@@ -1057,6 +1065,7 @@ void
 AIChatPanel::_FinishRequest()
 {
 	fRequestRunning = false;
+	fActiveCancellation.reset();
 	_SetRequestControlsEnabled(true);
 }
 
@@ -1173,14 +1182,17 @@ AIChatPanel::_ExchangeOAuthCode()
 	const std::string verifier = BString(gCFG["haikode_ai_oauth_verifier"]).String();
 
 	const int64 requestId = _BeginRequest();
+	std::shared_ptr<Haikode::AI::CancellationToken> cancellation
+		= fActiveCancellation;
 
 	BMessenger messenger(this);
-	std::thread([messenger, settings, code, verifier, requestId]() mutable {
+	std::thread([messenger, settings, code, verifier, requestId,
+		cancellation]() mutable {
 		Haikode::AI::OAuthClient client;
 		Haikode::AI::OAuthTokenResponse response;
 		std::string error;
 		const bool ok = client.ExchangeCode(settings, code, verifier, response,
-			error);
+			error, cancellation.get());
 
 		BMessage done(kMsgOAuthResponse);
 		done.AddInt64("request_id", requestId);
@@ -1268,6 +1280,8 @@ AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 	fLastUserPrompt = fPrompt->Text();
 	fLastProvider = provider;
 	const int64 requestId = _BeginRequest();
+	std::shared_ptr<Haikode::AI::CancellationToken> cancellation
+		= fActiveCancellation;
 	_SetPatchControlsEnabled(false);
 	const bool reviewingPatch = mode == Haikode::AI::PromptMode::ReviewDiff;
 	if (!reviewingPatch) {
@@ -1281,13 +1295,14 @@ AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 
 	BMessenger messenger(this);
 	std::string prompt = result.prompt;
-	std::thread([messenger, provider, prompt, requestId]() mutable {
+	std::thread([messenger, provider, prompt, requestId, cancellation]() mutable {
 		Haikode::AI::OpenAICompatibleClient client;
 		Haikode::AI::ChatRequest request;
 		request.prompt = prompt;
 		Haikode::AI::ChatResponse response;
 		std::string error;
-		const bool ok = client.Send(provider, request, response, error);
+		const bool ok = client.Send(provider, request, response, error,
+			cancellation.get());
 
 		BMessage done(kMsgAIResponse);
 		done.AddInt64("request_id", requestId);

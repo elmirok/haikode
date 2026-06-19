@@ -5,6 +5,7 @@
 #pragma once
 
 #include "AIProvider.h"
+#include "CancellationToken.h"
 
 #include <string>
 
@@ -36,7 +37,8 @@ public:
 	static std::string ExtractErrorMessage(const std::string& body);
 
 	bool Send(const ProviderSettings& provider, const ChatRequest& request,
-		ChatResponse& response, std::string& error) const;
+		ChatResponse& response, std::string& error,
+		const CancellationToken* cancellation = nullptr) const;
 };
 
 } // namespace Haikode::AI

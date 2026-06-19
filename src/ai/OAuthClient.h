@@ -4,6 +4,8 @@
  */
 #pragma once
 
+#include "CancellationToken.h"
+
 #include <string>
 
 namespace Haikode::AI {
@@ -43,7 +45,8 @@ public:
 
 	bool ExchangeCode(const OAuthSettings& settings, const std::string& code,
 		const std::string& verifier, OAuthTokenResponse& response,
-		std::string& error) const;
+		std::string& error,
+		const CancellationToken* cancellation = nullptr) const;
 };
 
 } // namespace Haikode::AI

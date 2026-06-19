@@ -206,6 +206,15 @@ WriteCallback(char* ptr, size_t size, size_t nmemb, void* userdata)
 	body->append(ptr, size * nmemb);
 	return size * nmemb;
 }
+
+
+int
+ProgressCallback(void* userdata, curl_off_t, curl_off_t, curl_off_t, curl_off_t)
+{
+	const CancellationToken* cancellation
+		= static_cast<const CancellationToken*>(userdata);
+	return cancellation != nullptr && cancellation->IsCancelled() ? 1 : 0;
+}
 #endif
 
 } // namespace
@@ -277,10 +286,16 @@ OpenAICompatibleClient::ExtractErrorMessage(const std::string& body)
 
 bool
 OpenAICompatibleClient::Send(const ProviderSettings& provider,
-	const ChatRequest& request, ChatResponse& response, std::string& error) const
+	const ChatRequest& request, ChatResponse& response, std::string& error,
+	const CancellationToken* cancellation) const
 {
 	response = ChatResponse();
 	error.clear();
+
+	if (cancellation != nullptr && cancellation->IsCancelled()) {
+		error = "AI request cancelled.";
+		return false;
+	}
 
 	if (!provider.Validate(error)) {
 		return false;
@@ -313,6 +328,11 @@ OpenAICompatibleClient::Send(const ProviderSettings& provider,
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, "Haikode/0.1");
 	curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120L);
+	if (cancellation != nullptr) {
+		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+		curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, ProgressCallback);
+		curl_easy_setopt(curl, CURLOPT_XFERINFODATA, cancellation);
+	}
 
 	const CURLcode result = curl_easy_perform(curl);
 	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response.httpStatus);
@@ -322,7 +342,11 @@ OpenAICompatibleClient::Send(const ProviderSettings& provider,
 	response.rawBody = body;
 
 	if (result != CURLE_OK) {
-		error = curl_easy_strerror(result);
+		if (result == CURLE_ABORTED_BY_CALLBACK
+			|| (cancellation != nullptr && cancellation->IsCancelled())) {
+			error = "AI request cancelled.";
+		} else
+			error = curl_easy_strerror(result);
 		return false;
 	}
 

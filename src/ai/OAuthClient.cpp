@@ -222,6 +222,15 @@ WriteCallback(char* ptr, size_t size, size_t nmemb, void* userdata)
 	body->append(ptr, size * nmemb);
 	return size * nmemb;
 }
+
+
+int
+ProgressCallback(void* userdata, curl_off_t, curl_off_t, curl_off_t, curl_off_t)
+{
+	const CancellationToken* cancellation
+		= static_cast<const CancellationToken*>(userdata);
+	return cancellation != nullptr && cancellation->IsCancelled() ? 1 : 0;
+}
 #endif
 
 } // namespace
@@ -374,10 +383,15 @@ OAuthClient::ExtractAuthorizationCode(const std::string& pastedValue,
 bool
 OAuthClient::ExchangeCode(const OAuthSettings& settings, const std::string& code,
 	const std::string& verifier, OAuthTokenResponse& response,
-	std::string& error) const
+	std::string& error, const CancellationToken* cancellation) const
 {
 	response = OAuthTokenResponse();
 	error.clear();
+
+	if (cancellation != nullptr && cancellation->IsCancelled()) {
+		error = "OAuth token request cancelled.";
+		return false;
+	}
 
 	if (settings.tokenUrl.empty()) {
 		error = "OAuth token URL is required.";
@@ -420,6 +434,11 @@ OAuthClient::ExchangeCode(const OAuthSettings& settings, const std::string& code
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &body);
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, "Haikode/0.1");
+	if (cancellation != nullptr) {
+		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+		curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, ProgressCallback);
+		curl_easy_setopt(curl, CURLOPT_XFERINFODATA, cancellation);
+	}
 
 	const CURLcode result = curl_easy_perform(curl);
 	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response.httpStatus);
@@ -429,7 +448,11 @@ OAuthClient::ExchangeCode(const OAuthSettings& settings, const std::string& code
 	response.rawBody = body;
 
 	if (result != CURLE_OK) {
-		error = curl_easy_strerror(result);
+		if (result == CURLE_ABORTED_BY_CALLBACK
+			|| (cancellation != nullptr && cancellation->IsCancelled())) {
+			error = "OAuth token request cancelled.";
+		} else
+			error = curl_easy_strerror(result);
 		return false;
 	}
 

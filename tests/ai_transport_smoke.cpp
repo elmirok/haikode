@@ -94,6 +94,15 @@ main()
 	prepared = Haikode::AI::OpenAICompatibleClient::Prepare(oauthProvider, request);
 	assert(prepared.authorizationHeader == "Authorization: Bearer oauth-token");
 
+	Haikode::AI::CancellationToken cancellation;
+	cancellation.Cancel();
+	Haikode::AI::OpenAICompatibleClient client;
+	Haikode::AI::ChatResponse cancelledResponse;
+	std::string cancelledError;
+	assert(!client.Send(apiKeyProvider, request, cancelledResponse,
+		cancelledError, &cancellation));
+	assert(cancelledError.find("cancelled") != std::string::npos);
+
 	Haikode::AI::ProviderSettings missingApiKey;
 	assert(!missingApiKey.Validate(validationError));
 	assert(validationError.find("API key") != std::string::npos);

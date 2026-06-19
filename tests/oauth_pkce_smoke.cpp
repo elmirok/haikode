@@ -80,6 +80,14 @@ main()
 		code, error));
 	assert(error.find("access_denied") != std::string::npos);
 
+	Haikode::AI::CancellationToken cancellation;
+	cancellation.Cancel();
+	Haikode::AI::OAuthClient client;
+	Haikode::AI::OAuthTokenResponse cancelledResponse;
+	assert(!client.ExchangeCode(settings, "code value", verifier,
+		cancelledResponse, error, &cancellation));
+	assert(error.find("cancelled") != std::string::npos);
+
 	std::cout << "oauth-pkce-smoke-ok\n";
 	return 0;
 }

@@ -50,8 +50,8 @@ The Genio-based branch now adds:
 - A native **Explain file** action that sends the active file or selection with
   Haiku-specific explanation guidance.
 - A native **Stop** action for in-flight provider tests, OAuth exchanges, and
-  AI prompts. Stopped requests re-enable the UI and ignore late provider
-  responses.
+  AI prompts. Stopped requests cancel the active network transfer where
+  possible, re-enable the UI, and ignore any late provider responses.
 - Offline project-map context that summarizes source/docs/build files with
   language, role, risk, line count, and TODO markers before sending prompts.
 - The AI output log shows how many project-map entries were included and warns
