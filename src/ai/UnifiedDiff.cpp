@@ -82,6 +82,40 @@ IsSensitivePatchPath(const std::string& path)
 		|| filename == "Genio.settings";
 }
 
+
+std::string
+Lowercase(std::string value)
+{
+	std::transform(value.begin(), value.end(), value.begin(),
+		[](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+	return value;
+}
+
+
+bool
+IsIgnoredGeneratedPatchPath(const std::string& path)
+{
+	fs::path fsPath(path);
+	for (const fs::path& part : fsPath) {
+		const std::string name = Lowercase(part.string());
+		if (name == "build" || name == "dist" || name == "out"
+			|| name == "target" || name == "node_modules"
+			|| name == "vendor" || name == ".cache") {
+			return true;
+		}
+	}
+
+	const std::string filename = Lowercase(fsPath.filename().string());
+	return filename == ".ds_store" || filename.ends_with(".o")
+		|| filename.ends_with(".a") || filename.ends_with(".so")
+		|| filename.ends_with(".hpkg") || filename.ends_with(".png")
+		|| filename.ends_with(".jpg") || filename.ends_with(".jpeg")
+		|| filename.ends_with(".gif") || filename.ends_with(".ico")
+		|| filename.ends_with(".zip") || filename.ends_with(".tar")
+		|| filename.ends_with(".gz");
+}
+
+
 bool
 ValidatePatchPath(const std::string& path, bool allowDevNull, std::string& error)
 {
@@ -94,6 +128,10 @@ ValidatePatchPath(const std::string& path, bool allowDevNull, std::string& error
 	}
 	if (IsSensitivePatchPath(path)) {
 		error = "Refusing to patch sensitive project metadata: " + path;
+		return false;
+	}
+	if (IsIgnoredGeneratedPatchPath(path)) {
+		error = "Refusing to patch ignored/generated path: " + path;
 		return false;
 	}
 	return true;

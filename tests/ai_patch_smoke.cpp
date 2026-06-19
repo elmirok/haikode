@@ -356,6 +356,32 @@ main()
 		result, error));
 	assert(error.find("sensitive project metadata") != std::string::npos);
 
+	const std::string ignoredBuildPathDiff =
+		"diff --git a/build/generated.cpp b/build/generated.cpp\n"
+		"new file mode 100644\n"
+		"--- /dev/null\n"
+		"+++ b/build/generated.cpp\n"
+		"@@ -0,0 +1 @@\n"
+		"+new\n";
+	Haikode::AI::UnifiedDiff ignoredBuildPatch;
+	assert(Haikode::AI::UnifiedDiff::Parse(ignoredBuildPathDiff,
+		ignoredBuildPatch, error));
+	assert(!ignoredBuildPatch.Apply(root.string(), result, error));
+	assert(error.find("ignored/generated path") != std::string::npos);
+
+	const std::string ignoredObjectPathDiff =
+		"diff --git a/src/main.o b/src/main.o\n"
+		"new file mode 100644\n"
+		"--- /dev/null\n"
+		"+++ b/src/main.o\n"
+		"@@ -0,0 +1 @@\n"
+		"+new\n";
+	Haikode::AI::UnifiedDiff ignoredObjectPatch;
+	assert(Haikode::AI::UnifiedDiff::Parse(ignoredObjectPathDiff,
+		ignoredObjectPatch, error));
+	assert(!ignoredObjectPatch.Apply(root.string(), result, error));
+	assert(error.find("ignored/generated path") != std::string::npos);
+
 	const std::string genioSettingsDiff =
 		"diff --git a/.genio b/.genio\n"
 		"--- a/.genio\n"
