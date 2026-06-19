@@ -779,11 +779,12 @@ ProjectBrowser::ProjectFolderPopulate(ProjectFolder* project)
 		UnlockLooper();
 	}
 
-	// Scan the project tree directly on initial open so the browser visibly
-	// contains the project before the open task reports completion.
+	// Scan off the opener thread and replay additions on the browser looper.
+	// Direct per-item insertion from the opener task can leave the Haiku view
+	// looking empty on some systems even though the filesystem walk completed.
 	bigtime_t scanStartTime = system_time();
 	ProjectItem *projectItem = _ProjectFolderScan(project->EntryRef(), nullptr,
-		project, false);
+		project, true);
 	bigtime_t scanEndTime = system_time();
 
 	ASSERT(projectItem != nullptr);

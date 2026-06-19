@@ -785,6 +785,14 @@ PromptBuilder::Build(const VibeCodingRequest& request, size_t maxBytesPerFile,
 		prompt << "\n";
 	}
 
+	if (!request.pendingDiff.empty()) {
+		prompt
+			<< "Pending unified diff:\n"
+			<< "```diff\n"
+			<< request.pendingDiff
+			<< "\n```\n\n";
+	}
+
 	const size_t fileCount = std::min(maxFiles, request.files.size());
 	if (request.files.size() > maxFiles) {
 		result.warnings.push_back("Some files were omitted from AI context.");

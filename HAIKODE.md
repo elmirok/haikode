@@ -53,9 +53,9 @@ The Genio-based branch now adds:
 - A **Summarize project** action that uses project-map context to produce a
   project overview without requiring an active file.
 - Unified diff detection in AI responses.
-- Explicit **Apply first file**, **Reject first file**, **Apply patch**, and
-  **Reject patch** controls with path checks and `.haikode/backups/` copies
-  before writes.
+- Explicit **Apply first file**, **Reject first file**, **Review patch**,
+  **Apply patch**, and **Reject patch** controls with path checks and
+  `.haikode/backups/` copies before writes.
 - Generated unified diffs are saved immediately under `.haikode/patches/` before
   approval, so rejected and partially applied proposals still have an audit file.
 - Explicit AI command request parsing and a separate **Run command** approval
@@ -73,9 +73,11 @@ The panel sends prompts to cloud or local endpoints when built with
 `HAIKODE_AI_NETWORK=1`. API-key mode stores the key in Haikode settings and
 sends `Authorization: Bearer ...`; OAuth mode stores the exchanged bearer token
 in Haikode settings; local mode sends no authorization header.
-Use **AI Setup** to paste cloud API keys, choose a local provider, or configure
-OAuth token/PKCE endpoint fields, then use **Test provider** to verify the
-endpoint before asking questions or proposing patches.
+Use **Window > Haikode AI setup** or the **AI Setup** button to paste cloud API
+keys inside Haikode, choose a local provider, or configure OAuth token/PKCE
+endpoint fields. You do not need to export an API key in Terminal. Then use
+**Test provider** to verify the endpoint before asking questions or proposing
+patches.
 
 The next slice should improve the review UI from raw text to per-file/per-hunk
 review, then add a more complete Codex/OAuth bridge where Codex CLI is

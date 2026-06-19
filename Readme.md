@@ -110,6 +110,9 @@ Open **Window > Haikode AI** after launch. Credentials are stored in Haikode's
 machine-local settings, not in the project and not through exported shell
 variables.
 
+Use **Window > Haikode AI setup** or the **AI Setup** button to paste the API
+key inside the app. You do not need to run `export OPENAI_API_KEY`.
+
 Use the **OpenAI**, **Ollama**, or **LM Studio** buttons to fill the common
 base URL, model, and auth mode defaults, then adjust the model if needed.
 

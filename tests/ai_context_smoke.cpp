@@ -53,6 +53,20 @@ main()
 		!= std::string::npos);
 	assert(projectSummary.prompt.find("Project map:") != std::string::npos);
 
+	request.mode = Haikode::AI::PromptMode::ReviewDiff;
+	request.userPrompt = "Please sanity-check this patch.";
+	request.pendingDiff = "diff --git a/src/main.cpp b/src/main.cpp\n"
+		"--- a/src/main.cpp\n"
+		"+++ b/src/main.cpp\n"
+		"@@ -1 +1 @@\n"
+		"-old\n"
+		"+new\n";
+	const Haikode::AI::PromptBuildResult patchReview
+		= builder.Build(request, 1024, 10);
+	assert(patchReview.prompt.find("Pending unified diff:") != std::string::npos);
+	assert(patchReview.prompt.find("```diff") != std::string::npos);
+	assert(patchReview.prompt.find("-old") != std::string::npos);
+
 	const fs::path root = fs::temp_directory_path() / "haikode-context-smoke";
 	fs::remove_all(root);
 	fs::create_directories(root / "src");

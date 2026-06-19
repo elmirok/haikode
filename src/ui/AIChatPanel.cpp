@@ -9,6 +9,7 @@
 #include <Alert.h>
 #include <Button.h>
 #include <Catalog.h>
+#include <Layout.h>
 #include <LayoutBuilder.h>
 #include <Message.h>
 #include <Messenger.h>
@@ -54,6 +55,7 @@ const uint32 kMsgProposePatch = 'hipa';
 const uint32 kMsgAIResponse = 'hirs';
 const uint32 kMsgApplyFirstFile = 'hiaf';
 const uint32 kMsgRejectFirstFile = 'hirf';
+const uint32 kMsgReviewPatch = 'hivr';
 const uint32 kMsgApplyPatch = 'hiap';
 const uint32 kMsgRejectPatch = 'hirp';
 const uint32 kMsgRunCommand = 'hirc';
@@ -68,6 +70,16 @@ AuthModeFromString(const BString& value)
 	if (value.ICompare("none") == 0)
 		return Haikode::AI::AuthMode::None;
 	return Haikode::AI::AuthMode::ApiKey;
+}
+
+const char*
+InitialAIStatusText()
+{
+#ifdef HAIKODE_AI_NETWORK
+	return B_TRANSLATE("AI network transport is enabled. Use AI Setup to paste an API key inside Haikode, choose a local provider, or configure OAuth.");
+#else
+	return B_TRANSLATE("AI network transport is disabled in this build. Rebuild with HAIKODE_AI_NETWORK=1 and install curl_devel to use cloud AI. API keys are entered inside AI Setup; no Terminal export is required.");
+#endif
 }
 
 class AIProviderSetupWindow : public BWindow {
@@ -175,6 +187,10 @@ public:
 			.End();
 
 		saveButton->MakeDefault(true);
+		if (GetLayout() != nullptr) {
+			const BSize size = GetLayout()->MinSize();
+			ResizeTo(size.width, size.height);
+		}
 		CenterOnScreen();
 	}
 
@@ -275,6 +291,7 @@ AIChatPanel::AIChatPanel(PanelTabManager* panelTabManager, tab_id id)
 	fPatchButton(nullptr),
 	fApplyFirstFileButton(nullptr),
 	fRejectFirstFileButton(nullptr),
+	fReviewPatchButton(nullptr),
 	fApplyPatchButton(nullptr),
 	fRejectPatchButton(nullptr),
 	fRunCommandButton(nullptr),
@@ -302,6 +319,7 @@ AIChatPanel::AttachedToWindow()
 	fPatchButton->SetTarget(this);
 	fApplyFirstFileButton->SetTarget(this);
 	fRejectFirstFileButton->SetTarget(this);
+	fReviewPatchButton->SetTarget(this);
 	fApplyPatchButton->SetTarget(this);
 	fRejectPatchButton->SetTarget(this);
 	fRunCommandButton->SetTarget(this);
@@ -391,6 +409,12 @@ AIChatPanel::MessageReceived(BMessage* message)
 			break;
 		case kMsgRejectFirstFile:
 			_RejectFirstPendingFile();
+			break;
+		case kMsgReviewPatch:
+			if (fPendingDiff.IsEmpty() || fPendingRawDiff.IsEmpty())
+				_AppendOutput(B_TRANSLATE("No pending patch to review."));
+			else
+				_SendPrompt(Haikode::AI::PromptMode::ReviewDiff);
 			break;
 		case kMsgApplyPatch:
 			_ApplyPendingDiff();
@@ -502,6 +526,9 @@ AIChatPanel::_BuildInterface()
 	fRejectFirstFileButton = new BButton("haikode_ai_reject_first_file",
 		B_TRANSLATE("Reject first file"), new BMessage(kMsgRejectFirstFile));
 	fRejectFirstFileButton->SetEnabled(false);
+	fReviewPatchButton = new BButton("haikode_ai_review_patch",
+		B_TRANSLATE("Review patch"), new BMessage(kMsgReviewPatch));
+	fReviewPatchButton->SetEnabled(false);
 	fApplyPatchButton = new BButton("haikode_ai_apply_patch",
 		B_TRANSLATE("Apply patch"), new BMessage(kMsgApplyPatch));
 	fApplyPatchButton->SetEnabled(false);
@@ -522,7 +549,7 @@ AIChatPanel::_BuildInterface()
 
 	fOutput = new BTextView("haikode_ai_output");
 	fOutput->MakeEditable(false);
-	fOutput->SetText(B_TRANSLATE("Configure a cloud or local OpenAI-compatible provider, then ask about the active project, file, or selection."));
+	fOutput->SetText(InitialAIStatusText());
 	BScrollView* outputScroll = new BScrollView("haikode_ai_output_scroll",
 		fOutput, B_FOLLOW_ALL, 0, true, true);
 
@@ -570,6 +597,7 @@ AIChatPanel::_BuildInterface()
 			.Add(fPatchButton)
 			.Add(fApplyFirstFileButton)
 			.Add(fRejectFirstFileButton)
+			.Add(fReviewPatchButton)
 			.Add(fApplyPatchButton)
 			.Add(fRejectPatchButton)
 			.Add(fRunCommandButton)
@@ -903,11 +931,15 @@ AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 	fExchangeOAuthButton->SetEnabled(false);
 	fApplyFirstFileButton->SetEnabled(false);
 	fRejectFirstFileButton->SetEnabled(false);
+	fReviewPatchButton->SetEnabled(false);
 	fApplyPatchButton->SetEnabled(false);
 	fRejectPatchButton->SetEnabled(false);
-	fPendingDiff = Haikode::AI::UnifiedDiff();
-	fPendingRawDiff = "";
-	fSavedPendingPatchPath = "";
+	const bool reviewingPatch = mode == Haikode::AI::PromptMode::ReviewDiff;
+	if (!reviewingPatch) {
+		fPendingDiff = Haikode::AI::UnifiedDiff();
+		fPendingRawDiff = "";
+		fSavedPendingPatchPath = "";
+	}
 	_ClearPendingCommands();
 	_UpdatePendingActions();
 
@@ -984,6 +1016,7 @@ AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 		}
 		fApplyFirstFileButton->SetEnabled(true);
 		fRejectFirstFileButton->SetEnabled(true);
+		fReviewPatchButton->SetEnabled(true);
 		fApplyPatchButton->SetEnabled(true);
 		fRejectPatchButton->SetEnabled(true);
 		BString line(B_TRANSLATE("Unified diff detected: "));
@@ -1037,6 +1070,13 @@ AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 		BString line(B_TRANSLATE("Command request parse warning: "));
 		line << parseError.c_str();
 		_AppendOutput(line.String());
+	}
+	if (!fPendingDiff.IsEmpty()) {
+		fApplyFirstFileButton->SetEnabled(true);
+		fRejectFirstFileButton->SetEnabled(true);
+		fReviewPatchButton->SetEnabled(true);
+		fApplyPatchButton->SetEnabled(true);
+		fRejectPatchButton->SetEnabled(true);
 	}
 	_UpdatePendingActions();
 	_SaveSessionRecord(text);
@@ -1216,6 +1256,7 @@ AIChatPanel::_ApplyFirstPendingFile()
 		fSavedPendingPatchPath = "";
 		fApplyFirstFileButton->SetEnabled(false);
 		fRejectFirstFileButton->SetEnabled(false);
+		fReviewPatchButton->SetEnabled(false);
 		fApplyPatchButton->SetEnabled(false);
 		fRejectPatchButton->SetEnabled(false);
 	}
@@ -1246,6 +1287,7 @@ AIChatPanel::_RejectFirstPendingFile()
 		fSavedPendingPatchPath = "";
 		fApplyFirstFileButton->SetEnabled(false);
 		fRejectFirstFileButton->SetEnabled(false);
+		fReviewPatchButton->SetEnabled(false);
 		fApplyPatchButton->SetEnabled(false);
 		fRejectPatchButton->SetEnabled(false);
 	}
@@ -1319,6 +1361,7 @@ AIChatPanel::_RejectPendingDiff()
 	fSavedPendingPatchPath = "";
 	fApplyFirstFileButton->SetEnabled(false);
 	fRejectFirstFileButton->SetEnabled(false);
+	fReviewPatchButton->SetEnabled(false);
 	fApplyPatchButton->SetEnabled(false);
 	fRejectPatchButton->SetEnabled(false);
 	_UpdatePendingActions();
@@ -1373,6 +1416,8 @@ AIChatPanel::_RequestFromContext(Haikode::AI::PromptMode mode) const
 	request.projectFiles = Haikode::AI::BuildProjectMap(fProjectRoot.String(),
 		80, &projectMapCandidateCount);
 	request.projectMapCandidateCount = projectMapCandidateCount;
+	if (mode == Haikode::AI::PromptMode::ReviewDiff)
+		request.pendingDiff = fPendingRawDiff.String();
 
 	const std::string contextText = Haikode::AI::SelectContextText(
 		fSelection.String(), fFileText.String());

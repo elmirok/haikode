@@ -92,6 +92,7 @@ private:
 	BButton* fPatchButton;
 	BButton* fApplyFirstFileButton;
 	BButton* fRejectFirstFileButton;
+	BButton* fReviewPatchButton;
 	BButton* fApplyPatchButton;
 	BButton* fRejectPatchButton;
 	BButton* fRunCommandButton;
