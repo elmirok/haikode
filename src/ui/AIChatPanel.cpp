@@ -2359,6 +2359,19 @@ AIChatPanel::_ListProjectFiles()
 	if (fProjectFilePath != nullptr)
 		fProjectFilePath->SetText(files.front().path.c_str());
 
+	std::string memoryPath;
+	std::string memoryError;
+	if (Haikode::AI::SaveProjectMemory(fProjectRoot.String(), files,
+			candidateCount, memoryPath, memoryError)) {
+		BString memoryLine(B_TRANSLATE("Updated project memory: "));
+		memoryLine << memoryPath.c_str();
+		_AppendOutput(memoryLine.String());
+	} else {
+		BString memoryLine(B_TRANSLATE("Project memory update warning: "));
+		memoryLine << memoryError.c_str();
+		_AppendOutput(memoryLine.String());
+	}
+
 	ProjectFileBrowserWindow* window = new ProjectFileBrowserWindow(
 		BMessenger(this), files);
 	window->Show();

@@ -1028,6 +1028,86 @@ BuildProjectMap(const std::string& projectRoot, size_t maxFiles,
 
 
 bool
+SaveProjectMemory(const std::string& projectRoot,
+	const std::vector<ProjectFileSummary>& files, size_t candidateCount,
+	std::string& savedPath, std::string& error)
+{
+	savedPath.clear();
+	error.clear();
+	try {
+		if (projectRoot.empty()) {
+			error = "No active project root.";
+			return false;
+		}
+
+		const fs::path root = fs::weakly_canonical(projectRoot);
+		if (!fs::is_directory(root)) {
+			error = "Active project root is not a directory.";
+			return false;
+		}
+
+		const fs::path haikodeRoot = root / ".haikode";
+		const std::vector<std::string> directories = {
+			"sessions", "notes", "patches", "logs", "backups", "commands"
+		};
+		fs::create_directories(haikodeRoot);
+		for (const std::string& directory : directories) {
+			const fs::path directoryPath = haikodeRoot / directory;
+			if (!IsInsideDirectory(directoryPath, root)) {
+				error = "Unsafe project memory directory.";
+				return false;
+			}
+			fs::create_directories(directoryPath);
+		}
+
+		const fs::path memoryPath = haikodeRoot / "project.json";
+		if (!IsInsideDirectory(memoryPath, root)) {
+			error = "Unsafe project memory path.";
+			return false;
+		}
+
+		std::ofstream file(memoryPath, std::ios::binary | std::ios::trunc);
+		if (!file) {
+			error = "Could not save project memory.";
+			return false;
+		}
+
+		const std::string now = Timestamp();
+		file
+			<< "{\n"
+			<< "  \"schema\":\"haikode.project.v1\",\n"
+			<< "  \"name\":\"" << EscapeJson(root.filename().string())
+			<< "\",\n"
+			<< "  \"root\":\"" << EscapeJson(root.string()) << "\",\n"
+			<< "  \"updated\":\"" << now << "\",\n"
+			<< "  \"default_build_command\":\"make\",\n"
+			<< "  \"default_test_command\":\"make test\",\n"
+			<< "  \"candidate_count\":" << candidateCount << ",\n"
+			<< "  \"files\":[";
+		for (size_t i = 0; i < files.size(); i++) {
+			const ProjectFileSummary& summary = files[i];
+			if (i > 0)
+				file << ",";
+			file
+				<< "\n    {\"path\":\"" << EscapeJson(summary.path)
+				<< "\",\"language\":\"" << EscapeJson(summary.language)
+				<< "\",\"role\":\"" << EscapeJson(summary.role)
+				<< "\",\"risk\":\"" << EscapeJson(summary.risk)
+				<< "\",\"todo\":" << (summary.hasTodo ? "true" : "false")
+				<< ",\"summary\":\"" << EscapeJson(summary.summary)
+				<< "\"}";
+		}
+		file << "\n  ]\n}\n";
+		savedPath = memoryPath.string();
+		return true;
+	} catch (const std::exception& exception) {
+		error = exception.what();
+		return false;
+	}
+}
+
+
+bool
 LoadProjectContextFile(const std::string& projectRoot,
 	const std::string& relativePath, size_t maxBytes, ContextFile& file,
 	std::string& error)

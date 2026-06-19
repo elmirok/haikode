@@ -19,6 +19,15 @@ WriteFile(const fs::path& path, const std::string& text)
 	file << text;
 }
 
+
+static std::string
+ReadFile(const fs::path& path)
+{
+	std::ifstream file(path, std::ios::binary);
+	return std::string(std::istreambuf_iterator<char>(file),
+		std::istreambuf_iterator<char>());
+}
+
 int
 main()
 {
@@ -150,8 +159,28 @@ main()
 	assert(map[1].language == "C++");
 	assert(map[1].hasTodo);
 	assert(map[1].summary.find("4 line(s)") != std::string::npos);
-	Haikode::AI::ContextFile selectedFile;
 	std::string loadError;
+	std::string memoryPath;
+	const fs::path canonicalRoot = fs::weakly_canonical(root);
+	assert(Haikode::AI::SaveProjectMemory(root.string(), map, map.size(),
+		memoryPath, loadError));
+	assert(memoryPath == (canonicalRoot / ".haikode" / "project.json").string());
+	assert(fs::is_directory(root / ".haikode" / "sessions"));
+	assert(fs::is_directory(root / ".haikode" / "notes"));
+	assert(fs::is_directory(root / ".haikode" / "patches"));
+	assert(fs::is_directory(root / ".haikode" / "logs"));
+	assert(fs::is_directory(root / ".haikode" / "backups"));
+	assert(fs::is_directory(root / ".haikode" / "commands"));
+	const std::string memory = ReadFile(memoryPath);
+	assert(memory.find("\"name\":\"haikode-context-smoke\"")
+		!= std::string::npos);
+	assert(memory.find("\"path\":\"src/main.cpp\"") != std::string::npos);
+	assert(memory.find("\"todo\":true") != std::string::npos);
+	assert(memory.find("\"default_build_command\":\"make\"")
+		!= std::string::npos);
+	assert(memory.find("\"default_test_command\":\"make test\"")
+		!= std::string::npos);
+	Haikode::AI::ContextFile selectedFile;
 	assert(Haikode::AI::LoadProjectContextFile(root.string(), "src/main.cpp",
 		1024, selectedFile, loadError));
 	assert(selectedFile.path == "src/main.cpp");

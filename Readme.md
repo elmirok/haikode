@@ -164,7 +164,10 @@ visible immediately. You can also use **Project files** in the Haikode AI panel
 to scan the active project for text/source files. Pick a file and press
 **Open**; Haikode opens it through Genio's normal editor path and uses it as AI
 context. This is also useful if the left project tree is collapsed, filtered,
-or not visibly populated yet.
+or not visibly populated yet. The scan also creates or refreshes
+`.haikode/project.json` with project-local memory: project name/root, default
+build/test commands, and source/docs/build file summaries. API keys and OAuth
+tokens are never written to this project memory file.
 
 ### Optional Codex CLI bridge
 
