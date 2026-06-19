@@ -5,7 +5,7 @@ WARNINGS = ALL
 TARGET_DIR := app
 TYPE := APP
 
-APP_MIME_SIG := "application/x-vnd.Genio"
+APP_MIME_SIG := "application/x-vnd.Haikode"
 
 # Debug configuration
 debug ?= 0
@@ -20,16 +20,16 @@ ifeq ($(DEBUGGER),1)
 	COMPILER_FLAGS += -DDEBUG=1
 	# for scintilla
 	COMPILER_FLAGS += -DGDEBUG
-	NAME = Genio_debug
+	NAME = Haikode_debug
 else ifeq ($(DEBUGGER),TRUE)
 	COMPILER_FLAGS += -gdwarf-3
 	# for ASSERT()
 	COMPILER_FLAGS += -DDEBUG=1
 	# for scintilla
 	COMPILER_FLAGS += -DGDEBUG
-	NAME = Genio_debug
+	NAME = Haikode_debug
 else
-	NAME := Genio
+	NAME := Haikode
 endif
 
 arch := $(shell getarch)

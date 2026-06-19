@@ -1,5 +1,5 @@
 
-resource app_signature "application/x-vnd.Genio";
+resource app_signature "application/x-vnd.Haikode";
 
 resource app_flags B_SINGLE_LAUNCH;
 
@@ -11,8 +11,8 @@ resource app_version {
 	variety = B_APPV_DEVELOPMENT,
 	internal = 1,
 
-	short_info = "An IDE for Haiku",
-	long_info  = "An open source development environment for Haiku"
+	short_info = "A native AI IDE for Haiku",
+	long_info  = "A Genio-based Haiku development environment with supervised AI coding"
 };
 
 resource file_types message {

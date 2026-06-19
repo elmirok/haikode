@@ -1,4 +1,14 @@
-# Genio
+# Haikode
+
+Haikode is a downstream fork of [Genio](https://codeberg.org/Genio/Genio), the
+native Haiku IDE. The fork keeps Genio's native editor, project browser, Git,
+LSP, terminal, and settings foundation, then adds supervised AI coding workflows
+for cloud or local OpenAI-compatible LLMs.
+
+See [HAIKODE.md](HAIKODE.md) for the fork direction and AI/vibecoding safety
+model.
+
+## Upstream Genio
 
 ![Screenshot](artwork/screenshot/Genio-screenshot-5.0.png)
 ![Screenshot-Dark](artwork/screenshot/Genio-screenshot-5.0-dark.png)

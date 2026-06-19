@@ -132,7 +132,7 @@ CurrentBranchFromEditor(IEditor* editor)
 
 GenioWindow::GenioWindow(BRect frame)
 	:
-	BWindow(frame, "Genio", B_TITLED_WINDOW, B_ASYNCHRONOUS_CONTROLS |
+	BWindow(frame, "Haikode", B_TITLED_WINDOW, B_ASYNCHRONOUS_CONTROLS |
 												B_QUIT_ON_WINDOW_CLOSE |
 												B_AUTO_UPDATE_SIZE_LIMITS)
 	, fMenuBar(nullptr)
