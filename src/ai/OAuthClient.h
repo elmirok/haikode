@@ -44,6 +44,9 @@ public:
 		std::string& error);
 	static bool ExtractAuthorizationCode(const std::string& pastedValue,
 		std::string& code, std::string& error);
+	static bool ExtractAuthorizationCode(const std::string& pastedValue,
+		const std::string& expectedState, std::string& code,
+		std::string& error);
 
 	bool ExchangeCode(const OAuthSettings& settings, const std::string& code,
 		const std::string& verifier, OAuthTokenResponse& response,

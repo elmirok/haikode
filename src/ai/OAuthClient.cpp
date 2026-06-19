@@ -436,6 +436,14 @@ bool
 OAuthClient::ExtractAuthorizationCode(const std::string& pastedValue,
 	std::string& code, std::string& error)
 {
+	return ExtractAuthorizationCode(pastedValue, "", code, error);
+}
+
+
+bool
+OAuthClient::ExtractAuthorizationCode(const std::string& pastedValue,
+	const std::string& expectedState, std::string& code, std::string& error)
+{
 	code.clear();
 	error.clear();
 
@@ -453,6 +461,13 @@ OAuthClient::ExtractAuthorizationCode(const std::string& pastedValue,
 			&& !description.empty()) {
 			error += ": " + description;
 		}
+		return false;
+	}
+
+	std::string state;
+	if (!expectedState.empty() && FindQueryValue(value, "state", state)
+		&& state != expectedState) {
+		error = "OAuth callback state did not match the active login request.";
 		return false;
 	}
 

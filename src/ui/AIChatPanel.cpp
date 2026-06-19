@@ -108,6 +108,8 @@ const uint32 kMsgRecordPicked = 'hipr';
 const uint32 kMsgRecordOpen = 'hiro';
 const uint32 kMsgRecordCancel = 'hrcx';
 
+const char* kOAuthState = "haikode";
+
 const char*
 InitialAIStatusText()
 {
@@ -1653,7 +1655,7 @@ AIChatPanel::_StartOAuth()
 	gCFG["haikode_ai_auth_mode"] = "oauth";
 
 	const std::string authUrl = Haikode::AI::OAuthClient::BuildAuthUrl(
-		settings, verifier, "haikode");
+		settings, verifier, kOAuthState);
 
 #ifdef HAIKODE_AI_NETWORK
 	BMessenger callbackMessenger(this);
@@ -1705,7 +1707,7 @@ AIChatPanel::_ExchangeOAuthCode()
 	std::string code;
 	std::string codeError;
 	if (!Haikode::AI::OAuthClient::ExtractAuthorizationCode(fOAuthCode->Text(),
-			code, codeError)) {
+			kOAuthState, code, codeError)) {
 		_AppendOutput(codeError.c_str());
 		return;
 	}
