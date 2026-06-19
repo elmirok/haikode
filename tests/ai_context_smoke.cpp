@@ -45,6 +45,14 @@ main()
 	assert(limited.prompt.find("Project documentation") == std::string::npos);
 	assert(!limited.warnings.empty());
 
+	request.mode = Haikode::AI::PromptMode::ExplainSelection;
+	request.userPrompt = "";
+	const Haikode::AI::PromptBuildResult explanation
+		= builder.Build(request, 1024, 10);
+	assert(explanation.prompt.find("Explain the selected code or active file")
+		!= std::string::npos);
+	assert(explanation.prompt.find("int main()") != std::string::npos);
+
 	request.mode = Haikode::AI::PromptMode::SummarizeProject;
 	request.userPrompt = "";
 	const Haikode::AI::PromptBuildResult projectSummary

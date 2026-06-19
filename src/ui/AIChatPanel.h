@@ -89,6 +89,7 @@ private:
 	BButton* fStartOAuthButton;
 	BButton* fExchangeOAuthButton;
 	BButton* fAskButton;
+	BButton* fExplainButton;
 	BButton* fSummarizeButton;
 	BButton* fPatchButton;
 	BButton* fApplyFirstFileButton;

@@ -46,6 +46,8 @@ The Genio-based branch now adds:
   pasted authorization code for a bearer token.
 - OpenAI-compatible HTTP requests for active project, selected file, and
   selected text.
+- A native **Explain file** action that sends the active file or selection with
+  Haiku-specific explanation guidance.
 - Offline project-map context that summarizes source/docs/build files with
   language, role, risk, line count, and TODO markers before sending prompts.
 - The AI output log shows how many project-map entries were included and warns
