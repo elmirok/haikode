@@ -1125,6 +1125,7 @@ AIChatPanel::SetActiveContext(const BString& projectRoot, const BString& filePat
 	fSelection = selection;
 	fFileText = fileText;
 	fOpenFiles = openFiles;
+	_RefreshProjectFileIndexIfNeeded();
 }
 
 
@@ -1468,6 +1469,8 @@ AIChatPanel::_OpenProviderSettings()
 		fBaseUrl->Text(), fModel->Text(), fAuthMode->Text(), fApiKey->Text(),
 		fOAuthToken->Text(), fOAuthAuthUrl->Text(), fOAuthTokenUrl->Text(),
 		fOAuthClientId->Text(), fOAuthScope->Text(), fOAuthRedirectUri->Text());
+	if (Window() != nullptr)
+		window->AddToSubset(Window());
 	window->Show();
 	window->Activate(true);
 	_AppendOutput(B_TRANSLATE("Opened Haikode AI setup. Paste an API key or configure OAuth there; no Terminal export is required."));
@@ -2371,6 +2374,42 @@ AIChatPanel::_ClearPendingCommands()
 	if (fRejectCommandButton != nullptr)
 		fRejectCommandButton->SetEnabled(false);
 	_UpdatePendingActions();
+}
+
+
+void
+AIChatPanel::_RefreshProjectFileIndexIfNeeded()
+{
+	if (fProjectRoot.IsEmpty() || fProjectRoot == fIndexedProjectRoot)
+		return;
+
+	fIndexedProjectRoot = fProjectRoot;
+
+	Haikode::AI::ProjectFileIndex index;
+	std::string error;
+	if (!Haikode::AI::RefreshProjectFileIndex(fProjectRoot.String(), 500,
+			index, error)) {
+		BString line(B_TRANSLATE("Haikode project file index is empty: "));
+		line << error.c_str();
+		_AppendOutput(line.String());
+		_AppendOutput(B_TRANSLATE("Binary files, build folders, .git, .haikode, vendor, and oversized files are skipped."));
+		return;
+	}
+
+	if (fProjectFilePath != nullptr && !index.files.empty())
+		fProjectFilePath->SetText(index.files.front().path.c_str());
+
+	BString line(B_TRANSLATE("Haikode indexed project files: "));
+	line << std::to_string(index.files.size()).c_str();
+	if (index.candidateCount > index.files.size())
+		line << "/" << std::to_string(index.candidateCount).c_str();
+	line << B_TRANSLATE(" text/source file(s). First file: ");
+	line << index.files.front().path.c_str();
+	_AppendOutput(line.String());
+
+	BString memoryLine(B_TRANSLATE("Project memory saved: "));
+	memoryLine << index.memoryPath.c_str();
+	_AppendOutput(memoryLine.String());
 }
 
 

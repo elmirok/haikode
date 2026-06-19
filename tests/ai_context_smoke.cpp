@@ -308,6 +308,16 @@ main()
 		= builder.Build(mapLimitedRequest, 1024, 10);
 	assert(!mapLimitedPrompt.warnings.empty());
 	assert(mapLimitedPrompt.warnings[0].find("project-map") != std::string::npos);
+
+	Haikode::AI::ProjectFileIndex refreshedIndex;
+	assert(Haikode::AI::RefreshProjectFileIndex(root.string(), 500,
+		refreshedIndex, loadError));
+	assert(refreshedIndex.files.size() == 3);
+	assert(refreshedIndex.candidateCount == 3);
+	assert(refreshedIndex.memoryPath
+		== (canonicalRoot / ".haikode" / "project.json").string());
+	assert(refreshedIndex.files[0].path == "Makefile");
+	assert(refreshedIndex.files[2].path == "src/main.cpp");
 	fs::remove_all(root);
 
 	std::cout << "ai-context-smoke-ok\n";

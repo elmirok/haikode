@@ -93,6 +93,7 @@ private:
 	void _ListRecentProjectRecords();
 	void _ShowSelectedProjectRecord();
 	void _OpenSelectedProjectRecord();
+	void _RefreshProjectFileIndexIfNeeded();
 	void _UpdatePendingActions();
 	void _UpdateReadinessStatus();
 	void _SaveSessionRecord(const BString& responseText);
@@ -169,6 +170,7 @@ private:
 	std::vector<Haikode::AI::CommandRequest> fPendingCommands;
 
 	BString fProjectRoot;
+	BString fIndexedProjectRoot;
 	BString fFilePath;
 	BString fSelection;
 	BString fFileText;

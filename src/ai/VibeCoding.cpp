@@ -1465,6 +1465,33 @@ BuildProjectMap(const std::string& projectRoot, size_t maxFiles,
 
 
 bool
+RefreshProjectFileIndex(const std::string& projectRoot, size_t maxFiles,
+	ProjectFileIndex& index, std::string& error)
+{
+	index = ProjectFileIndex();
+	error.clear();
+
+	size_t candidateCount = 0;
+	index.files = BuildProjectMap(projectRoot, maxFiles, &candidateCount);
+	index.candidateCount = candidateCount;
+
+	if (projectRoot.empty()) {
+		error = "No active project root.";
+		return false;
+	}
+	if (index.files.empty()) {
+		error = "No text/source files found in active project.";
+		return false;
+	}
+	if (!SaveProjectMemory(projectRoot, index.files, index.candidateCount,
+			index.memoryPath, error)) {
+		return false;
+	}
+	return true;
+}
+
+
+bool
 SaveProjectMemory(const std::string& projectRoot,
 	const std::vector<ProjectFileSummary>& files, size_t candidateCount,
 	std::string& savedPath, std::string& error)

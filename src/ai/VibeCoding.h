@@ -33,6 +33,12 @@ struct ProjectFileSummary {
 	std::string summary;
 };
 
+struct ProjectFileIndex {
+	std::vector<ProjectFileSummary> files;
+	size_t candidateCount = 0;
+	std::string memoryPath;
+};
+
 struct ProjectMemory {
 	std::string defaultBuildCommand;
 	std::string defaultTestCommand;
@@ -121,6 +127,8 @@ bool ReadProjectRecord(const std::string& projectRoot,
 	std::string& error);
 std::vector<ProjectFileSummary> BuildProjectMap(const std::string& projectRoot,
 	size_t maxFiles, size_t* candidateCount = nullptr);
+bool RefreshProjectFileIndex(const std::string& projectRoot, size_t maxFiles,
+	ProjectFileIndex& index, std::string& error);
 bool SaveProjectMemory(const std::string& projectRoot,
 	const std::vector<ProjectFileSummary>& files, size_t candidateCount,
 	std::string& savedPath, std::string& error);
