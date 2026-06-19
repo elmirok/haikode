@@ -530,8 +530,23 @@ GenioApp::_PrepareConfig(ConfigManager& cfg)
 		B_TRANSLATE("Base URL:"), "https://api.openai.com");
 	cfg.AddConfig(ai.String(), "haikode_ai_model",
 		B_TRANSLATE("Model:"), "gpt-4.1-mini");
+	GMessage aiAuthModes = { {"mode", "options"},
+		{"note", B_TRANSLATE("Use api-key for OpenAI-compatible cloud providers, oauth for bearer-token OAuth bridges, and local for local OpenAI-compatible servers.")},
+		{"option_1", {
+			{"value", "api-key"},
+			{"label", "api-key" }}},
+		{"option_2", {
+			{"value", "oauth"},
+			{"label", "oauth" }}},
+		{"option_3", {
+			{"value", "local"},
+			{"label", "local" }}},
+		{"option_4", {
+			{"value", "none"},
+			{"label", "none" }}}
+	};
 	cfg.AddConfig(ai.String(), "haikode_ai_auth_mode",
-		B_TRANSLATE("Auth mode:"), "api-key");
+		B_TRANSLATE("Auth mode:"), "api-key", &aiAuthModes);
 	cfg.AddConfig(ai.String(), "haikode_ai_api_key",
 		B_TRANSLATE("API key:"), "");
 	cfg.AddConfig(ai.String(), "haikode_ai_oauth_token",

@@ -44,6 +44,39 @@ ProviderSettings::HasUsableCredentials() const
 }
 
 
+bool
+ProviderSettings::Validate(std::string& error) const
+{
+	error.clear();
+	if (baseUrl.empty()) {
+		error = "Provider base URL is required.";
+		return false;
+	}
+
+	if (model.empty()) {
+		error = "Provider model is required.";
+		return false;
+	}
+
+	if (authMode == AuthMode::ApiKey && apiKey.empty()) {
+		error = "API key auth selected, but no API key is configured.";
+		return false;
+	}
+
+	if (authMode == AuthMode::OAuth && oauthToken.empty()) {
+		error = "OAuth auth selected, but no OAuth bearer token is configured.";
+		return false;
+	}
+
+	if (authMode == AuthMode::None) {
+		error = "AI provider auth is disabled.";
+		return false;
+	}
+
+	return HasUsableCredentials();
+}
+
+
 std::string
 ProviderSettings::ChatCompletionsEndpoint() const
 {

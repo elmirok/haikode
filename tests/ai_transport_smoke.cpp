@@ -15,6 +15,8 @@ main()
 	Haikode::AI::ProviderSettings apiKeyProvider;
 	apiKeyProvider.model = "test-model";
 	apiKeyProvider.apiKey = "sk-test";
+	std::string validationError;
+	assert(apiKeyProvider.Validate(validationError));
 	Haikode::AI::ChatRequest request;
 	request.prompt = "Explain this file";
 
@@ -28,6 +30,7 @@ main()
 	Haikode::AI::ProviderSettings localProvider;
 	localProvider.baseUrl = "http://127.0.0.1:11434";
 	localProvider.authMode = Haikode::AI::AuthMode::Local;
+	assert(localProvider.Validate(validationError));
 	prepared = Haikode::AI::OpenAICompatibleClient::Prepare(localProvider, request);
 	assert(prepared.url == "http://127.0.0.1:11434/v1/chat/completions");
 	assert(prepared.authorizationHeader.empty());
@@ -35,8 +38,18 @@ main()
 	Haikode::AI::ProviderSettings oauthProvider;
 	oauthProvider.authMode = Haikode::AI::AuthMode::OAuth;
 	oauthProvider.oauthToken = "oauth-token";
+	assert(oauthProvider.Validate(validationError));
 	prepared = Haikode::AI::OpenAICompatibleClient::Prepare(oauthProvider, request);
 	assert(prepared.authorizationHeader == "Authorization: Bearer oauth-token");
+
+	Haikode::AI::ProviderSettings missingApiKey;
+	assert(!missingApiKey.Validate(validationError));
+	assert(validationError.find("API key") != std::string::npos);
+
+	Haikode::AI::ProviderSettings missingOAuth;
+	missingOAuth.authMode = Haikode::AI::AuthMode::OAuth;
+	assert(!missingOAuth.Validate(validationError));
+	assert(validationError.find("OAuth") != std::string::npos);
 
 	const std::string response =
 		"{\"choices\":[{\"message\":{\"content\":\"Hello from model\"}}]}";

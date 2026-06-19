@@ -26,6 +26,7 @@ struct ProviderSettings {
 	bool IsCloudProvider() const;
 	bool IsLocalProvider() const;
 	bool HasUsableCredentials() const;
+	bool Validate(std::string& error) const;
 	std::string ChatCompletionsEndpoint() const;
 };
 

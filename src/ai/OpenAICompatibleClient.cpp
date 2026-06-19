@@ -191,8 +191,7 @@ OpenAICompatibleClient::Send(const ProviderSettings& provider,
 	response = ChatResponse();
 	error.clear();
 
-	if (!provider.HasUsableCredentials()) {
-		error = "Provider is missing credentials or local endpoint.";
+	if (!provider.Validate(error)) {
 		return false;
 	}
 

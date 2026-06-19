@@ -289,14 +289,10 @@ AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 
 	_AppendOutput("");
 
-	if (!provider.HasUsableCredentials()) {
-		if (provider.authMode == Haikode::AI::AuthMode::ApiKey) {
-			_AppendOutput(B_TRANSLATE("Paste your OpenAI-compatible API key into the API key field or click AI Setup. Haikode stores it in the app settings, so no Terminal export is required."));
-		} else if (provider.authMode == Haikode::AI::AuthMode::OAuth) {
-			_AppendOutput(B_TRANSLATE("Paste an OAuth bearer token into the OAuth token field or click AI Setup."));
-		} else {
-			_AppendOutput(B_TRANSLATE("Choose api-key, oauth, or local auth and fill the matching provider field."));
-		}
+	std::string validationError;
+	if (!provider.Validate(validationError)) {
+		_AppendOutput(validationError.c_str());
+		_AppendOutput(B_TRANSLATE("Click AI Setup to configure the provider inside Haikode. No Terminal export is required."));
 		return;
 	}
 
