@@ -837,7 +837,13 @@ AIChatPanel::_ExchangeOAuthCode()
 
 	_SaveProviderToConfig();
 	Haikode::AI::OAuthSettings settings = _OAuthSettingsFromFields();
-	const std::string code = fOAuthCode->Text();
+	std::string code;
+	std::string codeError;
+	if (!Haikode::AI::OAuthClient::ExtractAuthorizationCode(fOAuthCode->Text(),
+			code, codeError)) {
+		_AppendOutput(codeError.c_str());
+		return;
+	}
 	const std::string verifier = BString(gCFG["haikode_ai_oauth_verifier"]).String();
 
 	fRequestRunning = true;

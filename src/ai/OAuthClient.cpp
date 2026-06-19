@@ -44,6 +44,74 @@ UrlEncode(const std::string& value)
 }
 
 
+int
+HexValue(char c)
+{
+	if (c >= '0' && c <= '9')
+		return c - '0';
+	if (c >= 'a' && c <= 'f')
+		return 10 + c - 'a';
+	if (c >= 'A' && c <= 'F')
+		return 10 + c - 'A';
+	return -1;
+}
+
+
+std::string
+UrlDecode(const std::string& value)
+{
+	std::ostringstream out;
+	for (size_t i = 0; i < value.size(); i++) {
+		if (value[i] == '+') {
+			out << ' ';
+			continue;
+		}
+		if (value[i] == '%' && i + 2 < value.size()) {
+			const int high = HexValue(value[i + 1]);
+			const int low = HexValue(value[i + 2]);
+			if (high >= 0 && low >= 0) {
+				out << static_cast<char>((high << 4) | low);
+				i += 2;
+				continue;
+			}
+		}
+		out << value[i];
+	}
+	return out.str();
+}
+
+
+bool
+FindQueryValue(const std::string& input, const std::string& key,
+	std::string& value)
+{
+	size_t start = input.find('?');
+	if (start == std::string::npos)
+		start = input.find('#');
+	if (start == std::string::npos)
+		return false;
+	start++;
+
+	while (start <= input.size()) {
+		const size_t end = input.find_first_of("&#", start);
+		const std::string pair = input.substr(start,
+			end == std::string::npos ? std::string::npos : end - start);
+		const size_t equals = pair.find('=');
+		const std::string name = UrlDecode(
+			equals == std::string::npos ? pair : pair.substr(0, equals));
+		if (name == key) {
+			value = UrlDecode(equals == std::string::npos ? ""
+				: pair.substr(equals + 1));
+			return true;
+		}
+		if (end == std::string::npos || input[end] == '#')
+			break;
+		start = end + 1;
+	}
+	return false;
+}
+
+
 std::string
 Base64UrlEncode(const unsigned char* data, size_t length)
 {
@@ -264,6 +332,42 @@ OAuthClient::ExtractAccessToken(const std::string& body, std::string& token,
 
 	error = "OAuth token response did not include access_token.";
 	return false;
+}
+
+
+bool
+OAuthClient::ExtractAuthorizationCode(const std::string& pastedValue,
+	std::string& code, std::string& error)
+{
+	code.clear();
+	error.clear();
+
+	const std::string value = pastedValue;
+	if (value.empty()) {
+		error = "OAuth authorization code is required.";
+		return false;
+	}
+
+	std::string providerError;
+	if (FindQueryValue(value, "error", providerError)) {
+		error = providerError;
+		std::string description;
+		if (FindQueryValue(value, "error_description", description)
+			&& !description.empty()) {
+			error += ": " + description;
+		}
+		return false;
+	}
+
+	if (FindQueryValue(value, "code", code)) {
+		if (!code.empty())
+			return true;
+		error = "OAuth callback did not include an authorization code.";
+		return false;
+	}
+
+	code = value;
+	return true;
 }
 
 

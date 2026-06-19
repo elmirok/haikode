@@ -43,7 +43,7 @@ The Genio-based branch now adds:
   generic OAuth 2.0 settings.
 - Native provider preset buttons for OpenAI, Ollama, and LM Studio.
 - A PKCE OAuth helper that can open a provider authorization URL and exchange a
-  pasted authorization code for a bearer token.
+  pasted authorization code or full callback URL for a bearer token.
 - OpenAI-compatible HTTP requests for active project, selected file, and
   selected text.
 - A native **Explain file** action that sends the active file or selection with

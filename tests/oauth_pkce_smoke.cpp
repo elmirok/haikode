@@ -60,6 +60,20 @@ main()
 		token, error));
 	assert(error.find("invalid_grant") != std::string::npos);
 
+	std::string code;
+	assert(Haikode::AI::OAuthClient::ExtractAuthorizationCode(
+		"http://127.0.0.1:8765/callback?state=haikode&code=code%20value",
+		code, error));
+	assert(code == "code value");
+	assert(Haikode::AI::OAuthClient::ExtractAuthorizationCode(
+		"plain-code", code, error));
+	assert(code == "plain-code");
+	assert(!Haikode::AI::OAuthClient::ExtractAuthorizationCode(
+		"http://127.0.0.1:8765/callback?error=access_denied"
+		"&error_description=Not%20allowed",
+		code, error));
+	assert(error.find("access_denied") != std::string::npos);
+
 	std::cout << "oauth-pkce-smoke-ok\n";
 	return 0;
 }

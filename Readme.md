@@ -132,8 +132,9 @@ For local OpenAI-compatible servers such as Ollama or LM Studio, set:
 For providers that expose generic OAuth 2.0 Authorization Code + PKCE, open
 **AI Setup**, choose **OAuth**, set the OAuth auth URL, token URL, client ID,
 scope, and redirect URI, then use **Start OAuth**. After the browser returns an
-authorization code, paste it into **OAuth code** and click **Exchange code**.
-Haikode stores the resulting bearer token in its app settings.
+authorization code, paste either the code or the full callback URL into
+**OAuth code** and click **Exchange code**. Haikode stores the resulting bearer
+token in its app settings.
 
 If you would like to try a clang++ build:
 
