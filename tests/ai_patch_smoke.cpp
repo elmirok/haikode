@@ -244,6 +244,35 @@ main()
 	assert(!genioSettingsPatch.Apply(root.string(), result, error));
 	assert(error.find("sensitive project metadata") != std::string::npos);
 
+	const std::string sensitiveOldPathDiff =
+		"diff --git a/.genio b/src/copied.cpp\n"
+		"--- a/.genio\n"
+		"+++ b/src/copied.cpp\n"
+		"@@ -1 +1 @@\n"
+		"-old\n"
+		"+new\n";
+	Haikode::AI::UnifiedDiff sensitiveOldPathPatch;
+	assert(Haikode::AI::UnifiedDiff::Parse(sensitiveOldPathDiff,
+		sensitiveOldPathPatch, error));
+	assert(!sensitiveOldPathPatch.Apply(root.string(), result, error));
+	assert(error.find("sensitive project metadata") != std::string::npos);
+	assert(!sensitiveOldPathPatch.ApplyHunk(root.string(), "src/copied.cpp", 0,
+		result, error));
+	assert(error.find("sensitive project metadata") != std::string::npos);
+
+	const std::string unsafeOldPathDiff =
+		"diff --git a/../secret.cpp b/src/safe.cpp\n"
+		"--- a/../secret.cpp\n"
+		"+++ b/src/safe.cpp\n"
+		"@@ -1 +1 @@\n"
+		"-old\n"
+		"+new\n";
+	Haikode::AI::UnifiedDiff unsafeOldPathPatch;
+	assert(Haikode::AI::UnifiedDiff::Parse(unsafeOldPathDiff,
+		unsafeOldPathPatch, error));
+	assert(!unsafeOldPathPatch.Apply(root.string(), result, error));
+	assert(error.find("Unsafe") != std::string::npos);
+
 	fs::remove_all(root);
 	std::cout << "ai-patch-smoke-ok\n";
 	return 0;

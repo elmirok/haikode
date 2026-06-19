@@ -82,6 +82,23 @@ IsSensitivePatchPath(const std::string& path)
 }
 
 bool
+ValidatePatchPath(const std::string& path, bool allowDevNull, std::string& error)
+{
+	if (allowDevNull && path == "/dev/null")
+		return true;
+
+	if (!IsSafeRelativePath(path)) {
+		error = "Unsafe patch path: " + path;
+		return false;
+	}
+	if (IsSensitivePatchPath(path)) {
+		error = "Refusing to patch sensitive project metadata: " + path;
+		return false;
+	}
+	return true;
+}
+
+bool
 IsInsideDirectory(const fs::path& child, const fs::path& parent)
 {
 	const fs::path relative = fs::relative(child, parent);
@@ -580,19 +597,14 @@ UnifiedDiff::Apply(const std::string& projectRoot, PatchApplyResult& result,
 		const fs::path backupRoot = root / ".haikode" / "backups" / Timestamp();
 
 		for (const PatchFile& file : fFiles) {
-			if (!IsSafeRelativePath(file.newPath)) {
-				error = "Unsafe patch path: " + file.newPath;
+			if (!ValidatePatchPath(file.oldPath, true, error))
 				return false;
-			}
-			if (IsSensitivePatchPath(file.newPath)) {
-				error = "Refusing to patch sensitive project metadata: "
-					+ file.newPath;
-				return false;
-			}
 			if (file.newPath == "/dev/null") {
 				error = "File deletion patches are not enabled yet.";
 				return false;
 			}
+			if (!ValidatePatchPath(file.newPath, false, error))
+				return false;
 		}
 
 		for (const PatchFile& file : fFiles) {
@@ -694,10 +706,14 @@ UnifiedDiff::ApplyHunk(const std::string& projectRoot, const std::string& path,
 			error = "Patch hunk index is outside the selected file.";
 			return false;
 		}
+		if (!ValidatePatchPath(patchFile->oldPath, true, error))
+			return false;
 		if (patchFile->newPath == "/dev/null") {
 			error = "File deletion patches are not enabled yet.";
 			return false;
 		}
+		if (!ValidatePatchPath(patchFile->newPath, false, error))
+			return false;
 		if (patchFile->oldPath == "/dev/null" && patchFile->hunks.size() > 1) {
 			error = "Apply the whole selected file to create a multi-hunk new file.";
 			return false;
