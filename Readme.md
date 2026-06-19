@@ -216,6 +216,9 @@ If the model wraps the diff in a fenced `diff` or `patch` code block, Haikode
 saves only the diff body, not the prose after the fence.
 If the model returns whole-response JSON with a `unified_diff`, `diff`, or
 `patch` string field, Haikode routes that diff into the same review/apply flow.
+Fenced `haikode-edit` JSON with `path`, `original_sha256`, and `replacement`
+is also accepted for single-file replacements after Haikode verifies the
+current file hash, then converted into the same reviewable diff path.
 
 AI patches cannot modify sensitive project metadata such as `.git/`,
 `.haikode/`, `.genio`, or Haikode/Genio settings files.

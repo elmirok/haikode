@@ -234,6 +234,34 @@ main()
 	assert(fencedJsonRawDiff.find("```") == std::string::npos);
 	assert(fencedJsonRawDiff.find("\\n") == std::string::npos);
 
+	WriteFile(root / "src" / "main.cpp", "one\nold\nthree\n");
+	const std::string fencedEditResponse =
+		"```haikode-edit\n"
+		"{\"path\":\"src/main.cpp\","
+		"\"summary\":\"Replace old with new\","
+		"\"original_sha256\":\"e42fb723abee933e7010cd1265f4edc0c9bf3a1d8c5c1693fb86c4a244ceb896\","
+		"\"replacement\":\"one\\nnew\\nthree\\n\"}\n"
+		"```\n";
+	Haikode::AI::UnifiedDiff editPatch;
+	std::string editRawDiff;
+	assert(Haikode::AI::UnifiedDiff::ExtractEditProposalFromText(
+		fencedEditResponse, root.string(), editPatch, editRawDiff, error));
+	assert(editPatch.ChangedPaths().size() == 1);
+	assert(editPatch.ChangedPaths()[0] == "src/main.cpp");
+	assert(editRawDiff.find("--- a/src/main.cpp") != std::string::npos);
+	assert(editRawDiff.find("-old") != std::string::npos);
+	assert(editRawDiff.find("+new") != std::string::npos);
+	assert(editPatch.Apply(root.string(), result, error));
+	assert(ReadFile(root / "src" / "main.cpp") == "one\nnew\nthree\n");
+
+	Haikode::AI::UnifiedDiff staleEditPatch;
+	std::string staleRawDiff;
+	assert(!Haikode::AI::UnifiedDiff::ExtractEditProposalFromText(
+		fencedEditResponse, root.string(), staleEditPatch, staleRawDiff,
+		error));
+	assert(error.find("stale") != std::string::npos);
+	WriteFile(root / "src" / "main.cpp", "one\nold\nthree\n");
+
 	WriteFile(root / "src" / "main.cpp", "one\nold\nthree\nkeep\nlast\n");
 	const std::string hunkDiff =
 		"diff --git a/src/main.cpp b/src/main.cpp\n"

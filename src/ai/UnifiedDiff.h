@@ -63,6 +63,9 @@ public:
 		std::string& error);
 	static bool ExtractFromText(const std::string& text, UnifiedDiff& diff,
 		std::string& rawDiff, std::string& error);
+	static bool ExtractEditProposalFromText(const std::string& text,
+		const std::string& projectRoot, UnifiedDiff& diff,
+		std::string& rawDiff, std::string& error);
 	static bool SavePatchText(const std::string& projectRoot,
 		const std::string& rawDiff, std::string& savedPath, std::string& error);
 

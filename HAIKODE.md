@@ -79,6 +79,9 @@ The Genio-based branch now adds:
   model commentary after the code fence is not saved into patch audit files.
 - Whole-response JSON patch objects with `unified_diff`, `diff`, or `patch`
   string fields are accepted and routed into the same review/apply flow.
+- Fenced `haikode-edit` JSON with `path`, `original_sha256`, and `replacement`
+  is accepted for hash-checked single-file replacements, then converted into
+  the same reviewable diff path.
 - Explicit AI command request parsing with separate **Run command** and
   **Reject command** approval buttons.
 - Generic fenced JSON blocks with both `summary` and `argv` are also surfaced

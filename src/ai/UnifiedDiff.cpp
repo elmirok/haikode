@@ -6,14 +6,17 @@
 #include "UnifiedDiff.h"
 
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <cctype>
 #include <chrono>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <exception>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
 #include <iterator>
 #include <sstream>
 
@@ -36,6 +39,113 @@ SplitLines(const std::string& text)
 	}
 	return lines;
 }
+
+uint32_t
+RotateRight(uint32_t value, uint32_t bits)
+{
+	return (value >> bits) | (value << (32 - bits));
+}
+
+
+std::string
+Sha256Hex(const std::string& text)
+{
+	static const std::array<uint32_t, 64> k = {
+		0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
+		0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+		0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
+		0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+		0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc,
+		0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+		0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7,
+		0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+		0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13,
+		0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+		0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3,
+		0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+		0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5,
+		0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+		0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
+		0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+	};
+
+	std::vector<uint8_t> bytes(text.begin(), text.end());
+	const uint64_t bitLength = static_cast<uint64_t>(bytes.size()) * 8;
+	bytes.push_back(0x80);
+	while ((bytes.size() % 64) != 56)
+		bytes.push_back(0);
+	for (int shift = 56; shift >= 0; shift -= 8)
+		bytes.push_back(static_cast<uint8_t>((bitLength >> shift) & 0xff));
+
+	uint32_t h0 = 0x6a09e667;
+	uint32_t h1 = 0xbb67ae85;
+	uint32_t h2 = 0x3c6ef372;
+	uint32_t h3 = 0xa54ff53a;
+	uint32_t h4 = 0x510e527f;
+	uint32_t h5 = 0x9b05688c;
+	uint32_t h6 = 0x1f83d9ab;
+	uint32_t h7 = 0x5be0cd19;
+
+	for (size_t chunk = 0; chunk < bytes.size(); chunk += 64) {
+		std::array<uint32_t, 64> w {};
+		for (size_t i = 0; i < 16; i++) {
+			const size_t offset = chunk + i * 4;
+			w[i] = (static_cast<uint32_t>(bytes[offset]) << 24)
+				| (static_cast<uint32_t>(bytes[offset + 1]) << 16)
+				| (static_cast<uint32_t>(bytes[offset + 2]) << 8)
+				| static_cast<uint32_t>(bytes[offset + 3]);
+		}
+		for (size_t i = 16; i < 64; i++) {
+			const uint32_t s0 = RotateRight(w[i - 15], 7)
+				^ RotateRight(w[i - 15], 18) ^ (w[i - 15] >> 3);
+			const uint32_t s1 = RotateRight(w[i - 2], 17)
+				^ RotateRight(w[i - 2], 19) ^ (w[i - 2] >> 10);
+			w[i] = w[i - 16] + s0 + w[i - 7] + s1;
+		}
+
+		uint32_t a = h0;
+		uint32_t b = h1;
+		uint32_t c = h2;
+		uint32_t d = h3;
+		uint32_t e = h4;
+		uint32_t f = h5;
+		uint32_t g = h6;
+		uint32_t h = h7;
+		for (size_t i = 0; i < 64; i++) {
+			const uint32_t s1 = RotateRight(e, 6) ^ RotateRight(e, 11)
+				^ RotateRight(e, 25);
+			const uint32_t ch = (e & f) ^ ((~e) & g);
+			const uint32_t temp1 = h + s1 + ch + k[i] + w[i];
+			const uint32_t s0 = RotateRight(a, 2) ^ RotateRight(a, 13)
+				^ RotateRight(a, 22);
+			const uint32_t maj = (a & b) ^ (a & c) ^ (b & c);
+			const uint32_t temp2 = s0 + maj;
+			h = g;
+			g = f;
+			f = e;
+			e = d + temp1;
+			d = c;
+			c = b;
+			b = a;
+			a = temp1 + temp2;
+		}
+		h0 += a;
+		h1 += b;
+		h2 += c;
+		h3 += d;
+		h4 += e;
+		h5 += f;
+		h6 += g;
+		h7 += h;
+	}
+
+	std::ostringstream out;
+	out << std::hex << std::setfill('0');
+	for (uint32_t value : {h0, h1, h2, h3, h4, h5, h6, h7})
+		out << std::setw(8) << value;
+	return out.str();
+}
+
 
 std::string
 TrimPatchPath(std::string path)
@@ -187,6 +297,26 @@ ReadTextFile(const fs::path& path, std::vector<std::string>& lines,
 	lines = SplitLines(text);
 	return true;
 }
+
+
+bool
+ReadTextFileContents(const fs::path& path, std::string& text,
+	std::string& error)
+{
+	std::ifstream file(path, std::ios::binary);
+	if (!file) {
+		error = "Could not open file for edit proposal.";
+		return false;
+	}
+	text.assign(std::istreambuf_iterator<char>(file),
+		std::istreambuf_iterator<char>());
+	if (text.find('\0') != std::string::npos) {
+		error = "Refusing to edit binary file.";
+		return false;
+	}
+	return true;
+}
+
 
 bool
 WriteTextFile(const fs::path& path, const std::vector<std::string>& lines,
@@ -418,6 +548,23 @@ TrimTrailingWhitespace(std::string value)
 }
 
 
+std::string
+TrimWhitespace(std::string value)
+{
+	size_t start = 0;
+	while (start < value.size()
+		&& std::isspace(static_cast<unsigned char>(value[start]))) {
+		start++;
+	}
+	size_t end = value.size();
+	while (end > start
+		&& std::isspace(static_cast<unsigned char>(value[end - 1]))) {
+		end--;
+	}
+	return value.substr(start, end - start);
+}
+
+
 bool
 ReadJsonString(const std::string& text, size_t& pos, std::string& value)
 {
@@ -469,6 +616,73 @@ ExtractJsonStringField(const std::string& json, const std::string& key,
 		pos++;
 	}
 	return ReadJsonString(json, pos, value);
+}
+
+
+struct EditProposalJson {
+	std::string path;
+	std::string originalSha256;
+	std::string replacement;
+};
+
+
+bool
+ExtractEditProposalFields(const std::string& json, EditProposalJson& proposal)
+{
+	proposal = EditProposalJson();
+	return ExtractJsonStringField(json, "path", proposal.path)
+		&& ExtractJsonStringField(json, "original_sha256",
+			proposal.originalSha256)
+		&& ExtractJsonStringField(json, "replacement",
+			proposal.replacement);
+}
+
+
+bool
+ExtractEditProposalJsonBody(const std::string& text, std::string& json)
+{
+	const std::string trimmed = TrimWhitespace(text);
+	EditProposalJson ignored;
+	if (!trimmed.empty() && trimmed[0] == '{'
+		&& ExtractEditProposalFields(trimmed, ignored)) {
+		json = trimmed;
+		return true;
+	}
+
+	size_t search = 0;
+	while (search < text.size()) {
+		const size_t fenceStart = text.find("```", search);
+		if (fenceStart == std::string::npos)
+			return false;
+
+		const size_t infoStart = fenceStart + 3;
+		const size_t lineEnd = text.find('\n', infoStart);
+		if (lineEnd == std::string::npos)
+			return false;
+
+		std::string info = text.substr(infoStart, lineEnd - infoStart);
+		info.erase(std::remove_if(info.begin(), info.end(),
+			[](unsigned char c) { return std::isspace(c); }), info.end());
+		std::transform(info.begin(), info.end(), info.begin(),
+			[](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+		const size_t bodyStart = lineEnd + 1;
+		const size_t fenceEnd = text.find("```", bodyStart);
+		if (fenceEnd == std::string::npos)
+			return false;
+
+		const bool editLike = info == "haikode-edit" || info == "json";
+		if (editLike) {
+			const std::string body = TrimWhitespace(
+				text.substr(bodyStart, fenceEnd - bodyStart));
+			if (ExtractEditProposalFields(body, ignored)) {
+				json = body;
+				return true;
+			}
+		}
+		search = fenceEnd + 3;
+	}
+	return false;
 }
 
 
@@ -571,6 +785,28 @@ LooksLikeUnifiedDiff(const std::string& value)
 {
 	return value.find("--- ") != std::string::npos
 		|| value.find("diff --git ") != std::string::npos;
+}
+
+
+std::string
+BuildFullReplacementDiff(const std::string& path, const std::string& original,
+	const std::string& replacement)
+{
+	const std::vector<std::string> oldLines = SplitLines(original);
+	const std::vector<std::string> newLines = SplitLines(replacement);
+	std::ostringstream diff;
+	diff
+		<< "diff --git a/" << path << " b/" << path << "\n"
+		<< "--- a/" << path << "\n"
+		<< "+++ b/" << path << "\n"
+		<< "@@ -" << (oldLines.empty() ? 0 : 1) << ","
+		<< oldLines.size() << " +" << (newLines.empty() ? 0 : 1)
+		<< "," << newLines.size() << " @@\n";
+	for (const std::string& line : oldLines)
+		diff << "-" << line << "\n";
+	for (const std::string& line : newLines)
+		diff << "+" << line << "\n";
+	return diff.str();
 }
 
 
@@ -786,6 +1022,70 @@ UnifiedDiff::ExtractFromText(const std::string& text, UnifiedDiff& diff,
 
 	rawDiff = text.substr(start);
 	return Parse(rawDiff, diff, error);
+}
+
+
+bool
+UnifiedDiff::ExtractEditProposalFromText(const std::string& text,
+	const std::string& projectRoot, UnifiedDiff& diff, std::string& rawDiff,
+	std::string& error)
+{
+	diff.fFiles.clear();
+	rawDiff.clear();
+	error.clear();
+	try {
+		if (projectRoot.empty()) {
+			error = "No active project root.";
+			return false;
+		}
+
+		std::string json;
+		if (!ExtractEditProposalJsonBody(text, json)) {
+			error = "No haikode-edit proposal found.";
+			return false;
+		}
+
+		EditProposalJson proposal;
+		if (!ExtractEditProposalFields(json, proposal)) {
+			error = "haikode-edit proposal is missing required fields.";
+			return false;
+		}
+
+		const std::string path = TrimPatchPath(proposal.path);
+		if (!ValidatePatchPath(path, false, error))
+			return false;
+
+		const fs::path root = fs::weakly_canonical(projectRoot);
+		if (!RejectSymlinkPathComponents(root, path, error))
+			return false;
+
+		const fs::path target = fs::weakly_canonical(root / path);
+		if (!IsInsideDirectory(target, root)) {
+			error = "Unsafe patch path: " + path;
+			return false;
+		}
+
+		std::string original;
+		if (!ReadTextFileContents(target, original, error))
+			return false;
+		const std::string actualHash = Sha256Hex(original);
+		if (Lowercase(TrimWhitespace(proposal.originalSha256))
+			!= actualHash) {
+			error = "haikode-edit proposal is stale: original_sha256 does not match current file.";
+			return false;
+		}
+		if (proposal.replacement.find('\0') != std::string::npos) {
+			error = "haikode-edit replacement is binary.";
+			return false;
+		}
+
+		rawDiff = BuildFullReplacementDiff(path, original,
+			proposal.replacement);
+		return Parse(rawDiff, diff, error);
+	} catch (const std::exception& exception) {
+		error = exception.what();
+		return false;
+	}
 }
 
 

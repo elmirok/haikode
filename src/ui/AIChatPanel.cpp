@@ -1862,8 +1862,15 @@ AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 	std::string rawDiff;
 	std::string parseError;
 	Haikode::AI::UnifiedDiff diff;
-	if (Haikode::AI::UnifiedDiff::ExtractFromText(text.String(), diff, rawDiff,
-			parseError)) {
+	bool foundPatch = Haikode::AI::UnifiedDiff::ExtractFromText(text.String(),
+		diff, rawDiff, parseError);
+	if (!foundPatch && !fProjectRoot.IsEmpty()) {
+		foundPatch = Haikode::AI::UnifiedDiff::ExtractEditProposalFromText(
+			text.String(), fProjectRoot.String(), diff, rawDiff, parseError);
+		if (foundPatch)
+			_AppendOutput(B_TRANSLATE("haikode-edit proposal verified and converted to a reviewable patch."));
+	}
+	if (foundPatch) {
 		fPendingDiff = diff;
 		fPendingRawDiff = rawDiff.c_str();
 		fSavedPendingPatchPath = "";
