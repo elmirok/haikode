@@ -45,6 +45,19 @@ main()
 	assert(Haikode::AI::CommandDisplayString(spaced)
 		== "python3 'script with spaces.py' 'it'\\''s ok'");
 
+	Haikode::AI::PendingActionSummary summary;
+	assert(Haikode::AI::FormatPendingActions(summary)
+		== "No pending AI actions.");
+	summary.changedPaths = {"src/main.cpp", "src/ui/AIChatPanel.cpp"};
+	summary.hunkCount = 3;
+	summary.commands = commands;
+	const std::string pendingText = Haikode::AI::FormatPendingActions(summary);
+	assert(pendingText.find("Patch: 2 file(s), 3 hunk(s)")
+		!= std::string::npos);
+	assert(pendingText.find("src/ui/AIChatPanel.cpp") != std::string::npos);
+	assert(pendingText.find("Commands: 1 pending") != std::string::npos);
+	assert(pendingText.find("Run unit tests: make test") != std::string::npos);
+
 	const fs::path root = fs::temp_directory_path() / "haikode-command-smoke";
 	fs::remove_all(root);
 	fs::create_directories(root);

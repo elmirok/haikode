@@ -77,6 +77,7 @@ AIChatPanel::AIChatPanel(PanelTabManager* panelTabManager, tab_id id)
 	fOAuthRedirectUri(nullptr),
 	fOAuthCode(nullptr),
 	fPrompt(nullptr),
+	fPendingActions(nullptr),
 	fOutput(nullptr),
 	fSaveProvider(nullptr),
 	fSetupButton(nullptr),
@@ -273,6 +274,14 @@ AIChatPanel::_BuildInterface()
 		B_TRANSLATE("Run command"), new BMessage(kMsgRunCommand));
 	fRunCommandButton->SetEnabled(false);
 
+	fPendingActions = new BTextView("haikode_ai_pending_actions");
+	fPendingActions->MakeEditable(false);
+	fPendingActions->SetText(B_TRANSLATE("No pending AI actions."));
+	BScrollView* pendingScroll = new BScrollView(
+		"haikode_ai_pending_actions_scroll", fPendingActions, B_FOLLOW_LEFT_RIGHT,
+		0, true, true);
+	pendingScroll->SetExplicitMinSize(BSize(B_SIZE_UNSET, 90));
+
 	fOutput = new BTextView("haikode_ai_output");
 	fOutput->MakeEditable(false);
 	fOutput->SetText(B_TRANSLATE("Configure a cloud or local OpenAI-compatible provider, then ask about the active project, file, or selection."));
@@ -323,6 +332,7 @@ AIChatPanel::_BuildInterface()
 			.Add(fRejectPatchButton)
 			.Add(fRunCommandButton)
 		.End()
+		.Add(pendingScroll)
 		.Add(outputScroll);
 }
 
@@ -550,6 +560,7 @@ AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 	fPendingDiff = Haikode::AI::UnifiedDiff();
 	fPendingRawDiff = "";
 	_ClearPendingCommands();
+	_UpdatePendingActions();
 
 	BMessenger messenger(this);
 	std::string prompt = result.prompt;
@@ -658,6 +669,7 @@ AIChatPanel::_FinishResponse(const BString& text, const BString& error,
 		line << parseError.c_str();
 		_AppendOutput(line.String());
 	}
+	_UpdatePendingActions();
 }
 
 
@@ -700,6 +712,7 @@ AIChatPanel::_RunPendingCommand()
 
 	fPendingCommands.erase(fPendingCommands.begin());
 	fRunCommandButton->SetEnabled(!fPendingCommands.empty());
+	_UpdatePendingActions();
 }
 
 
@@ -709,6 +722,23 @@ AIChatPanel::_ClearPendingCommands()
 	fPendingCommands.clear();
 	if (fRunCommandButton != nullptr)
 		fRunCommandButton->SetEnabled(false);
+	_UpdatePendingActions();
+}
+
+
+void
+AIChatPanel::_UpdatePendingActions()
+{
+	if (fPendingActions == nullptr)
+		return;
+
+	Haikode::AI::PendingActionSummary summary;
+	if (!fPendingDiff.IsEmpty()) {
+		summary.changedPaths = fPendingDiff.ChangedPaths();
+		summary.hunkCount = fPendingDiff.HunkCount();
+	}
+	summary.commands = fPendingCommands;
+	fPendingActions->SetText(Haikode::AI::FormatPendingActions(summary).c_str());
 }
 
 
@@ -776,6 +806,7 @@ AIChatPanel::_RejectPendingDiff()
 	fPendingRawDiff = "";
 	fApplyPatchButton->SetEnabled(false);
 	fRejectPatchButton->SetEnabled(false);
+	_UpdatePendingActions();
 }
 
 

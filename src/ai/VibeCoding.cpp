@@ -331,6 +331,37 @@ CommandDisplayString(const CommandRequest& command)
 }
 
 
+std::string
+FormatPendingActions(const PendingActionSummary& summary)
+{
+	std::ostringstream text;
+	if (summary.changedPaths.empty() && summary.commands.empty())
+		return "No pending AI actions.";
+
+	if (!summary.changedPaths.empty()) {
+		text << "Patch: " << summary.changedPaths.size() << " file(s), "
+			<< summary.hunkCount << " hunk(s)";
+		for (const std::string& path : summary.changedPaths)
+			text << "\n  " << path;
+	}
+
+	if (!summary.commands.empty()) {
+		if (text.tellp() > 0)
+			text << "\n";
+		text << "Commands: " << summary.commands.size() << " pending";
+		for (const CommandRequest& command : summary.commands) {
+			text << "\n  "
+				<< (command.summary.empty() ? "Command" : command.summary)
+				<< ": " << CommandDisplayString(command);
+			if (command.dangerous && !command.warning.empty())
+				text << "\n    Warning: " << command.warning;
+		}
+	}
+
+	return text.str();
+}
+
+
 bool
 SaveCommandRequests(const std::string& projectRoot,
 	const std::vector<CommandRequest>& commands, std::string& savedPath,

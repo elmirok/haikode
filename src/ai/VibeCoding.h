@@ -41,6 +41,12 @@ struct CommandRequest {
 	std::string warning;
 };
 
+struct PendingActionSummary {
+	std::vector<std::string> changedPaths;
+	size_t hunkCount = 0;
+	std::vector<CommandRequest> commands;
+};
+
 std::string SelectContextText(const std::string& selection,
 	const std::string& fullFileText);
 bool ExtractCommandRequests(const std::string& text,
@@ -49,6 +55,7 @@ bool SaveCommandRequests(const std::string& projectRoot,
 	const std::vector<CommandRequest>& commands, std::string& savedPath,
 	std::string& error);
 std::string CommandDisplayString(const CommandRequest& command);
+std::string FormatPendingActions(const PendingActionSummary& summary);
 
 class PromptBuilder {
 public:

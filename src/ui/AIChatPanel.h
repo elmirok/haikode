@@ -48,6 +48,7 @@ private:
 	void _RejectPendingDiff();
 	void _RunPendingCommand();
 	void _ClearPendingCommands();
+	void _UpdatePendingActions();
 	void _AppendOutput(const char* text);
 	Haikode::AI::ProviderSettings _ProviderFromFields() const;
 	Haikode::AI::OAuthSettings _OAuthSettingsFromFields() const;
@@ -69,6 +70,7 @@ private:
 	BTextControl* fOAuthRedirectUri;
 	BTextControl* fOAuthCode;
 	BTextControl* fPrompt;
+	BTextView* fPendingActions;
 	BTextView* fOutput;
 	BButton* fSaveProvider;
 	BButton* fSetupButton;
