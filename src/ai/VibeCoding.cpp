@@ -365,6 +365,36 @@ IsShellInterpreter(const std::string& executable)
 }
 
 
+std::string
+FenceLanguage(const std::string& fenceInfo)
+{
+	const std::string trimmed = Trim(fenceInfo);
+	const size_t space = trimmed.find_first_of(" \t");
+	if (space == std::string::npos)
+		return ToLower(trimmed);
+	return ToLower(trimmed.substr(0, space));
+}
+
+
+bool
+IsShellCommandFence(const std::string& fenceInfo)
+{
+	const std::string language = FenceLanguage(fenceInfo);
+	return language == "sh" || language == "shell" || language == "bash"
+		|| language == "zsh" || language == "ksh" || language == "console";
+}
+
+
+std::string
+NormalizeShellSuggestionLine(std::string line)
+{
+	line = Trim(line);
+	if (line.rfind("$ ", 0) == 0 || line.rfind("> ", 0) == 0)
+		line.erase(0, 2);
+	return Trim(line);
+}
+
+
 bool
 UsesShellCommandString(const CommandRequest& command)
 {
@@ -471,6 +501,26 @@ ClassifyCommand(CommandRequest& command)
 	}
 }
 
+
+void
+AppendShellCommandSuggestions(const std::string& body,
+	std::vector<CommandRequest>& commands)
+{
+	std::istringstream stream(body);
+	std::string line;
+	while (std::getline(stream, line)) {
+		line = NormalizeShellSuggestionLine(line);
+		if (line.empty() || line[0] == '#')
+			continue;
+
+		CommandRequest command;
+		command.summary = "Review shell command suggestion";
+		command.argv = {"sh", "-c", line};
+		ClassifyCommand(command);
+		commands.push_back(command);
+	}
+}
+
 } // namespace
 
 std::string
@@ -499,27 +549,28 @@ ExtractCommandRequests(const std::string& text,
 		}
 		const std::string fenceInfo = ToLower(Trim(text.substr(fence + 3,
 			bodyStart - fence - 3)));
-		if (fenceInfo != "haikode-command") {
-			pos = bodyStart + 1;
-			continue;
-		}
 		const size_t bodyEnd = text.find("```", bodyStart + 1);
 		if (bodyEnd == std::string::npos) {
-			error = "Command request fence is not closed.";
+			error = "Command suggestion fence is not closed.";
 			return false;
 		}
 
-		const std::string json = Trim(text.substr(bodyStart + 1,
-			bodyEnd - bodyStart - 1));
-		CommandRequest command;
-		ExtractJsonStringField(json, "summary", command.summary);
-		if (!ExtractJsonStringArrayField(json, "argv", command.argv)
-			|| command.argv.empty()) {
-			error = "Command request argv must be a non-empty JSON string array.";
-			return false;
+		const std::string body = text.substr(bodyStart + 1,
+			bodyEnd - bodyStart - 1);
+		if (fenceInfo == "haikode-command") {
+			const std::string json = Trim(body);
+			CommandRequest command;
+			ExtractJsonStringField(json, "summary", command.summary);
+			if (!ExtractJsonStringArrayField(json, "argv", command.argv)
+				|| command.argv.empty()) {
+				error = "Command request argv must be a non-empty JSON string array.";
+				return false;
+			}
+			ClassifyCommand(command);
+			commands.push_back(command);
+		} else if (IsShellCommandFence(fenceInfo)) {
+			AppendShellCommandSuggestions(body, commands);
 		}
-		ClassifyCommand(command);
-		commands.push_back(command);
 		pos = bodyEnd + 3;
 	}
 }

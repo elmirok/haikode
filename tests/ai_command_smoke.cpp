@@ -64,6 +64,28 @@ main()
 	assert(tolerantCommands[0].argv[0] == "ls");
 	assert(tolerantCommands[0].argv[1] == "-la");
 
+	const std::string shellFence =
+		"Try these commands:\n"
+		"```sh\n"
+		"$ make test\n"
+		"# optional follow-up\n"
+		"pkgman install curl_devel\n"
+		"```\n";
+	std::vector<Haikode::AI::CommandRequest> shellCommands;
+	assert(Haikode::AI::ExtractCommandRequests(shellFence, shellCommands,
+		error));
+	assert(shellCommands.size() == 2);
+	assert(shellCommands[0].summary == "Review shell command suggestion");
+	assert(shellCommands[0].argv.size() == 3);
+	assert(shellCommands[0].argv[0] == "sh");
+	assert(shellCommands[0].argv[1] == "-c");
+	assert(shellCommands[0].argv[2] == "make test");
+	assert(shellCommands[0].dangerous);
+	assert(!shellCommands[0].runnable);
+	assert(shellCommands[0].warning.find("shell interpreter")
+		!= std::string::npos);
+	assert(shellCommands[1].argv[2] == "pkgman install curl_devel");
+
 	Haikode::AI::CommandRequest spaced;
 	spaced.argv = {"python3", "script with spaces.py", "it's ok"};
 	assert(Haikode::AI::CommandDisplayString(spaced)
