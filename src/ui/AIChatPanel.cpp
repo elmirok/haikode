@@ -1188,7 +1188,7 @@ AIChatPanel::_BuildInterface()
 	fSaveProvider = new BButton("haikode_ai_save_provider",
 		B_TRANSLATE("Save provider"), new BMessage(kMsgSaveProvider));
 	fSetupButton = new BButton("haikode_ai_setup",
-		B_TRANSLATE("AI Setup"), new BMessage(MSG_HAIKODE_AI_SETUP));
+		B_TRANSLATE("AI Setup"), new BMessage(kMsgOpenSetup));
 	fOpenAIPresetButton = new BButton("haikode_ai_preset_openai",
 		B_TRANSLATE("OpenAI"), new BMessage(kMsgPresetOpenAI));
 	fOllamaPresetButton = new BButton("haikode_ai_preset_ollama",
@@ -1455,7 +1455,7 @@ void
 AIChatPanel::_OpenProviderSettings()
 {
 	status_t messengerStatus = B_OK;
-	BMessenger target(this, nullptr, &messengerStatus);
+	BMessenger target(this, Window(), &messengerStatus);
 	if (messengerStatus != B_OK) {
 		BString text(B_TRANSLATE("Haikode could not open AI Setup because the AI panel is not ready yet."));
 		text << "\n\n" << B_TRANSLATE("Open the Haikode AI panel, then click AI Setup again.");

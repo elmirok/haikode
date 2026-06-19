@@ -826,14 +826,13 @@ ProjectBrowser::ProjectFolderPopulate(ProjectFolder* project)
 		UnlockLooper();
 	}
 
-	// Scan off the opener thread, then replay the initial tree on the browser
-	// looper in one synchronous batch. Mutating BOutlineListView during the
-	// recursive scanner walk can leave the first project visually empty on some
-	// Haiku systems if the view attachment/locking state changes mid-open.
+	// Insert the initial tree directly while holding the UI looper for each
+	// mutation. The batched async path is still useful for live updates, but the
+	// first project open must be fully visible before GenioWindow sorts, expands,
+	// selects, and shows the project browser.
 	bigtime_t scanStartTime = system_time();
 	ProjectItem *projectItem = _ProjectFolderScan(project->EntryRef(), nullptr,
-		project, true);
-	_FlushItemBatch(project, true);
+		project, false);
 	bigtime_t scanEndTime = system_time();
 
 	ASSERT(projectItem != nullptr);

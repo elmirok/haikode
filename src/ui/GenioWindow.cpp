@@ -325,15 +325,8 @@ GenioWindow::MessageReceived(BMessage* message)
 		case MSG_HAIKODE_AI_SETUP:
 		{
 			_ShowHaikodeAI();
-			if (fAIChatPanel != nullptr) {
-				status_t messengerStatus = B_OK;
-				BMessenger panelMessenger(fAIChatPanel, nullptr,
-					&messengerStatus);
-				if (messengerStatus == B_OK)
-					panelMessenger.SendMessage(MSG_HAIKODE_AI_SETUP);
-				else
-					fAIChatPanel->OpenProviderSettings();
-			}
+			if (fAIChatPanel != nullptr)
+				fAIChatPanel->OpenProviderSettings();
 			break;
 		}
 		case MSG_HAIKODE_AI_PATCH_APPLIED:
