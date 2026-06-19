@@ -11,6 +11,7 @@
 #include <Catalog.h>
 #include <Layout.h>
 #include <LayoutBuilder.h>
+#include <Looper.h>
 #include <Message.h>
 #include <Messenger.h>
 #include <Roster.h>
@@ -392,6 +393,7 @@ AIChatPanel::MessageReceived(BMessage* message)
 			fOAuthRedirectUri->SetText(
 				message->GetString("oauth_redirect_uri", ""));
 			_SaveProviderToConfig();
+			_AppendOutput(B_TRANSLATE("AI provider settings saved inside Haikode."));
 			break;
 		case kMsgPresetOpenAI:
 			_ApplyProviderPreset(Haikode::AI::ProviderPreset::OpenAI);
@@ -730,8 +732,12 @@ AIChatPanel::_ApplyProviderPreset(Haikode::AI::ProviderPreset preset)
 void
 AIChatPanel::_OpenProviderSettings()
 {
+	BLooper* looper = Looper();
+	if (looper == nullptr && Window() != nullptr)
+		looper = Window();
+
 	status_t messengerStatus = B_OK;
-	BMessenger target(this, Looper(), &messengerStatus);
+	BMessenger target(this, looper, &messengerStatus);
 	if (messengerStatus != B_OK) {
 		BString text(B_TRANSLATE("Haikode could not open AI Setup because the AI panel is not ready yet."));
 		text << "\n\n" << B_TRANSLATE("Open the Haikode AI panel, then click AI Setup again.");
@@ -763,6 +769,7 @@ AIChatPanel::_TestProvider()
 	if (!provider.Validate(validationError)) {
 		_AppendOutput(validationError.c_str());
 		_AppendOutput(B_TRANSLATE("Click AI Setup to configure the provider inside Haikode. No Terminal export is required."));
+		_OpenProviderSettings();
 		return;
 	}
 
@@ -1006,6 +1013,7 @@ AIChatPanel::_SendPrompt(Haikode::AI::PromptMode mode)
 	if (!provider.Validate(validationError)) {
 		_AppendOutput(validationError.c_str());
 		_AppendOutput(B_TRANSLATE("Click AI Setup to configure the provider inside Haikode. No Terminal export is required."));
+		_OpenProviderSettings();
 		return;
 	}
 
