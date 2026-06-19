@@ -2288,7 +2288,10 @@ AIChatPanel::_ListProjectFiles()
 		= Haikode::AI::BuildProjectMap(fProjectRoot.String(), 500,
 			&candidateCount);
 	if (files.empty()) {
-		_AppendOutput(B_TRANSLATE("No text/source files found in the active project. Binary files, build folders, .git, and .haikode are skipped."));
+		BString line(B_TRANSLATE("No text/source files found in active project: "));
+		line << fProjectRoot;
+		_AppendOutput(line.String());
+		_AppendOutput(B_TRANSLATE("Binary files, build folders, .git, .haikode, vendor, and oversized files are skipped."));
 		return;
 	}
 
@@ -2296,7 +2299,9 @@ AIChatPanel::_ListProjectFiles()
 	line << std::to_string(files.size()).c_str();
 	if (candidateCount > files.size())
 		line << "/" << std::to_string(candidateCount).c_str();
-	line << B_TRANSLATE(" text/source file(s).");
+	line << B_TRANSLATE(" text/source file(s) from ");
+	line << fProjectRoot;
+	line << ".";
 	_AppendOutput(line.String());
 	if (fProjectFilePath != nullptr)
 		fProjectFilePath->SetText(files.front().path.c_str());

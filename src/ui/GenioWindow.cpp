@@ -3597,6 +3597,8 @@ GenioWindow::_ProjectFolderActivate(ProjectFolder *project)
 	BString tooltip;
 	tooltip << "cwd: " << project->Path();
 	fRunConsoleProgramText->SetToolTip(tooltip);
+
+	_UpdateHaikodeAIContext();
 }
 
 
@@ -3871,6 +3873,8 @@ GenioWindow::_ProjectFolderClose(ProjectFolder *project)
 	// Disable "Close project" action if no project
 	if (GetProjectBrowser()->CountProjects() == 0)
 		ActionManager::SetEnabled(MSG_PROJECT_CLOSE, false);
+
+	_UpdateHaikodeAIContext();
 
 	BString notification;
 	notification << closed << " " << name;

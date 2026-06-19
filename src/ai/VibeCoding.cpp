@@ -836,16 +836,32 @@ BuildProjectMap(const std::string& projectRoot, size_t maxFiles,
 			return files;
 
 		std::vector<fs::path> paths;
-		for (fs::recursive_directory_iterator it(root), end; it != end; ++it) {
-			const fs::path relative = fs::relative(it->path(), root);
-			if (ShouldSkipRelativePath(relative)) {
-				if (it->is_directory())
-					it.disable_recursion_pending();
+		std::error_code error;
+		fs::recursive_directory_iterator it(root,
+			fs::directory_options::skip_permission_denied, error);
+		const fs::recursive_directory_iterator end;
+		while (it != end) {
+			error.clear();
+			const fs::path relative = fs::relative(it->path(), root, error);
+			if (error) {
+				it.increment(error);
 				continue;
 			}
-			if (!it->is_regular_file())
+			if (ShouldSkipRelativePath(relative)) {
+				error.clear();
+				if (it->is_directory(error))
+					it.disable_recursion_pending();
+				it.increment(error);
 				continue;
+			}
+			error.clear();
+			const bool isRegular = it->is_regular_file(error);
+			if (error || !isRegular) {
+				it.increment(error);
+				continue;
+			}
 			paths.push_back(relative);
+			it.increment(error);
 		}
 		std::sort(paths.begin(), paths.end());
 
