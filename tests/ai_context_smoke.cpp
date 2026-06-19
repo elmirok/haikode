@@ -12,6 +12,13 @@
 
 namespace fs = std::filesystem;
 
+static void
+WriteFile(const fs::path& path, const std::string& text)
+{
+	std::ofstream file(path, std::ios::binary | std::ios::trunc);
+	file << text;
+}
+
 int
 main()
 {
@@ -121,6 +128,27 @@ main()
 	assert(map[1].language == "C++");
 	assert(map[1].hasTodo);
 	assert(map[1].summary.find("4 line(s)") != std::string::npos);
+	Haikode::AI::ContextFile selectedFile;
+	std::string loadError;
+	assert(Haikode::AI::LoadProjectContextFile(root.string(), "src/main.cpp",
+		1024, selectedFile, loadError));
+	assert(selectedFile.path == "src/main.cpp");
+	assert(selectedFile.text.find("TODO: wire app") != std::string::npos);
+	assert(!selectedFile.truncated);
+	assert(Haikode::AI::LoadProjectContextFile(root.string(), "src/main.cpp",
+		12, selectedFile, loadError));
+	assert(selectedFile.truncated);
+	assert(selectedFile.text.size() == 12);
+	WriteFile(root / "src" / "binary.dat", std::string("abc\0def", 7));
+	assert(!Haikode::AI::LoadProjectContextFile(root.string(), "src/binary.dat",
+		1024, selectedFile, loadError));
+	assert(loadError.find("binary") != std::string::npos);
+	assert(!Haikode::AI::LoadProjectContextFile(root.string(), "../outside.cpp",
+		1024, selectedFile, loadError));
+	assert(loadError.find("Unsafe") != std::string::npos);
+	assert(!Haikode::AI::LoadProjectContextFile(root.string(), ".git/config",
+		1024, selectedFile, loadError));
+	assert(loadError.find("ignored") != std::string::npos);
 	size_t totalProjectFiles = 0;
 	const std::vector<Haikode::AI::ProjectFileSummary> limitedMap
 		= Haikode::AI::BuildProjectMap(root.string(), 1, &totalProjectFiles);

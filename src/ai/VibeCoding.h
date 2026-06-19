@@ -107,6 +107,9 @@ bool ReadProjectRecord(const std::string& projectRoot,
 	std::string& error);
 std::vector<ProjectFileSummary> BuildProjectMap(const std::string& projectRoot,
 	size_t maxFiles, size_t* candidateCount = nullptr);
+bool LoadProjectContextFile(const std::string& projectRoot,
+	const std::string& relativePath, size_t maxBytes, ContextFile& file,
+	std::string& error);
 
 class PromptBuilder {
 public:

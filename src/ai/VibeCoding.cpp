@@ -68,6 +68,19 @@ IsInsideDirectory(const fs::path& child, const fs::path& parent)
 }
 
 
+bool
+IsSafeRelativePath(const fs::path& relativePath)
+{
+	if (relativePath.empty() || relativePath.is_absolute())
+		return false;
+	for (const fs::path& part : relativePath) {
+		if (part == "." || part == "..")
+			return false;
+	}
+	return true;
+}
+
+
 std::string
 Trim(const std::string& value)
 {
@@ -892,6 +905,96 @@ BuildProjectMap(const std::string& projectRoot, size_t maxFiles,
 		files.clear();
 	}
 	return files;
+}
+
+
+bool
+LoadProjectContextFile(const std::string& projectRoot,
+	const std::string& relativePath, size_t maxBytes, ContextFile& file,
+	std::string& error)
+{
+	file = ContextFile();
+	error.clear();
+	if (projectRoot.empty()) {
+		error = "No active project root.";
+		return false;
+	}
+	if (relativePath.empty()) {
+		error = "No project file path selected.";
+		return false;
+	}
+	if (maxBytes == 0) {
+		error = "Context file byte limit is zero.";
+		return false;
+	}
+
+	try {
+		const fs::path relative(relativePath);
+		if (!IsSafeRelativePath(relative)) {
+			error = "Unsafe project file path: " + relativePath;
+			return false;
+		}
+		if (ShouldSkipRelativePath(relative)) {
+			error = "Selected project file is ignored by Haikode: "
+				+ relativePath;
+			return false;
+		}
+
+		std::error_code fsError;
+		const fs::path root = fs::weakly_canonical(projectRoot, fsError);
+		if (fsError || !fs::is_directory(root, fsError)) {
+			error = "Active project root is not a directory.";
+			return false;
+		}
+
+		fsError.clear();
+		const fs::path target = fs::weakly_canonical(root / relative, fsError);
+		if (fsError) {
+			error = "Could not resolve selected project file: " + relativePath;
+			return false;
+		}
+		if (!IsInsideDirectory(target, root)) {
+			error = "Unsafe project file path: " + relativePath;
+			return false;
+		}
+		if (!fs::is_regular_file(target, fsError)) {
+			error = "Selected project path is not a regular file: "
+				+ relativePath;
+			return false;
+		}
+
+		fsError.clear();
+		const uintmax_t size = fs::file_size(target, fsError);
+		if (fsError) {
+			error = "Could not inspect selected project file: " + relativePath;
+			return false;
+		}
+
+		const size_t bytesToRead = static_cast<size_t>(
+			std::min<uintmax_t>(size, maxBytes));
+		std::ifstream stream(target, std::ios::binary);
+		if (!stream) {
+			error = "Could not open selected project file: " + relativePath;
+			return false;
+		}
+
+		std::string text(bytesToRead, '\0');
+		if (bytesToRead > 0)
+			stream.read(text.data(), static_cast<std::streamsize>(bytesToRead));
+		text.resize(static_cast<size_t>(stream.gcount()));
+		if (text.find('\0') != std::string::npos) {
+			error = "Refusing to load binary project file: " + relativePath;
+			return false;
+		}
+
+		file.path = relative.generic_string();
+		file.text = text;
+		file.truncated = size > maxBytes;
+		return true;
+	} catch (const std::exception& exception) {
+		error = exception.what();
+		return false;
+	}
 }
 
 
