@@ -43,6 +43,46 @@ LooksExecutable(const fs::path& path)
 }
 
 
+bool
+IsInsideDirectory(const fs::path& child, const fs::path& parent)
+{
+	const fs::path relative = fs::relative(child, parent);
+	for (const fs::path& part : relative) {
+		if (part == "..")
+			return false;
+	}
+	return !relative.empty();
+}
+
+
+bool
+ValidateOutputLastMessagePath(const std::string& projectRoot,
+	const std::string& outputPath, std::string& error)
+{
+	if (outputPath.empty())
+		return true;
+
+	std::error_code fsError;
+	const fs::path root = fs::weakly_canonical(projectRoot, fsError);
+	if (fsError || !fs::is_directory(root, fsError)) {
+		error = "Codex project root does not exist.";
+		return false;
+	}
+
+	fs::path target(outputPath);
+	if (target.is_relative())
+		target = root / target;
+	target = target.lexically_normal();
+
+	const fs::path haikodeRoot = (root / ".haikode").lexically_normal();
+	if (!IsInsideDirectory(target, haikodeRoot)) {
+		error = "Codex output-last-message must stay under .haikode.";
+		return false;
+	}
+	return true;
+}
+
+
 void
 AddCommonExecOptions(const CodexBridgeSettings& settings,
 	std::vector<std::string>& argv)
@@ -193,6 +233,10 @@ CodexBridge::BuildReadOnlyAskCommand(const CodexBridgeSettings& settings,
 	if (!fs::exists(settings.projectRoot, fsError)
 		|| !fs::is_directory(settings.projectRoot, fsError)) {
 		error = "Codex project root does not exist.";
+		return false;
+	}
+	if (!ValidateOutputLastMessagePath(settings.projectRoot,
+			settings.outputLastMessagePath, error)) {
 		return false;
 	}
 

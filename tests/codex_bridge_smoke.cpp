@@ -98,6 +98,25 @@ main()
 	assert(std::find(ask.argv.begin(), ask.argv.end(), "--local-provider")
 		!= ask.argv.end());
 
+	settings.useOss = false;
+	settings.localProvider = "";
+	settings.outputLastMessagePath = (root / "codex-last.txt").string();
+	assert(!Haikode::AI::CodexBridge::BuildReadOnlyAskCommand(settings,
+		"Explain", ask, error));
+	assert(error.find(".haikode") != std::string::npos);
+
+	settings.outputLastMessagePath = (root.parent_path() / "codex-last.txt")
+		.string();
+	assert(!Haikode::AI::CodexBridge::BuildReadOnlyAskCommand(settings,
+		"Explain", ask, error));
+	assert(error.find(".haikode") != std::string::npos);
+
+	settings.outputLastMessagePath = ".haikode/codex-last.txt";
+	assert(Haikode::AI::CodexBridge::BuildReadOnlyAskCommand(settings,
+		"Explain", ask, error));
+	assert(std::find(ask.argv.begin(), ask.argv.end(), "--output-last-message")
+		!= ask.argv.end());
+
 	settings.projectRoot = root / "missing";
 	assert(!Haikode::AI::CodexBridge::BuildReadOnlyAskCommand(settings,
 		"Explain", ask, error));
