@@ -1,10 +1,11 @@
 ## Genio - The Haiku IDE Makefile ##############################################
-HAIKODE_REQUIRED_PACKAGES := gcc_syslibs_devel cmd:clang libgit2_1.9_devel lexilla_devel yaml_cpp0.8_devel editorconfig_core_c_devel openssl3_devel lsp_framework curl_devel
+HAIKODE_REQUIRED_PACKAGES := haiku_devel gcc_syslibs_devel cmd:clang libgit2_1.9_devel lexilla_devel yaml_cpp0.8_devel editorconfig_core_c_devel openssl3_devel lsp_framework curl_devel
 HAIKODE_DOCTOR := scripts/haikode-doctor.sh
 HAIKODE_HELPER_GOALS := doctor install-deps deps-install print-deps
 HAIKODE_NON_HELPER_GOALS := $(filter-out $(HAIKODE_HELPER_GOALS),$(MAKECMDGOALS))
 
 .PHONY: doctor install-deps deps-install print-deps
+.DEFAULT_GOAL := default
 
 doctor:
 	HAIKODE_DOCTOR_PACKAGES='$(HAIKODE_REQUIRED_PACKAGES)' sh $(HAIKODE_DOCTOR)
@@ -113,7 +114,10 @@ deps:
 	$(MAKE) -C libs/scintilla/haiku
 	$(MAKE) -C libs/terminal -f Makefile.addon DEBUGGER=$(DEBUGGER)
 
-.PHONY: clean cleanall deps
+.PHONY: clean cleanall deps run
+
+run: default
+	open "$(TARGET_DIR)/$(NAME)"
 
 cleanall: clean
 	$(MAKE) clean -C libs/scintilla/haiku

@@ -104,7 +104,7 @@ make
 The direct package command is:
 
 ```bash
-pkgman install gcc_syslibs_devel cmd:clang libgit2_1.9_devel lexilla_devel yaml_cpp0.8_devel editorconfig_core_c_devel openssl3_devel lsp_framework curl_devel
+pkgman install haiku_devel gcc_syslibs_devel cmd:clang libgit2_1.9_devel lexilla_devel yaml_cpp0.8_devel editorconfig_core_c_devel openssl3_devel lsp_framework curl_devel
 ```
 
 For an offline build without AI HTTP transport, curl is not used by the binary,

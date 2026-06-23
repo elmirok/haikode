@@ -1,7 +1,7 @@
 #!/bin/sh
 set -u
 
-packages=${HAIKODE_DOCTOR_PACKAGES:-"gcc_syslibs_devel cmd:clang libgit2_1.9_devel lexilla_devel yaml_cpp0.8_devel editorconfig_core_c_devel openssl3_devel lsp_framework curl_devel"}
+packages=${HAIKODE_DOCTOR_PACKAGES:-"haiku_devel gcc_syslibs_devel cmd:clang libgit2_1.9_devel lexilla_devel yaml_cpp0.8_devel editorconfig_core_c_devel openssl3_devel lsp_framework curl_devel"}
 mode=${1:-check}
 
 say() {
@@ -22,7 +22,15 @@ pkg_installed() {
 			has_command "${1#cmd:}"
 			;;
 		*)
-			pkgman search -i "$1" 2>/dev/null | awk '{ print $1 }' | grep -Eq "^$1(-|$)"
+			for package_file in \
+				/system/packages/"$1"-*.hpkg \
+				/boot/system/packages/"$1"-*.hpkg \
+				/home/config/packages/"$1"-*.hpkg \
+				/boot/home/config/packages/"$1"-*.hpkg
+			do
+				[ -e "$package_file" ] && return 0
+			done
+			return 1
 			;;
 	esac
 }
@@ -77,7 +85,7 @@ done
 say
 say "Tool status:"
 missing_tools=0
-for tool in make g++ getarch findpaths rescomp; do
+for tool in make g++ getarch findpaths rc; do
 	if has_command "$tool"; then
 		status_line "$tool" "ok" "$(command -v "$tool")"
 	else

@@ -824,7 +824,7 @@ ExtractJsonDiffBody(const std::string& text, std::string& rawDiff)
 
 	std::vector<std::string> diffs;
 	for (const std::string& object : patchObjects) {
-		for (const std::string& key : {"unified_diff", "diff", "patch"}) {
+		for (const char* key : {"unified_diff", "diff", "patch"}) {
 			std::string value;
 			if (ExtractJsonStringField(object, key, value)
 				&& LooksLikeUnifiedDiff(value)) {
@@ -844,7 +844,7 @@ ExtractJsonDiffBody(const std::string& text, std::string& rawDiff)
 		return true;
 	}
 
-	for (const std::string& key : {"unified_diff", "diff", "patch"}) {
+	for (const char* key : {"unified_diff", "diff", "patch"}) {
 		std::string value;
 		if (ExtractJsonStringField(trimmed, key, value)
 			&& LooksLikeUnifiedDiff(value)) {
